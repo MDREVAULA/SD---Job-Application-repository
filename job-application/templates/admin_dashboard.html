@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+
+<h3>Pending Recruiter Verification</h3>
+<ul>
+    {% for rec in pending_recruiters %}
+    <li>
+        {{ rec.username }} - {{ rec.email }}
+        <a href="{{ url_for('admin.verify', user_id=rec.id) }}">Verify</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

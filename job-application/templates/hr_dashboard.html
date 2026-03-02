@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>HR Dashboard</h2>
+
+<h3>Assigned Applications</h3>
+<div class="applications-list">
+    {% for app in applications %}
+    <div class="app-card">
+        <p>Applicant: {{ app.applicant.username }}</p>
+        <p>Job: {{ app.job.title }}</p>
+        <p>Status: {{ app.status }}</p>
+        <form method="POST" action="{{ url_for('hr.review', app_id=app.id) }}">
+            <label>Status:</label>
+            <select name="status">
+                <option value="Pending" {% if app.status=="Pending" %}selected{% endif %}>Pending</option>
+                <option value="Approved" {% if app.status=="Approved" %}selected{% endif %}>Approved</option>
+                <option value="Rejected" {% if app.status=="Rejected" %}selected{% endif %}>Rejected</option>
+            </select><br>
+            <label>Remarks:</label><br>
+            <textarea name="remarks">{{ app.remarks }}</textarea><br>
+            <button type="submit">Submit Review</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

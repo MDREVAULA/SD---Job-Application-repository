@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Applicant Dashboard</h2>
+
+<h3>Available Jobs</h3>
+<div class="jobs-list">
+    {% for job in jobs %}
+    <div class="job-card">
+        <h4>{{ job.title }}</h4>
+        <p>{{ job.description[:100] }}...</p>
+        {% set applied = applications|selectattr("job_id","equalto",job.id)|list %}
+        {% if applied %}
+            <button class="btn disabled" disabled>Already Applied</button>
+        {% else %}
+            <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">Apply</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<h3>My Applications</h3>
+<div class="applications-list">
+    {% for app in applications %}
+        <div class="app-card">
+            <p>Job: {{ app.job.title }}</p>
+            <p>Status: {{ app.status }}</p>
+            {% if app.remarks %}
+                <p>Remarks: {{ app.remarks }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+/* ===== Reset & Basic Styles ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+body {
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+/* ===== Navbar ===== */
+nav {
+    background-color: #007bff;
+    color: #fff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+nav .logo {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 15px;
+}
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* ===== Container ===== */
+.container {
+    padding: 20px;
+    max-width: 1100px;
+    margin: auto;
+}
+
+/* ===== Cards ===== */
+.job-card, .app-card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* ===== Buttons ===== */
+.btn {
+    background-color: #007bff;
+    color: white;
+    padding: 7px 15px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+.btn:hover {
+    background-color: #0056b3;
+}
+.btn.disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
+/* ===== Forms ===== */
+input[type="text"], input[type="email"], input[type="password"], textarea, select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* ===== Flash Messages ===== */
+.flash {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+.flash.success { background-color: #d4edda; color: #155724; }
+.flash.danger { background-color: #f8d7da; color: #721c24; }
+.flash.warning { background-color: #fff3cd; color: #856404; }
+.flash.info { background-color: #d1ecf1; color: #0c5460; }
