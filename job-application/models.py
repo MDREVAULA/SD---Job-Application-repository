@@ -3,6 +3,7 @@ from flask_login import UserMixin
 
 db = SQLAlchemy()
 
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -15,7 +16,28 @@ class User(db.Model, UserMixin):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     applications = db.relationship('Application', backref='applicant', lazy=True)
+    recruiter_profile = db.relationship('RecruiterProfile', backref='user', uselist=False)
 
+
+class RecruiterProfile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    surname = db.Column(db.String(100))
+    first_name = db.Column(db.String(100))
+    middle_name = db.Column(db.String(100))
+    phone_number = db.Column(db.String(50))
+    company_name = db.Column(db.String(200))
+    company_industry = db.Column(db.String(200))
+    company_description = db.Column(db.Text)
+    company_address = db.Column(db.String(200))
+    country = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    office_address = db.Column(db.String(200))
+    company_email_domain = db.Column(db.String(100))
+    
+    company_logo = db.Column(db.String(200))   # path to uploaded logo
+    company_proof = db.Column(db.String(200))  # path to uploaded proof document
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
