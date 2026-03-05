@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash
 
 recruiter_bp = Blueprint('recruiter', __name__, url_prefix="/recruiter")
 
+
 @recruiter_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -12,9 +13,20 @@ def dashboard():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
+    # Jobs posted by this recruiter
     jobs = Job.query.filter_by(company_id=current_user.id).all()
+    # HR accounts created by this recruiter
     hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
-    return render_template('recruiter_dashboard.html', jobs=jobs, hrs=hrs)
+    # Verification status
+    status = "Verified" if current_user.is_verified else "Pending Verification"
+
+    return render_template(
+        'recruiter_dashboard.html',
+        jobs=jobs,
+        hrs=hrs,
+        status=status
+    )
+
 
 @recruiter_bp.route('/post-job', methods=['POST'])
 @login_required
@@ -32,6 +44,7 @@ def post_job():
     flash("Job posted successfully!", "success")
     return redirect(url_for('recruiter.dashboard'))
 
+
 @recruiter_bp.route('/create-hr', methods=['POST'])
 @login_required
 def create_hr():
@@ -43,15 +56,13 @@ def create_hr():
     email = request.form['email']
     password = generate_password_hash(request.form['password'])
 
-    # ✅ Check duplicate username
-    existing_username = User.query.filter_by(username=username).first()
-    if existing_username:
+    # Check duplicate username
+    if User.query.filter_by(username=username).first():
         flash("Username already exists!", "danger")
         return redirect(url_for('recruiter.dashboard'))
 
-    # ✅ Check duplicate email
-    existing_email = User.query.filter_by(email=email).first()
-    if existing_email:
+    # Check duplicate email
+    if User.query.filter_by(email=email).first():
         flash("Email already exists!", "danger")
         return redirect(url_for('recruiter.dashboard'))
 
@@ -65,9 +76,9 @@ def create_hr():
 
     db.session.add(hr_user)
     db.session.commit()
-
     flash("HR account created successfully!", "success")
     return redirect(url_for('recruiter.dashboard'))
+
 
 @recruiter_bp.route('/schedule-interview/<int:app_id>', methods=['POST'])
 @login_required
