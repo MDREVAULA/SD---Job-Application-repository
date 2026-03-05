@@ -4,10 +4,21 @@ from models import db, User
 from flask_login import LoginManager
 from werkzeug.security import generate_password_hash
 import os
+import pymysql
+
+# ✅ CREATE DATABASE IF NOT EXISTS
+connection = pymysql.connect(
+    host="localhost",
+    user="root",
+    password=""
+)
+
+cursor = connection.cursor()
+cursor.execute("CREATE DATABASE IF NOT EXISTS job_portal")
+connection.close()
 
 app = Flask(__name__)
 app.config.from_object(Config)
-
 # ✅ Upload folder configuration
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 
