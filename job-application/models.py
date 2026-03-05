@@ -18,6 +18,22 @@ class User(db.Model, UserMixin):
     applications = db.relationship('Application', backref='applicant', lazy=True)
     recruiter_profile = db.relationship('RecruiterProfile', backref='user', uselist=False)
 
+class ApplicantProfile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    last_name = db.Column(db.String(100))
+    first_name = db.Column(db.String(100))
+    middle_name = db.Column(db.String(100))
+
+    date_of_birth = db.Column(db.Date)
+    gender = db.Column(db.String(20))
+
+    phone_number = db.Column(db.String(50))
+    country = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    home_address = db.Column(db.String(200))
 
 class RecruiterProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +42,12 @@ class RecruiterProfile(db.Model):
     surname = db.Column(db.String(100))
     first_name = db.Column(db.String(100))
     middle_name = db.Column(db.String(100))
+
+    # NEW FIELDS
+    date_of_birth = db.Column(db.Date)
+    gender = db.Column(db.String(20))
+    home_address = db.Column(db.String(200))
+
     phone_number = db.Column(db.String(50))
     company_name = db.Column(db.String(200))
     company_industry = db.Column(db.String(200))
@@ -36,8 +58,8 @@ class RecruiterProfile(db.Model):
     office_address = db.Column(db.String(200))
     company_email_domain = db.Column(db.String(100))
     
-    company_logo = db.Column(db.String(200))   # path to uploaded logo
-    company_proof = db.Column(db.String(200))  # path to uploaded proof document
+    company_logo = db.Column(db.String(200))
+    company_proof = db.Column(db.String(200))
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)

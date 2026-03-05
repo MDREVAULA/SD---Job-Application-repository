@@ -4,12 +4,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from models import db, User, RecruiterProfile, Job
 import os
+import uuid
+
+# ✅ Allowed file types
+ALLOWED_EXTENSIONS = {'png','jpg','jpeg','pdf','doc','docx'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
 
 auth_bp = Blueprint('auth', __name__)
-
-# Make sure the uploads folder exists
-UPLOAD_FOLDER = os.path.join('static', 'uploads')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @auth_bp.route('/')
 def index():
@@ -22,10 +25,13 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+
         user = User.query.filter_by(email=email).first()
+
         if user and check_password_hash(user.password, password):
             login_user(user)
             flash("Logged in successfully", "success")
+
             if user.role == "applicant":
                 return redirect(url_for('applicant.dashboard'))
             elif user.role == "recruiter":
@@ -34,14 +40,16 @@ def login():
                 return redirect(url_for('hr.dashboard'))
             elif user.role == "admin":
                 return redirect(url_for('admin.dashboard'))
-        else:
-            flash("Invalid email or password", "danger")
+
+        flash("Invalid email or password", "danger")
+
     return render_template('login.html')
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+
         role = request.form.get('role')
         username = request.form.get('username')
         email = request.form.get('email')
@@ -64,24 +72,24 @@ def register():
 
         password = generate_password_hash(password_raw)
 
-        user = User(username=username, email=email, password=password, role=role, is_verified=False)
+        user = User(
+            username=username,
+            email=email,
+            password=password,
+            role=role,
+            is_verified=False
+        )
+
         db.session.add(user)
         db.session.commit()
 
-        # Recruiter profile
+        # -------------------------
+        # Recruiter Profile Section
+        # -------------------------
         if role == "recruiter":
-            surname = request.form.get('surname') or ""
-            first_name = request.form.get('first_name') or ""
-            middle_name = request.form.get('middle_name') or ""
-            phone_number = request.form.get('phone_number') or ""
-            company_name = request.form.get('company_name') or ""
-            company_industry = request.form.get('company_industry') or ""
-            company_description = request.form.get('company_description') or ""
-            company_address = request.form.get('company_address') or ""
-            country = request.form.get('country') or ""
-            city = request.form.get('city') or ""
-            office_address = request.form.get('office_address') or ""
-            company_email_domain = request.form.get('company_email_domain') or ""
+
+            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+            os.makedirs(upload_folder, exist_ok=True)
 
             company_logo = request.files.get('company_logo')
             company_proof = request.files.get('company_proof')
@@ -90,32 +98,37 @@ def register():
             proof_filename = None
 
             if company_logo and company_logo.filename:
-                logo_filename = secure_filename(company_logo.filename)
-                logo_path = os.path.join(UPLOAD_FOLDER, logo_filename)
+
+                logo_filename = f"{uuid.uuid4()}_{secure_filename(company_logo.filename)}"
+                logo_path = os.path.join(upload_folder, logo_filename)
+
                 company_logo.save(logo_path)
 
             if company_proof and company_proof.filename:
-                proof_filename = secure_filename(company_proof.filename)
-                proof_path = os.path.join(UPLOAD_FOLDER, proof_filename)
+
+                proof_filename = f"{uuid.uuid4()}_{secure_filename(company_proof.filename)}"
+                proof_path = os.path.join(upload_folder, proof_filename)
+
                 company_proof.save(proof_path)
 
             profile = RecruiterProfile(
                 user_id=user.id,
-                surname=surname,
-                first_name=first_name,
-                middle_name=middle_name,
-                phone_number=phone_number,
-                company_name=company_name,
-                company_industry=company_industry,
-                company_description=company_description,
-                company_address=company_address,
-                country=country,
-                city=city,
-                office_address=office_address,
-                company_email_domain=company_email_domain,
+                surname=request.form.get('surname') or "",
+                first_name=request.form.get('first_name') or "",
+                middle_name=request.form.get('middle_name') or "",
+                phone_number=request.form.get('phone_number') or "",
+                company_name=request.form.get('company_name') or "",
+                company_industry=request.form.get('company_industry') or "",
+                company_description=request.form.get('company_description') or "",
+                company_address=request.form.get('company_address') or "",
+                country=request.form.get('country') or "",
+                city=request.form.get('city') or "",
+                office_address=request.form.get('office_address') or "",
+                company_email_domain=request.form.get('company_email_domain') or "",
                 company_logo=logo_filename,
                 company_proof=proof_filename
             )
+
             db.session.add(profile)
             db.session.commit()
 

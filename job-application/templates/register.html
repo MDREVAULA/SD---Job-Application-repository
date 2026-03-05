@@ -2,78 +2,280 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<h2>Register</h2>
-<form method="POST" enctype="multipart/form-data">
 
-    <label>Role:</label><br>
-    <select name="role" id="role" required onchange="toggleRecruiterFields()">
-        <option value="applicant">Applicant</option>
-        <option value="recruiter">Recruiter</option>
-    </select><br><br>
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-    <!-- Always visible fields -->
-    <label>Username:</label><br>
-    <input type="text" name="username" required><br><br>
+<div class="register-container">
 
-    <label>Email:</label><br>
-    <input type="email" name="email" required><br><br>
+    <h2 class="register-title">Register</h2>
 
-    <label>Password:</label><br>
-    <input type="password" name="password" required><br><br>
+    <form class="register-form" method="POST" enctype="multipart/form-data">
 
-    <!-- Recruiter-only fields -->
-    <div id="recruiter-fields" style="display:none;">
-        <label>Last Name:</label><br>
-        <input type="text" name="surname"><br><br>
+        <div class="form-group">
+            <label class="form-label">Role:</label>
+            <select class="form-input" name="role" id="role" required onchange="toggleFields()">
+                <option value="applicant">Applicant</option>
+                <option value="recruiter">Recruiter</option>
+            </select>
+        </div>
 
-        <label>First Name:</label><br>
-        <input type="text" name="first_name"><br><br>
+        <!-- Common fields -->
+        <div class="form-group">
+            <label class="form-label">Username:</label>
+            <input class="form-input" type="text" name="username" required>
+        </div>
 
-        <label>Middle Name:</label><br>
-        <input type="text" name="middle_name"><br><br>
+        <div class="form-group">
+            <label class="form-label">Email:</label>
+            <input class="form-input" type="email" name="email" required>
+        </div>
 
-        <label>Phone Number:</label><br>
-        <input type="text" name="phone_number"><br><br>
+        <div class="form-group">
+            <label class="form-label">Password:</label>
+            <input class="form-input" type="password" name="password" required>
+        </div>
 
-        <label>Company Name:</label><br>
-        <input type="text" name="company_name"><br><br>
 
-        <label>Company Industry:</label><br>
-        <input type="text" name="company_industry"><br><br>
+        <!-- ================= APPLICANT ================= -->
 
-        <label>Company Description:</label><br>
-        <textarea name="company_description"></textarea><br><br>
+        <div id="applicant-fields" class="form-section">
 
-        <label>Company Address:</label><br>
-        <input type="text" name="company_address"><br><br>
+            <h3 class="section-title">Applicant Information</h3>
 
-        <label>Country:</label><br>
-        <input type="text" name="country"><br><br>
+            <div class="form-group">
+                <label class="form-label">Last Name:</label>
+                <input class="form-input" type="text" name="last_name">
+            </div>
 
-        <label>City:</label><br>
-        <input type="text" name="city"><br><br>
+            <div class="form-group">
+                <label class="form-label">First Name:</label>
+                <input class="form-input" type="text" name="first_name">
+            </div>
 
-        <label>Office Address:</label><br>
-        <input type="text" name="office_address"><br><br>
+            <div class="form-group">
+                <label class="form-label">Middle Name:</label>
+                <input class="form-input" type="text" name="middle_name">
+            </div>
 
-        <label>Company Logo:</label><br>
-        <input type="file" name="company_logo" accept="image/*"><br><br>
+            <div class="form-group">
+                <label class="form-label">Date of Birth:</label>
+                <input class="form-input" type="date" name="dob">
+            </div>
 
-        <label>Company Email Domain:</label><br>
-        <input type="text" name="company_email_domain"><br><br>
+            <div class="form-group">
+                <label class="form-label">Gender:</label>
+                <select class="form-input" name="gender">
+                    <option value="">Select Gender</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
 
-        <label>Proof of Company:</label><br>
-        <input type="file" name="company_proof" accept=".pdf,.doc,.docx,.jpg,.png"><br><br>
-    </div>
+            <div class="form-group">
+                <label class="form-label">Phone Number:</label>
+                <input class="form-input" type="text" name="phone_number">
+            </div>
 
-    <button type="submit">Register</button>
-</form>
+            <div class="form-group">
+                <label class="form-label">Country:</label>
+                <select class="form-input country-select" name="country">
+                    <option>Philippines</option>
+                    <option>Afghanistan</option>
+                    <option>Albania</option>
+                    <option>Algeria</option>
+                    <option>Argentina</option>
+                    <option>Australia</option>
+                    <option>Austria</option>
+                    <option>Bangladesh</option>
+                    <option>Belgium</option>
+                    <option>Brazil</option>
+                    <option>Canada</option>
+                    <option>China</option>
+                    <option>Denmark</option>
+                    <option>Egypt</option>
+                    <option>Finland</option>
+                    <option>France</option>
+                    <option>Germany</option>
+                    <option>Greece</option>
+                    <option>Hong Kong</option>
+                    <option>India</option>
+                    <option>Indonesia</option>
+                    <option>Ireland</option>
+                    <option>Israel</option>
+                    <option>Italy</option>
+                    <option>Japan</option>
+                    <option>Malaysia</option>
+                    <option>Mexico</option>
+                    <option>Netherlands</option>
+                    <option>New Zealand</option>
+                    <option>Norway</option>
+                    <option>Pakistan</option>
+                    <option>Poland</option>
+                    <option>Portugal</option>
+                    <option>Saudi Arabia</option>
+                    <option>Singapore</option>
+                    <option>South Africa</option>
+                    <option>South Korea</option>
+                    <option>Spain</option>
+                    <option>Sweden</option>
+                    <option>Switzerland</option>
+                    <option>Taiwan</option>
+                    <option>Thailand</option>
+                    <option>Turkey</option>
+                    <option>United Arab Emirates</option>
+                    <option>United Kingdom</option>
+                    <option>United States</option>
+                    <option>Vietnam</option>
+                </select>
+            </div>
 
-<script>
-function toggleRecruiterFields() {
-    const role = document.getElementById('role').value;
-    const fields = document.getElementById('recruiter-fields');
-    fields.style.display = role === 'recruiter' ? 'block' : 'none';
-}
-</script>
+            <div class="form-group">
+                <label class="form-label">City:</label>
+                <input class="form-input" type="text" name="city">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Home Address:</label>
+                <input class="form-input" type="text" name="home_address">
+            </div>
+
+            <button class="register-button" type="submit">Register</button>
+
+        </div>
+
+
+        <!-- ================= RECRUITER ================= -->
+
+        <div id="recruiter-fields" class="form-section" style="display:none;">
+
+            <h3 class="section-title">Recruiter Information</h3>
+
+            <div class="form-group">
+                <label class="form-label">Last Name:</label>
+                <input class="form-input" type="text" name="surname">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">First Name:</label>
+                <input class="form-input" type="text" name="first_name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Middle Name:</label>
+                <input class="form-input" type="text" name="middle_name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Date of Birth:</label>
+                <input class="form-input" type="date" name="dob">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Gender:</label>
+                <select class="form-input" name="gender">
+                    <option value="">Select Gender</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone Number:</label>
+                <input class="form-input" type="text" name="phone_number">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Country:</label>
+                <select class="form-input country-select" name="country">
+                    <option>Philippines</option>
+                    <option>Afghanistan</option>
+                    <option>Albania</option>
+                    <option>Algeria</option>
+                    <option>Argentina</option>
+                    <option>Australia</option>
+                    <option>Austria</option>
+                    <option>Bangladesh</option>
+                    <option>Belgium</option>
+                    <option>Brazil</option>
+                    <option>Canada</option>
+                    <option>China</option>
+                    <option>Denmark</option>
+                    <option>Egypt</option>
+                    <option>Finland</option>
+                    <option>France</option>
+                    <option>Germany</option>
+                    <option>Greece</option>
+                    <option>Hong Kong</option>
+                    <option>India</option>
+                    <option>Indonesia</option>
+                    <option>Ireland</option>
+                    <option>Israel</option>
+                    <option>Italy</option>
+                    <option>Japan</option>
+                    <option>Malaysia</option>
+                    <option>Mexico</option>
+                    <option>Netherlands</option>
+                    <option>New Zealand</option>
+                    <option>Norway</option>
+                    <option>Pakistan</option>
+                    <option>Poland</option>
+                    <option>Portugal</option>
+                    <option>Saudi Arabia</option>
+                    <option>Singapore</option>
+                    <option>South Africa</option>
+                    <option>South Korea</option>
+                    <option>Spain</option>
+                    <option>Sweden</option>
+                    <option>Switzerland</option>
+                    <option>Taiwan</option>
+                    <option>Thailand</option>
+                    <option>Turkey</option>
+                    <option>United Arab Emirates</option>
+                    <option>United Kingdom</option>
+                    <option>United States</option>
+                    <option>Vietnam</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Home Address:</label>
+                <input class="form-input" type="text" name="home_address">
+            </div>
+
+            <h3 class="section-title">Company Information</h3>
+
+            <div class="form-group">
+                <label class="form-label">Company Name:</label>
+                <input class="form-input" type="text" name="company_name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Company Industry:</label>
+                <input class="form-input" type="text" name="company_industry">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Company Description:</label>
+                <textarea class="form-input" name="company_description"></textarea>
+            </div>
+
+            <button class="register-button" type="submit">Register</button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+
 {% endblock %}

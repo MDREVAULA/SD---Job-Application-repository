@@ -3,9 +3,16 @@ from config import Config
 from models import db, User
 from flask_login import LoginManager
 from werkzeug.security import generate_password_hash
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# ✅ Upload folder configuration
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
+
+# Make sure upload folder exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize Database
 db.init_app(app)
@@ -14,6 +21,7 @@ db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "auth.login"
+login_manager.login_message_category = "warning"
 
 
 @login_manager.user_loader
@@ -42,15 +50,19 @@ if __name__ == "__main__":
 
         # ✅ AUTO-CREATE ADMIN ACCOUNT IF NOT EXISTS
         existing_admin = User.query.filter_by(role="admin").first()
+
         if not existing_admin:
             admin = User(
                 username="admin",
                 email="admin@gmail.com",
                 password=generate_password_hash("admin123"),
-                role="admin"
+                role="admin",
+                is_verified=True
             )
+
             db.session.add(admin)
             db.session.commit()
+
             print("Admin account created successfully!")
             print("Username: admin")
             print("Password: admin123")
