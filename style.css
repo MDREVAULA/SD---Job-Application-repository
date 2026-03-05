@@ -1,0 +1,133 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+.dashboard {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 220px;
+    background-color: #222;
+    color: #fff;
+    padding: 20px;
+}
+
+.sidebar .logo {
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.sidebar nav ul {
+    list-style: none;
+}
+
+.sidebar nav ul li {
+    margin: 15px 0;
+}
+
+.sidebar nav ul li a {
+    color: #ccc;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.sidebar nav ul li a:hover,
+.sidebar nav ul li a.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.dashboard-content {
+    flex: 1;
+    background-color: #f4f4f4;
+    padding: 30px;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-pic {
+    width: 80px;
+    height: 80px;
+    border: 2px solid #000000;
+    border-radius: 50%;
+    margin: 15px;
+}
+
+.profile-info h3 {
+    color: #333;
+}
+
+.profile-info p {
+    font-size: small;
+    color: #777;
+}
+
+.jobs {
+    display: flex;
+    min-height: 100vh;
+}
+
+.help {
+    display: flex;
+    min-height: 100vh;
+}
+
+.logout {
+    display: flex;
+    min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+    .dashboard {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+    }
+
+    .cards {
+        flex-direction: column;
+    }
+}
+
+.sidebar {
+    position: relative;
+    transition: width 0.3s ease;
+    overflow: hidden;
+}
+
+.toggle-btn {
+    position: absolute;
+    top: 10px;
+    right: -15px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.sidebar.collapsed {
+    width: 0px;
+    padding: 20px 10px;
+}
+
+.sidebar.collapsed .logo,
+.sidebar.collapsed nav ul li a {
+    display: none;
+}

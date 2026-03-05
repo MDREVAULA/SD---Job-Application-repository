@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>Job Application Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <button id="toggleBtn" class="toggle-btn">☰</button>
+    <div class="dashboard">
+        <nav class="sidebar" id="sidebar">
+            <h1 class="logo">Job Portal</h1>
+            <nav>
+                <ul>
+                    <li><a href="applicant_dashboard.html" class="active">Dashboard</a></li>
+                    <li><a href="jobs.html">Jobs</a></li>
+                    <li><a href="help.html">Help</a></li>
+                    <li><a href="logout.html">Logout</a></li>
+                </ul>
+            </nav>
+        </nav>
+
+        <section class="dashboard-content">
+            <header>
+                <h2>Welcome, User!</h2>
+            </header>
+
+            <section class="profile">
+                <img src="https://static.vecteezy.com/system/resources/previews/009/734/564/non_2x/default-avatar-profile-icon-of-social-media-user-vector.jpg" alt="profile" class="profile-pic">
+                <div class="profile-info">
+                    <h3 id="UserName">Name</h3>
+                    <p>Applicant</p>
+                </div>
+            </section>
+            
+            <section class="status">
+                
+            </section>
+
+        </section>
+    </div>
+
+    <script>
+    const toggleBtn = document.getElementById("toggleBtn");
+    const sidebar = document.getElementById("sidebar");
+
+    toggleBtn.addEventListener("click", function () {
+        sidebar.classList.toggle("collapsed");
+    });
+    </script>
+
+</body>
+</html>
