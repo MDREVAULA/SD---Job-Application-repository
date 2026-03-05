@@ -24,10 +24,16 @@
                 <h2>List of jobs</h2>
             </header>
 
-            <section class="">
-                
-            </section>
-
+            <div class="search-job">
+                <input type="text" id="searchInput" placeholder="Search jobs..." onkeyup="showSuggestions()" class="search"> 
+                <select id="jobType" onchange="showSuggestions()" class="filter">
+                    <option value="">All Types</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Internship">Internship</option>
+                </select>
+                <ul id="suggestions"></ul>
+            </div> 
         </section>
     </div>
 </body>

@@ -80,6 +80,35 @@
     min-height: 100vh;
 }
 
+.jobs-content {
+    flex: 1;
+    padding: 30px;
+}
+
+.search-job {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.search {
+    color: #ffffff;
+    width: 300px;
+    background-color: #a3a3a3;
+    padding: 10px;
+    border: 0px;
+    border-radius: 10px;
+}
+
+.filter {
+    color: #ffffff;
+    border: 0px;
+    background-color: #37415C;
+    padding: 3px;
+    margin-left: 10px;
+}
+
 .help {
     display: flex;
     min-height: 100vh;
@@ -110,23 +139,28 @@
     overflow: hidden;
 }
 
+/* Sidebar toggle (original position) */
 .toggle-btn {
     position: absolute;
     top: 10px;
-    right: -15px;
+    right: -15px;        /* original: sticks out from sidebar */
     background: #4CAF50;
     color: white;
     border: none;
     padding: 8px 10px;
     cursor: pointer;
     border-radius: 5px;
+    z-index: 1000;       /* stays above everything */
 }
 
+/* Sidebar collapse */
 .sidebar.collapsed {
-    width: 0px;
-    padding: 20px 10px;
+    width: 0;             /* fully collapse */
+    padding: 0;           /* remove padding */
+    overflow: visible;    /* allow toggle to remain visible */
 }
 
+/* Hide sidebar content */
 .sidebar.collapsed .logo,
 .sidebar.collapsed nav ul li a {
     display: none;
