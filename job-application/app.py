@@ -1,58 +1,51 @@
-from flask import Flask
-from config import Config
+from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask_login import login_required, current_user
 from models import db, User
-from flask_login import LoginManager
-from werkzeug.security import generate_password_hash
 
-app = Flask(__name__)
-app.config.from_object(Config)
-
-# Initialize Database
-db.init_app(app)
-
-# Setup Login Manager
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "auth.login"
+admin_bp = Blueprint('admin', __name__, url_prefix="/admin")
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    return db.session.get(User, int(user_id))
+@admin_bp.route('/dashboard')
+@login_required
+def dashboard():
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    # Get all pending recruiters
+    pending_recruiters = User.query.filter_by(role='recruiter', is_verified=False).all()
+    return render_template('admin_dashboard.html', pending_recruiters=pending_recruiters)
 
 
-# Register Blueprints
-from routes.auth import auth_bp
-from routes.applicant import applicant_bp
-from routes.recruiter import recruiter_bp
-from routes.hr import hr_bp
-from routes.admin import admin_bp
+@admin_bp.route('/review/<int:user_id>')
+@login_required
+def review_recruiter(user_id):
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
 
-app.register_blueprint(auth_bp)
-app.register_blueprint(applicant_bp)
-app.register_blueprint(recruiter_bp)
-app.register_blueprint(hr_bp)
-app.register_blueprint(admin_bp)
+    recruiter = db.session.get(User, user_id)
+    if not recruiter or recruiter.role != 'recruiter':
+        flash("Recruiter not found!", "danger")
+        return redirect(url_for('admin.dashboard'))
+
+    profile = recruiter.recruiter_profile  # Link to RecruiterProfile
+    return render_template('admin_review_recruiter.html', recruiter=recruiter, profile=profile)
 
 
-# Run App
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
+@admin_bp.route('/verify/<int:user_id>', methods=['POST'])
+@login_required
+def verify(user_id):
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
 
-        # ✅ AUTO-CREATE ADMIN ACCOUNT IF NOT EXISTS
-        existing_admin = User.query.filter_by(role="admin").first()
-        if not existing_admin:
-            admin = User(
-                username="admin",
-                email="admin@gmail.com",
-                password=generate_password_hash("admin123"),
-                role="admin"
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print("Admin account created successfully!")
-            print("Username: admin")
-            print("Password: admin123")
+    recruiter = db.session.get(User, user_id)
+    if not recruiter or recruiter.role != 'recruiter':
+        flash("Recruiter not found!", "danger")
+        return redirect(url_for('admin.dashboard'))
 
-    app.run(debug=True)
+    recruiter.is_verified = True
+    db.session.commit()
+    flash(f"{recruiter.username} has been verified!", "success")
+    return redirect(url_for('admin.dashboard'))
