@@ -1,41 +1,61 @@
 <!DOCTYPE html>
 <head>
-    <meta charset="UTF-8">
-    <title>Job Application Portal</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Job Application Portal</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="jobs">
-        <nav class="sidebar">
-            <h1 class="logo">Job Portal</h1>
-            <nav>
-                <ul>
-                    <li><a href="applicant_dashboard.html">Dashboard</a></li>
-                    <li><a href="jobs.html" class="active">Jobs</a></li>
-                    <li><a href="help.html">Help</a></li>
-                    <li><a href="logout.html">Logout</a></li>
-                </ul>
-            </nav>
-        </nav>
 
-        <section class="jobs-content">
-            <header>
-                <h2>List of jobs</h2>
-            </header>
+<div class="dashboard">
 
-            <div class="search-job">
-                <input type="text" id="searchInput" placeholder="Search jobs..." onkeyup="showSuggestions()" class="search"> 
-                <select id="jobType" onchange="showSuggestions()" class="filter">
-                    <option value="">All Types</option>
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
-                    <option value="Internship">Internship</option>
-                </select>
-                <ul id="suggestions"></ul>
-            </div> 
-        </section>
-    </div>
+<nav class="sidebar" id="sidebar">
+    <h1 class="logo">Job Portal</h1>
+
+    <ul>
+        <li><a href="applicant_dashboard.html">Dashboard</a></li>
+        <li><a href="jobs.html" class="active">Jobs</a></li>
+        <li><a href="help.html">Help</a></li>
+        <li><a href="logout.html">Logout</a></li>
+    </ul>
+</nav>
+
+<section class="dashboard-content">
+
+<header class="top-header">
+    <button id="toggleBtn" class="toggle-btn">☰</button>
+    <h2>List of Jobs</h2>
+</header>
+
+<section class="jobs-content">
+
+<div class="search-job">
+    <input type="text" id="searchInput" placeholder="Search jobs..." class="search">
+    
+    <select id="jobType" class="filter">
+        <option value="">All Types</option>
+        <option value="Full-time">Full-time</option>
+        <option value="Part-time">Part-time</option>
+        <option value="Internship">Internship</option>
+    </select>
+
+    <ul id="suggestions"></ul>
+</div>
+
+</section>
+
+</section>
+
+</div>
+
+<script>
+const toggleBtn = document.getElementById("toggleBtn");
+const sidebar = document.getElementById("sidebar");
+
+toggleBtn.addEventListener("click", function () {
+    sidebar.classList.toggle("collapsed");
+});
+</script>
+
 </body>
-
 </html>
