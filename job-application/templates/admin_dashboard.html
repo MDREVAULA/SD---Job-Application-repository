@@ -7,7 +7,7 @@
     {% for rec in pending_recruiters %}
     <li>
         {{ rec.username }} - {{ rec.email }}
-        <a href="{{ url_for('admin.verify', user_id=rec.id) }}">Verify</a>
+        <a href="{{ url_for('admin.review_recruiter', user_id=rec.id) }}">Review</a>
     </li>
     {% endfor %}
 </ul>
