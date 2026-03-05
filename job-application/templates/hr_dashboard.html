@@ -1,26 +1,33 @@
 {% extends "layout.html" %}
 {% block content %}
-<h2>HR Dashboard</h2>
+<h2>Applicant Dashboard</h2>
 
-<h3>Assigned Applications</h3>
+<h3>Available Jobs</h3>
+<div class="jobs-list">
+    {% for job in jobs %}
+    <div class="job-card">
+        <h4>{{ job.title }}</h4>
+        <p>{{ job.description[:100] }}...</p>
+        {% set applied = applications|selectattr("job_id","equalto",job.id)|list %}
+        {% if applied %}
+            <button class="btn disabled" disabled>Already Applied</button>
+        {% else %}
+            <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">Apply</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<h3>My Applications</h3>
 <div class="applications-list">
     {% for app in applications %}
-    <div class="app-card">
-        <p>Applicant: {{ app.applicant.username }}</p>
-        <p>Job: {{ app.job.title }}</p>
-        <p>Status: {{ app.status }}</p>
-        <form method="POST" action="{{ url_for('hr.review', app_id=app.id) }}">
-            <label>Status:</label>
-            <select name="status">
-                <option value="Pending" {% if app.status=="Pending" %}selected{% endif %}>Pending</option>
-                <option value="Approved" {% if app.status=="Approved" %}selected{% endif %}>Approved</option>
-                <option value="Rejected" {% if app.status=="Rejected" %}selected{% endif %}>Rejected</option>
-            </select><br>
-            <label>Remarks:</label><br>
-            <textarea name="remarks">{{ app.remarks }}</textarea><br>
-            <button type="submit">Submit Review</button>
-        </form>
-    </div>
+        <div class="app-card">
+            <p>Job: {{ app.job.title }}</p>
+            <p>Status: {{ app.status }}</p>
+            {% if app.remarks %}
+                <p>Remarks: {{ app.remarks }}</p>
+            {% endif %}
+        </div>
     {% endfor %}
 </div>
 {% endblock %}
