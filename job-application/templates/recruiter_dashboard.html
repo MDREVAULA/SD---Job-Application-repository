@@ -2,6 +2,15 @@
 {% block content %}
 <h2>Recruiter Dashboard</h2>
 
+<p>
+    <strong>Account Status:</strong>
+    {% if current_user.is_verified %}
+        <span style="color:green;font-weight:bold;">Verified ✅</span>
+    {% else %}
+        <span style="color:red;font-weight:bold;">Pending Verification ⚠️</span>
+    {% endif %}
+</p>
+
 <h3>Post New Job</h3>
 <form method="POST" action="{{ url_for('recruiter.post_job') }}">
     <label>Job Title:</label><br>
