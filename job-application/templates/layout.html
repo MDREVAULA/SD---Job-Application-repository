@@ -1,27 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>JobPortal</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<meta charset="UTF-8">
+<title>Job Application Portal</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 </head>
+
 <body>
-    <nav>
-        <div class="logo">JobPortal</div>
+
+<!-- DASHBOARD WRAPPER -->
+<div class="dashboard">
+
+    <!-- SIDEBAR (collapsed by default) -->
+    <nav class="sidebar collapsed" id="sidebar">
+        <h1 class="logo">Job Portal</h1>
         <ul>
             {% if current_user.is_authenticated %}
-                <li>Welcome, {{ current_user.username }} ({{ current_user.role }})</li>
+                <li><a href="{{ url_for('applicant.dashboard') }}" class="active">Dashboard</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('auth.index') }}">Jobs</a></li>
+            <li><a href="#">Help</a></li>
+            {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-            {% else %}
-                <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                <li><a href="{{ url_for('auth.register') }}">Register</a></li>
             {% endif %}
         </ul>
     </nav>
 
-    <div class="container">
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <section class="dashboard-content">
+
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <button id="toggleBtn" class="toggle-btn">☰</button>
+            
+            {% if current_user.is_authenticated %}
+                <h2>Welcome, {{ current_user.username }}!</h2>
+            {% else %}
+                <h2>Welcome to Job Portal</h2>
+                <div class="access-btn">
+                    <button class="login-btn" onclick="window.location.href='{{ url_for('auth.login') }}'">Login</button>
+                    <button class="signup-btn" onclick="window.location.href='{{ url_for('auth.register') }}'">Sign Up</button>
+                </div>
+            {% endif %}
+        </header>
+
+        <!-- FLASH MESSAGES -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -30,7 +59,11 @@
             {% endif %}
         {% endwith %}
 
+        <!-- PAGE CONTENT -->
         {% block content %}{% endblock %}
-    </div>
+
+    </section> <!-- end dashboard-content -->
+</div> <!-- end dashboard -->
+
 </body>
 </html>
