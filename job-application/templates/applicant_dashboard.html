@@ -1,33 +1,108 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <h2>Applicant Dashboard</h2>
 
-<h3>Available Jobs</h3>
-<div class="jobs-list">
-    {% for job in jobs %}
-    <div class="job-card">
-        <h4>{{ job.title }}</h4>
-        <p>{{ job.description[:100] }}...</p>
-        {% set applied = applications|selectattr("job_id","equalto",job.id)|list %}
-        {% if applied %}
-            <button class="btn disabled" disabled>Already Applied</button>
-        {% else %}
-            <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">Apply</a>
+<!-- Account Status -->
+{% if current_user.verification_status == "Pending" %}
+    <div style="color: orange; margin-bottom: 20px;">
+        ⚠ Your account is waiting for admin verification. You cannot apply for jobs yet.
+    </div>
+
+{% elif current_user.verification_status == "Rejected" %}
+    <div style="color: red; margin-bottom: 20px;">
+        ❌ Your account was rejected by the admin.<br>
+
+        {% if current_user.verification_remarks %}
+            <strong>Reason:</strong> {{ current_user.verification_remarks }}
         {% endif %}
     </div>
-    {% endfor %}
-</div>
 
-<h3>My Applications</h3>
-<div class="applications-list">
-    {% for app in applications %}
-        <div class="app-card">
-            <p>Job: {{ app.job.title }}</p>
-            <p>Status: {{ app.status }}</p>
-            {% if app.remarks %}
-                <p>Remarks: {{ app.remarks }}</p>
+{% elif current_user.verification_status == "Approved" %}
+    <div style="color: green; margin-bottom: 20px;">
+        ✅ Your account has been verified.
+    </div>
+{% endif %}
+
+
+<h3>Available Jobs</h3>
+
+<div class="jobs-list">
+
+    {% for job in jobs %}
+        <div class="job-card">
+
+            <h4>{{ job.title }}</h4>
+
+            <p>
+                {{ job.description[:100] }}...
+            </p>
+
+            {% set applied = applications | selectattr("job_id", "equalto", job.id) | list %}
+
+            {% if current_user.verification_status != "Approved" %}
+                <button class="btn disabled" disabled>
+                    Verification Required
+                </button>
+
+            {% elif applied %}
+                <button class="btn disabled" disabled>
+                    Already Applied
+                </button>
+
+            {% else %}
+                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">
+                    Apply
+                </a>
             {% endif %}
+
         </div>
     {% endfor %}
+
 </div>
+
+
+<h3>My Applications</h3>
+
+<ul>
+
+{% for app in applications %}
+
+<li>
+
+Job: {{ app.job.title }}
+
+<br>
+
+Status:
+
+<strong>
+
+{% if app.status == "Pending" %}
+<span style="color:orange;">Pending</span>
+
+{% elif app.status == "Interview" %}
+<span style="color:blue;">Interview Scheduled</span>
+
+{% elif app.status == "Accepted" %}
+<span style="color:green;">Accepted</span>
+
+{% elif app.status == "Rejected" %}
+<span style="color:red;">Rejected</span>
+
+{% endif %}
+
+</strong>
+
+{% if app.remarks %}
+<br>
+Remarks: {{ app.remarks }}
+{% endif %}
+
+</li>
+
+{% endfor %}
+
+</ul>
+
 {% endblock %}

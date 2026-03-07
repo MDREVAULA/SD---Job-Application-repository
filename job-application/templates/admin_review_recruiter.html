@@ -1,5 +1,7 @@
 {% extends "layout.html" %}
+
 {% block content %}
+
 <h2>Review Recruiter: {{ recruiter.username }}</h2>
 
 <h3>Account Info</h3>
@@ -7,22 +9,28 @@
 <p>Role: {{ recruiter.role }}</p>
 
 <h3>Recruiter and Company Info</h3>
+
 <p>Surname: {{ profile.surname }}</p>
 <p>First Name: {{ profile.first_name }}</p>
 <p>Middle Name: {{ profile.middle_name }}</p>
+
 <p>Phone: {{ profile.phone_number }}</p>
+
 <p>Company Name: {{ profile.company_name }}</p>
 <p>Industry: {{ profile.company_industry }}</p>
 <p>Description: {{ profile.company_description }}</p>
+
 <p>Address: {{ profile.company_address }}, {{ profile.city }}, {{ profile.country }}</p>
 <p>Office Address: {{ profile.office_address }}</p>
+
 <p>Company Email Domain: {{ profile.company_email_domain }}</p>
 
 <h3>Documents</h3>
 
-<!-- Show logo as image -->
+<!-- Company Logo -->
 {% if profile.company_logo %}
-<p>Logo: 
+<p>
+    Logo:
     <a href="{{ url_for('static', filename='uploads/' ~ profile.company_logo) }}" target="_blank">
         <button type="button">View Logo</button>
     </a>
@@ -31,9 +39,10 @@
 <p>Logo: Not uploaded</p>
 {% endif %}
 
+<!-- Company Proof -->
 {% if profile.company_proof %}
-<!-- Make proof file clickable -->
-<p>Proof: 
+<p>
+    Proof:
     <a href="{{ url_for('static', filename='uploads/' ~ profile.company_proof) }}" target="_blank">
         <button type="button">View Document</button>
     </a>
@@ -42,8 +51,41 @@
 <p>Proof: Not uploaded</p>
 {% endif %}
 
+<hr>
+
+<h3>Verification Decision</h3>
+
+<!-- APPROVE FORM -->
 <form method="POST" action="{{ url_for('admin.verify', user_id=recruiter.id) }}">
-    <button type="submit">Approve & Verify</button>
-    <a href="{{ url_for('admin.dashboard') }}">Cancel</a>
+
+    <button type="submit">
+        Approve & Verify
+    </button>
+
 </form>
+
+<br>
+
+<!-- REJECT FORM -->
+<form method="POST" action="{{ url_for('admin.reject', user_id=recruiter.id) }}">
+
+    <label>Reason for Rejection:</label><br>
+
+    <textarea name="remarks" rows="4" cols="50"
+        placeholder="Explain why this recruiter is rejected..."></textarea>
+
+    <br><br>
+
+    <button type="submit">
+        Reject & Flag as Scammer
+    </button>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('admin.dashboard') }}">
+    <button type="button">Cancel</button>
+</a>
+
 {% endblock %}

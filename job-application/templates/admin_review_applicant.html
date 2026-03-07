@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Review Applicant: {{ applicant.username }}</h2>
+
+<h3>Account Info</h3>
+<p><strong>Email:</strong> {{ applicant.email }}</p>
+<p><strong>Role:</strong> {{ applicant.role }}</p>
+
+<h3>Applicant Information</h3>
+
+<p><strong>Last Name:</strong> {{ profile.last_name }}</p>
+<p><strong>First Name:</strong> {{ profile.first_name }}</p>
+<p><strong>Middle Name:</strong> {{ profile.middle_name }}</p>
+
+<p><strong>Date of Birth:</strong> {{ profile.date_of_birth }}</p>
+<p><strong>Gender:</strong> {{ profile.gender }}</p>
+
+<p><strong>Phone Number:</strong> {{ profile.phone_number }}</p>
+<p><strong>Country:</strong> {{ profile.country }}</p>
+<p><strong>City:</strong> {{ profile.city }}</p>
+<p><strong>Home Address:</strong> {{ profile.home_address }}</p>
+
+<hr>
+
+<h3>Verification Action</h3>
+
+<!-- Approve -->
+<form method="POST" action="{{ url_for('admin.verify', user_id=applicant.id) }}">
+    <button type="submit">Approve & Verify</button>
+</form>
+
+<br>
+
+<!-- Reject -->
+<form method="POST" action="{{ url_for('admin.reject', user_id=applicant.id) }}">
+
+    <label>Reason for Rejection:</label><br>
+
+    <textarea name="remarks" rows="4" cols="50"
+    placeholder="Example: Suspicious account information, incomplete profile, or malicious activity"></textarea>
+
+    <br><br>
+
+    <button type="submit">Reject Applicant</button>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('admin.dashboard') }}">Cancel</a>
+
+{% endblock %}
