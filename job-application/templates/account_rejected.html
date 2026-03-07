@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div style="max-width:600px;margin:auto;text-align:center;padding:40px;">
+
+    <h2 style="color:red;">Account Rejected</h2>
+
+    <p>
+        Your account verification request has been rejected by the administrator.
+    </p>
+
+    {% if user.verification_remarks %}
+        <p>
+            <strong>Reason:</strong>
+            {{ user.verification_remarks }}
+        </p>
+    {% endif %}
+
+    <br>
+
+    <p>
+        If you believe this decision is incorrect, please contact the system administrator.
+    </p>
+
+    <br>
+
+    <a href="{{ url_for('auth.index') }}">
+        <button>Return to Home</button>
+    </a>
+
+</div>
+
+{% endblock %}

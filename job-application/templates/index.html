@@ -10,12 +10,18 @@
     <div class="job-card">
         <h3>{{ job.title }}</h3>
         <p>{{ job.description[:100] }}...</p>
+
         {% if current_user.is_authenticated and current_user.role == "applicant" %}
             <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">Apply</a>
         {% else %}
             <button class="btn disabled" disabled>Login to Apply</button>
         {% endif %}
+
     </div>
     {% endfor %}
 </div>
+
+<!-- LOAD SEARCH SCRIPT -->
+<script src="{{ url_for('static', filename='js/job_search.js') }}"></script>
+
 {% endblock %}

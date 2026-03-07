@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h2>Rejected Applicants</h2>
+
+<table border="1" cellpadding="10" style="border-collapse:collapse;width:100%;">
+
+<thead>
+
+<tr>
+<th>Username</th>
+<th>Email</th>
+<th>Status</th>
+<th>Reason</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for app in applicants %}
+
+<tr>
+
+<td>{{ app.username }}</td>
+
+<td>{{ app.email }}</td>
+
+<td style="color:red;font-weight:bold;">
+Rejected
+</td>
+
+<td>
+
+{% if app.verification_remarks %}
+{{ app.verification_remarks }}
+{% else %}
+No remarks
+{% endif %}
+
+</td>
+
+<td>
+
+<form method="POST" action="{{ url_for('admin.restore_applicant', user_id=app.id) }}">
+
+<button type="submit">
+Restore
+</button>
+
+</form>
+
+</td>
+
+</tr>
+
+{% else %}
+
+<tr>
+<td colspan="5">No rejected applicants found.</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<br>
+
+<a href="{{ url_for('admin.dashboard') }}">
+<button>Back to Dashboard</button>
+</a>
+
+{% endblock %}

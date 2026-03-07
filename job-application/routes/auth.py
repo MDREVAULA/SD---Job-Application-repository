@@ -6,38 +6,66 @@ from models import db, User, RecruiterProfile, Job
 import os
 import uuid
 
-# ✅ Allowed file types
-ALLOWED_EXTENSIONS = {'png','jpg','jpeg','pdf','doc','docx'}
+# Allowed file types
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'doc', 'docx'}
+
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 auth_bp = Blueprint('auth', __name__)
 
+
+# =========================
+# Home Page
+# =========================
 @auth_bp.route('/')
 def index():
     jobs = Job.query.all()
     return render_template('index.html', jobs=jobs)
 
 
+# =========================
+# Login
+# =========================
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+
     if request.method == 'POST':
+
         email = request.form.get('email')
         password = request.form.get('password')
 
         user = User.query.filter_by(email=email).first()
 
         if user and check_password_hash(user.password, password):
+
+            # 🚫 BLOCK REJECTED RECRUITERS
+            if user.role == "recruiter" and user.verification_status == "Rejected":
+                return render_template(
+                    "account_rejected.html",
+                    user=user
+                )
+
+            # ⚠️ BLOCK PENDING RECRUITERS
+            if user.role == "recruiter" and user.verification_status == "Pending":
+                flash("Your recruiter account is still pending admin verification.", "warning")
+                return redirect(url_for("auth.login"))
+
             login_user(user)
+
             flash("Logged in successfully", "success")
 
             if user.role == "applicant":
                 return redirect(url_for('applicant.dashboard'))
+
             elif user.role == "recruiter":
                 return redirect(url_for('recruiter.dashboard'))
+
             elif user.role == "hr":
                 return redirect(url_for('hr.dashboard'))
+
             elif user.role == "admin":
                 return redirect(url_for('admin.dashboard'))
 
@@ -46,8 +74,12 @@ def login():
     return render_template('login.html')
 
 
+# =========================
+# Register
+# =========================
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
+
     if request.method == 'POST':
 
         role = request.form.get('role')
@@ -77,15 +109,15 @@ def register():
             email=email,
             password=password,
             role=role,
-            is_verified=False
+            verification_status="Pending"
         )
 
         db.session.add(user)
         db.session.commit()
 
-        # -------------------------
+        # =========================
         # Recruiter Profile Section
-        # -------------------------
+        # =========================
         if role == "recruiter":
 
             upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
@@ -138,9 +170,29 @@ def register():
     return render_template('register.html')
 
 
+# =========================
+# Account Rejected Page
+# =========================
+@auth_bp.route('/account-rejected/<int:user_id>')
+def account_rejected(user_id):
+
+    user = User.query.get_or_404(user_id)
+
+    return render_template(
+        'account_rejected.html',
+        user=user
+    )
+
+
+# =========================
+# Logout
+# =========================
 @auth_bp.route('/logout')
 @login_required
 def logout():
+
     logout_user()
+
     flash("Logged out successfully", "info")
+
     return redirect(url_for('auth.index'))

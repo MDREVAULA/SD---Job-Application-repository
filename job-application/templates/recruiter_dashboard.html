@@ -1,57 +1,106 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <h2>Recruiter Dashboard</h2>
 
 <p>
     <strong>Account Status:</strong>
-    {% if current_user.is_verified %}
-        <span style="color:green;font-weight:bold;">Verified ✅</span>
-    {% else %}
-        <span style="color:red;font-weight:bold;">Pending Verification ⚠️</span>
+
+    {% if current_user.verification_status == "Approved" %}
+        <span style="color: green; font-weight: bold;">
+            Verified ✅
+        </span>
+
+    {% elif current_user.verification_status == "Pending" %}
+        <span style="color: orange; font-weight: bold;">
+            Pending Verification ⚠️
+        </span>
+
+    {% elif current_user.verification_status == "Rejected" %}
+        <span style="color: red; font-weight: bold;">
+            Rejected ❌
+        </span>
+
+        {% if current_user.verification_remarks %}
+            <br>
+            <strong>Reason:</strong> {{ current_user.verification_remarks }}
+        {% endif %}
     {% endif %}
 </p>
 
+
 <h3>Post New Job</h3>
+
 <form method="POST" action="{{ url_for('recruiter.post_job') }}">
+
     <label>Job Title:</label><br>
     <input type="text" name="title" required><br>
+
     <label>Description:</label><br>
     <textarea name="description" required></textarea><br>
-    <button type="submit">Post Job</button>
+
+    {% if current_user.verification_status == "Approved" %}
+        <button type="submit">Post Job</button>
+    {% else %}
+        <button type="button" disabled>
+            Verification Required
+        </button>
+    {% endif %}
+
 </form>
+
 
 <h3>My Job Listings</h3>
+
 <div class="jobs-list">
+
     {% for job in jobs %}
-    <div class="job-card">
-        <h4>{{ job.title }}</h4>
-        <p>{{ job.description[:100] }}...</p>
-        <p>Applicants: {{ job.application_set|length }}</p>
-    </div>
+        <div class="job-card">
+
+            <h4>{{ job.title }}</h4>
+
+            <p>
+                {{ job.description[:100] }}...
+            </p>
+
+            <p>
+                Applicants: {{ job.application_set | length }}
+            </p>
+
+        </div>
     {% endfor %}
+
 </div>
 
+
 <h3>Create HR Account</h3>
+
 <form method="POST" action="{{ url_for('recruiter.create_hr') }}">
+
     <label>HR Name:</label><br>
     <input type="text" name="username" required><br>
+
     <label>Email:</label><br>
     <input type="email" name="email" required><br>
+
     <label>Temporary Password:</label><br>
     <input type="text" name="password" required><br>
-    <button type="submit">Create HR</button>
+
+    <button type="submit">
+        Create HR
+    </button>
+
 </form>
+
 
 <h3>HR Accounts</h3>
+
 <ul>
     {% for hr in hrs %}
-        <li>{{ hr.username }} - {{ hr.email }}</li>
+        <li>
+            {{ hr.username }} - {{ hr.email }}
+        </li>
     {% endfor %}
 </ul>
-{% endblock %}
 
-<form method="POST" action="{{ url_for('recruiter.schedule_interview', app_id=app.id) }}">
-    <label>Schedule Interview:</label>
-    <input type="datetime-local" name="datetime" required>
-    <button type="submit">Schedule</button>
-</form>
+{% endblock %}

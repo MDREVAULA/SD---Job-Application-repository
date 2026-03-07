@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h2>Rejected / Scam Recruiters</h2>
+
+<table border="1" cellpadding="10" style="border-collapse:collapse; width:100%;">
+
+<thead>
+
+<tr>
+<th>Username</th>
+<th>Email</th>
+<th>Status</th>
+<th>Reason</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for rec in recruiters %}
+
+<tr>
+
+<td>{{ rec.username }}</td>
+
+<td>{{ rec.email }}</td>
+
+<td style="color:red;font-weight:bold;">
+Rejected
+</td>
+
+<td>
+{% if rec.verification_remarks %}
+{{ rec.verification_remarks }}
+{% else %}
+No remarks
+{% endif %}
+</td>
+
+<td>
+
+<form method="POST" action="{{ url_for('admin.restore', user_id=rec.id) }}">
+
+<button type="submit">
+Restore
+</button>
+
+</form>
+
+</td>
+
+</tr>
+
+{% else %}
+
+<tr>
+<td colspan="5">No rejected recruiters found.</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<br>
+
+<a href="{{ url_for('admin.dashboard') }}">
+<button>Back to Dashboard</button>
+</a>
+
+{% endblock %}

@@ -1,14 +1,59 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <h2>Admin Dashboard</h2>
 
+<!-- ============================ -->
+<!-- Pending Recruiter Requests -->
+<!-- ============================ -->
 <h3>Pending Recruiter Verification</h3>
+
 <ul>
-    {% for rec in pending_recruiters %}
-    <li>
-        {{ rec.username }} - {{ rec.email }}
-        <a href="{{ url_for('admin.review_recruiter', user_id=rec.id) }}">Review</a>
-    </li>
-    {% endfor %}
+{% for rec in pending_recruiters %}
+<li>
+    {{ rec.username }} - {{ rec.email }}
+
+    <a href="{{ url_for('admin.review_recruiter', user_id=rec.id) }}">
+        Review
+    </a>
+
+</li>
+{% else %}
+<li>No pending recruiters</li>
+{% endfor %}
 </ul>
+
+
+<!-- ============================ -->
+<!-- Pending Applicant Requests -->
+<!-- ============================ -->
+<h3>Pending Applicant Verification</h3>
+
+<ul>
+{% for app in pending_applicants %}
+<li>
+    {{ app.username }} - {{ app.email }}
+
+    <a href="{{ url_for('admin.review_applicant', user_id=app.id) }}">
+        Review
+    </a>
+
+</li>
+{% else %}
+<li>No pending applicants</li>
+{% endfor %}
+</ul>
+
+<p>
+    <a href="{{ url_for('admin.rejected_applicants') }}">
+    View Rejected Applicants
+    </a>
+    </p>
+
+<p>
+    <a href="{{ url_for('admin.scammers') }}">
+    View Rejected Recruiters
+    </a>
+    </p>
+
 {% endblock %}
