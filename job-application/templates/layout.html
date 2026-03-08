@@ -37,12 +37,12 @@
     <!-- Sidebar Overlay -->
     <div id="sidebar-overlay"></div>
     <button id="toggleBtn" class="toggle-btn"><p class="bars">☰</p></button>
-    
     <!-- MAIN CONTENT -->
     <section class="dashboard-content">
         <!-- TOP HEADER -->
+        {% if request.endpoint not in ['auth.login', 'auth.register'] %}
         <header class="top-header">
-            
+                    
             {% if current_user.is_authenticated %}
                 <h2>Welcome, {{ current_user.username }}!</h2>
             {% else %}
@@ -53,6 +53,7 @@
                 </div>
             {% endif %}
         </header>
+        {% endif %}
 
         <!-- FLASH MESSAGES -->
         {% with messages = get_flashed_messages(with_categories=true) %}

@@ -1,11 +1,33 @@
 {% extends "layout.html" %}
 {% block content %}
-<h2>Login</h2>
-<form method="POST">
-    <label>Email:</label><br>
-    <input type="email" name="email" required><br><br>
-    <label>Password:</label><br>
-    <input type="password" name="password" required><br><br>
-    <button type="submit">Login</button>
-</form>
+
+<div class="split-screen-wrapper">
+    <div class="login-left">
+        <div class="login-box">
+            <h2>Login</h2>
+            <form method="POST">
+                <div class="input-group">
+                    <label for="email-input"><i class="fa-solid fa-at"></i></label>
+                    <input type="email" name="email" id="email-input" placeholder="Email" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password-input"><i class="fas fa-lock"></i></label>
+                    <input type="password" name="password" id="password-input" placeholder="Password" required>
+                </div>
+
+                <button type="submit" class="login-submit-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="login-right">
+        <div class="info-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Portal Logo" class="side-img">
+            <h3>Build your future with us</h3>
+            <p>Start your career journey by applying to the best jobs available today.</p>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
