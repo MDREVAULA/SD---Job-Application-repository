@@ -15,6 +15,7 @@ body {
 .dashboard {
     display:flex;
     min-height: 100vh;
+    
 }
 
 /* Sidebar */
@@ -151,16 +152,15 @@ body {
     background: #222;
     color: white;
     border: none;
-    padding: 15px 0;         
-    font-size: 20px;         
+    font-size: 20px;
     cursor: pointer;
-    top: 10;                  
-    left: 0;                
-    width: 60px;            
-    height: 100vh;            
+
+    width: 60px;
+    min-height: 100vh; /* ensures it touches bottom */
+
     display: flex;
-    justify-content: center; 
-    
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .bars {
