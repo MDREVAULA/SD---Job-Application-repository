@@ -12,7 +12,7 @@ def dashboard():
         return redirect(url_for('auth.index'))
 
     applications = Application.query.join(Application.job).filter_by(company_id=current_user.created_by).all()
-    return render_template('hr_dashboard.html', applications=applications)
+    return render_template('hr/hr_dashboard.html', applications=applications)
 
 @hr_bp.route('/review/<int:app_id>', methods=['POST'])
 @login_required

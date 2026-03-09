@@ -22,9 +22,12 @@ auth_bp = Blueprint('auth', __name__)
 # =========================
 @auth_bp.route('/')
 def index():
+    return render_template('home.html')
+
+@auth_bp.route('/jobs')
+def jobs():
     jobs = Job.query.all()
     return render_template('index.html', jobs=jobs)
-
 
 # =========================
 # Login
@@ -71,7 +74,7 @@ def login():
 
         flash("Invalid email or password", "danger")
 
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 
 # =========================
@@ -167,7 +170,7 @@ def register():
         flash("Account created successfully! Please login.", "success")
         return redirect(url_for('auth.login'))
 
-    return render_template('register.html')
+    return render_template('auth/register.html')
 
 
 # =========================

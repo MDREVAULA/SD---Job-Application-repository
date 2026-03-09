@@ -1,0 +1,217 @@
+
+/* ==========================================
+   REMOVE LAYOUT SPACING FOR LOGIN PAGE
+   ========================================== */
+
+   .main-content.login-page{
+    margin:0 !important;
+    padding:0 !important;
+    height:100vh;
+}
+
+/* =====================================================
+   GLOBAL PAGE SETTINGS
+   Ensures the login page can use the entire viewport
+===================================================== */
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+/* Fullscreen mode when login page is active */
+.main-content.fullscreen {
+    margin-top: 0 !important;   /* removes navbar spacing */
+    padding: 0 !important;
+    min-height: 100vh;
+    display: flex;
+    align-items: stretch;
+}
+
+
+/* =====================================================
+   SPLIT SCREEN LOGIN LAYOUT
+   Controls the two-column login structure
+===================================================== */
+
+.split-screen-wrapper{
+    width:100%;
+    height:100%;
+    display:flex;
+    margin: 0;
+
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+/* Left and right sections share base layout settings */
+.login-left,
+.login-right {
+    height: 100%;
+    box-sizing: border-box;
+    padding: 40px;
+}
+
+/* Column size ratio */
+.login-left {
+    flex: 4;
+}
+
+.login-right {
+    flex: 6;
+}
+
+
+/* =====================================================
+   LEFT PANEL (LOGIN FORM AREA)
+===================================================== */
+
+.login-left {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f8f9fb;
+}
+
+/* Login form container */
+.login-box {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Title spacing */
+.login-box h2 {
+    margin-bottom: 50px;
+}
+
+/* Main login title */
+.login-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+/* Subtitle text */
+.login-subtitle {
+    color: #777;
+    margin-bottom: 30px;
+}
+
+
+/* =====================================================
+   INPUT FIELDS
+===================================================== */
+
+.input-group {
+    position: relative;
+    margin-bottom: 18px;
+}
+
+/* Icon inside input field */
+.input-group i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+/* Text input styling */
+.input-group input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+/* Input focus effect */
+.input-group input:focus {
+    outline: none;
+    border-color: #333;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+}
+
+
+/* =====================================================
+   LOGIN OPTIONS
+   (Remember me + forgot password)
+===================================================== */
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.forgot-link {
+    text-decoration: none;
+    color: #333;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+}
+
+
+/* =====================================================
+   LOGIN BUTTON
+===================================================== */
+
+.login-submit-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+
+    background: #333;
+    color: white;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.login-submit-btn:hover {
+    background: #000;
+}
+
+
+/* =====================================================
+   SIGNUP LINK (Below Login Button)
+===================================================== */
+
+.signup-text {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 18px;
+}
+
+.signup-text a {
+    text-decoration: none;
+    font-weight: 500;
+    color: #333;
+}
+
+.signup-text a:hover {
+    text-decoration: underline;
+}
+
+
+/* =====================================================
+   RIGHT PANEL (CAREER / INFO SECTION)
+===================================================== */
+
+.login-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #2f3542;
+    color: white;
+}

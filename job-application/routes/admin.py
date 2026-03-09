@@ -29,7 +29,7 @@ def dashboard():
     ).all()
 
     return render_template(
-        'admin_dashboard.html',
+        'admin/admin_dashboard.html',
         pending_recruiters=pending_recruiters,
         pending_applicants=pending_applicants
     )

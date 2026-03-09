@@ -21,7 +21,7 @@ def dashboard():
     hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
 
     return render_template(
-        'recruiter_dashboard.html',
+        'recruiter/recruiter_dashboard.html',
         jobs=jobs,
         hrs=hrs
     )
