@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<head>
+<meta charset="UTF-8">
+<title>Job Application Portal</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <nav class="sidebar" id="sidebar">
+        <h1 class="logo">Job Portal</h1>
+
+        <ul>
+            <li><a href="applicant_dashboard.html">Dashboard</a></li>
+            <li><a href="jobs.html">Jobs</a></li>
+            <li><a href="help.html" class="active">Help</a></li>
+            <li><a href="logout.html">Logout</a></li>
+        </ul>
+    </nav>
+
+    <section class="dashboard-content">
+
+        <header class="top-header">
+            <button id="toggleBtn" class="toggle-btn">☰</button>
+            <h2>Help</h2>
+        </header>
+
+        <section class="help-content">
+            <p>This is the help page.</p>
+        </section>
+
+    </section>
+
+</div>
+
+<script>
+const toggleBtn = document.getElementById("toggleBtn");
+const sidebar = document.getElementById("sidebar");
+
+toggleBtn.addEventListener("click", function () {
+    sidebar.classList.toggle("collapsed");
+});
+</script>
+
+</body>
+</html>
