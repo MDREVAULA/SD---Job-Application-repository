@@ -1,22 +1,175 @@
-.register-container{
-    max-width:600px;
-    margin:auto;
+/* =========================================
+CENTERED REGISTER PAGE
+========================================= */
+
+.register-center{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f7f9fc;
+    padding:40px 20px;
 }
 
+
+/* =========================================
+REGISTER FORM CONTAINER
+========================================= */
+
+.register-container{
+    width:100%;
+    max-width:520px;
+    background:white;
+    padding:40px 45px;
+    border-radius:12px;
+
+    box-shadow:0 12px 40px rgba(0,0,0,0.08);
+
+    display:flex;
+    flex-direction:column;
+    min-height:620px;
+}
+
+.register-title{
+    font-size:28px;
+    font-weight:600;
+    margin-bottom:25px;
+    text-align:center;
+}
+
+
+/* =========================================
+FORM STEPS
+========================================= */
+
+.form-step{
+    display:none;
+    flex-grow:1;
+}
+
+.form-step.active{
+    display:flex;
+    flex-direction:column;
+}
+
+
+/* =========================================
+FORM INPUTS
+========================================= */
+
 .form-group{
-    margin-bottom:15px;
+    margin-bottom:16px;
 }
 
 .form-label{
     display:block;
     font-weight:600;
+    margin-bottom:6px;
+    font-size:14px;
 }
 
 .form-input{
     width:100%;
-    padding:8px;
+    padding:11px 12px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    font-size:14px;
+    transition:0.2s;
 }
 
+.form-input:focus{
+    outline:none;
+    border-color:#4ca1af;
+    box-shadow:0 0 0 2px rgba(76,161,175,0.15);
+}
+
+
+/* =========================================
+BUTTON AREA
+========================================= */
+
+.form-buttons{
+    margin-top:auto;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+}
+
+
+/* =========================================
+BUTTONS
+========================================= */
+
+.next-btn,
+.back-btn{
+    padding:11px 20px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.next-btn{
+    background:#333;
+    color:white;
+}
+
+.next-btn:hover{
+    background:#000;
+}
+
+.back-btn{
+    background:#bbb;
+    color:white;
+}
+
+.back-btn:hover{
+    background:#999;
+}
+
+
+/* REGISTER BUTTON */
+
 .register-button{
-    margin-top:20px;
+    width:100%;
+    padding:12px;
+    background:#333;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:15px;
+}
+
+.register-button:hover{
+    background:#000;
+}
+
+
+/* =========================================
+FORM TITLES
+========================================= */
+
+.form-step h3{
+    margin-bottom:20px;
+    font-size:18px;
+}
+
+
+/* SECTION TITLE (optional) */
+
+.section-title{
+    margin-top:30px;
+    margin-bottom:10px;
+    font-size:18px;
+}
+
+.form-error{
+    margin-top:10px;
+    padding:10px;
+    background:#ffecec;
+    border-left:4px solid #ff4d4d;
+    color:#a40000;
+    border-radius:6px;
+    font-size:14px;
 }

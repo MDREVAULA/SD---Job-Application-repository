@@ -3,284 +3,197 @@
 
 {% block content %}
 
-<!-- Select2 CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="auth-page">
+
+<div class="register-center">
 
 <div class="register-container">
 
-    <h2 class="register-title">Register</h2>
+<h2 class="register-title">Create Account</h2>
 
-    <form class="register-form" method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data">
 
-        <div class="form-group">
-            <label class="form-label">Role:</label>
-            <select class="form-input" name="role" id="role" required onchange="toggleFields()">
-                <option value="applicant">Applicant</option>
-                <option value="recruiter">Recruiter</option>
-            </select>
-        </div>
+<!-- STEP 1 -->
 
-        <!-- Common fields -->
-        <div class="form-group">
-            <label class="form-label">Username:</label>
-            <input class="form-input" type="text" name="username" required>
-        </div>
+<div class="form-step active">
 
-        <div class="form-group">
-            <label class="form-label">Email:</label>
-            <input class="form-input" type="email" name="email" required>
-        </div>
+<h3>Account Information</h3>
 
-        <div class="form-group">
-            <label class="form-label">Password:</label>
-            <input class="form-input" type="password" name="password" required>
-        </div>
+<div class="form-group">
+<label class="form-label">Role</label>
+<select class="form-input" name="role" id="role">
+<option value="applicant">Applicant</option>
+<option value="recruiter">Recruiter</option>
+</select>
+</div>
 
+<div class="form-group">
+<label class="form-label">Username</label>
+<input class="form-input" type="text" name="username" required>
+</div>
 
-        <!-- ================= APPLICANT ================= -->
+<div class="form-group">
+<label class="form-label">Email</label>
+<input class="form-input" type="email" name="email" required>
+</div>
 
-        <div id="applicant-fields" class="form-section">
+<div class="form-group">
+<label class="form-label">Password</label>
+<input class="form-input" type="password" name="password" required>
+</div>
 
-            <div class="form-group">
-                <label class="form-label">Last Name:</label>
-                <input class="form-input" type="text" name="last_name">
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        {% if category == "danger" or category == "warning" %}
+            <div class="form-error">
+                {{ message }}
             </div>
+        {% endif %}
+    {% endfor %}
+{% endwith %}
 
-            <div class="form-group">
-                <label class="form-label">First Name:</label>
-                <input class="form-input" type="text" name="first_name">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Middle Name:</label>
-                <input class="form-input" type="text" name="middle_name">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Date of Birth:</label>
-                <input class="form-input" type="date" name="dob">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Gender:</label>
-                <select class="form-input" name="gender">
-                    <option value="">Select Gender</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Phone Number:</label>
-                <input class="form-input" type="text" name="phone_number">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Country:</label>
-                <select class="form-input country-select" name="country">
-                    <option>Philippines</option>
-                    <option>Afghanistan</option>
-                    <option>Albania</option>
-                    <option>Algeria</option>
-                    <option>Argentina</option>
-                    <option>Australia</option>
-                    <option>Austria</option>
-                    <option>Bangladesh</option>
-                    <option>Belgium</option>
-                    <option>Brazil</option>
-                    <option>Canada</option>
-                    <option>China</option>
-                    <option>Denmark</option>
-                    <option>Egypt</option>
-                    <option>Finland</option>
-                    <option>France</option>
-                    <option>Germany</option>
-                    <option>Greece</option>
-                    <option>Hong Kong</option>
-                    <option>India</option>
-                    <option>Indonesia</option>
-                    <option>Ireland</option>
-                    <option>Israel</option>
-                    <option>Italy</option>
-                    <option>Japan</option>
-                    <option>Malaysia</option>
-                    <option>Mexico</option>
-                    <option>Netherlands</option>
-                    <option>New Zealand</option>
-                    <option>Norway</option>
-                    <option>Pakistan</option>
-                    <option>Poland</option>
-                    <option>Portugal</option>
-                    <option>Saudi Arabia</option>
-                    <option>Singapore</option>
-                    <option>South Africa</option>
-                    <option>South Korea</option>
-                    <option>Spain</option>
-                    <option>Sweden</option>
-                    <option>Switzerland</option>
-                    <option>Taiwan</option>
-                    <option>Thailand</option>
-                    <option>Turkey</option>
-                    <option>United Arab Emirates</option>
-                    <option>United Kingdom</option>
-                    <option>United States</option>
-                    <option>Vietnam</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">City:</label>
-                <input class="form-input" type="text" name="city">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Home Address:</label>
-                <input class="form-input" type="text" name="home_address">
-            </div>
-
-            <button class="register-button" type="submit">Register</button>
-
-        </div>
-
-
-        <!-- ================= RECRUITER ================= -->
-
-        <div id="recruiter-fields" class="form-section" style="display:none;">
-
-            <div class="form-group">
-                <label class="form-label">Last Name:</label>
-                <input class="form-input" type="text" name="surname">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">First Name:</label>
-                <input class="form-input" type="text" name="first_name">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Middle Name:</label>
-                <input class="form-input" type="text" name="middle_name">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Date of Birth:</label>
-                <input class="form-input" type="date" name="dob">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Gender:</label>
-                <select class="form-input" name="gender">
-                    <option value="">Select Gender</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Phone Number:</label>
-                <input class="form-input" type="text" name="phone_number">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Country:</label>
-                <select class="form-input country-select" name="country">
-                    <option>Philippines</option>
-                    <option>Afghanistan</option>
-                    <option>Albania</option>
-                    <option>Algeria</option>
-                    <option>Argentina</option>
-                    <option>Australia</option>
-                    <option>Austria</option>
-                    <option>Bangladesh</option>
-                    <option>Belgium</option>
-                    <option>Brazil</option>
-                    <option>Canada</option>
-                    <option>China</option>
-                    <option>Denmark</option>
-                    <option>Egypt</option>
-                    <option>Finland</option>
-                    <option>France</option>
-                    <option>Germany</option>
-                    <option>Greece</option>
-                    <option>Hong Kong</option>
-                    <option>India</option>
-                    <option>Indonesia</option>
-                    <option>Ireland</option>
-                    <option>Israel</option>
-                    <option>Italy</option>
-                    <option>Japan</option>
-                    <option>Malaysia</option>
-                    <option>Mexico</option>
-                    <option>Netherlands</option>
-                    <option>New Zealand</option>
-                    <option>Norway</option>
-                    <option>Pakistan</option>
-                    <option>Poland</option>
-                    <option>Portugal</option>
-                    <option>Saudi Arabia</option>
-                    <option>Singapore</option>
-                    <option>South Africa</option>
-                    <option>South Korea</option>
-                    <option>Spain</option>
-                    <option>Sweden</option>
-                    <option>Switzerland</option>
-                    <option>Taiwan</option>
-                    <option>Thailand</option>
-                    <option>Turkey</option>
-                    <option>United Arab Emirates</option>
-                    <option>United Kingdom</option>
-                    <option>United States</option>
-                    <option>Vietnam</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Home Address:</label>
-                <input class="form-input" type="text" name="home_address">
-            </div>
-
-            <!-- Company info -->
-            <h3 class="section-title">Company Information</h3>
-            <div class="form-group">
-                <label class="form-label">Company Name:</label>
-                <input class="form-input" type="text" name="company_name">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Company Industry:</label>
-                <input class="form-input" type="text" name="company_industry">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Company Description:</label>
-                <textarea class="form-input" name="company_description"></textarea>
-            </div>
-
-            <!-- File uploads -->
-            <div class="form-group">
-                <label class="form-label">Upload Company Logo:</label>
-                <input class="form-input" type="file" name="company_logo" accept=".png,.jpg,.jpeg">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Upload Company Document:</label>
-                <input class="form-input" type="file" name="company_proof" accept=".pdf,.doc,.docx">
-            </div>
-
-            <button class="register-button" type="submit">Register</button>
-
-            
-        </div>
-
-    </form>
+<div class="form-buttons">
+<button type="button" class="next-btn">Continue</button>
+</div>
 
 </div>
 
-<!-- jQuery -->
+
+<!-- STEP 2 -->
+
+<div class="form-step">
+
+<h3>Personal Information</h3>
+
+<div class="form-group">
+<label class="form-label">Last Name</label>
+<input class="form-input" type="text" name="last_name">
+</div>
+
+<div class="form-group">
+<label class="form-label">First Name</label>
+<input class="form-input" type="text" name="first_name">
+</div>
+
+<div class="form-group">
+<label class="form-label">Middle Name</label>
+<input class="form-input" type="text" name="middle_name">
+</div>
+
+<div class="form-group">
+<label class="form-label">Date of Birth</label>
+<input class="form-input" type="date" name="dob">
+</div>
+
+<div class="form-group">
+<label class="form-label">Gender</label>
+<select class="form-input" name="gender">
+<option value="">Select Gender</option>
+<option>Male</option>
+<option>Female</option>
+<option>Other</option>
+</select>
+</div>
+
+<div class="form-group">
+<label class="form-label">Phone Number</label>
+<input class="form-input" type="text" name="phone_number">
+</div>
+
+<div class="form-buttons">
+<button type="button" class="back-btn">Back</button>
+<button type="button" class="next-btn">Continue</button>
+</div>
+
+</div>
+
+
+<!-- STEP 3 -->
+
+<div class="form-step">
+
+<h3>Address</h3>
+
+<div class="form-group">
+<label class="form-label">Country</label>
+<select class="form-input country-select" name="country">
+<option>Philippines</option>
+<option>United States</option>
+<option>United Kingdom</option>
+<option>Japan</option>
+<option>Australia</option>
+</select>
+</div>
+
+<div class="form-group">
+<label class="form-label">City</label>
+<input class="form-input" type="text" name="city">
+</div>
+
+<div class="form-group">
+<label class="form-label">Home Address</label>
+<input class="form-input" type="text" name="home_address">
+</div>
+
+<div class="form-buttons">
+<button type="button" class="back-btn">Back</button>
+<button type="button" class="next-btn" id="step3-btn">Continue</button>
+</div>
+
+</div>
+
+
+<!-- STEP 4 (Recruiter Only) -->
+
+<div class="form-step recruiter-step">
+
+<h3>Company Information</h3>
+
+<div class="form-group">
+<label class="form-label">Company Name</label>
+<input class="form-input" type="text" name="company_name">
+</div>
+
+<div class="form-group">
+<label class="form-label">Company Industry</label>
+<input class="form-input" type="text" name="company_industry">
+</div>
+
+<div class="form-group">
+<label class="form-label">Company Description</label>
+<textarea class="form-input" name="company_description"></textarea>
+</div>
+
+<div class="form-group">
+<label class="form-label">Upload Company Logo</label>
+<input class="form-input" type="file" name="company_logo">
+</div>
+
+<div class="form-group">
+<label class="form-label">Upload Company Document</label>
+<input class="form-input" type="file" name="company_proof">
+</div>
+
+<div class="form-buttons">
+<button type="button" class="back-btn">Back</button>
+<button type="submit" class="register-button">Register</button>
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Select2 -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 
 {% endblock %}

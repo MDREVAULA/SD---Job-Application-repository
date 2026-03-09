@@ -52,7 +52,7 @@ def scammers():
     ).all()
 
     return render_template(
-        "admin_scammers.html",
+        "admin/admin_scammers.html",
         recruiters=rejected_recruiters
     )
 
@@ -77,7 +77,7 @@ def review_recruiter(user_id):
     profile = recruiter.recruiter_profile
 
     return render_template(
-        'admin_review_recruiter.html',
+        'admin/admin_review_recruiter.html',
         recruiter=recruiter,
         profile=profile
     )
@@ -105,7 +105,7 @@ def review_applicant(user_id):
     ).first()
 
     return render_template(
-        'admin_review_applicant.html',
+        'admin/admin_review_applicant.html',
         applicant=applicant,
         profile=profile
     )
@@ -193,7 +193,7 @@ def rejected_applicants():
     ).all()
 
     return render_template(
-        "admin_rejected_applicants.html",
+        "admin/admin_rejected_applicants.html",
         applicants=rejected_applicants
     )
 

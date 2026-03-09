@@ -215,3 +215,13 @@ html, body {
     background: #2f3542;
     color: white;
 }
+
+.form-error{
+    margin-top:10px;
+    padding:10px;
+    background:#ffecec;
+    border-left:4px solid #ff4d4d;
+    color:#a40000;
+    border-radius:6px;
+    font-size:14px;
+}
