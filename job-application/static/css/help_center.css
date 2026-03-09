@@ -1,0 +1,97 @@
+/* Fully scoped Help Center styles */
+.help-center {
+    font-family: Arial, sans-serif !important;
+    background: #f4f6f8 !important;
+    padding: 30px !important;
+    min-height: 100vh !important;
+}
+
+.help-center .container {
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    background: #fff !important;
+    border-radius: 10px !important;
+    padding: 25px 30px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.help-center h1, .help-center h2 {
+    text-align: center !important;
+    margin-bottom: 20px !important;
+}
+
+.help-center input[type="text"] {
+    width: 100% !important;
+    padding: 12px 15px !important;
+    border-radius: 6px !important;
+    border: 1px solid #ccc !important;
+    margin-bottom: 25px !important;
+    font-size: 16px !important;
+    transition: border-color 0.2s !important;
+}
+
+.help-center input[type="text"]:focus {
+    outline: none !important;
+    border-color: #007bff !important;
+}
+
+.help-center ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.help-center ul li {
+    background: #f9f9f9 !important;
+    padding: 15px 20px !important;
+    margin-bottom: 12px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: background 0.2s, box-shadow 0.2s !important;
+    border: 1px solid #eee !important;
+}
+
+.help-center ul li:hover {
+    background: #f1f1f1 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
+}
+
+.help-center .answer {
+    display: none !important;
+    margin-top: 10px !important;
+    padding-left: 10px !important;
+    color: #555 !important;
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+    border-left: 3px solid #007bff !important;
+}
+
+.help-center .answer img {
+    max-width: 100%;
+    margin-top: 10px;
+    border-radius: 8px;
+    display: block;
+}
+
+.help-center ul li.active .answer {
+    display: block !important;
+}
+
+
+@media (max-width: 768px) {
+    .help-center .container {
+        padding: 20px 15px !important;
+    }
+
+    .help-center input[type="text"] {
+        font-size: 14px !important;
+    }
+
+    .help-center ul li {
+        padding: 12px 15px !important;
+    }
+
+    .help-center .answer {
+        font-size: 14px !important;
+    }
+}

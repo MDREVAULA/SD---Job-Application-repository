@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="help-center">
+    <div class="container">
+        <h1>Help Center</h1>
+        <h2>What can we help you?</h2>
+        <input type="text" id="searchInput" placeholder="Type a question or issue">
+        <ul id="questionsList"></ul>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/help_center.js') }}"></script>
+{% endblock %}
