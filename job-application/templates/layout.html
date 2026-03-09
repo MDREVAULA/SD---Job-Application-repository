@@ -19,18 +19,24 @@
         <h1 class="logo">Job Portal</h1>
         <ul>
             {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('applicant.dashboard') }}" class="active">Dashboard</a></li>
+            {% if current_user.role == 'applicant' %}
+            <li><a href="{{ url_for('applicant.dashboard') }}" class="active">Dashboard</a></li>
+            <li><a href="{{ url_for('applicant.profile') }}">My Profile</a></li>
             {% endif %}
+            <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            {% else %}
             <li><a href="{{ url_for('auth.index') }}">Jobs</a></li>
             <li><a href="#">Help</a></li>
-            {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+{% endif %}
+            {% if current_user.is_authenticated and current_user.role == 'applicant' %}
+            <li><a href="{{ url_for('applicant.profile') }}">My Profile</a></li>
             {% endif %}
         </ul>
     </nav>
 
     <!-- Sidebar Overlay -->
     <div id="sidebar-overlay"></div>
+    
 
     <!-- MAIN CONTENT -->
     <section class="dashboard-content">

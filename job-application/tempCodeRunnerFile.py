@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from routes.applicant import applicant_bp
 from config import Config
 from models import db, User
 from flask_login import LoginManager
@@ -8,25 +9,27 @@ from werkzeug.security import generate_password_hash
 import os
 import pymysql
 
-# CREATE DATABASE IF NOT EXISTS
-connection = pymysql.connect(host="localhost", user="root", password="")
+# ✅ CREATE DATABASE IF NOT EXISTS
+connection = pymysql.connect(
+    host="localhost",
+    user="root",
+    password=""
+)
 cursor = connection.cursor()
 cursor.execute("CREATE DATABASE IF NOT EXISTS job_portal")
 connection.close()
 
-# INIT APP
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# UPLOAD FOLDER
+# ✅ Upload folder configuration
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# INIT DB
+# Initialize Database
 db.init_app(app)
-migrate = Migrate(app, db)
 
-# LOGIN MANAGER
+# Setup Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "auth.login"
@@ -36,27 +39,29 @@ login_manager.login_message_category = "warning"
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
-# ------------------ REGISTER BLUEPRINTS ------------------
-from routes.applicant import applicant_bp
+# Initialize Migrate
+migrate = Migrate(app, db)
+
+# ------------------ Register Blueprints ------------------
 from routes.auth import auth_bp
 from routes.recruiter import recruiter_bp
 from routes.hr import hr_bp
 from routes.admin import admin_bp
 
-# Register applicant first so templates using url_for('applicant.dashboard') work
-app.register_blueprint(applicant_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(applicant_bp)   # ✅ only once
 app.register_blueprint(recruiter_bp)
 app.register_blueprint(hr_bp)
 app.register_blueprint(admin_bp)
 
-# ------------------ RUN APP ------------------
+# ------------------ Run App ------------------
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-        # Auto-create admin if not exists
+        # ✅ AUTO-CREATE ADMIN ACCOUNT IF NOT EXISTS
         existing_admin = User.query.filter_by(role="admin").first()
+
         if not existing_admin:
             admin = User(
                 username="admin",

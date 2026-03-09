@@ -20,3 +20,20 @@
 .register-button{
     margin-top:20px;
 }
+
+.profile-form{
+    max-width:600px;
+    margin:auto;
+    padding:20px;
+    background:#f9f9f9;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+.profile-pic{
+    width:150px;
+    height:150px;
+    object-fit:cover;
+    border-radius:50%;
+    margin-bottom:15px;
+}

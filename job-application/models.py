@@ -80,3 +80,20 @@ class Application(db.Model):
     # ✅ ADD THESE
     status = db.Column(db.String(50), default="Pending")
     remarks = db.Column(db.Text)
+
+class ApplicantProfile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    last_name = db.Column(db.String(100))
+    first_name = db.Column(db.String(100))
+    middle_name = db.Column(db.String(100))
+    date_of_birth = db.Column(db.Date)
+    gender = db.Column(db.String(20))
+    phone_number = db.Column(db.String(50))
+    country = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    home_address = db.Column(db.String(200))
+
+    # ✅ NEW FIELD
+    profile_picture = db.Column(db.String(200))
