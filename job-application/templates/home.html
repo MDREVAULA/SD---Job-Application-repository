@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1>Welcome to Job Portal</h1>
+<p>Find jobs from verified companies.</p>
+
+<a href="{{ url_for('auth.jobs') }}" class="btn">Browse Jobs</a>
+
+{% endblock %}
