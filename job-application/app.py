@@ -2,6 +2,7 @@ from flask import Flask
 from config import Config
 from models import db, User
 from flask_login import LoginManager
+from routes.recruiter import recruiter_bp
 from werkzeug.security import generate_password_hash
 import os
 import pymysql

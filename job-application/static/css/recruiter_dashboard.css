@@ -1,0 +1,167 @@
+/* Page Layout */
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f4f6fb;
+    margin: 0;
+    padding: 30px;
+    color: #333;
+}
+
+
+/* Headers */
+
+h2 {
+    font-size: 32px;
+    margin-bottom: 15px;
+    color: #1f2937;
+}
+
+h3 {
+    margin-top: 40px;
+    margin-bottom: 15px;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 6px;
+}
+
+
+/* Status Box */
+
+p strong {
+    font-size: 16px;
+}
+
+p span {
+    margin-left: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+
+/* Forms */
+
+form {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    max-width: 500px;
+}
+
+
+label {
+    font-weight: 600;
+    color: #444;
+}
+
+
+input,
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+}
+
+
+textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+
+/* Buttons */
+
+button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+
+/* Job Cards Grid */
+
+.jobs-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+
+/* Individual Job Card */
+
+.job-card {
+    background: white;
+    padding: 18px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: 0.2s;
+}
+
+.job-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.job-card h4 {
+    margin-top: 0;
+    color: #111827;
+}
+
+.job-card p {
+    font-size: 14px;
+    color: #555;
+}
+
+
+
+
+/* HR Accounts List */
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    background: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+
+/* Responsive */
+
+@media (max-width: 700px) {
+
+    body {
+        padding: 15px;
+    }
+
+    form {
+        max-width: 100%;
+    }
+
+}

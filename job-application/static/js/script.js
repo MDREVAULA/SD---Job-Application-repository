@@ -49,3 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.classList.remove('active');
     });
 });
+
+const sidebar = document.getElementById("sidebar");
+const toggleBtn = document.getElementById("toggleBtn");
+const closeBtn = document.getElementById("closeBtn");
+
+toggleBtn.addEventListener("click", () => {
+    sidebar.classList.add("active");
+});
+
+closeBtn.addEventListener("click", () => {
+    sidebar.classList.remove("active");
+});

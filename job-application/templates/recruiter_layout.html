@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>Recruiter Panel</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter_dashboard.css') }}">
+
+<link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</head>
+
+<body>
+
+<!-- SAME NAVBAR AS layout.html -->
+<header class="navbar">
+
+    <div class="nav-left">
+        <button id="toggleBtn" class="menu-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <h1 class="logo">Job Portal</h1>
+    </div>
+
+    <div class="nav-right">
+        {% if current_user.is_authenticated %}
+            <span class="welcome-text">Welcome, {{ current_user.username }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+        {% endif %}
+    </div>
+
+</header>
+
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+        <h2>Recruiter</h2>
+        <button id="closeBtn" class="close-btn">&times;</button>
+    </div>
+
+    <ul>
+
+        <li>
+            <a href="{{ url_for('recruiter.dashboard') }}" class="active">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('recruiter.dashboard') }}">
+                <i class="fa-solid fa-briefcase"></i> Job Listings
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('recruiter.dashboard') }}">
+                <i class="fa-solid fa-user-tie"></i> HR Accounts
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ url_for('auth.logout') }}">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+
+<!-- OVERLAY -->
+<div id="sidebar-overlay"></div>
+
+
+<!-- PAGE CONTENT -->
+<main class="main-content">
+
+    {% block content %}
+    {% endblock %}
+
+</main>
+
+
+</body>
+</html>

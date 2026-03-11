@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash
 
 recruiter_bp = Blueprint('recruiter', __name__, url_prefix="/recruiter")
 
-
 @recruiter_bp.route('/dashboard')
 @login_required
 def dashboard():
