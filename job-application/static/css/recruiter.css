@@ -1,0 +1,140 @@
+/* DASHBOARD LAYOUT */
+
+.dashboard-container{
+    max-width:1100px;
+    margin:auto;
+}
+
+.dashboard-title{
+    margin-bottom:20px;
+}
+
+/* CARDS */
+
+.card{
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    margin-bottom:25px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+
+/* STATUS CARD */
+
+.status-card{
+    background:#f8f9fa;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:20px;
+}
+
+.status{
+    font-weight:bold;
+    margin-left:10px;
+}
+
+.status.approved{
+    color:green;
+}
+
+.status.pending{
+    color:orange;
+}
+
+.status.rejected{
+    color:red;
+}
+
+.remarks{
+    margin-top:8px;
+}
+
+/* FORMS */
+
+form label{
+    font-weight:600;
+}
+
+input, textarea{
+    width:100%;
+    padding:10px;
+    margin:6px 0 15px 0;
+    border:1px solid #ddd;
+    border-radius:6px;
+}
+
+textarea{
+    min-height:100px;
+}
+
+/* BUTTONS */
+
+.btn-primary{
+    background:#007bff;
+    color:white;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.btn-primary:hover{
+    background:#0056b3;
+}
+
+.btn-disabled{
+    background:#ccc;
+    border:none;
+    padding:10px 16px;
+    border-radius:6px;
+}
+
+/* JOB GRID */
+
+.jobs-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:18px;
+}
+
+.job-card{
+    background:#fafafa;
+    border:1px solid #eee;
+    padding:15px;
+    border-radius:8px;
+    transition:0.2s;
+}
+
+.job-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+.job-card h4{
+    margin-bottom:8px;
+}
+
+.job-footer{
+    margin-top:10px;
+    font-size:14px;
+    color:#555;
+}
+
+/* HR LIST */
+
+.hr-list{
+    list-style:none;
+    padding:0;
+}
+
+.hr-list li{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid #eee;
+}
+
+.hr-list small{
+    color:#666;
+}

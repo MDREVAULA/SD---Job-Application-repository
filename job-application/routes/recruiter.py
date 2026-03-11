@@ -21,7 +21,7 @@ def dashboard():
     hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
 
     return render_template(
-        'recruiter/recruiter_dashboard.html',
+        'recruiter/recruiter_profile.html',
         jobs=jobs,
         hrs=hrs
     )
@@ -136,3 +136,37 @@ def update_application(app_id):
     flash("Application updated.", "success")
 
     return redirect(url_for("recruiter.dashboard"))
+
+@recruiter_bp.route('/job-posting')
+@login_required
+def job_posting():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    jobs = Job.query.filter_by(company_id=current_user.id).all()
+
+    return render_template(
+        "recruiter/job_posting.html",
+        jobs=jobs
+    )
+
+
+@recruiter_bp.route('/hr-accounts')
+@login_required
+def hr_accounts():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    hrs = User.query.filter_by(
+        created_by=current_user.id,
+        role="hr"
+    ).all()
+
+    return render_template(
+        "recruiter/hr_accounts.html",
+        hrs=hrs
+    )

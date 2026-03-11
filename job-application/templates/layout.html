@@ -7,7 +7,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter.css') }}">
+
 <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" type="image/x-icon">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
@@ -55,7 +58,53 @@
 
     <ul>
 
-        {% if current_user.is_authenticated %}
+        <!-- HOME -->
+        <li>
+            <a href="{{ url_for('auth.index') }}">
+                <i class="fas fa-home"></i> Home
+            </a>
+        </li>
+
+
+        <!-- RECRUITER MENU -->
+        {% if current_user.is_authenticated and current_user.role == "recruiter" %}
+
+        <li>
+            <a href="{{ url_for('recruiter.dashboard') }}">
+                <i class="fas fa-user"></i> Profile
+            </a>
+        </li>
+
+        <li class="dropdown">
+
+            <a href="#" class="dropdown-toggle">
+                <i class="fa-solid fa-address-card"></i> Dashboard
+                <i class="fas fa-chevron-down"></i>
+            </a>
+
+            <ul class="submenu">
+
+                <li>
+                    <a href="{{ url_for('recruiter.job_posting') }}">
+                        Job Posting
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('recruiter.hr_accounts') }}">
+                        HR Accounts
+                    </a>
+                </li>
+
+            </ul>
+
+        </li>
+
+        {% endif %}
+
+
+        <!-- APPLICANT DASHBOARD -->
+        {% if current_user.is_authenticated and current_user.role == "applicant" %}
         <li>
             <a href="{{ url_for('applicant.dashboard') }}">
                 <i class="fa-solid fa-address-card"></i> Dashboard
@@ -63,24 +112,24 @@
         </li>
         {% endif %}
 
-        <li>
-            <a href="{{ url_for('auth.index') }}">
-                <i class="fas fa-home"></i> Home
-            </a>
-        </li>
 
+        <!-- JOBS -->
         <li>
             <a href="{{ url_for('auth.jobs') }}">
                 <i class="fas fa-briefcase"></i> Jobs
             </a>
         </li>
 
+
+        <!-- HELP -->
         <li>
             <a href="#">
                 <i class="fas fa-question"></i> Help
             </a>
         </li>
 
+
+        <!-- LOGOUT -->
         {% if current_user.is_authenticated %}
         <li>
             <a href="{{ url_for('auth.logout') }}">
@@ -101,7 +150,7 @@
 <!-- PAGE CONTENT -->
 <main class="main-content {% if request.endpoint == 'auth.login' %}login-page{% endif %}">
 
-    <!-- FLASH MESSAGES (DISABLED FOR LOGIN/REGISTER ERROR FIX) -->
+    <!-- FLASH MESSAGES -->
     {#
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -115,6 +164,17 @@
     {% block content %}{% endblock %}
 
 </main>
+
+<!-- FOOTER -->
+{% if request.endpoint != 'auth.login' and request.endpoint != 'auth.register' %}
+<footer class="footer">
+
+    <p>
+        © 2026 Job Portal | Built for Job Application System
+    </p>
+
+</footer>
+{% endif %}
 
 </body>
 </html>

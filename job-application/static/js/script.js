@@ -49,3 +49,28 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.classList.remove('active');
     });
 });
+
+
+/* ============================= */
+/* DROPDOWN MENU (RECRUITER) */
+/* ============================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const dropdownToggles = document.querySelectorAll(".dropdown-toggle");
+
+    dropdownToggles.forEach(toggle => {
+
+        toggle.addEventListener("click", function(e){
+
+            e.preventDefault();
+
+            const submenu = this.nextElementSibling;
+
+            submenu.classList.toggle("open");
+
+        });
+
+    });
+
+});

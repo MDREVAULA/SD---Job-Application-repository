@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Recruiter Dashboard</h2>
+
+<div class="status-card">
+<strong>Account Status:</strong>
+
+{% if current_user.verification_status == "Approved" %}
+<span class="status approved">Verified ✅</span>
+
+{% elif current_user.verification_status == "Pending" %}
+<span class="status pending">Pending Verification ⚠️</span>
+
+{% elif current_user.verification_status == "Rejected" %}
+<span class="status rejected">Rejected ❌</span>
+{% endif %}
+
+</div>
+
+<p>Use the sidebar to manage job postings and HR accounts.</p>
+
+{% endblock %}

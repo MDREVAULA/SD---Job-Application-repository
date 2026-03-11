@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Job Posting</h2>
+
+<div class="card">
+
+<h3>Post New Job</h3>
+
+<form method="POST" action="{{ url_for('recruiter.post_job') }}">
+
+<label>Job Title</label>
+<input type="text" name="title" required>
+
+<label>Description</label>
+<textarea name="description" required></textarea>
+
+{% if current_user.verification_status == "Approved" %}
+<button type="submit" class="btn-primary">Post Job</button>
+{% else %}
+<button type="button" class="btn-disabled" disabled>
+Verification Required
+</button>
+{% endif %}
+
+</form>
+
+</div>
+
+
+<div class="card">
+
+<h3>My Job Listings</h3>
+
+<div class="jobs-grid">
+
+{% for job in jobs %}
+
+<div class="job-card">
+
+<h4>{{ job.title }}</h4>
+
+<p>{{ job.description[:100] }}...</p>
+
+<div class="job-footer">
+Applicants: {{ job.application_set | length }}
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+{% endblock %}

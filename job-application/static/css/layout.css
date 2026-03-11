@@ -1,3 +1,14 @@
+/* PAGE LAYOUT (Sticky Footer) */
+
+html, body{
+    height:100%;
+}
+
+body{
+    display:flex;
+    flex-direction:column;
+}
+
 /* NAVBAR */
 
 .navbar{
@@ -89,6 +100,7 @@
 .main-content{
     margin-top:70px;
     padding:20px;
+    flex:1;
 }
 
 /* OVERLAY */
@@ -110,4 +122,46 @@
 #sidebar-overlay.active{
     opacity:1;
     visibility:visible;
+}
+
+
+/* ============================= */
+/* RECRUITER DROPDOWN MENU */
+/* ============================= */
+
+.dropdown .submenu{
+    display:none;
+    list-style:none;
+    padding:0px;          /* remove extra padding */
+    margin:0px;           /* remove extra margin */
+}
+
+.dropdown .submenu li{
+    margin:10;           /* remove big gaps */
+}
+
+.dropdown .submenu li a{
+    padding:10px 10px 10px 25px; /* indent but keep same height */
+    font-size:14px;
+    color:#ccc;
+}
+
+.dropdown .submenu li a:hover{
+    background:#3a3a3a;
+    color:white;
+}
+
+.dropdown .submenu.open{
+    display:block;
+}   
+
+
+/* FOOTER */
+
+.footer{
+    background:#222;
+    color:white;
+    text-align:center;
+    padding:65px 10px;
+    font-size:14px;
 }
