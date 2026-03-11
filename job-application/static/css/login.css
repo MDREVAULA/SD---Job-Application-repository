@@ -1,4 +1,6 @@
-
+* {
+    box-sizing: border-box;
+}
 /* ==========================================
    REMOVE LAYOUT SPACING FOR LOGIN PAGE
    ========================================== */
@@ -77,7 +79,8 @@ html, body {
 /* Login form container */
 .login-box {
     width: 100%;
-    max-width: 100%;
+    max-width: 400px; /* Limitahan natin para siksik ang look */
+    margin: 0 auto;
 }
 
 /* Title spacing */
