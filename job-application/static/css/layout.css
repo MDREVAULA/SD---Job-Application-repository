@@ -355,13 +355,11 @@ body {
 }
 
 /* ================================
-   CONTENT
+   CONTENTf
    ================================ */
 
-   .main-content {
+.main-content {
     margin-top: 65px;
-    padding: 20px;
-    flex: 1;
 }
 
 /* ================================
