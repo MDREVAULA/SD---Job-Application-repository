@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -153,8 +154,16 @@ class Application(db.Model):
     applicant_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"))
 
-    # NEW: resume upload
-    resume = db.Column(db.String(200))
+    # =========================
+    # APPLICANT SUBMISSION
+    # =========================
+    resume = db.Column(db.String(200))        # stored file name
+    cover_letter = db.Column(db.Text)
 
+    # =========================
+    # RECRUITER / HR REVIEW
+    # =========================
     status = db.Column(db.String(50), default="Pending")
     remarks = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

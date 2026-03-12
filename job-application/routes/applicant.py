@@ -8,6 +8,9 @@ import uuid
 applicant_bp = Blueprint('applicant', __name__, url_prefix="/applicant")
 
 
+# ===============================
+# APPLICANT DASHBOARD
+# ===============================
 @applicant_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -29,6 +32,9 @@ def dashboard():
     )
 
 
+# ===============================
+# JOB DETAILS
+# ===============================
 @applicant_bp.route('/job/<int:job_id>')
 def job_details(job_id):
 
@@ -44,7 +50,7 @@ def job_details(job_id):
 
 
 # ===============================
-# APPLICATION FORM PAGE
+# APPLY FOR JOB
 # ===============================
 @applicant_bp.route('/apply/<int:job_id>', methods=["GET", "POST"])
 @login_required
@@ -54,13 +60,14 @@ def apply_job(job_id):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
+    # Prevent unverified users
     if not current_user.is_verified:
         flash("Your account is still waiting for admin verification.", "warning")
         return redirect(url_for('applicant.dashboard'))
 
     job = Job.query.get_or_404(job_id)
 
-    # prevent duplicate applications
+    # Prevent duplicate applications
     existing = Application.query.filter_by(
         applicant_id=current_user.id,
         job_id=job_id
@@ -82,21 +89,31 @@ def apply_job(job_id):
 
         if resume_file and resume_file.filename != "":
 
-            upload_folder = os.path.join(current_app.root_path, "static", "resumes")
+            # Folder where resumes will be stored
+            upload_folder = os.path.join(
+                current_app.root_path,
+                "static",
+                "resumes"
+            )
+
             os.makedirs(upload_folder, exist_ok=True)
 
+            # Secure + unique filename
             filename = secure_filename(resume_file.filename)
-            unique_name = f"{uuid.uuid4()}_{filename}"
+            unique_filename = f"{uuid.uuid4()}_{filename}"
 
-            resume_file.save(os.path.join(upload_folder, unique_name))
+            resume_path = os.path.join(upload_folder, unique_filename)
 
-            resume_filename = unique_name
+            resume_file.save(resume_path)
 
+            resume_filename = unique_filename
+
+        # Save application
         application = Application(
             applicant_id=current_user.id,
             job_id=job_id,
             resume=resume_filename,
-            remarks=cover_letter
+            cover_letter=cover_letter
         )
 
         db.session.add(application)

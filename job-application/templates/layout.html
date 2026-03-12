@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
 
 <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" type="image/x-icon">
@@ -101,6 +100,12 @@
                 <li>
                     <a href="{{ url_for('recruiter.job_posting') }}">
                         <i class="fas fa-plus-circle"></i> Job Posting
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('recruiter.review_applications') }}">
+                        <i class="fas fa-plus-circle"></i> View Applications
                     </a>
                 </li>
 

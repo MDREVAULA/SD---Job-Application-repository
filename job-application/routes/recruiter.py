@@ -251,3 +251,44 @@ def hr_accounts():
         "recruiter/hr_accounts.html",
         hrs=hrs
     )
+
+@recruiter_bp.route('/review-applications')
+@login_required
+def review_applications():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    # Get applications for jobs posted by this recruiter
+    applications = Application.query.join(Application.job).filter_by(
+        company_id=current_user.id
+    ).all()
+
+    return render_template(
+        "recruiter/review_applications.html",
+        applications=applications
+    )
+
+
+@recruiter_bp.route('/review/<int:app_id>', methods=['POST'])
+@login_required
+def review_application(app_id):
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    application = Application.query.get_or_404(app_id)
+
+    status = request.form['status']
+    remarks = request.form['remarks']
+
+    application.status = status
+    application.remarks = remarks
+
+    db.session.commit()
+
+    flash("Application reviewed successfully!", "success")
+
+    return redirect(url_for('recruiter.review_applications'))
