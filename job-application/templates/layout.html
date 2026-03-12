@@ -33,7 +33,6 @@
     <div class="nav-right">
         {% if current_user.is_authenticated %}
             <span class="welcome-text">Welcome, {{ current_user.username }}</span>
-            <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
         {% else %}
             <button class="login-btn" onclick="window.location.href='{{ url_for('auth.login') }}'">
                 Login
