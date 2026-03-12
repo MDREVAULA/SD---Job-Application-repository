@@ -1,59 +1,73 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/job_posting.css') }}">
+
 <h2>Job Posting</h2>
 
 <div class="card">
 
 <h3>Post New Job</h3>
 
-<form method="POST" action="{{ url_for('recruiter.post_job') }}" enctype="multipart/form-data">
+<form method="POST"
+action="{{ url_for('recruiter.post_job') }}"
+enctype="multipart/form-data">
 
-    <label>Job Title</label>
-    <input type="text" name="title" required>
-    
-    <label>Job Field</label>
-    <select name="field">
-    <option>Engineering</option>
-    <option>IT</option>
-    <option>UI/UX Design</option>
-    <option>Healthcare</option>
-    <option>Marketing</option>
-    <option>Finance</option>
-    </select>
-    
-    <label>Job Type</label>
-    <select name="job_type">
-    <option>Full-time</option>
-    <option>Part-time</option>
-    <option>Contract</option>
-    <option>Internship</option>
-    </select>
-    
-    <label>Location</label>
-    <input type="text" name="location">
-    
-    <label>Salary</label>
-    <input type="text" name="salary">
-    
-    <label>Expiration Date</label>
-    <input type="date" name="expiration_date">
-    
-    <label>Job Poster / Image</label>
-    <input type="file" name="poster">
-    
-    <label>Description</label>
-    <textarea name="description" required></textarea>
-    
-    {% if current_user.verification_status == "Approved" %}
-    <button type="submit" class="btn-primary">Post Job</button>
-    {% else %}
-    <button type="button" class="btn-disabled" disabled>
-    Verification Required
-    </button>
-    {% endif %}
-    
-    </form>
+<label>Job Title</label>
+<input type="text" name="title" required>
+
+<label>Job Field</label>
+<select name="field">
+<option>Engineering</option>
+<option>IT</option>
+<option>UI/UX Design</option>
+<option>Healthcare</option>
+<option>Marketing</option>
+<option>Finance</option>
+</select>
+
+<label>Job Type</label>
+<select name="job_type">
+<option>Full-time</option>
+<option>Part-time</option>
+<option>Contract</option>
+<option>Internship</option>
+</select>
+
+<label>Location</label>
+<input type="text" name="location">
+
+<label>Salary</label>
+<input type="text" name="salary">
+
+<label>Expiration Date</label>
+<input type="date" name="expiration_date">
+
+<label>Job Images</label>
+
+<input
+type="file"
+id="posterInput"
+name="posters"
+multiple
+accept="image/*"
+>
+
+<!-- IMAGE PREVIEW -->
+<div id="imagePreviewContainer" class="image-preview-container"></div>
+
+<label>Description</label>
+<textarea name="description" required></textarea>
+
+{% if current_user.verification_status == "Approved" %}
+<button type="submit" class="btn-primary">Post Job</button>
+{% else %}
+<button type="button" class="btn-disabled" disabled>
+Verification Required
+</button>
+{% endif %}
+
+</form>
 
 </div>
 
@@ -73,7 +87,25 @@
 <p>{{ job.description[:100] }}...</p>
 
 <div class="job-footer">
-Applicants: {{ job.application_set | length }}
+
+    <p>Applicants: {{ job.applications | length }}</p>
+
+<a href="{{ url_for('recruiter.edit_job', job_id=job.id) }}" class="btn-primary">
+Edit
+</a>
+
+<form method="POST"
+action="{{ url_for('recruiter.delete_job', job_id=job.id) }}"
+style="display:inline;">
+
+<button type="submit"
+class="btn-danger"
+onclick="return confirm('Delete this job?')">
+Delete
+</button>
+
+</form>
+
 </div>
 
 </div>
@@ -83,5 +115,9 @@ Applicants: {{ job.application_set | length }}
 </div>
 
 </div>
+
+
+<!-- IMAGE PREVIEW SCRIPT -->
+<script src="{{ url_for('static', filename='js/job_image_preview.js') }}"></script>
 
 {% endblock %}

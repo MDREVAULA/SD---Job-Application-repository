@@ -2,6 +2,8 @@
 
 {% block content %}
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/job_details.css') }}">
+
 <h1>{{ job.title }}</h1>
 
 <p>
@@ -21,9 +23,26 @@
 <p><strong>Salary:</strong> {{ job.salary }}</p>
 
 
-<!-- JOB POSTER -->
-{% if job.poster %}
-<img src="{{ url_for('static', filename='uploads/' + job.poster) }}" width="400">
+<!-- =========================
+JOB IMAGE GALLERY
+========================= -->
+
+{% if job.images %}
+
+<div class="job-gallery">
+
+<button class="gallery-btn prev-btn" onclick="prevImage()">❮</button>
+
+<img
+id="jobImage"
+class="job-image"
+src="{{ url_for('static', filename='uploads/' + job.images[0].image_path) }}"
+>
+
+<button class="gallery-btn next-btn" onclick="nextImage()">❯</button>
+
+</div>
+
 {% endif %}
 
 
@@ -32,6 +51,7 @@
 
 
 <!-- APPLY BUTTON -->
+
 {% if current_user.is_authenticated and current_user.role == "applicant" %}
 
 <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">
@@ -51,5 +71,20 @@ Applicants Only
 </button>
 
 {% endif %}
+
+
+<!-- PASS IMAGE DATA TO JS -->
+
+<script>
+
+const jobImages = [
+{% for img in job.images %}
+"{{ url_for('static', filename='uploads/' + img.image_path) }}",
+{% endfor %}
+];
+
+</script>
+
+<script src="{{ url_for('static', filename='js/job_gallery.js') }}"></script>
 
 {% endblock %}

@@ -1,0 +1,28 @@
+.job-gallery{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin:20px 0;
+    }
+    
+    .job-image{
+    width:400px;
+    height:260px;
+    object-fit:cover;
+    border-radius:8px;
+    }
+    
+    .gallery-btn{
+    background:#333;
+    color:white;
+    border:none;
+    font-size:22px;
+    padding:10px 15px;
+    cursor:pointer;
+    border-radius:5px;
+    }
+    
+    .gallery-btn:hover{
+    background:#555;
+    }

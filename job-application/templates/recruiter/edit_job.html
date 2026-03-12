@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/job_posting.css') }}">
+
+<h2>Edit Job</h2>
+
+<div class="card">
+
+<form method="POST"
+action="{{ url_for('recruiter.edit_job', job_id=job.id) }}"
+enctype="multipart/form-data">
+
+<label>Job Title</label>
+<input type="text" name="title" value="{{ job.title }}" required>
+
+<label>Job Field</label>
+<select name="field">
+<option value="Engineering" {% if job.field=="Engineering" %}selected{% endif %}>Engineering</option>
+<option value="IT" {% if job.field=="IT" %}selected{% endif %}>IT</option>
+<option value="UI/UX Design" {% if job.field=="UI/UX Design" %}selected{% endif %}>UI/UX Design</option>
+<option value="Healthcare" {% if job.field=="Healthcare" %}selected{% endif %}>Healthcare</option>
+<option value="Marketing" {% if job.field=="Marketing" %}selected{% endif %}>Marketing</option>
+<option value="Finance" {% if job.field=="Finance" %}selected{% endif %}>Finance</option>
+</select>
+
+<label>Job Type</label>
+<select name="job_type">
+<option value="Full-time" {% if job.job_type=="Full-time" %}selected{% endif %}>Full-time</option>
+<option value="Part-time" {% if job.job_type=="Part-time" %}selected{% endif %}>Part-time</option>
+<option value="Contract" {% if job.job_type=="Contract" %}selected{% endif %}>Contract</option>
+<option value="Internship" {% if job.job_type=="Internship" %}selected{% endif %}>Internship</option>
+</select>
+
+<label>Location</label>
+<input type="text" name="location" value="{{ job.location }}">
+
+<label>Salary</label>
+<input type="text" name="salary" value="{{ job.salary }}">
+
+<label>Expiration Date</label>
+<input type="date"
+name="expiration_date"
+value="{{ job.expiration_date.strftime('%Y-%m-%d') if job.expiration_date }}">
+
+<label>Description</label>
+<textarea name="description">{{ job.description }}</textarea>
+
+</form>
+
+</div>
+
+
+<h3>Current Images</h3>
+
+<div class="image-preview-container">
+
+{% for image in job.images %}
+
+<div class="preview-card">
+
+<img src="{{ url_for('static', filename='uploads/' + image.image_path) }}">
+
+<form method="POST"
+action="{{ url_for('recruiter.delete_job_image', image_id=image.id) }}">
+
+<button type="submit" class="remove-btn">
+✕
+</button>
+
+</form>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+
+<div class="card">
+
+<form method="POST"
+action="{{ url_for('recruiter.edit_job', job_id=job.id) }}"
+enctype="multipart/form-data">
+
+<label>Add New Images</label>
+
+<input
+type="file"
+id="posterInput"
+name="posters"
+multiple
+accept="image/*"
+>
+
+<div id="imagePreviewContainer" class="image-preview-container"></div>
+
+<br>
+
+<button type="submit" class="btn-primary">
+Update Job
+</button>
+
+</form>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/job_image_preview.js') }}"></script>
+
+{% endblock %}
