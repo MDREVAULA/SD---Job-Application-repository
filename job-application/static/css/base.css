@@ -111,3 +111,51 @@
     opacity:1;
     visibility:visible;
 }
+
+/* FLASH MESSAGES */
+
+.flash-container{
+    position: fixed;
+    top: 90px;          /* pushes below navbar */
+    right: 20px;
+    z-index: 9999;
+    width: 320px;
+}
+
+.flash{
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+/* flash colors */
+
+.flash.success{
+    background:#28a745;
+}
+
+.flash.danger,
+.flash.login_error,
+.flash.register_error{
+    background:#dc3545;
+}
+
+.flash.warning,
+.flash.login_warning{
+    background:#ffc107;
+    color:#000;
+}
+
+.flash.info{
+    background:#17a2b8;
+}
+
+.flash.hr_password_notice{
+    background:#ff9800;
+}

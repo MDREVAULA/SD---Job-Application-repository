@@ -2,6 +2,12 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from models import db, Job, User, Application
 from werkzeug.security import generate_password_hash
+import secrets
+import string
+
+def generate_temp_password(length=10):
+    characters = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(characters) for _ in range(length))
 
 recruiter_bp = Blueprint('recruiter', __name__, url_prefix="/recruiter")
 
@@ -67,7 +73,11 @@ def create_hr():
 
     username = request.form['username']
     email = request.form['email']
-    password = generate_password_hash(request.form['password'])
+
+    # Generate automatic temporary password
+    temp_password = generate_temp_password()
+
+    hashed_password = generate_password_hash(temp_password)
 
     # Check duplicate username
     if User.query.filter_by(username=username).first():
@@ -82,17 +92,25 @@ def create_hr():
     hr_user = User(
         username=username,
         email=email,
-        password=password,
+        password=hashed_password,
         role='hr',
-        created_by=current_user.id
+        created_by=current_user.id,
+        must_change_password=True
     )
 
     db.session.add(hr_user)
     db.session.commit()
 
-    flash("HR account created successfully!", "success")
+    hrs = User.query.filter_by(
+        created_by=current_user.id,
+        role="hr"
+    ).all()
 
-    return redirect(url_for('recruiter.dashboard'))
+    return render_template(
+        "recruiter/hr_accounts.html",
+        hrs=hrs,
+        temp_password=temp_password
+    )
 
 
 @recruiter_bp.route('/schedule-interview/<int:app_id>', methods=['POST'])

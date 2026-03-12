@@ -30,3 +30,28 @@ def review(app_id):
     db.session.commit()
     flash("Application reviewed successfully!", "success")
     return redirect(url_for('hr.dashboard'))
+
+from werkzeug.security import generate_password_hash
+
+@hr_bp.route('/change-password', methods=['GET','POST'])
+@login_required
+def change_password():
+
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    if request.method == "POST":
+
+        new_password = request.form.get("password")
+
+        current_user.password = generate_password_hash(new_password)
+        current_user.must_change_password = False
+
+        db.session.commit()
+
+        flash("Password changed successfully!", "success")
+
+        return redirect(url_for("hr.dashboard"))
+
+    return render_template("hr/change_password.html")

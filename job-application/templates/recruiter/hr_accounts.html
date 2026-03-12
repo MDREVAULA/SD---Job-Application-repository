@@ -3,6 +3,35 @@
 
 <h2>HR Accounts</h2>
 
+{% if temp_password %}
+
+<div class="temp-password-box">
+
+<h3>HR Account Created</h3>
+
+<p>Temporary Password:</p>
+
+<div class="password-container">
+    <input 
+        type="text" 
+        id="tempPassword" 
+        value="{{ temp_password }}" 
+        readonly
+    >
+
+    <button onclick="copyPassword()" class="btn-copy">
+        <i class="fa-solid fa-copy"></i> Copy
+    </button>
+</div>
+
+<p class="password-note">
+Give this password to the HR user. They must change it after first login.
+</p>
+
+</div>
+
+{% endif %}
+
 <div class="card">
 
 <h3>Create HR Account</h3>
@@ -14,9 +43,6 @@
 
 <label>Email</label>
 <input type="email" name="email" required>
-
-<label>Temporary Password</label>
-<input type="text" name="password" required>
 
 <button type="submit" class="btn-primary">
 Create HR

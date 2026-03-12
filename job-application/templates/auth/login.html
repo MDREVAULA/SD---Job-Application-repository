@@ -21,16 +21,6 @@
                     <label for="password-input"><i class="fas fa-lock"></i></label>
                     <input type="password" name="password" id="password-input" placeholder="Password" required>
                 </div>
-
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% for category, message in messages %}
-                        {% if category == "danger" or category == "warning" %}
-                            <div class="form-error">
-                                {{ message }}
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                {% endwith %}
                 
                 <button type="submit" class="login-submit-btn">Login</button>
 

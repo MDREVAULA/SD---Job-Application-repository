@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
+<script src="{{ url_for('static', filename='js/hr_temporary.js') }}"></script>
 </head>
 
 <body>
@@ -169,15 +169,17 @@
 <main class="main-content {% if request.endpoint == 'auth.login' %}login-page{% endif %}">
 
     <!-- FLASH MESSAGES -->
-    {#
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
     {% endwith %}
-    #}
 
     {% block content %}{% endblock %}
 
