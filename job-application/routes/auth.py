@@ -7,7 +7,7 @@ from models import db, User, RecruiterProfile, Job
 
 import os
 import uuid
-
+from datetime import date
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -41,6 +41,7 @@ def save_uploaded_file(file, upload_folder):
 
 def redirect_by_role(user):
     """Redirect users based on role"""
+
     if user.role == "applicant":
         return redirect(url_for("applicant.dashboard"))
 
@@ -66,8 +67,23 @@ def index():
 
 @auth_bp.route("/jobs")
 def jobs():
-    jobs = Job.query.all()
-    return render_template("index.html", jobs=jobs)
+    """
+    Public job listing page.
+    Guests and logged-in users can view jobs.
+    """
+
+    # If you add expiration_date later this will filter expired jobs
+    try:
+        jobs = Job.query.filter(
+            (Job.expiration_date == None) | (Job.expiration_date >= date.today())
+        ).all()
+    except:
+        jobs = Job.query.all()
+
+    return render_template(
+        "index.html",
+        jobs=jobs
+    )
 
 
 @auth_bp.route("/help")

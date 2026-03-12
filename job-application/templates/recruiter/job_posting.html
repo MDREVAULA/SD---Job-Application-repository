@@ -7,23 +7,53 @@
 
 <h3>Post New Job</h3>
 
-<form method="POST" action="{{ url_for('recruiter.post_job') }}">
+<form method="POST" action="{{ url_for('recruiter.post_job') }}" enctype="multipart/form-data">
 
-<label>Job Title</label>
-<input type="text" name="title" required>
-
-<label>Description</label>
-<textarea name="description" required></textarea>
-
-{% if current_user.verification_status == "Approved" %}
-<button type="submit" class="btn-primary">Post Job</button>
-{% else %}
-<button type="button" class="btn-disabled" disabled>
-Verification Required
-</button>
-{% endif %}
-
-</form>
+    <label>Job Title</label>
+    <input type="text" name="title" required>
+    
+    <label>Job Field</label>
+    <select name="field">
+    <option>Engineering</option>
+    <option>IT</option>
+    <option>UI/UX Design</option>
+    <option>Healthcare</option>
+    <option>Marketing</option>
+    <option>Finance</option>
+    </select>
+    
+    <label>Job Type</label>
+    <select name="job_type">
+    <option>Full-time</option>
+    <option>Part-time</option>
+    <option>Contract</option>
+    <option>Internship</option>
+    </select>
+    
+    <label>Location</label>
+    <input type="text" name="location">
+    
+    <label>Salary</label>
+    <input type="text" name="salary">
+    
+    <label>Expiration Date</label>
+    <input type="date" name="expiration_date">
+    
+    <label>Job Poster / Image</label>
+    <input type="file" name="poster">
+    
+    <label>Description</label>
+    <textarea name="description" required></textarea>
+    
+    {% if current_user.verification_status == "Approved" %}
+    <button type="submit" class="btn-primary">Post Job</button>
+    {% else %}
+    <button type="button" class="btn-disabled" disabled>
+    Verification Required
+    </button>
+    {% endif %}
+    
+    </form>
 
 </div>
 

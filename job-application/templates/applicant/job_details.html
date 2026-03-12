@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1>{{ job.title }}</h1>
+
+<p>
+<strong>Company:</strong>
+{{ job_owner.recruiter_profile.company_name }}
+</p>
+
+<p>
+<strong>Owner:</strong>
+{{ job_owner.recruiter_profile.first_name }}
+{{ job_owner.recruiter_profile.surname }}
+</p>
+
+<p><strong>Field:</strong> {{ job.field }}</p>
+<p><strong>Type:</strong> {{ job.job_type }}</p>
+<p><strong>Location:</strong> {{ job.location }}</p>
+<p><strong>Salary:</strong> {{ job.salary }}</p>
+
+
+<!-- JOB POSTER -->
+{% if job.poster %}
+<img src="{{ url_for('static', filename='uploads/' + job.poster) }}" width="400">
+{% endif %}
+
+
+<h3>Description</h3>
+<p>{{ job.description }}</p>
+
+
+<!-- APPLY BUTTON -->
+{% if current_user.is_authenticated and current_user.role == "applicant" %}
+
+<a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">
+Apply Now
+</a>
+
+{% elif not current_user.is_authenticated %}
+
+<a href="{{ url_for('auth.login') }}" class="btn">
+Login to Apply
+</a>
+
+{% else %}
+
+<button class="btn disabled" disabled>
+Applicants Only
+</button>
+
+{% endif %}
+
+{% endblock %}

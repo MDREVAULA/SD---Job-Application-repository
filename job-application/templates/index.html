@@ -1,24 +1,56 @@
 {% extends "layout.html" %}
 
 {% block content %}
+
 <h1>Available Jobs</h1>
 
-<input type="text" id="jobSearchInput" placeholder="Search for jobs..." style="margin-bottom:20px; padding:8px; width:100%;">
+<!-- SEARCH BAR -->
+<input 
+type="text" 
+id="jobSearchInput" 
+placeholder="Search for jobs..." 
+style="margin-bottom:15px; padding:8px; width:100%;"
+>
+
+<!-- FIELD FILTER -->
+<select id="fieldFilter" style="margin-bottom:20px; padding:8px;">
+<option value="">All Fields</option>
+<option value="Engineering">Engineering</option>
+<option value="IT">IT</option>
+<option value="Healthcare">Healthcare</option>
+<option value="Marketing">Marketing</option>
+<option value="Finance">Finance</option>
+</select>
 
 <div class="jobs-list">
-    {% for job in jobs %}
-    <div class="job-card">
-        <h3>{{ job.title }}</h3>
-        <p>{{ job.description[:100] }}...</p>
 
-        {% if current_user.is_authenticated and current_user.role == "applicant" %}
-            <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">Apply</a>
-        {% else %}
-            <button class="btn disabled" disabled>Login to Apply</button>
-        {% endif %}
+{% for job in jobs %}
 
-    </div>
-    {% endfor %}
+<div class="job-card" data-field="{{ job.field }}">
+
+<!-- COMPANY LOGO -->
+{% if job.company_id %}
+{% set recruiter = job.company_id %}
+{% endif %}
+
+<h3>{{ job.title }}</h3>
+
+<p><strong>Field:</strong> {{ job.field }}</p>
+
+<p><strong>Type:</strong> {{ job.job_type }}</p>
+
+<p><strong>Location:</strong> {{ job.location }}</p>
+
+<p>{{ job.description[:120] }}...</p>
+
+<a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn">
+View Details
+</a>
+
+</div>
+
+{% endfor %}
+
 </div>
 
 <!-- LOAD SEARCH SCRIPT -->
