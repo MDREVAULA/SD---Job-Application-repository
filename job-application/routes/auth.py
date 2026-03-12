@@ -29,6 +29,10 @@ def jobs():
     jobs = Job.query.all()
     return render_template('index.html', jobs=jobs)
 
+@auth_bp.route("/help")
+def help_page():
+    return render_template("help.html")
+
 # =========================
 # Login
 # =========================

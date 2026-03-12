@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 import os
 import pymysql
 
-# ✅ CREATE DATABASE IF NOT EXISTS
+# CREATE DATABASE IF NOT EXISTS
 connection = pymysql.connect(
     host="localhost",
     user="root",
@@ -19,7 +19,7 @@ connection.close()
 
 app = Flask(__name__)
 app.config.from_object(Config)
-# ✅ Upload folder configuration
+# Upload folder configuration
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 
 # Make sure upload folder exists
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-        # ✅ AUTO-CREATE ADMIN ACCOUNT IF NOT EXISTS
+        # AUTO-CREATE ADMIN ACCOUNT IF NOT EXISTS
         existing_admin = User.query.filter_by(role="admin").first()
 
         if not existing_admin:

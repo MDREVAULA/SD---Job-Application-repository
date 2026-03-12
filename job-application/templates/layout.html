@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
 
 <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" type="image/x-icon">
 
@@ -27,19 +28,25 @@
             <i class="fas fa-bars"></i>
         </button>
 
-        <h1 class="logo">Job Portal</h1>
+        <div class="logo-container">
+            <i class="fas fa-briefcase logo-icon"></i>
+            <h1 class="logo">Job Portal</h1>
+        </div>
     </div>
 
     <div class="nav-right">
         {% if current_user.is_authenticated %}
-            <span class="welcome-text">Welcome, {{ current_user.username }}</span>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span class="welcome-text">{{ current_user.username }}</span>
+            </div>
         {% else %}
             <button class="login-btn" onclick="window.location.href='{{ url_for('auth.login') }}'">
-                Login
+                <i class="fas fa-sign-in-alt"></i> Login
             </button>
 
             <button class="signup-btn" onclick="window.location.href='{{ url_for('auth.register') }}'">
-                Sign Up
+                <i class="fas fa-user-plus"></i> Sign Up
             </button>
         {% endif %}
     </div>
@@ -51,16 +58,20 @@
 <nav class="sidebar" id="sidebar">
 
     <div class="sidebar-header">
-        <h2>Menu</h2>
+        <div class="sidebar-logo">
+            <i class="fas fa-briefcase"></i>
+            <h2>Menu</h2>
+        </div>
         <button id="closeBtn" class="close-btn">&times;</button>
     </div>
 
-    <ul>
+    <ul class="sidebar-menu">
 
         <!-- HOME -->
         <li>
-            <a href="{{ url_for('auth.index') }}">
-                <i class="fas fa-home"></i> Home
+            <a href="{{ url_for('auth.index') }}" class="sidebar-link">
+                <i class="fas fa-home"></i> 
+                <span>Home</span>
             </a>
         </li>
 
@@ -69,29 +80,33 @@
         {% if current_user.is_authenticated and current_user.role == "recruiter" %}
 
         <li>
-            <a href="{{ url_for('recruiter.dashboard') }}">
-                <i class="fas fa-user"></i> Profile
+            <a href="{{ url_for('recruiter.dashboard') }}" class="sidebar-link">
+                <i class="fas fa-user"></i> 
+                <span>Profile</span>
             </a>
         </li>
 
         <li class="dropdown">
 
-            <a href="#" class="dropdown-toggle">
-                <i class="fa-solid fa-address-card"></i> Dashboard
-                <i class="fas fa-chevron-down"></i>
+            <a href="#" class="dropdown-toggle sidebar-link">
+                <div class="link-content">
+                    <i class="fa-solid fa-address-card"></i> 
+                    <span>Dashboard</span>
+                </div>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
             </a>
 
             <ul class="submenu">
 
                 <li>
                     <a href="{{ url_for('recruiter.job_posting') }}">
-                        Job Posting
+                        <i class="fas fa-plus-circle"></i> Job Posting
                     </a>
                 </li>
 
                 <li>
                     <a href="{{ url_for('recruiter.hr_accounts') }}">
-                        HR Accounts
+                        <i class="fas fa-users"></i> HR Accounts
                     </a>
                 </li>
 
@@ -105,8 +120,9 @@
         <!-- APPLICANT DASHBOARD -->
         {% if current_user.is_authenticated and current_user.role == "applicant" %}
         <li>
-            <a href="{{ url_for('applicant.dashboard') }}">
-                <i class="fa-solid fa-address-card"></i> Dashboard
+            <a href="{{ url_for('applicant.dashboard') }}" class="sidebar-link">
+                <i class="fa-solid fa-address-card"></i> 
+                <span>Dashboard</span>
             </a>
         </li>
         {% endif %}
@@ -114,25 +130,28 @@
 
         <!-- JOBS -->
         <li>
-            <a href="{{ url_for('auth.jobs') }}">
-                <i class="fas fa-briefcase"></i> Jobs
+            <a href="{{ url_for('auth.jobs') }}" class="sidebar-link">
+                <i class="fas fa-briefcase"></i> 
+                <span>Jobs</span>
             </a>
         </li>
 
 
         <!-- HELP -->
         <li>
-            <a href="#">
-                <i class="fas fa-question"></i> Help
+            <a href="{{ url_for('auth.help_page') }}" class="sidebar-link">
+                <i class="fas fa-question-circle"></i> 
+                <span>Help</span>
             </a>
         </li>
 
 
         <!-- LOGOUT -->
         {% if current_user.is_authenticated %}
-        <li>
-            <a href="{{ url_for('auth.logout') }}">
-                <i class="fas fa-sign-out-alt"></i> Logout
+        <li class="logout-item">
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i> 
+                <span>Logout</span>
             </a>
         </li>
         {% endif %}
@@ -167,10 +186,57 @@
 <!-- FOOTER -->
 {% if request.endpoint != 'auth.login' and request.endpoint != 'auth.register' %}
 <footer class="footer">
-
-    <p>
-        © 2026 Job Portal | Built for Job Application System
-    </p>
+    
+    <div class="footer-content">
+        
+        <div class="footer-section">
+            <div class="footer-logo">
+                <i class="fas fa-briefcase"></i>
+                <h3>Job Portal</h3>
+            </div>
+            <p class="footer-desc">Your trusted platform for finding verified job opportunities from top companies worldwide.</p>
+            <div class="social-links">
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+        
+        <div class="footer-section">
+            <h4>Quick Links</h4>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('auth.index') }}"><i class="fas fa-chevron-right"></i> Home</a></li>
+                <li><a href="{{ url_for('auth.jobs') }}"><i class="fas fa-chevron-right"></i> Browse Jobs</a></li>
+                <li><a href="#"><i class="fas fa-chevron-right"></i> About Us</a></li>
+                <li><a href="#"><i class="fas fa-chevron-right"></i> Contact</a></li>
+            </ul>
+        </div>
+        
+        <div class="footer-section">
+            <h4>For Job Seekers</h4>
+            <ul class="footer-links">
+                <li><a href="{{ url_for('auth.register') }}"><i class="fas fa-chevron-right"></i> Create Account</a></li>
+                <li><a href="{{ url_for('auth.jobs') }}"><i class="fas fa-chevron-right"></i> Search Jobs</a></li>
+                <li><a href="#"><i class="fas fa-chevron-right"></i> Career Advice</a></li>
+                <li><a href="{{ url_for('auth.help_page') }}"><i class="fas fa-chevron-right"></i> Help Center</a></li>
+            </ul>
+        </div>
+        
+        <div class="footer-section">
+            <h4>Contact Info</h4>
+            <ul class="footer-contact">
+                <li><i class="fas fa-envelope"></i> support@jobportal.com</li>
+                <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                <li><i class="fas fa-map-marker-alt"></i> 123 Business St, City</li>
+            </ul>
+        </div>
+        
+    </div>
+    
+    <div class="footer-bottom">
+        <p>&copy; 2026 Job Portal. All rights reserved. | Built for Job Application System</p>
+    </div>
 
 </footer>
 {% endif %}
