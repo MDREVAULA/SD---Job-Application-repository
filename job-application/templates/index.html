@@ -1,55 +1,112 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/job_board.css') }}">
 
-<h1>Available Jobs</h1>
+<div class="job-board-container">
+    
+    <!-- SEARCH HERO -->
+    <div class="search-hero">
+        <div class="search-hero-content">
+            <h1>Find your next opportunity</h1>
+            <p>Discover thousands of jobs from top companies</p>
+            
+            <div class="search-box">
+                <div class="search-input-group">
+                    <i class="fas fa-search"></i>
+                    <input 
+                        type="text" 
+                        id="jobSearchInput" 
+                        placeholder="Job title, keywords, or company"
+                    >
+                </div>
+                <div class="filter-input-group">
+                    <i class="fas fa-briefcase"></i>
+                    <select id="fieldFilter">
+                        <option value="">All Categories</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="IT">IT</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Finance">Finance</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<!-- SEARCH BAR -->
-<input 
-type="text" 
-id="jobSearchInput" 
-placeholder="Search for jobs..." 
-style="margin-bottom:15px; padding:8px; width:100%;"
->
+    <!-- MAIN CONTENT -->
+    <div class="job-board-content">
+        
+        <!-- RESULTS HEADER -->
+        <div class="results-header">
+            <div class="results-count">
+                <span id="jobsCount">{{ jobs|length }}</span> jobs found
+            </div>
+            <div class="results-actions">
+                <button class="sort-btn" id="sortBtn">
+                    <i class="fas fa-sort"></i> Sort by: Relevance
+                </button>
+            </div>
+        </div>
 
-<!-- FIELD FILTER -->
-<select id="fieldFilter" style="margin-bottom:20px; padding:8px;">
-<option value="">All Fields</option>
-<option value="Engineering">Engineering</option>
-<option value="IT">IT</option>
-<option value="Healthcare">Healthcare</option>
-<option value="Marketing">Marketing</option>
-<option value="Finance">Finance</option>
-</select>
+        <!-- JOBS LIST -->
+        <div class="jobs-list">
+            {% if jobs %}
+                {% for job in jobs %}
+                <div class="job-item" data-field="{{ job.field }}">
+                    
+                    <div class="job-main">
+                        <div class="job-logo">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        
+                        <div class="job-details">
+                            <h2 class="job-title-link">{{ job.title }}</h2>
+                            <div class="job-company">Company Name</div>
+                            
+                            <div class="job-metadata">
+                                <span class="job-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ job.location }}
+                                </span>
+                                <span class="job-type-label">
+                                    <i class="fas fa-clock"></i>
+                                    {{ job.job_type }}
+                                </span>
+                                <span class="job-category">
+                                    <i class="fas fa-tag"></i>
+                                    {{ job.field }}
+                                </span>
+                            </div>
+                            
+                            <div class="job-snippet">
+                                {{ job.description[:180] }}{% if job.description|length > 180 %}...{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="job-actions">
+                        <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-apply">
+                            View & Apply
+                        </a>
+                        <button class="btn-save">
+                            <i class="far fa-bookmark"></i>
+                        </button>
+                    </div>
+                    
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h3>No jobs found</h3>
+                    <p>Try adjusting your search or filters</p>
+                </div>
+            {% endif %}
+        </div>
 
-<div class="jobs-list">
-
-{% for job in jobs %}
-
-<div class="job-card" data-field="{{ job.field }}">
-
-<!-- COMPANY LOGO -->
-{% if job.company_id %}
-{% set recruiter = job.company_id %}
-{% endif %}
-
-<h3>{{ job.title }}</h3>
-
-<p><strong>Field:</strong> {{ job.field }}</p>
-
-<p><strong>Type:</strong> {{ job.job_type }}</p>
-
-<p><strong>Location:</strong> {{ job.location }}</p>
-
-<p>{{ job.description[:120] }}...</p>
-
-<a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn">
-View Details
-</a>
-
-</div>
-
-{% endfor %}
+    </div>
 
 </div>
 

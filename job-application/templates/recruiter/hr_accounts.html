@@ -28,17 +28,20 @@
         </div>
     </div>
 
-    <!-- SUCCESS MESSAGE WITH TEMP PASSWORD -->
+    <!-- SUCCESS MESSAGE WITH TEMP PASSWORD (STAYS UNTIL PAGE REFRESH) -->
     {% if temp_password %}
-    <div class="temp-password-box">
+    <div class="temp-password-box" id="tempPasswordBox">
         <div class="success-header">
             <div class="success-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
             <div>
                 <h3>HR Account Created Successfully!</h3>
-                <p>Share the temporary password below with the new HR member</p>
+                <p>Share the temporary password below with the new HR member. This will stay visible until you refresh or leave this page.</p>
             </div>
+            <button class="close-password-box" onclick="closePasswordBox()" title="Dismiss">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
         <div class="password-section">
@@ -61,7 +64,7 @@
 
         <div class="password-note">
             <i class="fas fa-info-circle"></i>
-            <span>The HR user must change this password upon first login for security.</span>
+            <span>The HR user must change this password upon first login for security. <strong>Save this password now - it won't be shown again!</strong></span>
         </div>
     </div>
     {% endif %}
@@ -177,39 +180,6 @@
 
 </div>
 
-<script>
-function copyPassword() {
-    const passwordInput = document.getElementById('tempPassword');
-    passwordInput.select();
-    passwordInput.setSelectionRange(0, 99999); // For mobile devices
-    
-    // Modern clipboard API
-    navigator.clipboard.writeText(passwordInput.value).then(() => {
-        const btn = event.target.closest('button');
-        const originalHTML = btn.innerHTML;
-        
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        btn.classList.add('copied');
-        
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-            btn.classList.remove('copied');
-        }, 2000);
-    }).catch(() => {
-        // Fallback for older browsers
-        document.execCommand('copy');
-        const btn = event.target.closest('button');
-        const originalHTML = btn.innerHTML;
-        
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        btn.classList.add('copied');
-        
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-            btn.classList.remove('copied');
-        }, 2000);
-    });
-}
-</script>
+<script src="{{ url_for('static', filename='js/recruiter/hr_accounts.js') }}"></script>
 
 {% endblock %}

@@ -2,87 +2,203 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/job_details.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicants/job_details.css') }}">
 
-<h1>{{ job.title }}</h1>
+<div class="job-details-container">
+    
+    <!-- JOB HEADER WITH BACK BUTTON -->
+    <div class="job-header">
+        <div class="company-logo">
+            <i class="fas fa-building"></i>
+        </div>
+        <div class="job-header-content">
+            <h1 class="job-title">{{ job.title }}</h1>
+            <div class="company-info">
+                <span class="company-name">{{ job_owner.recruiter_profile.company_name }}</span>
+            </div>
+            <div class="job-meta-tags">
+                <span class="meta-tag">
+                    <i class="fas fa-briefcase"></i>
+                    {{ job.job_type }}
+                </span>
+                <span class="meta-tag">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ job.location }}
+                </span>
+                <span class="meta-tag">
+                    <i class="fas fa-tag"></i>
+                    {{ job.field }}
+                </span>
+                <span class="meta-tag salary">
+                    <i class="fas fa-dollar-sign"></i>
+                    {{ job.salary }}
+                </span>
+            </div>
+        </div>
+        <a href="{{ url_for('auth.index') }}" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Jobs</span>
+        </a>
+    </div>
 
-<p>
-<strong>Company:</strong>
-{{ job_owner.recruiter_profile.company_name }}
-</p>
+    <!-- MAIN CONTENT GRID -->
+    <div class="content-grid" style="margin-top: 8px;">
+        
+        <!-- MAIN CONTENT - UNIFIED CARD -->
+        <div class="main-content">
+            
+            <!-- UNIFIED JOB DETAILS CARD -->
+            <div class="job-details-card">
+                
+                <!-- LEFT: JOB DESCRIPTION -->
+                <div class="job-details-left">
+                    <h2 class="section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Job Description
+                    </h2>
+                    <div class="description-content">
+                        {{ job.description }}
+                    </div>
+                    
+                    <!-- COMPANY & JOB INFO -->
+                    <div class="job-info-section">
+                        <h3 class="info-subtitle">
+                            <i class="fas fa-building"></i>
+                            Company Information
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Company:</span>
+                                <span class="info-value">{{ job_owner.recruiter_profile.company_name }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Posted By:</span>
+                                <span class="info-value">
+                                    {{ job_owner.recruiter_profile.first_name }}
+                                    {{ job_owner.recruiter_profile.surname }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <h3 class="info-subtitle">
+                            <i class="fas fa-info-circle"></i>
+                            Job Details
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Job Type:</span>
+                                <span class="info-value">{{ job.job_type }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Location:</span>
+                                <span class="info-value">{{ job.location }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Field:</span>
+                                <span class="info-value">{{ job.field }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Salary:</span>
+                                <span class="info-value salary-highlight">{{ job.salary }}</span>
+                            </div>
+                        </div>
+                    </div>
 
-<p>
-<strong>Owner:</strong>
-{{ job_owner.recruiter_profile.first_name }}
-{{ job_owner.recruiter_profile.surname }}
-</p>
+                    <!-- APPLY SECTION (INSIDE CARD) -->
+                    <div class="apply-actions">
+                        {% if current_user.is_authenticated and current_user.role == "applicant" %}
+                            <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-apply-now">
+                                <i class="fas fa-paper-plane"></i>
+                                Apply Now
+                            </a>
+                            <button class="btn-save-job">
+                                <i class="far fa-bookmark"></i>
+                                Save Job
+                            </button>
+                        {% elif not current_user.is_authenticated %}
+                            <a href="{{ url_for('auth.login') }}" class="btn-apply-now">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Login to Apply
+                            </a>
+                        {% else %}
+                            <button class="btn-disabled" disabled>
+                                <i class="fas fa-lock"></i>
+                                Applicants Only
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
 
-<p><strong>Field:</strong> {{ job.field }}</p>
-<p><strong>Type:</strong> {{ job.job_type }}</p>
-<p><strong>Location:</strong> {{ job.location }}</p>
-<p><strong>Salary:</strong> {{ job.salary }}</p>
+                <!-- VERTICAL DIVIDER -->
+                {% if job.images and job.images|length > 0 %}
+                <div class="vertical-divider"></div>
 
+                <!-- RIGHT: JOB GALLERY -->
+                <div class="job-details-right">
+                    <h2 class="section-title">
+                        <i class="fas fa-images"></i>
+                        Gallery
+                    </h2>
+                    
+                    <div class="job-gallery">
+                        {% if job.images|length > 1 %}
+                        <button class="gallery-btn prev-btn" onclick="prevImage()">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        {% endif %}
+                        
+                        <div class="gallery-main">
+                            <img
+                                id="jobImage"
+                                class="job-image"
+                                src="{{ url_for('static', filename='uploads/' + job.images[0].image_path) }}"
+                                alt="Job Image"
+                            >
+                            {% if job.images|length > 1 %}
+                            <div class="image-counter" id="imageCounter">
+                                1 / {{ job.images|length }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if job.images|length > 1 %}
+                        <button class="gallery-btn next-btn" onclick="nextImage()">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Thumbnail Gallery -->
+                    {% if job.images|length > 1 %}
+                    <div class="thumbnail-gallery">
+                        {% for img in job.images %}
+                        <img 
+                            class="thumbnail {% if loop.index == 1 %}active{% endif %}"
+                            src="{{ url_for('static', filename='uploads/' + img.image_path) }}"
+                            onclick="goToImage({{ loop.index - 1 }})"
+                            alt="Thumbnail {{ loop.index }}"
+                        >
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
 
-<!-- =========================
-JOB IMAGE GALLERY
-========================= -->
+            </div>
 
-{% if job.images %}
+        </div>
 
-<div class="job-gallery">
-
-<button class="gallery-btn prev-btn" onclick="prevImage()">❮</button>
-
-<img
-id="jobImage"
-class="job-image"
-src="{{ url_for('static', filename='uploads/' + job.images[0].image_path) }}"
->
-
-<button class="gallery-btn next-btn" onclick="nextImage()">❯</button>
+    </div>
 
 </div>
 
-{% endif %}
-
-
-<h3>Description</h3>
-<p>{{ job.description }}</p>
-
-
-<!-- APPLY BUTTON -->
-
-{% if current_user.is_authenticated and current_user.role == "applicant" %}
-
-<a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">
-Apply Now
-</a>
-
-{% elif not current_user.is_authenticated %}
-
-<a href="{{ url_for('auth.login') }}" class="btn">
-Login to Apply
-</a>
-
-{% else %}
-
-<button class="btn disabled" disabled>
-Applicants Only
-</button>
-
-{% endif %}
-
-
-<!-- PASS IMAGE DATA TO JS -->
-
 <script>
-
-const jobImages = [
-{% for img in job.images %}
-"{{ url_for('static', filename='uploads/' + img.image_path) }}",
-{% endfor %}
-];
-
+    // Job images array for gallery navigation
+    const jobImages = [
+        {% for img in job.images %}
+        "{{ url_for('static', filename='uploads/' + img.image_path) }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 </script>
 
 <script src="{{ url_for('static', filename='js/job_gallery.js') }}"></script>

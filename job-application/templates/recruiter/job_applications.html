@@ -83,18 +83,51 @@
             <h3>No applications yet</h3>
             <p>No one has applied for this position yet. Share your job posting to attract candidates!</p>
         </div>
+        {% else %}
+
+        <!-- FILTER TABS -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-status="all" onclick="filterByStatus('all')">
+                <i class="fas fa-th-large"></i> All Applications
+                <span class="tab-count" id="tabAllCount">{{ applications | length }}</span>
+            </button>
+            <button class="filter-tab" data-status="pending" onclick="filterByStatus('pending')">
+                <i class="fas fa-clock"></i> Pending
+                <span class="tab-count" id="tabPendingCount">0</span>
+            </button>
+            <button class="filter-tab" data-status="interview" onclick="filterByStatus('interview')">
+                <i class="fas fa-calendar-check"></i> Interview
+                <span class="tab-count" id="tabInterviewCount">0</span>
+            </button>
+            <button class="filter-tab" data-status="accepted" onclick="filterByStatus('accepted')">
+                <i class="fas fa-check-circle"></i> Accepted
+                <span class="tab-count" id="tabAcceptedCount">0</span>
+            </button>
+            <button class="filter-tab" data-status="rejected" onclick="filterByStatus('rejected')">
+                <i class="fas fa-times-circle"></i> Rejected
+                <span class="tab-count" id="tabRejectedCount">0</span>
+            </button>
+        </div>
+
+        <!-- APPLICATIONS CARDS -->
+        <div class="applications-container" id="applicationsContainer">
         {% endif %}
 
         {% for app in applications %}
-        <div class="app-card">
+        <div class="app-card" data-status="{{ app.status }}">
             
             <div class="app-header">
                 <div class="applicant-info">
-                    <h4><i class="fas fa-user"></i> {{ app.user.username }}</h4>
-                    <span class="app-date">
-                        <i class="fas fa-calendar"></i> 
-                        Applied on {{ app.created_at.strftime('%B %d, %Y at %I:%M %p') if app.created_at else 'N/A' }}
-                    </span>
+                    <div class="applicant-avatar">
+                        {{ app.user.username[0]|upper }}
+                    </div>
+                    <div class="applicant-details">
+                        <h4>{{ app.user.username }}</h4>
+                        <span class="app-date">
+                            <i class="fas fa-calendar"></i> 
+                            Applied on {{ app.created_at.strftime('%B %d, %Y at %I:%M %p') if app.created_at else 'N/A' }}
+                        </span>
+                    </div>
                 </div>
                 <div class="status-badge status-{{ app.status }}">
                     {% if app.status == 'pending' %}
@@ -103,6 +136,8 @@
                         <i class="fas fa-check-circle"></i> Accepted
                     {% elif app.status == 'rejected' %}
                         <i class="fas fa-times-circle"></i> Rejected
+                    {% elif app.status == 'interview' %}
+                        <i class="fas fa-calendar-check"></i> Interview
                     {% endif %}
                 </div>
             </div>
@@ -133,26 +168,169 @@
 
             <!-- UPDATE STATUS FORM -->
             <form method="POST" action="{{ url_for('recruiter.update_application_status', app_id=app.id) }}" class="status-form">
+
                 <label for="status-{{ app.id }}">
                     <i class="fas fa-edit"></i> Update Status:
                 </label>
+            
                 <div class="status-form-controls">
                     <select id="status-{{ app.id }}" name="status" class="status-select">
                         <option value="pending" {% if app.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="interview" {% if app.status == 'interview' %}selected{% endif %}>Interview</option>
                         <option value="accepted" {% if app.status == 'accepted' %}selected{% endif %}>Accept</option>
                         <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Reject</option>
                     </select>
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-save"></i> Update
-                    </button>
                 </div>
+            
+                <!-- RECRUITER FEEDBACK -->
+                <label for="remarks-{{ app.id }}">
+                    <i class="fas fa-comment"></i> Recruiter Feedback:
+                </label>
+            
+                <textarea
+                    id="remarks-{{ app.id }}"
+                    name="remarks"
+                    class="remarks-box"
+                    placeholder="Leave feedback for this applicant..."
+                >{{ app.remarks if app.remarks else '' }}</textarea>
+            
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Update Application
+                </button>
+            
             </form>
 
         </div>
         {% endfor %}
 
+        {% if applications %}
+        </div>
+        {% endif %}
+
     </div>
 
 </div>
+
+<!-- FILTERING SCRIPT -->
+<script>
+// Count applications by status
+function countApplications() {
+    const cards = document.querySelectorAll('.app-card');
+    const counts = {
+        pending: 0,
+        interview: 0,
+        accepted: 0,
+        rejected: 0
+    };
+
+    cards.forEach(card => {
+        const status = card.getAttribute('data-status');
+        if (counts.hasOwnProperty(status)) {
+            counts[status]++;
+        }
+    });
+
+    // Update tab counts
+    document.getElementById('tabPendingCount').textContent = counts.pending;
+    document.getElementById('tabInterviewCount').textContent = counts.interview;
+    document.getElementById('tabAcceptedCount').textContent = counts.accepted;
+    document.getElementById('tabRejectedCount').textContent = counts.rejected;
+}
+
+// Filter applications by status
+function filterByStatus(status) {
+    const cards = document.querySelectorAll('.app-card');
+    const tabs = document.querySelectorAll('.filter-tab');
+    const container = document.getElementById('applicationsContainer');
+
+    // Update active tab
+    tabs.forEach(tab => {
+        if (tab.getAttribute('data-status') === status) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+
+    // Remove any existing empty state
+    const existingEmptyState = container.querySelector('.empty-state');
+    if (existingEmptyState) {
+        existingEmptyState.remove();
+    }
+
+    // Filter cards and count visible ones
+    let visibleCount = 0;
+    cards.forEach(card => {
+        const cardStatus = card.getAttribute('data-status');
+        if (status === 'all' || cardStatus === status) {
+            card.style.display = 'block';
+            visibleCount++;
+            // Fade in animation
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 10);
+        } else {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 300);
+        }
+    });
+
+    // Show empty state if no cards are visible
+    if (visibleCount === 0 && status !== 'all') {
+        const statusMessages = {
+            'pending': {
+                icon: 'fa-clock',
+                title: 'No Pending Applicants',
+                message: 'There are no applications with pending status at the moment.'
+            },
+            'interview': {
+                icon: 'fa-calendar-check',
+                title: 'No Interview Applicants',
+                message: 'There are no applications scheduled for interview at the moment.'
+            },
+            'accepted': {
+                icon: 'fa-check-circle',
+                title: 'No Accepted Applicants',
+                message: 'There are no accepted applications at the moment.'
+            },
+            'rejected': {
+                icon: 'fa-times-circle',
+                title: 'No Rejected Applicants',
+                message: 'There are no rejected applications at the moment.'
+            }
+        };
+
+        const messageData = statusMessages[status];
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = `
+            <i class="fas ${messageData.icon}"></i>
+            <h3>${messageData.title}</h3>
+            <p>${messageData.message}</p>
+        `;
+        container.appendChild(emptyState);
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    countApplications();
+    
+    // Set initial animation state
+    const cards = document.querySelectorAll('.app-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
 
 {% endblock %}

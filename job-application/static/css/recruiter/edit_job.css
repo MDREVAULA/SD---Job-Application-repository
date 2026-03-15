@@ -1,42 +1,10 @@
 /* ================================
-   EDIT JOB PAGE - ADDITIONAL STYLES
+   EDIT JOB PAGE ADDITIONAL STYLES
    ================================ */
 
 /* Header Actions */
-.header-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex: 1;
-}
-
-.header-icon {
-    width: 70px;
-    height: 70px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-    flex-shrink: 0;
-}
-
-.header-icon i {
-    font-size: 36px;
-    color: white;
-}
-
-.posting-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-
 .header-actions {
-    display: flex;
-    gap: 12px;
+    margin-top: 20px;
 }
 
 .btn-back {
@@ -45,10 +13,10 @@
     padding: 12px 24px;
     border-radius: 10px;
     text-decoration: none;
-    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    font-weight: 600;
     transition: all 0.3s ease;
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
@@ -56,17 +24,17 @@
 
 .btn-back:hover {
     background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-5px);
     border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-2px);
 }
 
 /* Current Images Section */
 .current-images-section {
-    margin-bottom: 30px;
-    padding: 25px;
+    margin-bottom: 25px;
+    padding: 20px;
     background: #f8f9fa;
     border-radius: 12px;
-    border: 2px solid #e9ecef;
+    border: 2px dashed #dee2e6;
 }
 
 .current-images-header {
@@ -74,14 +42,12 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #e9ecef;
 }
 
 .current-images-header h4 {
     margin: 0;
     color: #333;
-    font-size: 16px;
+    font-size: 1.1rem;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -90,49 +56,37 @@
 
 .current-images-header h4 i {
     color: #667eea;
-    font-size: 18px;
 }
 
 .images-hint {
-    font-size: 13px;
+    font-size: 12px;
     color: #6c757d;
     font-style: italic;
 }
 
-.existing-image {
-    position: relative;
+/* Existing Image Cards - Smooth Transition */
+.preview-card.existing-image {
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.existing-image img {
-    border: 3px solid #28a745;
+.preview-card.existing-image .remove-btn {
+    cursor: pointer;
 }
 
-.existing-image:hover img {
-    border-color: #dc3545;
+.preview-card.existing-image .remove-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
-.delete-image-form {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin: 0;
-    padding: 0;
-}
-
-/* Footer Actions */
-.footer-actions {
-    display: flex;
-    gap: 12px;
-}
-
+/* Cancel Button */
 .btn-cancel {
-    background: white;
-    color: #6c757d;
-    border: 2px solid #e9ecef;
-    padding: 16px 30px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 16px 32px;
     border-radius: 10px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 16px;
     transition: all 0.3s ease;
     display: inline-flex;
@@ -142,89 +96,57 @@
 }
 
 .btn-cancel:hover {
-    background: #f8f9fa;
-    border-color: #6c757d;
-    color: #495057;
+    background: #5a6268;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
 }
 
-/* Enhanced Remove Button for Edit Page */
-.existing-image .remove-btn {
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.existing-image:hover .remove-btn {
-    opacity: 1;
-}
-
-/* Info Badge */
-.info-badge {
-    display: inline-flex;
+/* Footer Actions */
+.footer-actions {
+    display: flex;
+    gap: 12px;
     align-items: center;
-    gap: 8px;
-    background: #e7f3ff;
-    color: #0066cc;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 20px;
 }
 
-.info-badge i {
-    font-size: 16px;
+/* Spinner Animation for Delete Button */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* Responsive Adjustments */
-@media (max-width: 992px) {
-    .posting-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .header-actions {
-        width: 100%;
-    }
-
-    .btn-back {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .footer-actions {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .btn-cancel,
-    .btn-publish {
-        width: 100%;
-        justify-content: center;
-    }
+.fa-spinner.fa-spin {
+    animation: spin 1s linear infinite;
 }
 
+/* Delete Image Modal - Custom Icon Color */
+#deleteImageModal .modal-icon {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+#deleteImageModal .delete-modal-content {
+    animation: modalSlideIn 0.3s ease;
+}
+
+#deleteImageModal h3 {
+    color: #667eea;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .header-icon {
-        width: 50px;
-        height: 50px;
-    }
-
-    .header-icon i {
-        font-size: 24px;
-    }
-
-    .posting-header h1 {
-        font-size: 1.5rem;
-    }
-
-    .current-images-section {
-        padding: 15px;
-    }
-
     .current-images-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
+    }
+    
+    .footer-actions {
+        width: 100%;
+        flex-direction: column-reverse;
+    }
+    
+    .btn-cancel,
+    .btn-publish {
+        width: 100%;
+        justify-content: center;
     }
 }

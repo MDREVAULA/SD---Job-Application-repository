@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/common.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/job-list.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/job_list.css') }}">
 
 <div class="job-list-wrapper">
 
@@ -13,8 +13,8 @@
                 <i class="fas fa-briefcase"></i>
             </div>
             <div>
-                <h1>All Job Listings</h1>
-                <p>Review and monitor all job postings across the platform</p>
+                <h1>All Job Postings</h1>
+                <p>Monitor and review all job postings across departments</p>
             </div>
         </div>
         <div class="header-stats">
@@ -47,7 +47,7 @@
             <i class="fas fa-search"></i>
             <input type="text" 
                    id="jobSearchInput" 
-                   placeholder="Search by job title, company, field, or location...">
+                   placeholder="Search by job title, field, or location...">
         </div>
 
         <div class="filter-controls">
@@ -86,7 +86,7 @@
         <div class="empty-state">
             <i class="fas fa-briefcase"></i>
             <h3>No jobs posted yet</h3>
-            <p>No job listings are currently available on the platform</p>
+            <p>There are no job postings in the system yet.</p>
         </div>
         {% endif %}
 
@@ -94,7 +94,6 @@
 
         <div class="job-card-modern" 
              data-title="{{ job.title }}"
-             data-company="{{ job.company.username if job.company else 'Unknown' }}"
              data-field="{{ job.field if job.field else '' }}"
              data-location="{{ job.location if job.location else '' }}"
              data-date="{{ job.created_at if job.created_at else '' }}"
@@ -107,11 +106,6 @@
                 <div class="applicants-badge">
                     <i class="fas fa-user"></i> {{ job.applications | length }}
                 </div>
-            </div>
-
-            <!-- Company Name -->
-            <div class="company-name" style="margin-bottom: 8px; color: #667eea; font-size: 14px; font-weight: 600;">
-                <i class="fas fa-building"></i> {{ job.company.username if job.company else 'Unknown Company' }}
             </div>
 
             <!-- Job Title -->
@@ -142,6 +136,11 @@
                     {{ job.salary }}
                 </span>
                 {% endif %}
+                
+                <span class="meta-item">
+                    <i class="fas fa-user-tie"></i>
+                    {{ job.recruiter.username if job.recruiter else 'N/A' }}
+                </span>
             </div>
 
             <!-- Job Description -->
@@ -161,7 +160,7 @@
                 </div>
 
                 <div class="card-actions">
-                    <a href="{{ url_for('hr.view_job_applications', job_id=job.id) }}" 
+                    <a href="{{ url_for('hr.job_applications', job_id=job.id) }}" 
                        class="btn-view-applicants"
                        title="View Applicants">
                         <i class="fas fa-users"></i>
@@ -177,7 +176,6 @@
 
 </div>
 
-
-<script src="{{ url_for('static', filename='js/job_list_controls.js') }}"></script>
+<script src="{{ url_for('static', filename='js/recruiter/job_list_controls.js') }}"></script>
 
 {% endblock %}

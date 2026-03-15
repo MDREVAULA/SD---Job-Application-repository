@@ -163,7 +163,7 @@ def hr_accounts():
     )
 
 # ===============================
-# CREATE HR ACCOUNT
+# CREATE HR ACCOUNT - FIXED VERSION
 # ===============================
 @recruiter_bp.route('/create-hr', methods=['POST'])
 @login_required
@@ -176,6 +176,23 @@ def create_hr():
     username = request.form.get('username')
     email = request.form.get('email')
 
+    # ===============================
+    # CHECK IF USERNAME EXISTS
+    # ===============================
+    existing_username = User.query.filter_by(username=username).first()
+    if existing_username:
+        flash("Username already exists. Please choose another.", "danger")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    # ===============================
+    # CHECK IF EMAIL EXISTS
+    # ===============================
+    existing_email = User.query.filter_by(email=email).first()
+    if existing_email:
+        flash("Email is already registered.", "danger")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    # Generate temporary password
     temp_password = generate_temp_password()
 
     new_hr = User(
@@ -183,15 +200,27 @@ def create_hr():
         email=email,
         password=generate_password_hash(temp_password),
         role="hr",
-        created_by=current_user.id
+        created_by=current_user.id,
+        must_change_password=True
     )
 
     db.session.add(new_hr)
     db.session.commit()
 
-    flash(f"HR account created. Temporary password: {temp_password}", "success")
+    # ===============================
+    # FIXED: Pass temp_password to template instead of using flash()
+    # ===============================
+    hrs = User.query.filter_by(
+        created_by=current_user.id,
+        role="hr"
+    ).all()
 
-    return redirect(url_for('recruiter.hr_accounts'))
+    return render_template(
+        "recruiter/hr_accounts.html",
+        hrs=hrs,
+        temp_password=temp_password  # This makes the password box appear and stay!
+    )
+
 
 # ===============================
 # VIEW JOB APPLICATIONS (SPECIFIC JOB)
@@ -221,6 +250,36 @@ def view_job_applications(job_id):
         job=job,
         applications=applications
     )    
+
+# ===============================
+# RECRUITER UPDATE APPLICATION STATUS
+# ===============================
+@recruiter_bp.route('/update-application-status/<int:app_id>', methods=['POST'])
+@login_required
+def update_application_status(app_id):
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    application = Application.query.get_or_404(app_id)
+    job = Job.query.get_or_404(application.job_id)
+
+    # Ensure recruiter owns the job
+    if job.company_id != current_user.id:
+        flash("Unauthorized action!", "danger")
+        return redirect(url_for('recruiter.my_job_list'))
+
+    new_status = request.form.get('status')
+
+    if new_status:
+        application.status = new_status
+
+    db.session.commit()
+
+    flash("Application status updated!", "success")
+
+    return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
 
 # ===============================
 # EDIT JOB
@@ -284,7 +343,7 @@ def edit_job(job_id):
 
         flash("Job updated successfully!", "success")
 
-        return redirect(url_for('recruiter.job_posting'))
+        return redirect(url_for('recruiter.edit_job', job_id=job.id))
 
     return render_template(
         "recruiter/edit_job.html",

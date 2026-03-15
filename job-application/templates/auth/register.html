@@ -14,6 +14,27 @@
 
 <h2 class="register-title">Create Account</h2>
 
+<!-- PROGRESS INDICATOR -->
+<div class="progress-indicator">
+    <div class="progress-line"></div>
+    <div class="progress-step active">
+        <div class="progress-circle">1</div>
+        <span class="progress-label">Account</span>
+    </div>
+    <div class="progress-step">
+        <div class="progress-circle">2</div>
+        <span class="progress-label">Personal</span>
+    </div>
+    <div class="progress-step">
+        <div class="progress-circle">3</div>
+        <span class="progress-label">Address</span>
+    </div>
+    <div class="progress-step">
+        <div class="progress-circle">4</div>
+        <span class="progress-label">Company</span>
+    </div>
+</div>
+
 <form method="POST" enctype="multipart/form-data">
 
 <!-- STEP 1 -->
@@ -51,7 +72,7 @@
 
 </div>
 
-
+ 
 <!-- STEP 2 -->
 
 <div class="form-step">
@@ -100,7 +121,7 @@
 
 </div>
 
-
+ 
 <!-- STEP 3 -->
 
 <div class="form-step">
@@ -135,7 +156,7 @@
 
 </div>
 
-
+ 
 <!-- STEP 4 (Recruiter Only) -->
 
 <div class="form-step recruiter-step">
@@ -181,7 +202,6 @@
 </div>
 
 </div>
-
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/register.js') }}"></script>

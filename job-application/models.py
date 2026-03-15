@@ -34,7 +34,7 @@ class User(db.Model, UserMixin):
     # =========================
     applications = db.relationship(
         "Application",
-        backref="applicant",
+        backref="user",
         lazy=True,
         cascade="all, delete-orphan"
     )

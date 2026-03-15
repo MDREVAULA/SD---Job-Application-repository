@@ -121,6 +121,39 @@
 
         {% endif %}
 
+        <!-- HR MENU -->
+        {% if current_user.is_authenticated and current_user.role == "hr" %}
+
+        <li>
+            <a href="{{ url_for('hr.profile') }}" class="sidebar-link">
+                <i class="fas fa-user"></i> 
+                <span>Profile</span>
+            </a>
+        </li>
+
+        <li class="dropdown">
+
+            <a href="#" class="dropdown-toggle sidebar-link">
+                <div class="link-content">
+                    <i class="fa-solid fa-address-card"></i> 
+                    <span>Dashboard</span>
+                </div>
+                <i class="fas fa-chevron-down dropdown-icon"></i>
+            </a>
+
+            <ul class="submenu">
+            
+                <li>
+                    <a href="{{ url_for('hr.job_list') }}">
+                        <i class="fas fa-plus-circle"></i> Job List
+                    </a>
+                </li>
+
+            </ul>
+
+        </li>
+
+        {% endif %}
 
         <!-- APPLICANT DASHBOARD -->
         {% if current_user.is_authenticated and current_user.role == "applicant" %}

@@ -1,20 +1,20 @@
 /* ================================
-   APPLICATIONS REVIEW STYLES
+   HR JOB APPLICATIONS REVIEW STYLES
    ================================ */
 
-.applications-wrapper {
+   .applications-wrapper {
     max-width: 1100px;
     margin: 0 auto;
 }
 
 /* Applications Header */
 .applications-header {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     padding: 40px;
     border-radius: 16px;
     margin-bottom: 30px;
-    box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
 }
 
 .applications-header .header-content {
@@ -95,6 +95,7 @@
 .btn-back:hover {
     background: #5a6268;
     transform: translateX(-5px);
+    color: white;
 }
 
 /* Job Details Card */
@@ -114,12 +115,12 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    border-bottom: 2px solid #28a745;
+    border-bottom: 2px solid #667eea;
     padding-bottom: 10px;
 }
 
 .job-details-card h3 i {
-    color: #28a745;
+    color: #667eea;
 }
 
 .details-grid {
@@ -326,16 +327,16 @@
 }
 
 .filter-tab:hover {
-    border-color: #28a745;
+    border-color: #667eea;
     background: #f8f9fa;
     transform: translateY(-2px);
 }
 
 .filter-tab.active {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    border-color: #28a745;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .filter-tab i {
@@ -400,7 +401,7 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: #28a745;
+    background: #667eea;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -470,6 +471,16 @@
     color: #0c5460;
 }
 
+.status-badge.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
 /* App Details */
 .app-details {
     padding: 28px;
@@ -506,7 +517,7 @@
 }
 
 .file-link {
-    color: #28a745;
+    color: #667eea;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s ease;
@@ -516,7 +527,7 @@
 }
 
 .file-link:hover {
-    color: #1e7e34;
+    color: #5568d3;
     text-decoration: underline;
 }
 
@@ -553,6 +564,35 @@
     font-size: 0.9375rem;
 }
 
+.feedback-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+.feedback-section strong {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: #212529;
+    font-size: 0.9375rem;
+}
+
+.feedback-section strong i {
+    color: #6c757d;
+}
+
+.feedback-text {
+    background: #fff3cd;
+    padding: 16px;
+    border-radius: 6px;
+    border: 1px solid #ffc107;
+    color: #856404;
+    line-height: 1.7;
+    font-size: 0.9375rem;
+}
+
 .app-card hr {
     display: none;
 }
@@ -573,7 +613,7 @@
 }
 
 .status-form label i {
-    color: #28a745;
+    color: #667eea;
     margin-right: 6px;
 }
 
@@ -595,13 +635,13 @@
 }
 
 .status-select:hover {
-    border-color: #28a745;
+    border-color: #667eea;
 }
 
 .status-select:focus {
     outline: none;
-    border-color: #28a745;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .remarks-box {
@@ -621,21 +661,21 @@
 }
 
 .remarks-box:hover {
-    border-color: #28a745;
+    border-color: #667eea;
 }
 
 .remarks-box:focus {
     outline: none;
-    border-color: #28a745;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .remarks-box::placeholder {
     color: #adb5bd;
 }
 
-.btn-primary {
-    background: #28a745;
+.status-form .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
     padding: 11px 24px;
@@ -651,15 +691,15 @@
     width: 100%;
 }
 
-.btn-primary:hover {
-    background: #218838;
+.status-form .btn-primary:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
 }
 
-.btn-primary:active {
-    background: #1e7e34;
+.status-form .btn-primary:active {
+    background: linear-gradient(135deg, #4a5bbd 0%, #5d357d 100%);
 }
 
-.btn-primary i {
+.status-form .btn-primary i {
     font-size: 0.875rem;
 }
 
@@ -685,32 +725,6 @@
 .empty-state p {
     color: #6c757d;
     margin: 0;
-}
-
-/* Image Preview in Applications */
-.image-preview-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin: 15px 0 20px 0;
-}
-
-.preview-card {
-    position: relative;
-}
-
-.preview-card img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 10px;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-
-.preview-card:hover img {
-    border-color: #28a745;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Responsive */
@@ -748,14 +762,6 @@
     .app-header {
         flex-direction: column;
     }
-
-    .status-form-controls {
-        flex-direction: column;
-    }
-
-    .status-select {
-        width: 100%;
-    }
 }
 
 @media (max-width: 480px) {
@@ -767,11 +773,15 @@
         font-size: 1.5rem;
     }
 
-    .app-card {
-        padding: 15px;
+    .app-details {
+        padding: 20px;
     }
 
     .job-details-card {
+        padding: 20px;
+    }
+
+    .hr-notes-section {
         padding: 20px;
     }
 }

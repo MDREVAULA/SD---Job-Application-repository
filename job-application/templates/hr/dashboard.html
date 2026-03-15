@@ -13,7 +13,7 @@
 <div class="app-card">
 
 <p>
-<strong>Applicant:</strong> {{ app.applicant.username }}
+<strong>Applicant:</strong> {{ app.user.username }}
 </p>
 
 <p>
@@ -52,14 +52,14 @@ No resume uploaded
 
 <select name="status">
 
-<option value="Pending" {% if app.status=="Pending" %}selected{% endif %}>Pending</option>
-
-<option value="Interview" {% if app.status=="Interview" %}selected{% endif %}>Interview</option>
-
-<option value="Accepted" {% if app.status=="Accepted" %}selected{% endif %}>Accepted</option>
-
-<option value="Rejected" {% if app.status=="Rejected" %}selected{% endif %}>Rejected</option>
-
+    <option value="pending" {% if app.status=="pending" %}selected{% endif %}>Pending</option>
+    
+    <option value="interview" {% if app.status=="interview" %}selected{% endif %}>Interview</option>
+    
+    <option value="accepted" {% if app.status=="accepted" %}selected{% endif %}>Accepted</option>
+    
+    <option value="rejected" {% if app.status=="rejected" %}selected{% endif %}>Rejected</option>
+    
 </select>
 
 <br><br>
