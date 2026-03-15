@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/profile.css') }}">
+
+<div class="dashboard-container">
+
+    <h2>HR Dashboard</h2>
+
+    <div class="card">
+        <h3>Welcome to Your Dashboard</h3>
+        <p>Use the sidebar menu to manage your job postings and HR accounts.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 25px;">
+            
+            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+                <i class="fas fa-file-alt" style="font-size: 32px; margin-bottom: 10px;"></i>
+                <h4 style="margin: 0;">Applications</h4>
+                <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">Review candidates</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

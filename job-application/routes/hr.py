@@ -9,9 +9,9 @@ hr_bp = Blueprint('hr', __name__, url_prefix="/hr")
 # =========================
 # HR PROFILE (DEFAULT PAGE)
 # =========================
-@hr_bp.route('/profile')
+@hr_bp.route('/dashboard')
 @login_required
-def profile():
+def dashboard():
 
     if current_user.role != 'hr':
         flash("Access denied!", "danger")
@@ -42,7 +42,7 @@ def change_password():
 
         flash("Password changed successfully!", "success")
 
-        return redirect(url_for("hr.profile"))
+        return redirect(url_for("hr.dashboard"))
 
     return render_template("hr/change_password.html")
 

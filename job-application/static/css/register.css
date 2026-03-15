@@ -1,0 +1,342 @@
+/* =========================================
+   CENTERED REGISTER PAGE
+   ========================================= */
+
+   .register-center {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px 20px;
+    margin: -30px -20px -40px -20px;
+}
+
+/* =========================================
+   REGISTER FORM CONTAINER
+   ========================================= */
+
+.register-container {
+    width: 100%;
+    max-width: 560px;
+    background: white;
+    padding: 45px 50px 40px;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    min-height: 640px;
+}
+
+.register-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #1a1a2e;
+}
+
+/* =========================================
+   PROGRESS INDICATOR
+   ========================================= */
+
+.progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 35px;
+    position: relative;
+}
+
+.progress-indicator::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #e0e0e0;
+    z-index: 0;
+}
+
+.progress-line {
+    position: absolute;
+    top: 15px;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.4s ease;
+    z-index: 1;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.progress-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: #999;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+}
+
+.progress-step.active .progress-circle {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: scale(1.1);
+}
+
+.progress-step.completed .progress-circle {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.progress-label {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+    text-align: center;
+}
+
+.progress-step.active .progress-label {
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* =========================================
+   FORM STEPS
+   ========================================= */
+
+.form-step {
+    display: none;
+    flex-grow: 1;
+    animation: fadeIn 0.4s ease;
+}
+
+.form-step.active {
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================
+   FORM INPUTS
+   ========================================= */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.form-input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: white;
+}
+
+textarea.form-input {
+    min-height: 100px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* =========================================
+   BUTTON AREA
+   ========================================= */
+
+.form-buttons {
+    margin-top: auto;
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* =========================================
+   BUTTONS
+   ========================================= */
+
+.next-btn,
+.back-btn {
+    padding: 13px 28px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.next-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    flex: 1;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.next-btn:active {
+    transform: translateY(0);
+}
+
+.back-btn {
+    background: white;
+    color: #666;
+    border: 2px solid #e0e0e0;
+}
+
+.back-btn:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+}
+
+/* REGISTER BUTTON */
+
+.register-button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.register-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.register-button:active {
+    transform: translateY(0);
+}
+
+/* =========================================
+   FORM TITLES
+   ========================================= */
+
+.form-step h3 {
+    margin-bottom: 24px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+/* SECTION TITLE (optional) */
+
+.section-title {
+    margin-top: 30px;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.form-error {
+    margin-top: 10px;
+    padding: 12px 16px;
+    background: #ffecec;
+    border-left: 4px solid #ff4d4d;
+    color: #a40000;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* =========================================
+   SELECT2 CUSTOMIZATION
+   ========================================= */
+
+.select2-container--default .select2-selection--single {
+    height: 48px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 44px;
+    padding-left: 16px;
+    color: #333;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 46px;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #667eea;
+    background: white;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 600px) {
+    .register-container {
+        padding: 35px 30px;
+    }
+
+    .register-title {
+        font-size: 26px;
+    }
+
+    .progress-label {
+        font-size: 10px;
+    }
+
+    .progress-circle {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+}

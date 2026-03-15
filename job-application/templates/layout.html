@@ -125,7 +125,7 @@
         {% if current_user.is_authenticated and current_user.role == "hr" %}
 
         <li>
-            <a href="{{ url_for('hr.profile') }}" class="sidebar-link">
+            <a href="{{ url_for('hr.dashboard') }}" class="sidebar-link">
                 <i class="fas fa-user"></i> 
                 <span>Profile</span>
             </a>
