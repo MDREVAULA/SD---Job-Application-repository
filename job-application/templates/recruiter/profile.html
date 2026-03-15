@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/profile.css') }}">
+
+<div class="dashboard-container">
+
+    <h2>Recruiter Dashboard</h2>
+
+    <div class="status-card">
+        <strong>Account Status:</strong>
+
+        {% if current_user.verification_status == "Approved" %}
+        <span class="status approved">✅ Verified</span>
+
+        {% elif current_user.verification_status == "Pending" %}
+        <span class="status pending">⚠️ Pending Verification</span>
+
+        {% elif current_user.verification_status == "Rejected" %}
+        <span class="status rejected">❌ Rejected</span>
+        {% endif %}
+
+    </div>
+
+    <div class="card">
+        <h3>Welcome to Your Dashboard</h3>
+        <p>Use the sidebar menu to manage your job postings and HR accounts.</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 25px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+                <i class="fas fa-briefcase" style="font-size: 32px; margin-bottom: 10px;"></i>
+                <h4 style="margin: 0;">Post Jobs</h4>
+                <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">Create and manage listings</p>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+                <i class="fas fa-users" style="font-size: 32px; margin-bottom: 10px;"></i>
+                <h4 style="margin: 0;">HR Accounts</h4>
+                <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">Manage your team</p>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
+                <i class="fas fa-file-alt" style="font-size: 32px; margin-bottom: 10px;"></i>
+                <h4 style="margin: 0;">Applications</h4>
+                <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">Review candidates</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

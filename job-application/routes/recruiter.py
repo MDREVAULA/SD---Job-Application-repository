@@ -33,7 +33,7 @@ def dashboard():
     hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
 
     return render_template(
-        'recruiter/recruiter_profile.html',
+        'recruiter/profile.html',
         jobs=jobs,
         hrs=hrs
     )
@@ -124,6 +124,24 @@ def job_posting():
     )
 
 # ===============================
+# MY JOB LIST
+# ===============================
+@recruiter_bp.route('/my-job-list')
+@login_required
+def my_job_list():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    jobs = Job.query.filter_by(company_id=current_user.id).all()
+
+    return render_template(
+        "recruiter/my_job_list.html",
+        jobs=jobs
+    )
+
+# ===============================
 # HR ACCOUNTS PAGE
 # ===============================
 @recruiter_bp.route('/hr-accounts')
@@ -145,25 +163,64 @@ def hr_accounts():
     )
 
 # ===============================
-# REVIEW APPLICATIONS
+# CREATE HR ACCOUNT
 # ===============================
-@recruiter_bp.route('/review-applications')
+@recruiter_bp.route('/create-hr', methods=['POST'])
 @login_required
-def review_applications():
+def create_hr():
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    applications = Application.query.join(Application.job).filter_by(
-        company_id=current_user.id
-    ).all()
+    username = request.form.get('username')
+    email = request.form.get('email')
 
-    return render_template(
-        "recruiter/review_applications.html",
-        applications=applications
+    temp_password = generate_temp_password()
+
+    new_hr = User(
+        username=username,
+        email=email,
+        password=generate_password_hash(temp_password),
+        role="hr",
+        created_by=current_user.id
     )
+
+    db.session.add(new_hr)
+    db.session.commit()
+
+    flash(f"HR account created. Temporary password: {temp_password}", "success")
+
+    return redirect(url_for('recruiter.hr_accounts'))
+
+# ===============================
+# VIEW JOB APPLICATIONS (SPECIFIC JOB)
+# ===============================
+# Add this route to your recruiter.py file
+
+@recruiter_bp.route('/job-applications/<int:job_id>')
+@login_required
+def view_job_applications(job_id):
     
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+    
+    job = Job.query.get_or_404(job_id)
+    
+    # Verify the job belongs to this recruiter
+    if job.company_id != current_user.id:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('recruiter.my_job_list'))
+    
+    # Get all applications for this specific job
+    applications = Application.query.filter_by(job_id=job_id).all()
+    
+    return render_template(
+        "recruiter/job_applications.html",
+        job=job,
+        applications=applications
+    )    
 
 # ===============================
 # EDIT JOB
@@ -307,4 +364,4 @@ def delete_job(job_id):
 
     flash("Job deleted successfully!", "success")
 
-    return redirect(url_for('recruiter.job_posting'))
+    return redirect(url_for('recruiter.my_job_list'))

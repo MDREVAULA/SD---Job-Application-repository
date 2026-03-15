@@ -1,123 +1,251 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/job_posting.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/job_posting.css') }}">
 
-<h2>Job Posting</h2>
+<div class="job-posting-wrapper">
 
-<div class="card">
+    <!-- HEADER SECTION -->
+    <div class="posting-header">
+        <div class="header-content">
+            <div class="header-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div>
+                <h1>Create Job Posting</h1>
+                <p>Fill in the details below to post a new job opportunity</p>
+            </div>
+        </div>
+        
+        {% if current_user.verification_status != "Approved" %}
+        <div class="verification-warning">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Your account needs to be verified before posting jobs</span>
+        </div>
+        {% endif %}
+    </div>
 
-<h3>Post New Job</h3>
+    <!-- MAIN FORM CONTAINER -->
+    <form method="POST"
+        action="{{ url_for('recruiter.post_job') }}"
+        enctype="multipart/form-data"
+        class="job-posting-form">
 
-<form method="POST"
-action="{{ url_for('recruiter.post_job') }}"
-enctype="multipart/form-data">
+        <div class="form-grid">
 
-<label>Job Title</label>
-<input type="text" name="title" required>
+            <!-- LEFT COLUMN -->
+            <div class="form-section">
+                
+                <div class="section-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h3>Basic Information</h3>
+                </div>
 
-<label>Job Field</label>
-<select name="field">
-<option>Engineering</option>
-<option>IT</option>
-<option>UI/UX Design</option>
-<option>Healthcare</option>
-<option>Marketing</option>
-<option>Finance</option>
-</select>
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-briefcase"></i>
+                        Job Title <span class="required">*</span>
+                    </label>
+                    <input type="text" 
+                           name="title" 
+                           placeholder="e.g., Senior Software Engineer" 
+                           required
+                           class="form-input">
+                    <span class="field-hint">Choose a clear, descriptive title</span>
+                </div>
 
-<label>Job Type</label>
-<select name="job_type">
-<option>Full-time</option>
-<option>Part-time</option>
-<option>Contract</option>
-<option>Internship</option>
-</select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-layer-group"></i>
+                            Job Field <span class="required">*</span>
+                        </label>
+                        <select name="field" class="form-select">
+                            <option value="Engineering">💻 Engineering</option>
+                            <option value="IT">🖥️ IT</option>
+                            <option value="UI/UX Design">🎨 UI/UX Design</option>
+                            <option value="Healthcare">⚕️ Healthcare</option>
+                            <option value="Marketing">📢 Marketing</option>
+                            <option value="Finance">💰 Finance</option>
+                        </select>
+                    </div>
 
-<label>Location</label>
-<input type="text" name="location">
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-clock"></i>
+                            Job Type <span class="required">*</span>
+                        </label>
+                        <select name="job_type" class="form-select">
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Internship">Internship</option>
+                        </select>
+                    </div>
+                </div>
 
-<label>Salary</label>
-<input type="text" name="salary">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-map-marker-alt"></i>
+                            Location
+                        </label>
+                        <input type="text" 
+                               name="location" 
+                               placeholder="e.g., New York, NY or Remote"
+                               class="form-input">
+                        <span class="field-hint">City, State or Remote</span>
+                    </div>
 
-<label>Expiration Date</label>
-<input type="date" name="expiration_date">
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-dollar-sign"></i>
+                            Salary Range
+                        </label>
+                        <input type="text" 
+                               name="salary" 
+                               placeholder="e.g., $80,000 - $120,000"
+                               class="form-input">
+                        <span class="field-hint">Annual salary range</span>
+                    </div>
+                </div>
 
-<label>Job Images</label>
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-calendar-times"></i>
+                        Application Deadline
+                    </label>
+                    <input type="date" 
+                           name="expiration_date"
+                           class="form-input">
+                    <span class="field-hint">When should applications close?</span>
+                </div>
 
-<input
-type="file"
-id="posterInput"
-name="posters"
-multiple
-accept="image/*"
->
+            </div>
 
-<!-- IMAGE PREVIEW -->
-<div id="imagePreviewContainer" class="image-preview-container"></div>
+            <!-- RIGHT COLUMN -->
+            <div class="form-section">
+                
+                <div class="section-header">
+                    <i class="fas fa-align-left"></i>
+                    <h3>Job Details</h3>
+                </div>
 
-<label>Description</label>
-<textarea name="description" required></textarea>
+                <div class="form-group full-width">
+                    <label>
+                        <i class="fas fa-file-alt"></i>
+                        Job Description <span class="required">*</span>
+                    </label>
+                    <textarea name="description" 
+                              class="form-textarea"
+                              placeholder="Describe the role, responsibilities, and requirements...
+                                Example:
+                                • What you'll do
+                                • Key responsibilities
+                                • Required qualifications
+                                • Preferred skills
+                                • What we offer" 
+                              required></textarea>
+                    <span class="field-hint">Be detailed and clear about expectations</span>
+                </div>
 
-{% if current_user.verification_status == "Approved" %}
-<button type="submit" class="btn-primary">Post Job</button>
-{% else %}
-<button type="button" class="btn-disabled" disabled>
-Verification Required
-</button>
-{% endif %}
+                <div class="section-header" style="margin-top: 25px;">
+                    <i class="fas fa-images"></i>
+                    <h3>Media & Visuals</h3>
+                </div>
 
-</form>
+                <div class="form-group full-width">
+                    <label>
+                        <i class="fas fa-image"></i>
+                        Job Images
+                    </label>
+                    
+                    <div class="file-upload-area" onclick="document.getElementById('posterInput').click()">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <p class="upload-text">Click to upload images</p>
+                        <p class="upload-subtext">or drag and drop</p>
+                        <p class="upload-formats">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+
+                    <input
+                        type="file"
+                        id="posterInput"
+                        name="posters"
+                        multiple
+                        accept="image/*"
+                        style="display: none;"
+                    >
+
+                    <!-- IMAGE PREVIEW -->
+                    <div id="imagePreviewContainer" class="image-preview-grid"></div>
+                    
+                    <span class="field-hint">Add images to showcase your workplace or team</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SUBMIT SECTION -->
+        <div class="form-footer">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Review your job posting carefully before publishing</p>
+                </div>
+                
+                <div class="footer-actions">
+                    {% if current_user.verification_status == "Approved" %}
+                    <button type="submit" class="btn-publish">
+                        <i class="fas fa-rocket"></i> Publish Job
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn-disabled" disabled>
+                        <i class="fas fa-lock"></i> Verification Required
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </form>
 
 </div>
-
-
-<div class="card">
-
-<h3>My Job Listings</h3>
-
-<div class="jobs-grid">
-
-{% for job in jobs %}
-
-<div class="job-card">
-
-<h4>{{ job.title }}</h4>
-
-<p>{{ job.description[:100] }}...</p>
-
-<div class="job-footer">
-
-    <p>Applicants: {{ job.applications | length }}</p>
-
-<a href="{{ url_for('recruiter.edit_job', job_id=job.id) }}" class="btn-primary">
-Edit
-</a>
-
-<form method="POST"
-action="{{ url_for('recruiter.delete_job', job_id=job.id) }}"
-style="display:inline;">
-
-<button type="submit"
-class="btn-danger"
-onclick="return confirm('Delete this job?')">
-Delete
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-{% endfor %}
-
-</div>
-
-</div>
-
 
 <!-- IMAGE PREVIEW SCRIPT -->
 <script src="{{ url_for('static', filename='js/job_image_preview.js') }}"></script>
+
+<script>
+// Add drag and drop functionality
+const uploadArea = document.querySelector('.file-upload-area');
+const fileInput = document.getElementById('posterInput');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#667eea';
+    uploadArea.style.background = '#f0f4ff';
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.background = '#fafbfc';
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = '#d1d5db';
+    uploadArea.style.background = '#fafbfc';
+    
+    const files = e.dataTransfer.files;
+    fileInput.files = files;
+    
+    // Trigger change event
+    const event = new Event('change', { bubbles: true });
+    fileInput.dispatchEvent(event);
+});
+</script>
 
 {% endblock %}

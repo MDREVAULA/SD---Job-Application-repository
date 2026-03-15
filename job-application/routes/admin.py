@@ -29,7 +29,7 @@ def dashboard():
     ).all()
 
     return render_template(
-        'admin/admin_dashboard.html',
+        'admin/dashboard.html',
         pending_recruiters=pending_recruiters,
         pending_applicants=pending_applicants
     )
@@ -52,7 +52,7 @@ def scammers():
     ).all()
 
     return render_template(
-        "admin/admin_scammers.html",
+        "admin/rejected_recruiters.html",
         recruiters=rejected_recruiters
     )
 
@@ -77,7 +77,7 @@ def review_recruiter(user_id):
     profile = recruiter.recruiter_profile
 
     return render_template(
-        'admin/admin_review_recruiter.html',
+        'admin/review_recruiter.html',
         recruiter=recruiter,
         profile=profile
     )
@@ -105,7 +105,7 @@ def review_applicant(user_id):
     ).first()
 
     return render_template(
-        'admin/admin_review_applicant.html',
+        'admin/review_applicant.html',
         applicant=applicant,
         profile=profile
     )
@@ -193,7 +193,7 @@ def rejected_applicants():
     ).all()
 
     return render_template(
-        "admin/admin_rejected_applicants.html",
+        "admin/rejected_applicants.html",
         applicants=rejected_applicants
     )
 

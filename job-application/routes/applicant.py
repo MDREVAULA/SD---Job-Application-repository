@@ -26,7 +26,7 @@ def dashboard():
     ).all()
 
     return render_template(
-        'applicant/applicant_dashboard.html',
+        'applicant/dashboard.html',
         jobs=jobs,
         applications=applications
     )

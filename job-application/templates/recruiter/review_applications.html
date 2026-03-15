@@ -2,83 +2,86 @@
 
 {% block content %}
 
-<h2>Recruiter Applicant Review</h2>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/applications.css') }}">
 
-<h3>Applications for Your Jobs</h3>
+<h2><i class="fas fa-file-alt"></i> Recruiter Applicant Review</h2>
+
+<div class="card">
+    <h3><i class="fas fa-inbox"></i> Applications for Your Jobs</h3>
+    
+    {% if not applications %}
+    <p style="text-align: center; color: #666; padding: 40px;">
+        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 15px; display: block; opacity: 0.5;"></i>
+        No applications received yet.
+    </p>
+    {% endif %}
+</div>
 
 <div class="applications-list">
 
-{% for app in applications %}
+    {% for app in applications %}
 
-<div class="app-card">
+    <div class="app-card">
 
-<p>
-<strong>Applicant:</strong> {{ app.applicant.username }}
-</p>
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+            <div>
+                <h3 style="margin: 0 0 5px 0; color: #333;">
+                    <i class="fas fa-user"></i> {{ app.applicant.username }}
+                </h3>
+                <p style="margin: 0; color: #666; font-size: 13px;">
+                    <i class="fas fa-briefcase"></i> Applied for: <strong>{{ app.job.title }}</strong>
+                </p>
+            </div>
+            <span class="status {% if app.status == 'Pending' %}pending{% elif app.status == 'Accepted' %}approved{% elif app.status == 'Rejected' %}rejected{% endif %}">
+                {{ app.status }}
+            </span>
+        </div>
 
-<p>
-<strong>Job:</strong> {{ app.job.title }}
-</p>
+        <!-- RESUME -->
+        <p>
+            <strong><i class="fas fa-file-pdf"></i> Resume:</strong>
 
-<p>
-<strong>Status:</strong> {{ app.status }}
-</p>
+            {% if app.resume %}
+            <a href="{{ url_for('static', filename='resumes/' + app.resume) }}" target="_blank">
+                <i class="fas fa-download"></i> View Resume
+            </a>
+            {% else %}
+            <span style="color: #999;">No resume uploaded</span>
+            {% endif %}
+        </p>
 
-<!-- RESUME -->
-<p>
-<strong>Resume:</strong>
+        <!-- COVER LETTER -->
+        <p><strong><i class="fas fa-envelope-open-text"></i> Cover Letter:</strong></p>
 
-{% if app.resume %}
-<a href="{{ url_for('static', filename='resumes/' + app.resume) }}" target="_blank">
-View Resume
-</a>
-{% else %}
-No resume uploaded
-{% endif %}
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+            {{ app.cover_letter }}
+        </div>
 
-</p>
+        <!-- REVIEW FORM -->
+        <form method="POST" action="{{ url_for('recruiter.review_application', app_id=app.id) }}">
 
-<!-- COVER LETTER -->
-<p><strong>Cover Letter:</strong></p>
+            <label><i class="fas fa-tasks"></i> Update Status:</label>
 
-<div style="background:#f5f5f5;padding:10px;border-radius:5px;margin-bottom:15px;">
-{{ app.cover_letter }}
-</div>
+            <select name="status">
+                <option value="Pending" {% if app.status=="Pending" %}selected{% endif %}>Pending</option>
+                <option value="Interview" {% if app.status=="Interview" %}selected{% endif %}>Interview</option>
+                <option value="Accepted" {% if app.status=="Accepted" %}selected{% endif %}>Accepted</option>
+                <option value="Rejected" {% if app.status=="Rejected" %}selected{% endif %}>Rejected</option>
+            </select>
 
-<!-- REVIEW FORM -->
-<form method="POST" action="{{ url_for('recruiter.review_application', app_id=app.id) }}">
+            <label><i class="fas fa-comment-dots"></i> Recruiter Remarks:</label>
+            <textarea name="remarks" placeholder="Add your feedback or notes here...">{{ app.remarks }}</textarea>
 
-<label>Status:</label>
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> Submit Review
+            </button>
 
-<select name="status">
+        </form>
 
-<option value="Pending" {% if app.status=="Pending" %}selected{% endif %}>Pending</option>
+    </div>
 
-<option value="Interview" {% if app.status=="Interview" %}selected{% endif %}>Interview</option>
-
-<option value="Accepted" {% if app.status=="Accepted" %}selected{% endif %}>Accepted</option>
-
-<option value="Rejected" {% if app.status=="Rejected" %}selected{% endif %}>Rejected</option>
-
-</select>
-
-<br><br>
-
-<label>Recruiter Remarks:</label><br>
-
-<textarea name="remarks">{{ app.remarks }}</textarea>
-
-<br><br>
-
-<button type="submit">Submit Review</button>
-
-</form>
-
-</div>
-
-<hr>
-
-{% endfor %}
+    {% endfor %}
 
 </div>
 
