@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block title %}Select Role{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+
+<div class="auth-page">
+    <div class="register-center">
+        <div class="register-container" style="min-height: auto;">
+
+            <h2 class="register-title">Welcome!</h2>
+            <p style="text-align:center; color:#888; margin-bottom: 30px;">
+                How will you be using the Job Portal?
+            </p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="form-error">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <form method="POST">
+
+                <div class="form-group">
+                    <label class="form-label">I am a...</label>
+                    <select class="form-input" name="role" id="role">
+                        <option value="applicant">Applicant — looking for jobs</option>
+                        <option value="recruiter">Recruiter — hiring people</option>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="next-btn">Continue</button>
+                </div>
+
+            </form>
+
+        </div>
+        <!-- END REGISTER CONTAINER -->
+    </div>
+    <!-- END REGISTER CENTER -->
+</div>
+<!-- END AUTH PAGE -->
+
+{% endblock %}

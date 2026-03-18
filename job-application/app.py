@@ -7,6 +7,7 @@ from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash
 import os
 import pymysql
+import secrets
 
 # CREATE DATABASE IF NOT EXISTS
 connection = pymysql.connect(
@@ -84,12 +85,21 @@ if __name__ == "__main__":
                 role="admin",
                 is_verified=True
             )
-
             db.session.add(admin)
             db.session.commit()
-
-            print("Admin account created successfully!")
+            print("=" * 50)
+            print("Admin account created!")
             print("Username: admin")
             print("Password: admin123")
+            print("=" * 50)
+
+        # Generate secret admin login URL
+        admin_token = secrets.token_urlsafe(32)
+        app.config["ADMIN_TOKEN"] = admin_token
+
+        print("\n" + "=" * 50)
+        print("ADMIN LOGIN URL (this session only):")
+        print(f"http://127.0.0.1:5000/admin/login/{admin_token}")
+        print("=" * 50 + "\n")
 
     app.run(debug=True)

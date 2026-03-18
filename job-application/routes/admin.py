@@ -1,8 +1,32 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask_login import login_required, current_user, login_user
 from models import db, User, ApplicantProfile
+from routes.auth import send_verification_email
 
 admin_bp = Blueprint('admin', __name__, url_prefix="/admin")
+
+
+# ==============================
+# Secret Admin Login
+# ==============================
+@admin_bp.route('/login/<token>', endpoint='admin_login')
+def admin_login(token):
+
+    # Check token matches
+    if token != current_app.config.get("ADMIN_TOKEN"):
+        flash("Invalid or expired admin link.", "danger")
+        return redirect(url_for('auth.login'))
+
+    # Find admin user
+    admin = User.query.filter_by(role="admin").first()
+
+    if not admin:
+        flash("Admin account not found.", "danger")
+        return redirect(url_for('auth.login'))
+
+    login_user(admin)
+    flash("Logged in as admin.", "success")
+    return redirect(url_for('admin.dashboard'))
 
 
 # ==============================
@@ -16,13 +40,11 @@ def dashboard():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    # Pending recruiter accounts
     pending_recruiters = User.query.filter_by(
         role='recruiter',
         verification_status="Pending"
     ).all()
 
-    # Pending applicant accounts
     pending_applicants = User.query.filter_by(
         role='applicant',
         verification_status="Pending"
@@ -135,11 +157,11 @@ def verify(user_id):
     user.verification_status = "Approved"
     user.verification_remarks = None
     user.is_verified = True
-
     db.session.commit()
 
-    flash(f"{user.username} has been verified successfully!", "success")
+    send_verification_email(user)
 
+    flash(f"{user.username} has been verified successfully!", "success")
     return redirect(url_for('admin.dashboard'))
 
 
@@ -168,11 +190,9 @@ def reject(user_id):
     user.verification_status = "Rejected"
     user.verification_remarks = remarks
     user.is_verified = False
-
     db.session.commit()
 
     flash(f"{user.username} has been rejected.", "warning")
-
     return redirect(url_for('admin.dashboard'))
 
 
@@ -218,11 +238,9 @@ def restore(user_id):
     user.verification_status = "Pending"
     user.verification_remarks = None
     user.is_verified = False
-
     db.session.commit()
 
     flash(f"{user.username} has been restored to pending verification.", "success")
-
     return redirect(url_for('admin.scammers'))
 
 
@@ -246,9 +264,7 @@ def restore_applicant(user_id):
     user.verification_status = "Pending"
     user.verification_remarks = None
     user.is_verified = False
-
     db.session.commit()
 
     flash(f"{user.username} has been restored to pending verification.", "success")
-
     return redirect(url_for('admin.rejected_applicants'))

@@ -318,6 +318,71 @@ textarea.form-input {
 }
 
 /* =========================================
+   FILE PREVIEW
+   ========================================= */
+
+   #logo-preview-container,
+   #proof-preview-container {
+       margin-top: 12px;
+   }
+   
+   #logo-preview {
+       max-width: 200px;
+       max-height: 200px;
+       border-radius: 8px;
+       border: 2px solid #e0e0e0;
+       object-fit: contain;
+       padding: 8px;
+   }
+   
+   #proof-preview-img {
+       max-width: 100%;
+       max-height: 200px;
+       border-radius: 8px;
+       border: 2px solid #e0e0e0;
+       object-fit: contain;
+       padding: 8px;
+   }
+   
+   #proof-preview-file {
+       padding: 16px;
+       border: 2px solid #e0e0e0;
+       border-radius: 8px;
+       background: #fafafa;
+       display: flex;
+       align-items: center;
+       gap: 12px;
+   }
+   
+   #proof-file-icon {
+       font-size: 32px;
+   }
+   
+   #proof-file-name {
+       font-weight: 600;
+       font-size: 14px;
+       margin: 0;
+       color: #333;
+   }
+   
+   #proof-file-size {
+       font-size: 12px;
+       color: #888;
+       margin: 4px 0 0 0;
+   }
+
+/* =========================================
+   FIELD ERROR
+   ========================================= */
+
+   .field-error {
+    color: #ff4d4d;
+    font-size: 12px;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+/* =========================================
    RESPONSIVE
    ========================================= */
 

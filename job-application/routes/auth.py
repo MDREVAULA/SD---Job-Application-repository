@@ -1,11 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_mail import Message
 from authlib.integrations.flask_client import OAuth
 
-from models import db, User, RecruiterProfile, Job
+from models import db, User, RecruiterProfile, Job, ApplicantProfile
 
 import os
 import uuid
@@ -47,6 +47,51 @@ def redirect_by_role(user):
     if user.role == "admin":
         return redirect(url_for("admin.dashboard"))
     return redirect(url_for("auth.index"))
+
+
+# =========================
+# SEND VERIFICATION EMAIL
+# =========================
+def send_verification_email(user):
+    try:
+        from app import mail
+
+        if user.role == "applicant":
+            subject = "Your Account Has Been Verified – Job Portal"
+            body = f"""Hello {user.username},
+
+Great news! Your Job Portal account has been verified and is now active.
+
+You can now log in at: http://127.0.0.1:5000/login
+
+Welcome aboard!
+
+– The Job Portal Team"""
+
+        elif user.role == "recruiter":
+            subject = "Your Recruiter Account Has Been Verified – Job Portal"
+            body = f"""Hello {user.username},
+
+Great news! Your recruiter account has been reviewed and approved by our admin team.
+
+You can now log in and start posting jobs at: http://127.0.0.1:5000/login
+
+Welcome to Job Portal!
+
+– The Job Portal Team"""
+
+        else:
+            return
+
+        msg = Message(
+            subject=subject,
+            recipients=[user.email],
+            body=body
+        )
+        mail.send(msg)
+
+    except Exception as e:
+        print(f"Failed to send verification email to {user.email}: {e}")
 
 
 # =========================
@@ -161,17 +206,11 @@ def google_callback():
             user.google_id = google_id
             db.session.commit()
         else:
-            # Create brand new account
-            user = User(
-                username=name,
-                email=email,
-                google_id=google_id,
-                role="applicant",
-                verification_status="Approved",
-                is_verified=True
-            )
-            db.session.add(user)
-            db.session.commit()
+            # New user — store info in session and ask for role
+            session["google_id"] = google_id
+            session["google_email"] = email
+            session["google_name"] = name
+            return redirect(url_for("auth.google_role_select"))
 
     # Block rejected recruiters
     if user.role == "recruiter" and user.verification_status == "Rejected":
@@ -186,6 +225,156 @@ def google_callback():
     flash("Logged in with Google!", "success")
     return redirect_by_role(user)
 
+
+# =========================
+# GOOGLE ROLE SELECTION
+# =========================
+@auth_bp.route("/google-role-select", methods=["GET", "POST"])
+def google_role_select():
+
+    if not session.get("google_id"):
+        flash("Session expired. Please try again.", "error")
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        role = request.form.get("role")
+
+        if role not in ["applicant", "recruiter"]:
+            flash("Please select a valid role.", "error")
+            return redirect(url_for("auth.google_role_select"))
+
+        # Save role to session — don't create user yet
+        session["google_role"] = role
+
+        if role == "recruiter":
+            flash("Please complete your company information to finish registration.", "info")
+            return redirect(url_for("auth.google_recruiter_profile"))
+
+        flash("Please complete your profile to finish registration.", "info")
+        return redirect(url_for("auth.google_applicant_profile"))
+
+    return render_template("auth/google_role_select.html")
+
+
+# =========================
+# GOOGLE APPLICANT PROFILE
+# =========================
+@auth_bp.route("/google-applicant-profile", methods=["GET", "POST"])
+def google_applicant_profile():
+
+    if not session.get("google_id"):
+        flash("Session expired. Please try again.", "error")
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        google_id = session.pop("google_id")
+        email = session.pop("google_email")
+        name = session.pop("google_name")
+        session.pop("google_role", None)
+
+        # Create user only now
+        user = User(
+            username=name,
+            email=email,
+            google_id=google_id,
+            role="applicant",
+            verification_status="Approved",
+            is_verified=True
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        dob_str = request.form.get("date_of_birth")
+        dob = None
+        if dob_str:
+            try:
+                dob = datetime.strptime(dob_str, "%Y-%m-%d").date()
+            except:
+                dob = None
+
+        applicant_profile = ApplicantProfile(
+            user_id=user.id,
+            last_name=request.form.get("surname") or "",
+            first_name=request.form.get("first_name") or "",
+            middle_name=request.form.get("middle_name") or "",
+            date_of_birth=dob,
+            gender=request.form.get("gender") or "",
+            phone_number=request.form.get("phone_number") or "",
+            country=request.form.get("country") or "",
+            city=request.form.get("city") or "",
+            home_address=request.form.get("home_address") or "",
+        )
+        db.session.add(applicant_profile)
+        db.session.commit()
+
+        login_user(user)
+        flash("Account created with Google! Welcome aboard.", "success")
+        return redirect_by_role(user)
+
+    return render_template("auth/google_applicant_profile.html")
+
+
+# =========================
+# GOOGLE RECRUITER PROFILE
+# =========================
+@auth_bp.route("/google-recruiter-profile", methods=["GET", "POST"])
+def google_recruiter_profile():
+
+    if not session.get("google_id"):
+        flash("Session expired. Please try again.", "error")
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        google_id = session.pop("google_id")
+        email = session.pop("google_email")
+        name = session.pop("google_name")
+        session.pop("google_role", None)
+
+        # Create user only now
+        user = User(
+            username=name,
+            email=email,
+            google_id=google_id,
+            role="recruiter",
+            verification_status="Pending",
+            is_verified=False
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        upload_folder = os.path.join(current_app.root_path, "static", "uploads")
+        os.makedirs(upload_folder, exist_ok=True)
+
+        logo_file = request.files.get("company_logo")
+        proof_file = request.files.get("company_proof")
+
+        logo_filename = save_uploaded_file(logo_file, upload_folder)
+        proof_filename = save_uploaded_file(proof_file, upload_folder)
+
+        profile = RecruiterProfile(
+            user_id=user.id,
+            surname=request.form.get("surname") or "",
+            first_name=request.form.get("first_name") or "",
+            middle_name=request.form.get("middle_name") or "",
+            phone_number=request.form.get("phone_number") or "",
+            company_name=request.form.get("company_name") or "",
+            company_industry=request.form.get("company_industry") or "",
+            company_description=request.form.get("company_description") or "",
+            company_address=request.form.get("company_address") or "",
+            country=request.form.get("country") or "",
+            city=request.form.get("city") or "",
+            office_address=request.form.get("office_address") or "",
+            company_email_domain=request.form.get("company_email_domain") or "",
+            company_logo=logo_filename,
+            company_proof=proof_filename
+        )
+        db.session.add(profile)
+        db.session.commit()
+
+        flash("Registration complete! Your account is pending admin verification.", "info")
+        return redirect(url_for("auth.login"))
+
+    return render_template("auth/google_recruiter_profile.html")
 
 # =========================
 # REGISTER
@@ -228,8 +417,38 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        if role == "recruiter":
+        # =========================
+        # APPLICANT PROFILE
+        # =========================
+        if role == "applicant":
+            dob_str = request.form.get("date_of_birth")
+            dob = None
+            if dob_str:
+                try:
+                    dob = datetime.strptime(dob_str, "%Y-%m-%d").date()
+                except:
+                    dob = None
 
+            applicant_profile = ApplicantProfile(
+                user_id=user.id,
+                last_name=request.form.get("surname") or "",
+                first_name=request.form.get("first_name") or "",
+                middle_name=request.form.get("middle_name") or "",
+                date_of_birth=dob,
+                gender=request.form.get("gender") or "",
+                phone_number=request.form.get("phone_number") or "",
+                country=request.form.get("country") or "",
+                city=request.form.get("city") or "",
+                home_address=request.form.get("home_address") or "",
+            )
+            db.session.add(applicant_profile)
+            db.session.commit()
+            flash("Account created successfully! You can now log in.", "success")
+
+        # =========================
+        # RECRUITER PROFILE
+        # =========================
+        if role == "recruiter":
             upload_folder = os.path.join(current_app.root_path, "static", "uploads")
             os.makedirs(upload_folder, exist_ok=True)
 
@@ -256,14 +475,32 @@ def register():
                 company_logo=logo_filename,
                 company_proof=proof_filename
             )
-
             db.session.add(profile)
             db.session.commit()
+            flash("Account created! Please wait for admin verification before logging in.", "info")
 
-        flash("Account created successfully! Please login.", "success")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/register.html")
+
+
+# =========================
+# CHECK EMAIL/USERNAME AVAILABILITY
+# =========================
+@auth_bp.route("/check-availability", methods=["POST"])
+def check_availability():
+    data = request.get_json()
+
+    email = data.get("email", "").strip()
+    username = data.get("username", "").strip()
+
+    email_taken = User.query.filter_by(email=email).first() is not None
+    username_taken = User.query.filter_by(username=username).first() is not None
+
+    return jsonify({
+        "email_taken": email_taken,
+        "username_taken": username_taken
+    })
 
 
 # =========================
@@ -271,12 +508,16 @@ def register():
 # =========================
 @auth_bp.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
-
     if request.method == "POST":
         email = request.form.get("email")
         user = User.query.filter_by(email=email).first()
 
-        if user and user.password:  # only send if they have a password (not Google-only)
+        if user and user.google_id and not user.password:
+            # Google user — tell them to use Google
+            flash("This email is linked to a Google account. Please use 'Sign in with Google' instead.", "login_warning")
+            return redirect(url_for("auth.login"))
+
+        if user and user.password:
             token = secrets.token_urlsafe(32)
             user.reset_token = token
             user.reset_token_expiry = datetime.utcnow() + timedelta(minutes=30)
@@ -291,8 +532,10 @@ def forgot_password():
                 body=f"Hello {user.username},\n\nClick the link below to reset your password. It expires in 30 minutes.\n\n{reset_url}\n\nIf you did not request this, ignore this email."
             )
             mail.send(msg)
+        else:
+            flash("If that email is registered, a reset link has been sent.", "info")
+            return redirect(url_for("auth.forgot_password"))
 
-        # Always show same message — don't reveal if email exists
         flash("If that email is registered, a reset link has been sent.", "info")
         return redirect(url_for("auth.forgot_password"))
 
@@ -311,7 +554,6 @@ def reset_password(token):
         flash("This reset link is invalid or has expired.", "error")
         return redirect(url_for("auth.forgot_password"))
 
-    # Strip timezone info to avoid comparison errors
     expiry = user.reset_token_expiry.replace(tzinfo=None)
     if expiry < datetime.utcnow():
         flash("This reset link is invalid or has expired.", "error")
@@ -329,6 +571,7 @@ def reset_password(token):
         return redirect(url_for("auth.login"))
 
     return render_template("auth/reset_password.html", token=token)
+
 
 # =========================
 # ACCOUNT REJECTED PAGE
