@@ -14,9 +14,12 @@ class User(db.Model, UserMixin):
 
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
+    password = db.Column(db.String(200), nullable=True)  # nullable for Google users
 
     role = db.Column(db.String(50), nullable=False)
+
+    # Google OAuth
+    google_id = db.Column(db.String(200), unique=True, nullable=True)
 
     # Temporary password system
     must_change_password = db.Column(db.Boolean, default=False)
@@ -28,6 +31,10 @@ class User(db.Model, UserMixin):
 
     # HR created by recruiter
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+
+    # Forgot password
+    reset_token = db.Column(db.String(100), nullable=True)
+    reset_token_expiry = db.Column(db.DateTime, nullable=True)
 
     # =========================
     # RELATIONSHIPS
@@ -122,13 +129,13 @@ class Job(db.Model):
     # =========================
     # JOB INFORMATION
     # =========================
-    field = db.Column(db.String(100))       # Engineer, Nurse, UI Designer
-    job_type = db.Column(db.String(50))     # Full-time / Part-time
-    location = db.Column(db.String(200))    # City / Country
-    salary = db.Column(db.String(100))      # Optional salary display
+    field = db.Column(db.String(100))
+    job_type = db.Column(db.String(50))
+    location = db.Column(db.String(200))
+    salary = db.Column(db.String(100))
 
     # JOB MEDIA
-    poster = db.Column(db.String(200))      # Hiring poster image
+    poster = db.Column(db.String(200))
 
     # JOB EXPIRATION
     expiration_date = db.Column(db.Date)
@@ -157,7 +164,7 @@ class Application(db.Model):
     # =========================
     # APPLICANT SUBMISSION
     # =========================
-    resume = db.Column(db.String(200))        # stored file name
+    resume = db.Column(db.String(200))
     cover_letter = db.Column(db.Text)
 
     # =========================
@@ -168,11 +175,13 @@ class Application(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 # =========================
 # JOB IMAGE
 # =========================
 class JobImage(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey('job.id'), nullable=False)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
     job = db.relationship("Job", backref="images")

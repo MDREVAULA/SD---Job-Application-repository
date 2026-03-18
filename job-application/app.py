@@ -2,6 +2,8 @@ from flask import Flask
 from config import Config
 from models import db, User
 from flask_login import LoginManager
+from flask_mail import Mail
+from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash
 import os
 import pymysql
@@ -19,14 +21,26 @@ connection.close()
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
 # Upload folder configuration
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
-
-# Make sure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize Database
 db.init_app(app)
+
+# Initialize Mail
+mail = Mail(app)
+
+# Initialize OAuth
+oauth = OAuth(app)
+oauth.register(
+    name="google",
+    client_id=app.config["GOOGLE_CLIENT_ID"],
+    client_secret=app.config["GOOGLE_CLIENT_SECRET"],
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"},
+)
 
 # Setup Login Manager
 login_manager = LoginManager()
