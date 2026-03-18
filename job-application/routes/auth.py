@@ -136,6 +136,11 @@ def login():
             flash("Invalid email or password", "login_error")
             return redirect(url_for("auth.login"))
 
+        # Block admin from using the public login page
+        if user.role == "admin":
+            flash("Invalid email or password", "login_error")
+            return redirect(url_for("auth.login"))
+
         # Google-only account trying to use password login
         if user.google_id and not user.password:
             flash("This account uses Google sign-in. Please use the 'Sign in with Google' button.", "login_warning")
@@ -202,6 +207,11 @@ def google_callback():
         user = User.query.filter_by(email=email).first()
 
         if user:
+            # Block admin from Google login
+            if user.role == "admin":
+                flash("Invalid login method.", "login_error")
+                return redirect(url_for("auth.login"))
+
             # Link Google to existing account
             user.google_id = google_id
             db.session.commit()
@@ -211,6 +221,11 @@ def google_callback():
             session["google_email"] = email
             session["google_name"] = name
             return redirect(url_for("auth.google_role_select"))
+
+    # Block admin from Google login
+    if user.role == "admin":
+        flash("Invalid login method.", "login_error")
+        return redirect(url_for("auth.login"))
 
     # Block rejected recruiters
     if user.role == "recruiter" and user.verification_status == "Rejected":

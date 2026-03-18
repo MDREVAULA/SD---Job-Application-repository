@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_required, current_user, login_user
+from werkzeug.security import check_password_hash
 from models import db, User, ApplicantProfile
 from routes.auth import send_verification_email
 
@@ -7,26 +8,33 @@ admin_bp = Blueprint('admin', __name__, url_prefix="/admin")
 
 
 # ==============================
-# Secret Admin Login
+# Secret Admin Login Page
 # ==============================
-@admin_bp.route('/login/<token>', endpoint='admin_login')
+@admin_bp.route('/login/<token>', methods=['GET', 'POST'], endpoint='admin_login')
 def admin_login(token):
 
-    # Check token matches
+    # Validate the token first
     if token != current_app.config.get("ADMIN_TOKEN"):
         flash("Invalid or expired admin link.", "danger")
         return redirect(url_for('auth.login'))
 
-    # Find admin user
-    admin = User.query.filter_by(role="admin").first()
+    # On POST — verify credentials
+    if request.method == 'POST':
+        email = request.form.get("email")
+        password = request.form.get("password")
 
-    if not admin:
-        flash("Admin account not found.", "danger")
-        return redirect(url_for('auth.login'))
+        admin = User.query.filter_by(email=email, role="admin").first()
 
-    login_user(admin)
-    flash("Logged in as admin.", "success")
-    return redirect(url_for('admin.dashboard'))
+        if not admin or not check_password_hash(admin.password, password):
+            flash("Invalid admin credentials.", "danger")
+            return render_template("admin/login.html", token=token)
+
+        login_user(admin)
+        flash("Logged in as admin.", "success")
+        return redirect(url_for('admin.dashboard'))
+
+    # On GET — show the admin login form
+    return render_template("admin/login.html", token=token)
 
 
 # ==============================

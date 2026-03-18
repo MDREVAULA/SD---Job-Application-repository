@@ -1,0 +1,148 @@
+/* ================================
+   ADMIN LOGIN PAGE
+   ================================ */
+
+/* Hide footer on admin login page */
+.admin-page .footer {
+    display: none;
+}
+
+/* Remove main-content padding that causes white gap */
+.admin-page.main-content {
+    padding: 0;
+    margin-top: 0;
+}
+
+.admin-login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+.admin-login-box {
+    background: #222;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.admin-login-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.admin-login-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(76, 175, 80, 0.12);
+    border: 2px solid rgba(76, 175, 80, 0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+}
+
+.admin-login-icon i {
+    font-size: 28px;
+    color: #4CAF50;
+}
+
+.admin-login-header h2 {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.admin-login-header p {
+    color: #888;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* ================================
+   ADMIN LOGIN FORM FIELDS
+   ================================ */
+
+.admin-field {
+    margin-bottom: 20px;
+}
+
+.admin-field label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #aaa;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.admin-field label i {
+    color: #4CAF50;
+    font-size: 13px;
+}
+
+.admin-field input {
+    width: 100%;
+    padding: 12px 16px;
+    background: #2a2a2a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+}
+
+.admin-field input::placeholder {
+    color: #555;
+}
+
+.admin-field input:focus {
+    outline: none;
+    border-color: rgba(76, 175, 80, 0.5);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.08);
+}
+
+/* ================================
+   ADMIN LOGIN BUTTON
+   ================================ */
+
+.admin-login-btn {
+    width: 100%;
+    padding: 13px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.admin-login-btn:hover {
+    background: #43a047;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(76, 175, 80, 0.3);
+}
+
+.admin-login-btn:active {
+    transform: translateY(0);
+}
