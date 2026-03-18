@@ -307,7 +307,13 @@ def reset_password(token):
 
     user = User.query.filter_by(reset_token=token).first()
 
-    if not user or user.reset_token_expiry < datetime.utcnow():
+    if not user or not user.reset_token_expiry:
+        flash("This reset link is invalid or has expired.", "error")
+        return redirect(url_for("auth.forgot_password"))
+
+    # Strip timezone info to avoid comparison errors
+    expiry = user.reset_token_expiry.replace(tzinfo=None)
+    if expiry < datetime.utcnow():
         flash("This reset link is invalid or has expired.", "error")
         return redirect(url_for("auth.forgot_password"))
 
@@ -323,7 +329,6 @@ def reset_password(token):
         return redirect(url_for("auth.login"))
 
     return render_template("auth/reset_password.html", token=token)
-
 
 # =========================
 # ACCOUNT REJECTED PAGE
