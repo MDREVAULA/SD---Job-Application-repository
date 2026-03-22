@@ -23,6 +23,7 @@ pymysql
 requests
 werkzeug
 python-dotenv
+pillow
 ```
 
 ---
