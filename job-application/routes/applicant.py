@@ -2,10 +2,74 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from models import db, Job, Application, User
 from werkzeug.utils import secure_filename
+from PIL import Image
+import base64
+import io
 import os
 import uuid
 
 applicant_bp = Blueprint('applicant', __name__, url_prefix="/applicant")
+
+# ===============================
+# APPLICANT PROFILE
+# ===============================
+@applicant_bp.route('/profile')
+@login_required
+def profile():
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    return render_template('applicant/profile.html')
+
+
+# ===============================
+# UPLOAD PROFILE PICTURE
+# ===============================
+@applicant_bp.route('/upload-profile-picture', methods=['POST'])
+@login_required
+def upload_profile_picture():
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    cropped_data = request.form.get('cropped_image')
+
+    if not cropped_data:
+        flash("No image data received.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    try:
+        # Strip the base64 header: "data:image/jpeg;base64,..."
+        header, encoded = cropped_data.split(',', 1)
+        image_data = base64.b64decode(encoded)
+
+        image = Image.open(io.BytesIO(image_data)).convert('RGB')
+
+        # Enforce square + resize to 400x400
+        image = image.resize((400, 400), Image.LANCZOS)
+
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'profile_pictures')
+        os.makedirs(upload_folder, exist_ok=True)
+
+        # ✅ FIXED: skip deletion if old picture is a Google URL (starts with http)
+        if current_user.profile_picture and not current_user.profile_picture.startswith('http'):
+            old_path = os.path.join(upload_folder, current_user.profile_picture)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+        filename = f"pfp_{current_user.id}_{uuid.uuid4().hex[:8]}.jpg"
+        image.save(os.path.join(upload_folder, filename), 'JPEG', quality=90)
+
+        current_user.profile_picture = filename
+        db.session.commit()
+
+        flash("Profile picture updated!", "success")
+
+    except Exception as e:
+        flash(f"Upload failed: {str(e)}", "danger")
+
+    return redirect(url_for('applicant.profile'))
 
 
 # ===============================
@@ -89,11 +153,10 @@ def apply_job(job_id):
 
         if resume_file and resume_file.filename != "":
 
-            # Folder where resumes will be stored
+            # ✅ CORRECT: resumes saved to applicant_resumes/ subfolder
             upload_folder = os.path.join(
                 current_app.root_path,
-                "static",
-                "resumes"
+                "static", "uploads", "applicant_resumes"
             )
 
             os.makedirs(upload_folder, exist_ok=True)

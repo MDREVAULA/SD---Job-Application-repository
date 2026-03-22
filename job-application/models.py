@@ -36,6 +36,8 @@ class User(db.Model, UserMixin):
     reset_token = db.Column(db.String(100), nullable=True)
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
 
+    profile_picture = db.Column(db.String(200), nullable=True) 
+
     # =========================
     # RELATIONSHIPS
     # =========================

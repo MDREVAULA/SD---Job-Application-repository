@@ -39,11 +39,11 @@ def save_uploaded_file(file, upload_folder):
 
 def redirect_by_role(user):
     if user.role == "applicant":
-        return redirect(url_for("applicant.dashboard"))
+        return redirect(url_for("applicant.profile"))
     if user.role == "recruiter":
-        return redirect(url_for("recruiter.dashboard"))
+        return redirect(url_for("recruiter.profile"))
     if user.role == "hr":
-        return redirect(url_for("hr.dashboard"))
+        return redirect(url_for("hr.profile"))
     if user.role == "admin":
         return redirect(url_for("admin.dashboard"))
     return redirect(url_for("auth.index"))
@@ -199,6 +199,11 @@ def google_callback():
     email = info["email"]
     name = info.get("name", email.split("@")[0])
 
+    # =====================================================
+    # ADDED: grab Google profile picture URL
+    # =====================================================
+    google_picture = info.get("picture")
+
     # Check if user exists by Google ID
     user = User.query.filter_by(google_id=google_id).first()
 
@@ -214,12 +219,27 @@ def google_callback():
 
             # Link Google to existing account
             user.google_id = google_id
+
+            # =====================================================
+            # ADDED: save Google picture only if they don't have
+            # a custom uploaded one yet
+            # =====================================================
+            if google_picture and not user.profile_picture:
+                user.profile_picture = google_picture
+
             db.session.commit()
         else:
             # New user — store info in session and ask for role
             session["google_id"] = google_id
             session["google_email"] = email
             session["google_name"] = name
+
+            # =====================================================
+            # ADDED: store Google picture in session so we can
+            # save it after the user picks their role
+            # =====================================================
+            session["google_picture"] = google_picture
+
             return redirect(url_for("auth.google_role_select"))
 
     # Block admin from Google login
@@ -235,6 +255,14 @@ def google_callback():
     if user.role == "recruiter" and user.verification_status == "Pending":
         flash("Your recruiter account is pending admin verification.", "login_warning")
         return redirect(url_for("auth.login"))
+
+    # =====================================================
+    # ADDED: update Google picture on every login in case
+    # they changed their Google profile picture
+    # =====================================================
+    if google_picture and not user.profile_picture:
+        user.profile_picture = google_picture
+        db.session.commit()
 
     login_user(user)
     flash("Logged in with Google!", "success")
@@ -287,6 +315,11 @@ def google_applicant_profile():
         name = session.pop("google_name")
         session.pop("google_role", None)
 
+        # =====================================================
+        # ADDED: pop Google picture from session
+        # =====================================================
+        google_picture = session.pop("google_picture", None)
+
         # Create user only now
         user = User(
             username=name,
@@ -294,7 +327,8 @@ def google_applicant_profile():
             google_id=google_id,
             role="applicant",
             verification_status="Approved",
-            is_verified=True
+            is_verified=True,
+            profile_picture=google_picture  # ADDED
         )
         db.session.add(user)
         db.session.commit()
@@ -345,6 +379,11 @@ def google_recruiter_profile():
         name = session.pop("google_name")
         session.pop("google_role", None)
 
+        # =====================================================
+        # ADDED: pop Google picture from session
+        # =====================================================
+        google_picture = session.pop("google_picture", None)
+
         # Create user only now
         user = User(
             username=name,
@@ -352,7 +391,8 @@ def google_recruiter_profile():
             google_id=google_id,
             role="recruiter",
             verification_status="Pending",
-            is_verified=False
+            is_verified=False,
+            profile_picture=google_picture  # ADDED
         )
         db.session.add(user)
         db.session.commit()
@@ -464,7 +504,7 @@ def register():
         # RECRUITER PROFILE
         # =========================
         if role == "recruiter":
-            upload_folder = os.path.join(current_app.root_path, "static", "uploads")
+            upload_folder = os.path.join(current_app.root_path, "static", "uploads", "recruiter_documents")
             os.makedirs(upload_folder, exist_ok=True)
 
             logo_file = request.files.get("company_logo")

@@ -1,394 +1,111 @@
 /* ================================
-   JOB POSTING PAGE STYLES
+   RECRUITER PROFILE PAGE
    ================================ */
 
-   .job-posting-wrapper {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.posting-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 40px;
-    border-radius: 16px;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-}
-
-.posting-header h1 {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 700;
-}
-
-.posting-header p {
-    margin: 5px 0 0 0;
-    opacity: 0.95;
-    font-size: 1rem;
-}
-
-.verification-warning {
-    background: rgba(255, 193, 7, 0.2);
-    border: 2px solid rgba(255, 193, 7, 0.5);
-    padding: 12px 20px;
-    border-radius: 10px;
+/* ── Company Logo ── */
+.logo-wrapper {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    backdrop-filter: blur(10px);
-}
-
-.verification-warning i {
-    font-size: 20px;
-}
-
-.job-posting-form {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-}
-
-.form-section {
-    padding: 40px;
-    border-right: 1px solid #e9ecef;
-}
-
-.form-section:last-child {
-    border-right: none;
-}
-
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #f1f3f5;
-}
-
-.section-header i {
-    color: #667eea;
-    font-size: 20px;
-}
-
-.section-header h3 {
-    margin: 0;
-    color: #333;
-    font-size: 1.3rem;
-    font-weight: 600;
-}
-
-.form-group {
-    margin-bottom: 25px;
-}
-
-.form-group.full-width {
-    grid-column: 1 / -1;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.form-group label {
-    display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 8px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #495057;
-    font-size: 14px;
+    margin-bottom: 24px;
 }
-
-.form-group label i {
-    color: #667eea;
-    font-size: 16px;
-}
-
-.required {
-    color: #dc3545;
-    font-weight: bold;
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-    width: 100%;
-    padding: 14px 16px;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    background: #fafbfc;
-    font-family: inherit;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-    outline: none;
-    border-color: #667eea;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-}
-
-.form-textarea {
-    min-height: 220px;
-    resize: vertical;
-    line-height: 1.6;
-}
-
-.field-hint {
-    display: block;
-    font-size: 12px;
-    color: #6c757d;
-    margin-top: 6px;
-    font-style: italic;
-}
-
-.file-upload-area {
-    border: 3px dashed #d1d5db;
-    border-radius: 12px;
-    padding: 50px 20px;
-    text-align: center;
-    background: #fafbfc;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-bottom: 20px;
-}
-
-.file-upload-area:hover {
-    border-color: #667eea;
-    background: #f0f4ff;
-}
-
-.upload-icon {
-    font-size: 48px;
-    color: #667eea;
-    margin-bottom: 15px;
-}
-
-.upload-text {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    margin: 0 0 5px 0;
-}
-
-.upload-subtext {
-    font-size: 14px;
-    color: #6c757d;
-    margin: 0 0 10px 0;
-}
-
-.upload-formats {
-    font-size: 12px;
-    color: #adb5bd;
-    margin: 0;
-}
-
-.image-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.preview-card {
+.logo-container {
     position: relative;
     border-radius: 12px;
-    overflow: visible;
-    animation: fadeInScale 0.3s ease;
-}
-
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.preview-card img {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 12px;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-
-.preview-card:hover img {
-    border-color: #667eea;
-    transform: scale(1.05);
-}
-
-.remove-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-    color: white;
-    border: 3px solid white;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
     cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(238, 90, 111, 0.4);
-    transition: all 0.3s ease;
+    overflow: hidden;
+    border: 3px solid #e2e8f0;
+    transition: border-color 0.2s;
+}
+
+.upload-group .logo-container {
+    width: 120px;
+    height: 120px;
+}
+
+.logo-container:hover {
+    border-color: #667eea;
+}
+
+.logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    background: #f8fafc;
+}
+
+.logo-default {
+    width: 100%;
+    height: 100%;
+    background: #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
-    opacity: 0;
-    padding: 0;
-    line-height: 1;
+    color: #94a3b8;
+    font-size: 48px;
 }
 
-.preview-card:hover .remove-btn {
+.logo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.logo-container:hover .logo-overlay {
     opacity: 1;
 }
 
-.remove-btn:hover {
-    background: linear-gradient(135deg, #ee5a6f, #c92a2a);
-    transform: rotate(90deg) scale(1.15);
-    box-shadow: 0 6px 20px rgba(238, 90, 111, 0.6);
-}
-
-.remove-btn:active {
-    transform: rotate(90deg) scale(1.05);
-}
-
-.remove-btn::before {
-    content: '×';
-    font-size: 20px;
-    line-height: 1;
-}
-
-.form-footer {
-    background: #f8f9fa;
-    border-top: 2px solid #e9ecef;
-    padding: 30px 40px;
-}
-
-.footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-
-.footer-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: #6c757d;
-}
-
-.footer-info i {
-    font-size: 20px;
-    color: #667eea;
-}
-
-.footer-info p {
+.logo-hint {
+    font-size: 12px;
+    color: #94a3b8;
     margin: 0;
-    font-size: 14px;
 }
 
-.footer-actions {
-    display: flex;
-    gap: 12px;
-}
-
-.btn-publish {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 16px 40px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    display: inline-flex;
+/* ── Logo Crop Backdrop (reuses crop-modal styles from pfp modal) ── */
+.logo-crop-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 9999;
     align-items: center;
-    gap: 10px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    justify-content: center;
 }
 
-.btn-publish:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+.logo-crop-backdrop.active {
+    display: flex;
 }
 
-.btn-publish:active {
-    transform: translateY(-1px);
+.uploads-row {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    flex-wrap: wrap;
 }
 
-/* Responsive Design for Job Posting */
-@media (max-width: 992px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-section {
-        border-right: none;
-        border-bottom: 1px solid #e9ecef;
-    }
-    
-    .form-section:last-child {
-        border-bottom: none;
-    }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .footer-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .btn-publish {
-        width: 100%;
-        justify-content: center;
-    }
+.upload-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 }
 
-@media (max-width: 768px) {
-    .posting-header {
-        padding: 25px;
-    }
-    
-    .header-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .posting-header h1 {
-        font-size: 1.5rem;
-    }
-    
-    .form-section {
-        padding: 25px;
-    }
-    
-    .image-preview-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    }
+.upload-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }

@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>HireBon</title>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
@@ -15,6 +14,10 @@
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 <script src="{{ url_for('static', filename='js/hr_temporary.js') }}"></script>
+
+<style>
+
+</style>
 </head>
 
 <body>
@@ -27,16 +30,34 @@
             <i class="fas fa-bars"></i>
         </button>
 
-        <div class="logo-container">
+        <div class="website-logo-container">
             <i class="fas fa-briefcase logo-icon"></i>
-            <h1 class="logo">HireBon</h1>
+            <h1 class="website-logo">HireBon</h1>
         </div>
     </div>
 
     <div class="nav-right">
         {% if current_user.is_authenticated %}
             <div class="user-info">
-                <i class="fas fa-user-circle"></i>
+
+                {# ---- NAVBAR PROFILE PICTURE ---- #}
+                {% if current_user.profile_picture %}
+                    {% if current_user.profile_picture.startswith('http') %}
+                        {# Google profile picture (full URL) #}
+                        <img src="{{ current_user.profile_picture }}"
+                             alt="Profile"
+                             class="nav-avatar">
+                    {% else %}
+                        {# Uploaded local profile picture #}
+                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}"
+                             alt="Profile"
+                             class="nav-avatar">
+                    {% endif %}
+                {% else %}
+                    {# No photo yet — show default icon #}
+                    <i class="fas fa-user-circle nav-avatar-placeholder"></i>
+                {% endif %}
+
                 <span class="welcome-text">{{ current_user.username }}</span>
             </div>
         {% else %}
@@ -66,9 +87,27 @@
 
     {% if current_user.is_authenticated %}
     <div class="sidebar-user">
+
+        {# ---- SIDEBAR PROFILE PICTURE ---- #}
         <div class="sidebar-user-avatar">
-            <i class="fas fa-user-circle"></i>
+            {% if current_user.profile_picture %}
+                {% if current_user.profile_picture.startswith('http') %}
+                    {# Google profile picture (full URL) #}
+                    <img src="{{ current_user.profile_picture }}"
+                         alt="Profile"
+                         class="sidebar-avatar-img">
+                {% else %}
+                    {# Uploaded local profile picture #}
+                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}"
+                         alt="Profile"
+                         class="sidebar-avatar-img">
+                {% endif %}
+            {% else %}
+                {# No photo yet — show default icon #}
+                <i class="fas fa-user-circle sidebar-avatar-placeholder"></i>
+            {% endif %}
         </div>
+
         <div class="sidebar-user-info">
             <span class="sidebar-user-name">{{ current_user.username }}</span>
             <span class="sidebar-user-role">
@@ -123,8 +162,8 @@
         <div class="sidebar-section-label-role">Recruiter</div>
 
         <li>
-            <a href="{{ url_for('recruiter.dashboard') }}"
-               class="sidebar-link {% if request.endpoint == 'recruiter.dashboard' %}active{% endif %}">
+            <a href="{{ url_for('recruiter.profile') }}"
+               class="sidebar-link {% if request.endpoint == 'recruiter.profile' %}active{% endif %}">
                 <i class="fas fa-user"></i>
                 <span>My Profile</span>
             </a>
@@ -171,8 +210,8 @@
         <div class="sidebar-section-label-role">HR</div>
 
         <li>
-            <a href="{{ url_for('hr.dashboard') }}"
-               class="sidebar-link {% if request.endpoint == 'hr.dashboard' %}active{% endif %}">
+            <a href="{{ url_for('hr.profile') }}"
+               class="sidebar-link {% if request.endpoint == 'hr.profile' %}active{% endif %}">
                 <i class="fas fa-user"></i>
                 <span>My Profile</span>
             </a>
@@ -183,8 +222,8 @@
                 <div class="link-content">
                     <i class="fa-solid fa-address-card"></i>
                     <span>Dashboard</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
-                <i class="fas fa-chevron-down dropdown-icon"></i>
             </a>
             <ul class="submenu">
                 <li>
@@ -203,6 +242,14 @@
         {% if current_user.is_authenticated and current_user.role == "applicant" %}
 
         <div class="sidebar-section-label-role">Applicant</div>
+
+        <li>
+            <a href="{{ url_for('applicant.profile') }}"
+               class="sidebar-link {% if request.endpoint == 'applicant.profile' %}active{% endif %}">
+                <i class="fas fa-user"></i>
+                <span>My Profile</span>
+            </a>
+        </li>
 
         <li>
             <a href="{{ url_for('applicant.dashboard') }}"

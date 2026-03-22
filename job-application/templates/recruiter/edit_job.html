@@ -166,7 +166,8 @@
                     <div class="image-preview-grid">
                         {% for image in job.images %}
                         <div class="preview-card existing-image" id="image-{{ image.id }}">
-                            <img src="{{ url_for('static', filename='uploads/' + image.image_path) }}" alt="Job Image">
+                            {# ✅ FIXED: job_posters/ subfolder #}
+                            <img src="{{ url_for('static', filename='uploads/job_posters/' + image.image_path) }}" alt="Job Image">
                             <button type="button" 
                                     class="remove-btn" 
                                     title="Delete image"
@@ -315,13 +316,11 @@ window.onclick = function(event) {
 
 // Function to delete an image
 function deleteImage(imageId) {
-    // Show loading state on the button
     const imageCard = document.getElementById(`image-${imageId}`);
     const button = imageCard.querySelector('.remove-btn');
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     button.disabled = true;
     
-    // Send AJAX request to delete image
     fetch(`/recruiter/delete-job-image/${imageId}`, {
         method: 'POST',
         headers: {
@@ -330,19 +329,16 @@ function deleteImage(imageId) {
     })
     .then(response => {
         if (response.ok) {
-            // Remove the image card with animation
             imageCard.style.opacity = '0';
             imageCard.style.transform = 'scale(0.8)';
             setTimeout(() => {
                 imageCard.remove();
                 
-                // Update the image count
                 const header = document.querySelector('.current-images-header h4');
                 if (header) {
                     const remainingImages = document.querySelectorAll('.preview-card.existing-image').length;
                     header.innerHTML = `<i class="fas fa-image"></i> Current Images (${remainingImages})`;
                     
-                    // Hide the section if no images left
                     if (remainingImages === 0) {
                         document.querySelector('.current-images-section').remove();
                     }

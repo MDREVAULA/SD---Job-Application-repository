@@ -1,0 +1,4 @@
+.profile-container .pfp-wrapper,
+.profile-container .logo-wrapper {
+    display: flex;
+}

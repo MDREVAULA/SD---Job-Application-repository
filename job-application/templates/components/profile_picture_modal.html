@@ -1,0 +1,40 @@
+{# 
+    Usage: {% include 'components/profile_picture_modal.html' %}
+    upload_url: the form action URL (passed from the including template)
+#}
+
+<!-- Hidden file input -->
+<input type="file" id="pfpFileInput" accept="image/*" style="display:none">
+
+<!-- Crop Modal -->
+<div class="crop-modal-backdrop" id="cropModalBackdrop">
+    <div class="crop-modal">
+        <div class="crop-modal-header">
+            <h5>Adjust Your Photo</h5>
+            <button type="button" class="crop-close-btn" id="cropCancelBtn">&times;</button>
+        </div>
+        <div class="crop-modal-body">
+            <div class="crop-container">
+                <img id="cropImage" src="" alt="Crop preview">
+            </div>
+        </div>
+        <div class="crop-modal-footer">
+            <span class="crop-hint">Drag to reposition • Scroll to zoom</span>
+            <div class="crop-actions">
+                <button type="button" class="btn-crop-cancel" id="cropCancelBtn2">Cancel</button>
+                <button type="button" class="btn-crop-save" id="cropSaveBtn">Save Photo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form -->
+<form method="POST" action="{{ upload_url }}" id="pfpUploadForm" style="display:none">
+    <input type="hidden" name="cropped_image" id="croppedImageData">
+</form>
+
+<!-- Cropper.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/profile_picture_modal.css') }}">
+<script src="{{ url_for('static', filename='js/components/profile_picture_modal.js') }}"></script>

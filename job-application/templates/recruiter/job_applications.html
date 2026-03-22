@@ -70,7 +70,14 @@
         </div>
         <div class="job-description-full">
             <strong>Description:</strong>
-            <p>{{ job.description }}</p>
+            <div class="description-wrapper" id="descriptionWrapper">
+                <p>{{ job.description }}</p>
+                <div class="description-fade" id="descriptionFade"></div>
+            </div>
+            <button class="btn-toggle-description" id="toggleDescBtn" onclick="toggleDescription()">
+                <span id="toggleDescText">Show More</span>
+                <i class="fas fa-chevron-down" id="toggleDescIcon"></i>
+            </button>
         </div>
     </div>
 
@@ -119,7 +126,19 @@
             <div class="app-header">
                 <div class="applicant-info">
                     <div class="applicant-avatar">
-                        {{ app.user.username[0]|upper }}
+                        {% if app.user.profile_picture %}
+                            {% if app.user.profile_picture.startswith('http') %}
+                                <img src="{{ app.user.profile_picture }}"
+                                     alt="{{ app.user.username }}"
+                                     class="applicant-avatar-img">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + app.user.profile_picture) }}"
+                                     alt="{{ app.user.username }}"
+                                     class="applicant-avatar-img">
+                            {% endif %}
+                        {% else %}
+                            {{ app.user.username[0]|upper }}
+                        {% endif %}
                     </div>
                     <div class="applicant-details">
                         <h4>{{ app.user.username }}</h4>
@@ -148,7 +167,8 @@
                 {% if app.resume %}
                 <p>
                     <strong><i class="fas fa-file-pdf"></i> Resume:</strong>
-                    <a href="{{ url_for('static', filename='uploads/' + app.resume) }}" 
+                    {# ✅ FIXED: applicant_resumes/ subfolder #}
+                    <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + app.resume) }}" 
                        target="_blank" 
                        class="file-link">
                         View Resume <i class="fas fa-external-link-alt"></i>
@@ -211,126 +231,6 @@
 
 </div>
 
-<!-- FILTERING SCRIPT -->
-<script>
-// Count applications by status
-function countApplications() {
-    const cards = document.querySelectorAll('.app-card');
-    const counts = {
-        pending: 0,
-        interview: 0,
-        accepted: 0,
-        rejected: 0
-    };
-
-    cards.forEach(card => {
-        const status = card.getAttribute('data-status');
-        if (counts.hasOwnProperty(status)) {
-            counts[status]++;
-        }
-    });
-
-    // Update tab counts
-    document.getElementById('tabPendingCount').textContent = counts.pending;
-    document.getElementById('tabInterviewCount').textContent = counts.interview;
-    document.getElementById('tabAcceptedCount').textContent = counts.accepted;
-    document.getElementById('tabRejectedCount').textContent = counts.rejected;
-}
-
-// Filter applications by status
-function filterByStatus(status) {
-    const cards = document.querySelectorAll('.app-card');
-    const tabs = document.querySelectorAll('.filter-tab');
-    const container = document.getElementById('applicationsContainer');
-
-    // Update active tab
-    tabs.forEach(tab => {
-        if (tab.getAttribute('data-status') === status) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
-    });
-
-    // Remove any existing empty state
-    const existingEmptyState = container.querySelector('.empty-state');
-    if (existingEmptyState) {
-        existingEmptyState.remove();
-    }
-
-    // Filter cards and count visible ones
-    let visibleCount = 0;
-    cards.forEach(card => {
-        const cardStatus = card.getAttribute('data-status');
-        if (status === 'all' || cardStatus === status) {
-            card.style.display = 'block';
-            visibleCount++;
-            // Fade in animation
-            setTimeout(() => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, 10);
-        } else {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(-10px)';
-            setTimeout(() => {
-                card.style.display = 'none';
-            }, 300);
-        }
-    });
-
-    // Show empty state if no cards are visible
-    if (visibleCount === 0 && status !== 'all') {
-        const statusMessages = {
-            'pending': {
-                icon: 'fa-clock',
-                title: 'No Pending Applicants',
-                message: 'There are no applications with pending status at the moment.'
-            },
-            'interview': {
-                icon: 'fa-calendar-check',
-                title: 'No Interview Applicants',
-                message: 'There are no applications scheduled for interview at the moment.'
-            },
-            'accepted': {
-                icon: 'fa-check-circle',
-                title: 'No Accepted Applicants',
-                message: 'There are no accepted applications at the moment.'
-            },
-            'rejected': {
-                icon: 'fa-times-circle',
-                title: 'No Rejected Applicants',
-                message: 'There are no rejected applications at the moment.'
-            }
-        };
-
-        const messageData = statusMessages[status];
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.innerHTML = `
-            <i class="fas ${messageData.icon}"></i>
-            <h3>${messageData.title}</h3>
-            <p>${messageData.message}</p>
-        `;
-        container.appendChild(emptyState);
-    }
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    countApplications();
-    
-    // Set initial animation state
-    const cards = document.querySelectorAll('.app-card');
-    cards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, 100 * index);
-    });
-});
-</script>
+<script src="{{ url_for('static', filename='js/recruiter/job_applications.js') }}"></script>
 
 {% endblock %}

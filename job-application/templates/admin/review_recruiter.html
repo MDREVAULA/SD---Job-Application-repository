@@ -31,7 +31,8 @@
 {% if profile.company_logo %}
 <p>
     Logo:
-    <a href="{{ url_for('static', filename='uploads/' ~ profile.company_logo) }}" target="_blank">
+    {# ✅ FIXED: recruiter_documents/ subfolder #}
+    <a href="{{ url_for('static', filename='uploads/recruiter_documents/' ~ profile.company_logo) }}" target="_blank">
         <button type="button">View Logo</button>
     </a>
 </p>
@@ -43,7 +44,8 @@
 {% if profile.company_proof %}
 <p>
     Proof:
-    <a href="{{ url_for('static', filename='uploads/' ~ profile.company_proof) }}" target="_blank">
+    {# ✅ FIXED: recruiter_documents/ subfolder #}
+    <a href="{{ url_for('static', filename='uploads/recruiter_documents/' ~ profile.company_proof) }}" target="_blank">
         <button type="button">View Document</button>
     </a>
 </p>
@@ -57,11 +59,9 @@
 
 <!-- APPROVE FORM -->
 <form method="POST" action="{{ url_for('admin.verify', user_id=recruiter.id) }}">
-
     <button type="submit">
         Approve & Verify
     </button>
-
 </form>
 
 <br>

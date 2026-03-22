@@ -4,6 +4,9 @@ from models import db, Job, User, Application, JobImage
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from PIL import Image
+import base64
+import io
 import secrets
 import string
 import os
@@ -21,10 +24,9 @@ recruiter_bp = Blueprint('recruiter', __name__, url_prefix="/recruiter")
 # ===============================
 # RECRUITER DASHBOARD
 # ===============================
-@recruiter_bp.route('/dashboard')
+@recruiter_bp.route('/profile')
 @login_required
-def dashboard():
-
+def profile():
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -32,12 +34,104 @@ def dashboard():
     jobs = Job.query.filter_by(company_id=current_user.id).all()
     hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
 
-    return render_template(
-        'recruiter/profile.html',
-        jobs=jobs,
-        hrs=hrs
-    )
+    return render_template('recruiter/profile.html', jobs=jobs, hrs=hrs)
 
+
+# ===============================
+# UPLOAD PROFILE PICTURE
+# ===============================
+@recruiter_bp.route('/upload-profile-picture', methods=['POST'])
+@login_required
+def upload_profile_picture():
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    cropped_data = request.form.get('cropped_image')
+
+    if not cropped_data:
+        flash("No image data received.", "danger")
+        return redirect(url_for('recruiter.profile'))
+
+    try:
+        header, encoded = cropped_data.split(',', 1)
+        image_data = base64.b64decode(encoded)
+
+        image = Image.open(io.BytesIO(image_data)).convert('RGB')
+        image = image.resize((400, 400), Image.LANCZOS)
+
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'profile_pictures')
+        os.makedirs(upload_folder, exist_ok=True)
+
+        if current_user.profile_picture and not current_user.profile_picture.startswith('http'):
+            old_path = os.path.join(upload_folder, current_user.profile_picture)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+        filename = f"pfp_{current_user.id}_{uuid.uuid4().hex[:8]}.jpg"
+        image.save(os.path.join(upload_folder, filename), 'JPEG', quality=90)
+
+        current_user.profile_picture = filename
+        db.session.commit()
+
+        flash("Profile picture updated!", "success")
+
+    except Exception as e:
+        flash(f"Upload failed: {str(e)}", "danger")
+
+    return redirect(url_for('recruiter.profile'))
+
+# ===============================
+# UPLOAD COMPANY LOGO
+# ===============================
+@recruiter_bp.route('/upload-company-logo', methods=['POST'])
+@login_required
+def upload_company_logo():
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    cropped_data = request.form.get('cropped_image')
+
+    if not cropped_data:
+        flash("No image data received.", "danger")
+        return redirect(url_for('recruiter.profile'))
+
+    try:
+        header, encoded = cropped_data.split(',', 1)
+        image_data = base64.b64decode(encoded)
+
+        image = Image.open(io.BytesIO(image_data)).convert('RGBA')
+        image.thumbnail((800, 800), Image.LANCZOS)
+
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'company_logos')
+        os.makedirs(upload_folder, exist_ok=True)
+
+        profile = current_user.recruiter_profile
+
+        if profile is None:
+            flash("Recruiter profile not found.", "danger")
+            return redirect(url_for('recruiter.profile'))
+
+        # Delete old logo if exists
+        if profile.company_logo and not profile.company_logo.startswith('http'):
+            old_path = os.path.join(upload_folder, profile.company_logo)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+        # Save as PNG to preserve transparency
+        filename = f"logo_{current_user.id}_{uuid.uuid4().hex[:8]}.png"
+        image.save(os.path.join(upload_folder, filename), 'PNG')
+
+        profile.company_logo = filename
+        db.session.commit()
+
+        flash("Company logo updated!", "success")
+
+    except Exception as e:
+        flash(f"Upload failed: {str(e)}", "danger")
+
+    return redirect(url_for('recruiter.profile'))
 
 # ===============================
 # POST JOB
@@ -79,7 +173,8 @@ def post_job():
     # IMAGE UPLOAD
     poster_files = request.files.getlist("posters")
 
-    upload_folder = os.path.join(current_app.root_path, "static", "uploads")
+    # ✅ FIXED: save to job_posters/ subfolder
+    upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_posters")
     os.makedirs(upload_folder, exist_ok=True)
 
     for file in poster_files:
@@ -123,6 +218,7 @@ def job_posting():
         jobs=jobs
     )
 
+
 # ===============================
 # MY JOB LIST
 # ===============================
@@ -140,6 +236,7 @@ def my_job_list():
         "recruiter/my_job_list.html",
         jobs=jobs
     )
+
 
 # ===============================
 # HR ACCOUNTS PAGE
@@ -162,8 +259,9 @@ def hr_accounts():
         hrs=hrs
     )
 
+
 # ===============================
-# CREATE HR ACCOUNT - FIXED VERSION
+# CREATE HR ACCOUNT
 # ===============================
 @recruiter_bp.route('/create-hr', methods=['POST'])
 @login_required
@@ -176,23 +274,16 @@ def create_hr():
     username = request.form.get('username')
     email = request.form.get('email')
 
-    # ===============================
-    # CHECK IF USERNAME EXISTS
-    # ===============================
     existing_username = User.query.filter_by(username=username).first()
     if existing_username:
         flash("Username already exists. Please choose another.", "danger")
         return redirect(url_for('recruiter.hr_accounts'))
 
-    # ===============================
-    # CHECK IF EMAIL EXISTS
-    # ===============================
     existing_email = User.query.filter_by(email=email).first()
     if existing_email:
         flash("Email is already registered.", "danger")
         return redirect(url_for('recruiter.hr_accounts'))
 
-    # Generate temporary password
     temp_password = generate_temp_password()
 
     new_hr = User(
@@ -207,9 +298,6 @@ def create_hr():
     db.session.add(new_hr)
     db.session.commit()
 
-    # ===============================
-    # FIXED: Pass temp_password to template instead of using flash()
-    # ===============================
     hrs = User.query.filter_by(
         created_by=current_user.id,
         role="hr"
@@ -218,38 +306,35 @@ def create_hr():
     return render_template(
         "recruiter/hr_accounts.html",
         hrs=hrs,
-        temp_password=temp_password  # This makes the password box appear and stay!
+        temp_password=temp_password
     )
 
 
 # ===============================
 # VIEW JOB APPLICATIONS (SPECIFIC JOB)
 # ===============================
-# Add this route to your recruiter.py file
-
 @recruiter_bp.route('/job-applications/<int:job_id>')
 @login_required
 def view_job_applications(job_id):
-    
+
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
-    
+
     job = Job.query.get_or_404(job_id)
-    
-    # Verify the job belongs to this recruiter
+
     if job.company_id != current_user.id:
         flash("Unauthorized access!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
-    
-    # Get all applications for this specific job
+
     applications = Application.query.filter_by(job_id=job_id).all()
-    
+
     return render_template(
         "recruiter/job_applications.html",
         job=job,
         applications=applications
-    )    
+    )
+
 
 # ===============================
 # RECRUITER UPDATE APPLICATION STATUS
@@ -265,7 +350,6 @@ def update_application_status(app_id):
     application = Application.query.get_or_404(app_id)
     job = Job.query.get_or_404(application.job_id)
 
-    # Ensure recruiter owns the job
     if job.company_id != current_user.id:
         flash("Unauthorized action!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
@@ -280,6 +364,7 @@ def update_application_status(app_id):
     flash("Application status updated!", "success")
 
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
+
 
 # ===============================
 # EDIT JOB
@@ -319,7 +404,8 @@ def edit_job(job_id):
         # ===============================
         poster_files = request.files.getlist("posters")
 
-        upload_folder = os.path.join(current_app.root_path, "static", "uploads")
+        # ✅ FIXED: save to job_posters/ subfolder
+        upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_posters")
         os.makedirs(upload_folder, exist_ok=True)
 
         for poster_file in poster_files:
@@ -369,10 +455,10 @@ def delete_job_image(image_id):
         flash("Unauthorized action!", "danger")
         return redirect(url_for('recruiter.job_posting'))
 
+    # ✅ FIXED: delete from job_posters/ subfolder
     file_path = os.path.join(
         current_app.root_path,
-        "static",
-        "uploads",
+        "static", "uploads", "job_posters",
         image.image_path
     )
 
@@ -406,10 +492,10 @@ def delete_job(job_id):
 
     for image in job.images:
 
+        # ✅ FIXED: delete from job_posters/ subfolder
         file_path = os.path.join(
             current_app.root_path,
-            "static",
-            "uploads",
+            "static", "uploads", "job_posters",
             image.image_path
         )
 

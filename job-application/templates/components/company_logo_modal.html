@@ -1,0 +1,36 @@
+{# Usage: {% include 'components/company_logo_modal.html' %} #}
+
+<!-- Hidden file input -->
+<input type="file" id="logoFileInput" accept="image/*" style="display:none">
+
+<!-- Crop Modal -->
+<div class="logo-crop-backdrop" id="logoCropBackdrop">
+    <div class="crop-modal">
+        <div class="crop-modal-header">
+            <h5>Adjust Company Logo</h5>
+            <button type="button" class="crop-close-btn" id="logoCancelBtn1">&times;</button>
+        </div>
+        <div class="crop-modal-body">
+            <div class="crop-container">
+                <img id="logoCropImage" src="" alt="Crop preview">
+            </div>
+        </div>
+        <div class="crop-modal-footer">
+            <span class="crop-hint">Drag to reposition • Scroll to zoom</span>
+            <div class="crop-actions">
+                <button type="button" class="btn-crop-cancel" id="logoCancelBtn2">Cancel</button>
+                <button type="button" class="btn-crop-save" id="logoCropSaveBtn">Save Logo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form -->
+<form method="POST" action="{{ logo_upload_url }}" id="logoUploadForm" style="display:none">
+    <input type="hidden" name="cropped_image" id="logoCroppedData">
+</form>
+
+<!-- Cropper.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script src="{{ url_for('static', filename='js/components/company_logo_modal.js') }}"></script>
