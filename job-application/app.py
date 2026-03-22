@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash
 import os
 import pymysql
 import secrets
+import logging
 
 # CREATE DATABASE IF NOT EXISTS
 connection = pymysql.connect(
@@ -22,6 +23,14 @@ connection.close()
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# ── Filter out static file requests from logs ──
+class NoStaticFilter(logging.Filter):
+    def filter(self, record):
+        return '/static/' not in record.getMessage()
+
+log = logging.getLogger('werkzeug')
+log.addFilter(NoStaticFilter())
 
 # Upload folder configuration
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
@@ -95,13 +104,14 @@ if __name__ == "__main__":
             print("Password: admin123")
             print("=" * 50)
 
-        # Generate secret admin login URL
-        admin_token = secrets.token_urlsafe(32)
-        app.config["ADMIN_TOKEN"] = admin_token
+        # Only print admin URL on the reloader process (the real one)
+        if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+            admin_token = secrets.token_urlsafe(32)
+            app.config["ADMIN_TOKEN"] = admin_token
 
-        print("\n" + "=" * 50)
-        print("ADMIN LOGIN URL (this session only):")
-        print(f"http://127.0.0.1:5000/admin/login/{admin_token}")
-        print("=" * 50 + "\n")
+            print("\n" + "=" * 50)
+            print("ADMIN LOGIN URL (this session only):")
+            print(f"http://127.0.0.1:5000/admin/login/{admin_token}")
+            print("=" * 50 + "\n")
 
     app.run(debug=True)
