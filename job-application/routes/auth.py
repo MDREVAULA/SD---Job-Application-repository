@@ -133,17 +133,17 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if not user:
-            flash("Invalid email or password", "login_error")
+            flash("Invalid email or password", "danger")
             return redirect(url_for("auth.login"))
 
         # Block admin from using the public login page
         if user.role == "admin":
-            flash("Invalid email or password", "login_error")
+            flash("Invalid email or password", "danger")
             return redirect(url_for("auth.login"))
 
         # Google-only account trying to use password login
         if user.google_id and not user.password:
-            flash("This account uses Google sign-in. Please use the 'Sign in with Google' button.", "login_warning")
+            flash("This account uses Google sign-in. Please use the 'Sign in with Google' button.", "danger")
             return redirect(url_for("auth.login"))
 
         if not check_password_hash(user.password, password):

@@ -25,43 +25,6 @@
 {% endif %}
 
 
-<h3>Available Jobs</h3>
-
-<div class="jobs-list">
-
-    {% for job in jobs %}
-        <div class="job-card">
-
-            <h4>{{ job.title }}</h4>
-
-            <p>
-                {{ job.description[:100] }}...
-            </p>
-
-            {% set applied = applications | selectattr("job_id", "equalto", job.id) | list %}
-
-            {% if current_user.verification_status != "Approved" %}
-                <button class="btn disabled" disabled>
-                    Verification Required
-                </button>
-
-            {% elif applied %}
-                <button class="btn disabled" disabled>
-                    Already Applied
-                </button>
-
-            {% else %}
-                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn">
-                    Apply
-                </a>
-            {% endif %}
-
-        </div>
-    {% endfor %}
-
-</div>
-
-
 <h3>My Applications</h3>
 
 <ul>
