@@ -101,7 +101,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 .hero-title {
     font-family: 'Sora', sans-serif;
-    font-size: clamp(2.6rem, 5vw, 4rem);
+    font-size: clamp(2.6rem, 3.5vw, 4rem);
     font-weight: 800;
     line-height: 1.1;
     color: #ffffff;
@@ -938,7 +938,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 .step-card:hover .step-circle {
     border-color: var(--brand-green);
-    background: var(--brand-green-subtle);
+    /* background: var(--brand-green-subtle); */
 }
 .step-card:hover .step-circle i { color: var(--brand-green); }
 
