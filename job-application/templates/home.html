@@ -4,238 +4,474 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 
-<!-- Hero Section -->
+<!-- ===================== HERO ===================== -->
 <section class="hero-section">
     <div class="hero-content">
+
+        <!-- Left: Text -->
         <div class="hero-text">
-            <h1 class="hero-title">Welcome to HireBon</h1>
-            <p class="hero-subtitle">Find jobs from verified companies.</p>
-            <p class="hero-description">
-                Discover thousands of job opportunities from top companies. 
-                Your dream career is just a click away.
+            <div class="hero-badge">
+                <i class="fas fa-bolt"></i> #1 Trusted Job Platform
+            </div>
+
+            <h1 class="hero-title">
+                Find Your Next<br>
+                <span class="accent">Dream Job</span><br>
+                Today
+            </h1>
+
+            <p class="hero-subtitle">
+                Connect with verified companies and explore thousands of opportunities
+                tailored to your skills and career goals.
             </p>
-            <div class="hero-buttons">
-                <a href="{{ url_for('auth.jobs') }}" class="btn btn-primary">
-                    <i class="fas fa-briefcase"></i> Browse Jobs
-                </a>
-                {% if not current_user.is_authenticated %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-secondary">
-                    <i class="fas fa-user-plus"></i> Sign Up Free
-                </a>
-                {% endif %}
+
+            <!-- Search Bar -->
+            <!--<div class="hero-search">-->
+                <!--<i class="fas fa-search"></i>-->
+                <!--<input type="text" placeholder="Job title, keyword, or company…" />-->
+                <button class="hero-search-btn" onclick="window.location.href='{{ url_for('auth.jobs') }}'">
+                    <i class="fas fa-arrow-right"></i> Search Jobs
+                </button>
+            <!--</div> -->
+
+            <!-- Popular Searches -->
+            <div class="hero-tags">
+                <span class="hero-tags-label">Popular:</span>
+                <a href="{{ url_for('auth.jobs') }}" class="hero-tag">Software Engineer</a>
+                <a href="{{ url_for('auth.jobs') }}" class="hero-tag">Nurse</a>
+                <a href="{{ url_for('auth.jobs') }}" class="hero-tag">Marketing</a>
+                <a href="{{ url_for('auth.jobs') }}" class="hero-tag">Remote</a>
             </div>
         </div>
-        <div class="hero-image">
-            <div class="hero-illustration">
-                <i class="fas fa-users-cog"></i>
+
+        <!-- Right: Visual Card -->
+        <div class="hero-visual">
+            <div class="hero-card-main">
+                <div class="hero-panel-header">
+                    <span class="hero-panel-title">Latest Openings</span>
+                    <span class="hero-panel-count">10,000+ jobs</span>
+                </div>
+
+                <div class="hero-job-preview">
+                    <div class="hero-job-item">
+                        <div class="job-logo-placeholder green"><i class="fas fa-code"></i></div>
+                        <div class="job-item-info">
+                            <p class="job-item-title">Senior Frontend Developer</p>
+                            <p class="job-item-meta"><i class="fas fa-map-marker-alt"></i> Makati, Metro Manila</p>
+                        </div>
+                        <span class="job-item-badge">Full-time</span>
+                    </div>
+                    <div class="hero-job-item">
+                        <div class="job-logo-placeholder blue"><i class="fas fa-chart-bar"></i></div>
+                        <div class="job-item-info">
+                            <p class="job-item-title">Data Analyst</p>
+                            <p class="job-item-meta"><i class="fas fa-map-marker-alt"></i> BGC, Taguig City</p>
+                        </div>
+                        <span class="job-item-badge">Remote</span>
+                    </div>
+                    <div class="hero-job-item">
+                        <div class="job-logo-placeholder purple"><i class="fas fa-heartbeat"></i></div>
+                        <div class="job-item-info">
+                            <p class="job-item-title">Registered Nurse</p>
+                            <p class="job-item-meta"><i class="fas fa-map-marker-alt"></i> Quezon City</p>
+                        </div>
+                        <span class="job-item-badge">Full-time</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Badges -->
+            <div class="hero-float-badge hero-float-badge-1">
+                <i class="fas fa-check-circle"></i> 25K+ Hired This Month
+            </div>
+            <div class="hero-float-badge hero-float-badge-2">
+                <i class="fas fa-building"></i> 5,000+ Verified Companies
             </div>
         </div>
+
     </div>
 </section>
 
-<!-- Stats Section -->
+<!-- ===================== TRUST STRIP ===================== -->
+<div class="trust-strip">
+    <div class="trust-inner">
+        <span class="trust-label">Trusted by</span>
+        <div class="trust-logos">
+            <span class="trust-logo-item"><i class="fas fa-hospital-alt"></i> MedGroup PH</span>
+            <span class="trust-logo-item"><i class="fas fa-microchip"></i> TechCorp Asia</span>
+            <span class="trust-logo-item"><i class="fas fa-landmark"></i> BDO Unibank</span>
+            <span class="trust-logo-item"><i class="fas fa-shopping-cart"></i> ShopNation</span>
+            <span class="trust-logo-item"><i class="fas fa-globe"></i> GlobalBPO</span>
+            <span class="trust-logo-item"><i class="fas fa-plane"></i> AirConnect</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== STATS ===================== -->
 <section class="stats-section">
     <div class="stats-container">
         <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-briefcase"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
             <h3 class="stat-number">10,000+</h3>
             <p class="stat-label">Active Jobs</p>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-building"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-building"></i></div>
             <h3 class="stat-number">5,000+</h3>
-            <p class="stat-label">Companies</p>
+            <p class="stat-label">Verified Companies</p>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-users"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
             <h3 class="stat-number">50,000+</h3>
-            <p class="stat-label">Job Seekers</p>
+            <p class="stat-label">Registered Job Seekers</p>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
             <h3 class="stat-number">25,000+</h3>
-            <p class="stat-label">Success Stories</p>
+            <p class="stat-label">Successful Hires</p>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
+<!-- ===================== FEATURED JOBS ===================== -->
+<section class="featured-jobs-section">
+    <div class="section-header">
+        <div class="section-header-text">
+            <div class="section-tag">Featured Listings</div>
+            <h2>Jobs You Might Like</h2>
+            <p>Hand-picked opportunities from top employers across the Philippines</p>
+        </div>
+        <div class="section-header-action">
+            <a href="{{ url_for('auth.jobs') }}">View all jobs <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+
+    <div class="jobs-grid">
+
+        <a href="{{ url_for('auth.jobs') }}" class="job-card">
+            <div class="job-card-header">
+                <div class="job-card-logo c1"><i class="fas fa-laptop-code"></i></div>
+                <span class="job-card-type">Full-time</span>
+            </div>
+            <h3>Software Engineer</h3>
+            <p class="job-card-company"><i class="fas fa-building"></i> TechCorp Asia &bull; Makati, MM</p>
+            <div class="job-card-tags">
+                <span class="tag-pill">Python</span>
+                <span class="tag-pill">React</span>
+                <span class="tag-pill">AWS</span>
+            </div>
+            <div class="job-card-footer">
+                <div class="job-salary">&#8369;80K&ndash;120K <span>/ month</span></div>
+                <span class="job-apply-btn">Apply <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('auth.jobs') }}" class="job-card">
+            <div class="job-card-header">
+                <div class="job-card-logo c2"><i class="fas fa-hospital-alt"></i></div>
+                <span class="job-card-type">Full-time</span>
+            </div>
+            <h3>Registered Nurse</h3>
+            <p class="job-card-company"><i class="fas fa-building"></i> MedGroup PH &bull; Quezon City</p>
+            <div class="job-card-tags">
+                <span class="tag-pill">ICU</span>
+                <span class="tag-pill">PRC Licensed</span>
+                <span class="tag-pill">Urgent</span>
+            </div>
+            <div class="job-card-footer">
+                <div class="job-salary">&#8369;35K&ndash;55K <span>/ month</span></div>
+                <span class="job-apply-btn">Apply <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('auth.jobs') }}" class="job-card">
+            <div class="job-card-header">
+                <div class="job-card-logo c3"><i class="fas fa-chart-line"></i></div>
+                <span class="job-card-type remote">Remote</span>
+            </div>
+            <h3>Data Analyst</h3>
+            <p class="job-card-company"><i class="fas fa-building"></i> GlobalBPO &bull; Remote / WFH</p>
+            <div class="job-card-tags">
+                <span class="tag-pill">SQL</span>
+                <span class="tag-pill">Tableau</span>
+                <span class="tag-pill">Excel</span>
+            </div>
+            <div class="job-card-footer">
+                <div class="job-salary">&#8369;50K&ndash;75K <span>/ month</span></div>
+                <span class="job-apply-btn">Apply <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('auth.jobs') }}" class="job-card">
+            <div class="job-card-header">
+                <div class="job-card-logo c4"><i class="fas fa-bullhorn"></i></div>
+                <span class="job-card-type hybrid">Hybrid</span>
+            </div>
+            <h3>Marketing Specialist</h3>
+            <p class="job-card-company"><i class="fas fa-building"></i> ShopNation &bull; BGC, Taguig</p>
+            <div class="job-card-tags">
+                <span class="tag-pill">SEO</span>
+                <span class="tag-pill">Social Media</span>
+                <span class="tag-pill">Content</span>
+            </div>
+            <div class="job-card-footer">
+                <div class="job-salary">&#8369;40K&ndash;60K <span>/ month</span></div>
+                <span class="job-apply-btn">Apply <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('auth.jobs') }}" class="job-card">
+            <div class="job-card-header">
+                <div class="job-card-logo c5"><i class="fas fa-chalkboard-teacher"></i></div>
+                <span class="job-card-type">Full-time</span>
+            </div>
+            <h3>High School Teacher</h3>
+            <p class="job-card-company"><i class="fas fa-building"></i> Ateneo School Network &bull; Pasig</p>
+            <div class="job-card-tags">
+                <span class="tag-pill">LET Passer</span>
+                <span class="tag-pill">STEM</span>
+                <span class="tag-pill">English</span>
+            </div>
+            <div class="job-card-footer">
+                <div class="job-salary">&#8369;28K&ndash;42K <span>/ month</span></div>
+                <span class="job-apply-btn">Apply <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('auth.jobs') }}" class="job-card">
+            <div class="job-card-header">
+                <div class="job-card-logo c6"><i class="fas fa-balance-scale"></i></div>
+                <span class="job-card-type">Full-time</span>
+            </div>
+            <h3>Corporate Lawyer</h3>
+            <p class="job-card-company"><i class="fas fa-building"></i> BDO Unibank &bull; Ortigas Center</p>
+            <div class="job-card-tags">
+                <span class="tag-pill">Bar Passer</span>
+                <span class="tag-pill">Corporate Law</span>
+                <span class="tag-pill">Contracts</span>
+            </div>
+            <div class="job-card-footer">
+                <div class="job-salary">&#8369;90K&ndash;150K <span>/ month</span></div>
+                <span class="job-apply-btn">Apply <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+    </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
 <section class="features-section">
-    <div class="section-header">
-        <h2>Why Choose HireBon?</h2>
-        <p>Everything you need to find your perfect job</p>
-    </div>
-    
-    <div class="features-grid">
-        <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-shield-alt"></i>
+    <div class="features-inner">
+        <div class="section-header">
+            <div class="section-header-text">
+                <div class="section-tag">Why HireBon</div>
+                <h2>Built for Your Success</h2>
+                <p>Everything you need to land your next role &mdash; all in one place</p>
             </div>
-            <h3>Verified Companies</h3>
-            <p>All companies are thoroughly vetted to ensure legitimacy and quality job opportunities.</p>
         </div>
-        
-        <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-search"></i>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>Verified Companies</h3>
+                <p>Every employer undergoes a strict vetting process so you only apply to legitimate, quality opportunities.</p>
             </div>
-            <h3>Smart Job Search</h3>
-            <p>Advanced filters and AI-powered recommendations to find jobs that match your skills.</p>
-        </div>
-        
-        <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-bolt"></i>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-search"></i></div>
+                <h3>Smart Job Search</h3>
+                <p>Advanced filters and smart recommendations surface jobs that match your exact skills and experience level.</p>
             </div>
-            <h3>Quick Apply</h3>
-            <p>Apply to multiple jobs with one click using your saved profile and resume.</p>
-        </div>
-        
-        <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-bell"></i>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                <h3>One-Click Apply</h3>
+                <p>Apply to multiple openings instantly using your saved profile and resume &mdash; no repetitive forms.</p>
             </div>
-            <h3>Job Alerts</h3>
-            <p>Get instant notifications when new jobs matching your preferences are posted.</p>
-        </div>
-        
-        <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-chart-line"></i>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-bell"></i></div>
+                <h3>Real-time Job Alerts</h3>
+                <p>Never miss an opening. Get instant notifications when new jobs matching your profile are posted.</p>
             </div>
-            <h3>Career Growth</h3>
-            <p>Track your applications and get insights to improve your job search strategy.</p>
-        </div>
-        
-        <div class="feature-card">
-            <div class="feature-icon">
-                <i class="fas fa-headset"></i>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>Application Tracker</h3>
+                <p>Monitor all your applications in one dashboard and get insights to sharpen your job search strategy.</p>
             </div>
-            <h3>24/7 Support</h3>
-            <p>Our dedicated support team is always ready to help you with any questions.</p>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-headset"></i></div>
+                <h3>24/7 Support</h3>
+                <p>Our dedicated team is always available to help you navigate your career journey with confidence.</p>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Popular Categories -->
+<!-- ===================== CATEGORIES ===================== -->
 <section class="categories-section">
-    <div class="section-header">
-        <h2>Popular Job Categories</h2>
-        <p>Explore jobs by industry</p>
-    </div>
-    
-    <div class="categories-grid">
-        <a href="{{ url_for('auth.jobs') }}" class="category-card">
-            <i class="fas fa-laptop-code"></i>
-            <h4>Technology</h4>
-            <p>2,500+ jobs</p>
-        </a>
-        
-        <a href="{{ url_for('auth.jobs') }}" class="category-card">
-            <i class="fas fa-heartbeat"></i>
-            <h4>Healthcare</h4>
-            <p>1,800+ jobs</p>
-        </a>
-        
-        <a href="{{ url_for('auth.jobs') }}" class="category-card">
-            <i class="fas fa-chart-bar"></i>
-            <h4>Finance</h4>
-            <p>1,200+ jobs</p>
-        </a>
-        
-        <a href="{{ url_for('auth.jobs') }}" class="category-card">
-            <i class="fas fa-paint-brush"></i>
-            <h4>Design</h4>
-            <p>950+ jobs</p>
-        </a>
-        
-        <a href="{{ url_for('auth.jobs') }}" class="category-card">
-            <i class="fas fa-bullhorn"></i>
-            <h4>Marketing</h4>
-            <p>1,100+ jobs</p>
-        </a>
-        
-        <a href="{{ url_for('auth.jobs') }}" class="category-card">
-            <i class="fas fa-graduation-cap"></i>
-            <h4>Education</h4>
-            <p>850+ jobs</p>
-        </a>
-        
-        <a href="{{ url_for('auth.jobs') }}" class="category-card">
-            <i class="fas fa-balance-scale"></i>
-            <h4>Legal</h4>
-            <p>650+ jobs</p>
-        </a>
-        
-        <a href="{{ url_for('auth.jobs') }}" class="category-card">
-            <i class="fas fa-wrench"></i>
-            <h4>Engineering</h4>
-            <p>1,400+ jobs</p>
-        </a>
+    <div class="categories-inner">
+        <div class="section-header">
+            <div class="section-header-text">
+                <div class="section-tag">Browse by Industry</div>
+                <h2>Popular Job Categories</h2>
+                <p>Explore thousands of openings across every major sector</p>
+            </div>
+            <div class="section-header-action">
+                <a href="{{ url_for('auth.jobs') }}">All categories <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+
+        <div class="categories-grid">
+            <a href="{{ url_for('auth.jobs') }}" class="category-card">
+                <div class="category-icon-wrap"><i class="fas fa-laptop-code"></i></div>
+                <h4>Technology</h4>
+                <p>2,500+ jobs</p>
+            </a>
+            <a href="{{ url_for('auth.jobs') }}" class="category-card">
+                <div class="category-icon-wrap"><i class="fas fa-heartbeat"></i></div>
+                <h4>Healthcare</h4>
+                <p>1,800+ jobs</p>
+            </a>
+            <a href="{{ url_for('auth.jobs') }}" class="category-card">
+                <div class="category-icon-wrap"><i class="fas fa-chart-bar"></i></div>
+                <h4>Finance</h4>
+                <p>1,200+ jobs</p>
+            </a>
+            <a href="{{ url_for('auth.jobs') }}" class="category-card">
+                <div class="category-icon-wrap"><i class="fas fa-paint-brush"></i></div>
+                <h4>Design</h4>
+                <p>950+ jobs</p>
+            </a>
+            <a href="{{ url_for('auth.jobs') }}" class="category-card">
+                <div class="category-icon-wrap"><i class="fas fa-bullhorn"></i></div>
+                <h4>Marketing</h4>
+                <p>1,100+ jobs</p>
+            </a>
+            <a href="{{ url_for('auth.jobs') }}" class="category-card">
+                <div class="category-icon-wrap"><i class="fas fa-graduation-cap"></i></div>
+                <h4>Education</h4>
+                <p>850+ jobs</p>
+            </a>
+            <a href="{{ url_for('auth.jobs') }}" class="category-card">
+                <div class="category-icon-wrap"><i class="fas fa-balance-scale"></i></div>
+                <h4>Legal</h4>
+                <p>650+ jobs</p>
+            </a>
+            <a href="{{ url_for('auth.jobs') }}" class="category-card">
+                <div class="category-icon-wrap"><i class="fas fa-wrench"></i></div>
+                <h4>Engineering</h4>
+                <p>1,400+ jobs</p>
+            </a>
+        </div>
     </div>
 </section>
 
-<!-- How It Works -->
+<!-- ===================== HOW IT WORKS ===================== -->
 <section class="how-it-works-section">
-    <div class="section-header">
-        <h2>How It Works</h2>
-        <p>Get started in 3 easy steps</p>
-    </div>
-    
-    <div class="steps-container">
-        <div class="step-card">
-            <div class="step-number">1</div>
-            <div class="step-icon">
-                <i class="fas fa-user-plus"></i>
+    <div class="how-inner">
+        <div class="section-header">
+            <div class="section-header-text">
+                <div class="section-tag">Process</div>
+                <h2>How HireBon Works</h2>
+                <p>Get from zero to hired in three simple steps</p>
             </div>
-            <h3>Create Account</h3>
-            <p>Sign up for free and build your professional profile in minutes.</p>
         </div>
-        
-        <div class="step-arrow">
-            <i class="fas fa-arrow-right"></i>
-        </div>
-        
-        <div class="step-card">
-            <div class="step-number">2</div>
-            <div class="step-icon">
-                <i class="fas fa-search"></i>
+
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-circle">
+                    <i class="fas fa-user-plus"></i>
+                    <span class="step-number-badge">1</span>
+                </div>
+                <h3>Create Your Profile</h3>
+                <p>Sign up for free and build a professional profile showcasing your skills, experience, and career goals in minutes.</p>
             </div>
-            <h3>Search Jobs</h3>
-            <p>Browse thousands of jobs and find the perfect match for your skills.</p>
-        </div>
-        
-        <div class="step-arrow">
-            <i class="fas fa-arrow-right"></i>
-        </div>
-        
-        <div class="step-card">
-            <div class="step-number">3</div>
-            <div class="step-icon">
-                <i class="fas fa-paper-plane"></i>
+            <div class="step-card">
+                <div class="step-circle">
+                    <i class="fas fa-search"></i>
+                    <span class="step-number-badge">2</span>
+                </div>
+                <h3>Discover Opportunities</h3>
+                <p>Browse thousands of verified job listings and let our smart matching surface the roles that fit you best.</p>
             </div>
-            <h3>Apply & Get Hired</h3>
-            <p>Apply with one click and start your journey to your dream job.</p>
+            <div class="step-card">
+                <div class="step-circle">
+                    <i class="fas fa-paper-plane"></i>
+                    <span class="step-number-badge">3</span>
+                </div>
+                <h3>Apply &amp; Get Hired</h3>
+                <p>Apply with a single click, track your progress, and start your journey toward your dream career.</p>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
+<!-- ===================== TESTIMONIALS ===================== -->
+<section class="testimonials-section">
+    <div class="testimonials-inner">
+        <div class="section-header">
+            <div class="section-header-text">
+                <div class="section-tag">Success Stories</div>
+                <h2>What Our Users Say</h2>
+                <p>Real people who found real jobs through HireBon</p>
+            </div>
+        </div>
+
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">"I was job hunting for three months with no luck elsewhere. Within two weeks on HireBon I had three interview calls and landed a role that doubled my salary."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">JR</div>
+                    <div>
+                        <p class="testimonial-name">Juan Reyes</p>
+                        <p class="testimonial-role">Software Engineer &middot; TechCorp Asia</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">"The verified company badges gave me so much peace of mind. I knew every listing was legitimate. Got my nursing job within a month &mdash; highly recommend!"</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">MC</div>
+                    <div>
+                        <p class="testimonial-name">Maria Cruz</p>
+                        <p class="testimonial-role">Registered Nurse &middot; MedGroup PH</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                </div>
+                <p class="testimonial-text">"As a fresh grad, I was overwhelmed. HireBon's filters helped me narrow down entry-level roles fast. The application tracker kept everything organized."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">AL</div>
+                    <div>
+                        <p class="testimonial-name">Angelo Lim</p>
+                        <p class="testimonial-role">Data Analyst &middot; GlobalBPO</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== CTA ===================== -->
 <section class="cta-section">
     <div class="cta-content">
-        <h2>Ready to Start Your Career Journey?</h2>
-        <p>Join thousands of job seekers who found their dream jobs through our platform</p>
+        <h2>Ready to Launch Your Career?</h2>
+        <p>Join over 50,000 job seekers who found their perfect roles through HireBon &mdash; the Philippines&rsquo; most trusted job platform.</p>
         <div class="cta-buttons">
             <a href="{{ url_for('auth.jobs') }}" class="btn btn-light">
-                <i class="fas fa-briefcase"></i> Explore Jobs Now
+                <i class="fas fa-briefcase"></i> Explore Jobs
             </a>
             {% if not current_user.is_authenticated %}
             <a href="{{ url_for('auth.register') }}" class="btn btn-outline">

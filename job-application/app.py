@@ -30,6 +30,7 @@ class NoStaticFilter(logging.Filter):
         return '/static/' not in record.getMessage()
 
 log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)  # ← Add this line
 log.addFilter(NoStaticFilter())
 
 # Upload folder configuration

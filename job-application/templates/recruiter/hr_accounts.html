@@ -146,7 +146,15 @@
                     {% for hr in hrs %}
                     <div class="hr-item">
                         <div class="hr-avatar">
-                            <i class="fas fa-user-circle"></i>
+                            {% if hr.profile_picture %}
+                                {% if hr.profile_picture.startswith('http') %}
+                                    <img src="{{ hr.profile_picture }}" alt="{{ hr.username }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr.profile_picture) }}" alt="{{ hr.username }}">
+                                {% endif %}
+                            {% else %}
+                                <i class="fas fa-user-circle"></i>
+                            {% endif %}
                         </div>
                         <div class="hr-info">
                             <h4>{{ hr.username }}</h4>
