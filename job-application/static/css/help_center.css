@@ -32,7 +32,7 @@
     justify-content: center;
     width: 64px;
     height: 64px;
-    background: #DBEAFE;
+    background: #dbfedb;
     border-radius: 50%;
     margin-bottom: 16px;
 }
@@ -40,7 +40,7 @@
 .header-icon svg {
     width: 32px;
     height: 32px;
-    color: #2563EB;
+    color: #4CAF50;
 }
 
 .help-center h1 {
@@ -92,7 +92,7 @@
 
 .help-center input[type="text"]:focus {
     outline: none;
-    border-color: #2563EB;
+    border-color: #4CAF50;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -121,9 +121,9 @@
 }
 
 .category-btn.active {
-    background: #2563EB;
+    background: #4CAF50;;
     color: #FFFFFF;
-    border-color: #2563EB;
+    border-color: #4CAF50;;
     box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
 }
 
@@ -170,7 +170,7 @@
 }
 
 .question-icon {
-    color: #2563EB;
+    color: #4CAF50;;
     width: 20px;
     height: 20px;
     flex-shrink: 0;
@@ -193,7 +193,7 @@
     display: inline-block;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #2563EB;
+    color: #4CAF50;;
     background: #EFF6FF;
     padding: 4px 8px;
     border-radius: 4px;
@@ -277,12 +277,12 @@
 
 /* Contact Support Section */
 .contact-support {
-    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+    background: #4CAF50;
     border-radius: 16px;
     padding: 48px 32px;
     text-align: center;
     margin-top: 48px;
-    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 10px 25px rgba(37, 235, 70, 0.454);
 }
 
 .contact-support h2 {
@@ -293,13 +293,13 @@
 }
 
 .contact-support p {
-    color: #BFDBFE;
+    color: #bffec8;
     margin: 0 0 24px 0;
 }
 
 .support-btn {
     background: #FFFFFF;
-    color: #2563EB;
+    color: #4CAF50;
     padding: 12px 32px;
     border-radius: 9999px;
     font-weight: 600;

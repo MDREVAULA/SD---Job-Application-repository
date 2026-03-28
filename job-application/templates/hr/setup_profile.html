@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/setup_profile.css') }}">
+
+<div class="setup-wrapper">
+
+    <div class="setup-card">
+
+        <div class="setup-header">
+            <div class="setup-icon">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h1>Complete Your Profile</h1>
+            <p>Welcome! Please fill in your personal information to get started.</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('hr.setup_profile') }}" class="setup-form">
+
+            <!-- PERSONAL INFORMATION -->
+            <div class="form-section">
+                <h3><i class="fas fa-id-card"></i> Personal Information</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">First Name <span class="required">*</span></label>
+                        <input type="text" id="first_name" name="first_name"
+                               placeholder="Enter your first name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name <span class="required">*</span></label>
+                        <input type="text" id="last_name" name="last_name"
+                               placeholder="Enter your last name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="middle_name">Middle Name <span class="optional">(Optional)</span></label>
+                    <input type="text" id="middle_name" name="middle_name"
+                           placeholder="Enter your middle name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date_of_birth">Date of Birth <span class="required">*</span></label>
+                        <input type="date" id="date_of_birth" name="date_of_birth" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender <span class="required">*</span></label>
+                        <select id="gender" name="gender" required>
+                            <option value="" disabled selected>Select gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Non-binary">Non-binary</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone_number">Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone_number" name="phone_number"
+                           placeholder="e.g. +63 912 345 6789" required>
+                </div>
+
+            </div>
+
+            <!-- ADDRESS INFORMATION -->
+            <div class="form-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="country">Country <span class="required">*</span></label>
+                        <input type="text" id="country" name="country"
+                               placeholder="e.g. Philippines" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City <span class="required">*</span></label>
+                        <input type="text" id="city" name="city"
+                               placeholder="e.g. Manila" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="home_address">Home Address <span class="required">*</span></label>
+                    <input type="text" id="home_address" name="home_address"
+                           placeholder="e.g. 123 Rizal St., Barangay San Jose" required>
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-check-circle"></i> Save & Continue to Profile
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

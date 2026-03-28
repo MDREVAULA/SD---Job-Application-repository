@@ -30,7 +30,7 @@ class NoStaticFilter(logging.Filter):
         return '/static/' not in record.getMessage()
 
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)  # ← Add this line
+log.setLevel(logging.INFO)  # Keep Flask URL visible
 log.addFilter(NoStaticFilter())
 
 # Upload folder configuration
@@ -61,11 +61,9 @@ login_manager.init_app(app)
 login_manager.login_view = "auth.login"
 login_manager.login_message_category = "warning"
 
-
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
-
 
 # Register Blueprints
 from routes.auth import auth_bp
@@ -80,38 +78,43 @@ app.register_blueprint(recruiter_bp)
 app.register_blueprint(hr_bp)
 app.register_blueprint(admin_bp)
 
-
 # Run App
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-        # AUTO-CREATE ADMIN ACCOUNT IF NOT EXISTS
-        existing_admin = User.query.filter_by(role="admin").first()
-
-        if not existing_admin:
-            admin = User(
-                username="admin",
-                email="admin@gmail.com",
-                password=generate_password_hash("admin123"),
-                role="admin",
-                is_verified=True
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print("=" * 50)
-            print("Admin account created!")
-            print("Username: admin")
-            print("Password: admin123")
-            print("=" * 50)
-
-        # Only print admin URL on the reloader process (the real one)
+        # ONLY run once (avoid duplicate execution from reloader)
         if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+
+            # AUTO-CREATE ADMIN ACCOUNT IF NOT EXISTS
+            existing_admin = User.query.filter_by(role="admin").first()
+
+            if not existing_admin:
+                admin = User(
+                    username="admin",
+                    email="admin@gmail.com",
+                    password=generate_password_hash("admin123"),
+                    role="admin",
+                    is_verified=True
+                )
+                db.session.add(admin)
+                db.session.commit()
+
+                print("=" * 50)
+                print("Admin account created!")
+                print("Username: admin")
+                print("Password: admin123")
+                print("=" * 50)
+
+            # GENERATE ADMIN TOKEN LINK (per session)
             admin_token = secrets.token_urlsafe(32)
             app.config["ADMIN_TOKEN"] = admin_token
 
+            # CLEAN OUTPUT ORDER
             print("\n" + "=" * 50)
-            print("ADMIN LOGIN URL (this session only):")
+            print("Flask App URL:")
+            print("http://127.0.0.1:5000/")
+            print("\nADMIN LOGIN URL (this session only):")
             print(f"http://127.0.0.1:5000/admin/login/{admin_token}")
             print("=" * 50 + "\n")
 

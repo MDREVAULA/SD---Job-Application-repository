@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from models import db, Job, User, Application, JobImage
+from models import db, Job, User, Application, JobImage, HRFeedback
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -81,6 +81,7 @@ def upload_profile_picture():
 
     return redirect(url_for('recruiter.profile'))
 
+
 # ===============================
 # UPLOAD COMPANY LOGO
 # ===============================
@@ -113,13 +114,11 @@ def upload_company_logo():
             flash("Recruiter profile not found.", "danger")
             return redirect(url_for('recruiter.profile'))
 
-        # Delete old logo if exists
         if profile.company_logo and not profile.company_logo.startswith('http'):
             old_path = os.path.join(upload_folder, profile.company_logo)
             if os.path.exists(old_path):
                 os.remove(old_path)
 
-        # Save as PNG to preserve transparency
         filename = f"logo_{current_user.id}_{uuid.uuid4().hex[:8]}.png"
         image.save(os.path.join(upload_folder, filename), 'PNG')
 
@@ -132,6 +131,7 @@ def upload_company_logo():
         flash(f"Upload failed: {str(e)}", "danger")
 
     return redirect(url_for('recruiter.profile'))
+
 
 # ===============================
 # POST JOB
@@ -170,10 +170,8 @@ def post_job():
     db.session.add(job)
     db.session.commit()
 
-    # IMAGE UPLOAD
     poster_files = request.files.getlist("posters")
 
-    # ✅ FIXED: save to job_posters/ subfolder
     upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_posters")
     os.makedirs(upload_folder, exist_ok=True)
 
@@ -355,13 +353,48 @@ def update_application_status(app_id):
         return redirect(url_for('recruiter.my_job_list'))
 
     new_status = request.form.get('status')
+    new_remarks = request.form.get('recruiter_remarks')
 
     if new_status:
         application.status = new_status
 
+    if new_remarks is not None:
+        application.recruiter_remarks = new_remarks
+
     db.session.commit()
 
     flash("Application status updated!", "success")
+
+    return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
+
+
+# ===============================
+# RECRUITER SCHEDULE INTERVIEW
+# ===============================
+@recruiter_bp.route('/schedule-interview/<int:app_id>', methods=['POST'])
+@login_required
+def schedule_interview(app_id):
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    application = Application.query.get_or_404(app_id)
+    job = Job.query.get_or_404(application.job_id)
+
+    if job.company_id != current_user.id:
+        flash("Unauthorized action!", "danger")
+        return redirect(url_for('recruiter.my_job_list'))
+
+    interview_date_str = request.form.get('interview_date')
+
+    if interview_date_str:
+        application.interview_date = datetime.strptime(interview_date_str, "%Y-%m-%dT%H:%M")
+        application.status = 'interview'
+        db.session.commit()
+        flash("Interview scheduled successfully!", "success")
+    else:
+        flash("Please provide a valid date and time.", "danger")
 
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
 
@@ -399,12 +432,8 @@ def edit_job(job_id):
         else:
             job.expiration_date = None
 
-        # ===============================
-        # UPLOAD NEW IMAGES
-        # ===============================
         poster_files = request.files.getlist("posters")
 
-        # ✅ FIXED: save to job_posters/ subfolder
         upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_posters")
         os.makedirs(upload_folder, exist_ok=True)
 
@@ -455,7 +484,6 @@ def delete_job_image(image_id):
         flash("Unauthorized action!", "danger")
         return redirect(url_for('recruiter.job_posting'))
 
-    # ✅ FIXED: delete from job_posters/ subfolder
     file_path = os.path.join(
         current_app.root_path,
         "static", "uploads", "job_posters",
@@ -492,7 +520,6 @@ def delete_job(job_id):
 
     for image in job.images:
 
-        # ✅ FIXED: delete from job_posters/ subfolder
         file_path = os.path.join(
             current_app.root_path,
             "static", "uploads", "job_posters",

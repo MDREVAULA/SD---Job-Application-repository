@@ -357,6 +357,290 @@
     background: rgba(255, 255, 255, 0.25);
 }
 
+/* ── Collapsible card body ─────────────────────────────────────── */
+ 
+.app-card-body {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+}
+ 
+/* Header becomes a pointer to signal it's clickable */
+.app-header-toggle {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+ 
+.app-header-toggle:hover {
+    background: #f8f9ff;
+}
+ 
+/* Chevron icon wrapper */
+.app-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+ 
+.card-toggle-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+ 
+.card-toggle-icon i {
+    font-size: 12px;
+    color: #6c757d;
+    transition: transform 0.35s ease;
+}
+ 
+.app-header-toggle:hover .card-toggle-icon {
+    background: #e2e6ea;
+}
+ 
+.app-card.card-open .card-toggle-icon {
+    background: #e8f5e9;
+}
+ 
+.app-card.card-open .card-toggle-icon i {
+    color: #28a745;
+}
+ 
+/* ── Search & Sort toolbar ─────────────────────────────────────── */
+ 
+.applicant-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+ 
+/* Search input group */
+.toolbar-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 200px;
+}
+ 
+.toolbar-search-icon {
+    position: absolute;
+    left: 12px;
+    color: #adb5bd;
+    font-size: 13px;
+    pointer-events: none;
+}
+ 
+.toolbar-search input {
+    width: 100%;
+    padding: 9px 36px 9px 34px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #495057;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+ 
+.toolbar-search input:focus {
+    outline: none;
+    border-color: #28a745;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+ 
+.toolbar-search input::placeholder {
+    color: #adb5bd;
+}
+ 
+.search-clear {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #adb5bd;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    font-size: 12px;
+}
+ 
+.search-clear:hover {
+    color: #495057;
+    background: #e9ecef;
+}
+ 
+/* Sort group */
+.toolbar-sort {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+ 
+.sort-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #6c757d;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+ 
+.sort-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+ 
+.sort-btn {
+    padding: 7px 13px;
+    border: 1px solid #dee2e6;
+    border-radius: 7px;
+    background: #fff;
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-family: inherit;
+}
+ 
+.sort-btn:hover {
+    border-color: #28a745;
+    color: #28a745;
+    background: #f6fff8;
+}
+ 
+.sort-btn.active {
+    background: #28a745;
+    border-color: #28a745;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(40,167,69,0.25);
+}
+ 
+.sort-btn i {
+    font-size: 11px;
+}
+ 
+/* Results count */
+.toolbar-results {
+    margin-left: auto;
+}
+ 
+#resultsCount {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #6c757d;
+    white-space: nowrap;
+}
+ 
+/* ── Inline interview date (header pill) ───────────────────────── */
+ 
+.interview-date-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 11px;
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 20px;
+    color: #0c5460;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+ 
+.interview-date-inline i {
+    color: #17a2b8;
+    font-size: 0.75rem;
+}
+ 
+.interview-date-inline .interview-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.3px;
+    opacity: 0.8;
+}
+ 
+.interview-date-inline .interview-value {
+    font-size: 0.8rem;
+}
+ 
+/* ── Inline schedule block (inside status form) ────────────────── */
+ 
+.schedule-form-inline {
+    background: #f0faf4;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+ 
+.schedule-form-inline label {
+    display: block;
+    font-weight: 600;
+    color: #155724;
+    font-size: 0.875rem;
+    margin-bottom: 10px;
+}
+ 
+.schedule-form-inline label i {
+    color: #28a745;
+    margin-right: 6px;
+}
+ 
+.schedule-form-inline .schedule-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+ 
+.schedule-form-inline input[type="datetime-local"] {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    color: #495057;
+    background: white;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+ 
+.schedule-form-inline input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12);
+}
+
 /* Applications Container */
 .applications-container {
     width: 100%;
@@ -737,6 +1021,326 @@
     margin: 0;
 }
 
+/* ── Inline interview date (shown in app-header near applicant name) ── */
+.interview-date-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 5px 12px;
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 20px;
+    color: #0c5460;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+ 
+.interview-date-inline i {
+    color: #17a2b8;
+    font-size: 0.75rem;
+}
+ 
+.interview-date-inline .interview-label {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    opacity: 0.8;
+}
+ 
+.interview-date-inline .interview-value {
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+ 
+/* ── Inline schedule block inside the status form (above submit button) ── */
+.schedule-form-inline {
+    background: #f0faf4;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+ 
+.schedule-form-inline label {
+    display: block;
+    font-weight: 600;
+    color: #155724;
+    font-size: 0.875rem;
+    margin-bottom: 10px;
+}
+ 
+.schedule-form-inline label i {
+    color: #28a745;
+    margin-right: 6px;
+}
+ 
+.schedule-form-inline .schedule-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+ 
+.schedule-form-inline input[type="datetime-local"] {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    color: #495057;
+    background: white;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+ 
+.schedule-form-inline input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12);
+}
+
+/* Feedback section wrapper */
+.hr-feedbacks-wrapper {
+    margin-top: 16px;
+}
+
+/* Individual feedback card */
+.feedback-card {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 14px;
+    border: 1px solid #e9ecef;
+}
+
+.feedback-card.feedback-recruiter {
+    border-left: 4px solid #667eea;
+}
+
+.feedback-card.feedback-hr {
+    border-left: 4px solid #28a745;
+}
+
+/* Card header with avatar + name */
+.feedback-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px 10px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Avatar circle */
+.feedback-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.feedback-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.feedback-avatar-default {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+}
+
+.recruiter-avatar-bg {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.hr-avatar-bg {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+/* Name + role row */
+.feedback-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.feedback-author {
+    font-weight: 700;
+    color: #212529;
+    font-size: 0.9375rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* "You" badge on recruiter's own feedback */
+.you-badge {
+    background: #667eea;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+/* Role tag pill */
+.feedback-role-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.recruiter-tag {
+    background: #ede9ff;
+    color: #5a3fbf;
+}
+
+.hr-tag {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* Date stamp */
+.feedback-date {
+    font-size: 12px;
+    color: #adb5bd;
+    margin-left: auto;
+}
+
+/* Feedback text body */
+.feedback-body {
+    padding: 14px 16px;
+    font-size: 0.9375rem;
+    color: #495057;
+    line-height: 1.7;
+    background: white;
+}
+
+/* ================================================
+   INTERVIEW DATE DISPLAY BADGE
+   ================================================ */
+.interview-date-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #d1ecf1;
+    border: 1px solid #bee5eb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    color: #0c5460;
+}
+
+.interview-date-display > i {
+    font-size: 22px;
+    flex-shrink: 0;
+    color: #17a2b8;
+}
+
+.interview-date-display > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.interview-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.75;
+}
+
+.interview-value {
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+/* ================================================
+   INTERVIEW SCHEDULING FORM
+   ================================================ */
+.schedule-form {
+    background: #f0faf4;
+    padding: 20px 28px;
+    border-top: 1px solid #c3e6cb;
+}
+
+.schedule-form label {
+    display: block;
+    font-weight: 600;
+    color: #155724;
+    font-size: 0.875rem;
+    margin-bottom: 10px;
+}
+
+.schedule-form label i {
+    color: #28a745;
+    margin-right: 6px;
+}
+
+.schedule-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.schedule-input-row input[type="datetime-local"] {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    color: #495057;
+    background: white;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.schedule-input-row input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.12);
+}
+
+.btn-schedule {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.btn-schedule:hover {
+    background: linear-gradient(135deg, #218838, #1aab82);
+    transform: translateY(-1px);
+}
+
 /* ── Description Toggle ── */
 .description-wrapper {
     position: relative;
@@ -828,6 +1432,42 @@
         flex-direction: column;
     }
 }
+
+@media (max-width: 768px) {
+    .applicant-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+ 
+    .toolbar-search {
+        min-width: unset;
+    }
+ 
+    .toolbar-sort {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+ 
+    .sort-buttons {
+        width: 100%;
+    }
+ 
+    .sort-btn {
+        flex: 1;
+        justify-content: center;
+    }
+ 
+    .toolbar-results {
+        margin-left: 0;
+    }
+ 
+    .app-header-right {
+        flex-direction: row-reverse;
+    }
+}
+ 
 
 @media (max-width: 480px) {
     .stats-overview {

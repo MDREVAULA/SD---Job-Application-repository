@@ -36,7 +36,7 @@ class User(db.Model, UserMixin):
     reset_token = db.Column(db.String(100), nullable=True)
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
 
-    profile_picture = db.Column(db.String(200), nullable=True) 
+    profile_picture = db.Column(db.String(200), nullable=True)
 
     # =========================
     # RELATIONSHIPS
@@ -52,6 +52,18 @@ class User(db.Model, UserMixin):
         "RecruiterProfile",
         backref="user",
         uselist=False
+    )
+
+    hr_profile = db.relationship(
+        "HRProfile",
+        backref="user",
+        uselist=False
+    )
+
+    hr_feedbacks = db.relationship(
+        "HRFeedback",
+        backref="hr_user",
+        lazy=True
     )
 
 
@@ -116,6 +128,29 @@ class RecruiterProfile(db.Model):
 
 
 # =========================
+# HR PROFILE
+# =========================
+class HRProfile(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    last_name = db.Column(db.String(100))
+    first_name = db.Column(db.String(100))
+    middle_name = db.Column(db.String(100))
+
+    date_of_birth = db.Column(db.Date)
+    gender = db.Column(db.String(20))
+
+    phone_number = db.Column(db.String(50))
+
+    country = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    home_address = db.Column(db.String(200))
+
+
+# =========================
 # JOB TABLE
 # =========================
 class Job(db.Model):
@@ -173,9 +208,39 @@ class Application(db.Model):
     # RECRUITER / HR REVIEW
     # =========================
     status = db.Column(db.String(50), default="Pending")
-    remarks = db.Column(db.Text)
+
+    recruiter_remarks = db.Column(db.Text)
+
+    interview_date = db.Column(db.DateTime, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # =========================
+    # RELATIONSHIPS
+    # =========================
+    hr_feedbacks = db.relationship(
+        "HRFeedback",
+        backref="application",
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+
+
+# =========================
+# HR FEEDBACK TABLE
+# (one row per HR per application)
+# =========================
+class HRFeedback(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=False)
+    hr_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    feedback = db.Column(db.Text, nullable=False)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 # =========================
@@ -186,4 +251,4 @@ class JobImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
-    job = db.relationship("Job", backref="images")
+    job = db.relationship("Job", backref="images")  
