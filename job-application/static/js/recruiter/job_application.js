@@ -1,5 +1,5 @@
 /* ============================================================
-   HR — Job Application List JS
+   RECRUITER — Job Application List JS
    Features: collapsible cards, search by name, sort
    ============================================================ */
 
@@ -16,10 +16,10 @@
    
        if (isOpen) {
            // Collapse
-           body.style.maxHeight = body.scrollHeight + 'px';
+           body.style.maxHeight = body.scrollHeight + 'px'; // pin before transition
            requestAnimationFrame(() => {
                body.style.maxHeight = '0';
-               body.style.opacity   = '0';
+               body.style.opacity  = '0';
            });
            card.classList.remove('card-open');
            icon.style.transform = 'rotate(0deg)';
@@ -30,6 +30,8 @@
            card.classList.add('card-open');
            icon.style.transform = 'rotate(180deg)';
    
+           // After transition ends, remove fixed max-height so inner content
+           // (e.g. textareas being resized) isn't clipped
            body.addEventListener('transitionend', function onEnd() {
                if (card.classList.contains('card-open')) {
                    body.style.maxHeight = 'none';
@@ -79,11 +81,14 @@
        const container = document.getElementById('applicationsContainer');
        if (!container) return;
    
+       // Remove any existing no-results message
        const existing = container.querySelector('.no-results-state');
        if (existing) existing.remove();
    
+       // Gather all cards
        const cards = Array.from(document.querySelectorAll('.app-card'));
    
+       // 1. Determine visibility
        let visibleCards = [];
        cards.forEach(card => {
            const cardStatus = card.getAttribute('data-status');
@@ -100,6 +105,7 @@
            }
        });
    
+       // 2. Sort visible cards
        visibleCards.sort((a, b) => {
            if (currentSort === 'date-desc') {
                return (b.getAttribute('data-date') || '0').localeCompare(a.getAttribute('data-date') || '0');
@@ -113,8 +119,10 @@
            return 0;
        });
    
+       // 3. Re-insert in sorted order
        visibleCards.forEach(card => container.appendChild(card));
    
+       // 4. Update results count
        const resultsEl = document.getElementById('resultsCount');
        if (resultsEl) {
            if (searchVal) {
@@ -126,6 +134,7 @@
            }
        }
    
+       // 5. Show empty state if nothing visible
        if (visibleCards.length === 0) {
            const statusMessages = {
                all:       { icon: 'fa-search',        title: 'No Matching Applicants',  message: 'No applicants match your search.' },
@@ -159,10 +168,10 @@
    
    // ── Description toggle ──────────────────────────────────────
    
-   function toggleHrDescription() {
-       const wrapper = document.getElementById('hrDescriptionWrapper');
-       const btn     = document.getElementById('hrToggleDescBtn');
-       const text    = document.getElementById('hrToggleDescText');
+   function toggleDescription() {
+       const wrapper = document.getElementById('descriptionWrapper');
+       const btn     = document.getElementById('toggleDescBtn');
+       const text    = document.getElementById('toggleDescText');
        const isCollapsed = wrapper.classList.contains('collapsed');
        if (isCollapsed) {
            wrapper.classList.remove('collapsed');
@@ -192,15 +201,15 @@
        countApplications();
    
        // Description toggle init
-       const wrapper = document.getElementById('hrDescriptionWrapper');
-       const btn     = document.getElementById('hrToggleDescBtn');
+       const wrapper = document.getElementById('descriptionWrapper');
+       const btn     = document.getElementById('toggleDescBtn');
        if (wrapper && btn) {
            if (wrapper.scrollHeight > 80) {
                wrapper.classList.add('collapsed');
                btn.style.display = 'flex';
            } else {
                btn.style.display = 'none';
-               const fade = document.getElementById('hrDescriptionFade');
+               const fade = document.getElementById('descriptionFade');
                if (fade) fade.style.display = 'none';
            }
        }
@@ -210,7 +219,7 @@
            select.addEventListener('change', function () { onStatusChange(this); });
        });
    
-       // Init all cards: closed by default
+       // Init all cards: closed by default, set up body transition
        document.querySelectorAll('.app-card').forEach((card, index) => {
            const body = card.querySelector('.app-card-body');
            if (body) {
@@ -219,6 +228,7 @@
                body.style.overflow  = 'hidden';
                body.style.transition = 'max-height 0.35s ease, opacity 0.25s ease';
            }
+           // Subtle stagger fade-in for the card shells
            card.style.opacity   = '0';
            card.style.transform = 'translateY(16px)';
            setTimeout(() => {

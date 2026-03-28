@@ -1,7 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/base.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hr/job_application.css') }}">
 
 <div class="applications-wrapper">
@@ -17,7 +16,6 @@
                 <p>Review all applicants for this position</p>
             </div>
         </div>
-        
         <div class="header-meta">
             <div class="meta-badge">
                 <i class="fas fa-briefcase"></i>
@@ -83,12 +81,12 @@
 
     <!-- APPLICATIONS LIST -->
     <div class="applications-list">
-        
+
         {% if not applications %}
         <div class="empty-state">
             <i class="fas fa-inbox"></i>
             <h3>No applications yet</h3>
-            <p>No one has applied for this position yet. Share your job posting to attract candidates!</p>
+            <p>No one has applied for this position yet.</p>
         </div>
         {% else %}
 
@@ -116,25 +114,62 @@
             </button>
         </div>
 
+        <!-- SEARCH & SORT TOOLBAR -->
+        <div class="applicant-toolbar">
+            <div class="toolbar-search">
+                <i class="fas fa-search toolbar-search-icon"></i>
+                <input
+                    type="text"
+                    id="applicantSearch"
+                    placeholder="Search applicant name..."
+                    oninput="applyFilters()"
+                    autocomplete="off"
+                >
+                <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none;" title="Clear search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="toolbar-sort">
+                <span class="sort-label"><i class="fas fa-sort"></i> Sort:</span>
+                <div class="sort-buttons">
+                    <button class="sort-btn active" data-sort="date-desc" onclick="setSort('date-desc')" title="Newest first">
+                        <i class="fas fa-calendar-alt"></i> Newest
+                    </button>
+                    <button class="sort-btn" data-sort="date-asc" onclick="setSort('date-asc')" title="Oldest first">
+                        <i class="fas fa-calendar-alt"></i> Oldest
+                    </button>
+                    <button class="sort-btn" data-sort="name-asc" onclick="setSort('name-asc')" title="Name A to Z">
+                        <i class="fas fa-sort-alpha-down"></i> A → Z
+                    </button>
+                    <button class="sort-btn" data-sort="name-desc" onclick="setSort('name-desc')" title="Name Z to A">
+                        <i class="fas fa-sort-alpha-up"></i> Z → A
+                    </button>
+                </div>
+            </div>
+            <div class="toolbar-results">
+                <span id="resultsCount"></span>
+            </div>
+        </div>
+
         <!-- APPLICATIONS CARDS -->
         <div class="applications-container" id="applicationsContainer">
         {% endif %}
 
         {% for app in applications %}
-        <div class="app-card" data-status="{{ app.status }}">
-            
-            <div class="app-header">
+        <div class="app-card"
+             data-status="{{ app.status }}"
+             data-name="{{ app.user.username | lower }}"
+             data-date="{{ app.created_at.strftime('%Y%m%d%H%M%S') if app.created_at else '0' }}">
+
+            <!-- APPLICANT HEADER — click to expand/collapse -->
+            <div class="app-header app-header-toggle" onclick="toggleCard(this)" title="Click to expand / collapse">
                 <div class="applicant-info">
                     <div class="applicant-avatar">
                         {% if app.user.profile_picture %}
                             {% if app.user.profile_picture.startswith('http') %}
-                                <img src="{{ app.user.profile_picture }}"
-                                     alt="{{ app.user.username }}"
-                                     class="applicant-avatar-img">
+                                <img src="{{ app.user.profile_picture }}" alt="{{ app.user.username }}" class="applicant-avatar-img">
                             {% else %}
-                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + app.user.profile_picture) }}"
-                                     alt="{{ app.user.username }}"
-                                     class="applicant-avatar-img">
+                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + app.user.profile_picture) }}" alt="{{ app.user.username }}" class="applicant-avatar-img">
                             {% endif %}
                         {% else %}
                             {{ app.user.username[0]|upper }}
@@ -143,101 +178,192 @@
                     <div class="applicant-details">
                         <h4>{{ app.user.username }}</h4>
                         <span class="app-date">
-                            <i class="fas fa-calendar"></i> 
+                            <i class="fas fa-calendar"></i>
                             Applied on {{ app.created_at.strftime('%B %d, %Y at %I:%M %p') if app.created_at else 'N/A' }}
                         </span>
+                        {% if app.status == 'interview' and app.interview_date %}
+                        <div class="interview-date-inline">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span class="interview-label">Interview:</span>
+                            <span class="interview-value">{{ app.interview_date.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                <div class="status-badge status-{{ app.status }}">
-                    {% if app.status == 'pending' %}
-                        <i class="fas fa-clock"></i> Pending
-                    {% elif app.status == 'accepted' %}
-                        <i class="fas fa-check-circle"></i> Accepted
-                    {% elif app.status == 'rejected' %}
-                        <i class="fas fa-times-circle"></i> Rejected
-                    {% elif app.status == 'interview' %}
-                        <i class="fas fa-calendar-check"></i> Interview
+                <div class="app-header-right">
+                    <div class="status-badge status-{{ app.status }}">
+                        {% if app.status == 'pending' %}<i class="fas fa-clock"></i> Pending
+                        {% elif app.status == 'accepted' %}<i class="fas fa-check-circle"></i> Accepted
+                        {% elif app.status == 'rejected' %}<i class="fas fa-times-circle"></i> Rejected
+                        {% elif app.status == 'interview' %}<i class="fas fa-calendar-check"></i> Interview
+                        {% endif %}
+                    </div>
+                    <div class="card-toggle-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLLAPSIBLE BODY -->
+            <div class="app-card-body">
+
+                <!-- APPLICANT DETAILS -->
+                <div class="app-details">
+                    <p><strong><i class="fas fa-envelope"></i> Email:</strong> {{ app.user.email }}</p>
+
+                    {% if app.resume %}
+                    <p>
+                        <strong><i class="fas fa-file-pdf"></i> Resume:</strong>
+                        <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + app.resume) }}"
+                           target="_blank" class="file-link">
+                            View Resume <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </p>
                     {% endif %}
+
+                    {% if app.cover_letter %}
+                    <div class="cover-letter-section">
+                        <strong><i class="fas fa-comment-alt"></i> Cover Letter:</strong>
+                        <div class="cover-letter-text">{{ app.cover_letter }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if app.recruiter_remarks %}
+                    <div class="feedback-card feedback-recruiter">
+                        <div class="feedback-card-header">
+                            <div class="feedback-avatar">
+                                {% if recruiter_user and recruiter_user.profile_picture %}
+                                    {% if recruiter_user.profile_picture.startswith('http') %}
+                                        <img src="{{ recruiter_user.profile_picture }}" alt="Recruiter" class="feedback-avatar-img">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + recruiter_user.profile_picture) }}" alt="Recruiter" class="feedback-avatar-img">
+                                    {% endif %}
+                                {% else %}
+                                    <div class="feedback-avatar-default recruiter-avatar-bg">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="feedback-meta">
+                                <span class="feedback-author">
+                                    {% if recruiter_user and recruiter_user.recruiter_profile %}
+                                        {{ recruiter_user.recruiter_profile.first_name }} {{ recruiter_user.recruiter_profile.surname }}
+                                    {% elif recruiter_user %}
+                                        {{ recruiter_user.username }}
+                                    {% else %}
+                                        Recruiter
+                                    {% endif %}
+                                </span>
+                                <span class="feedback-role-tag recruiter-tag">
+                                    <i class="fas fa-user-tie"></i> Recruiter
+                                </span>
+                            </div>
+                        </div>
+                        <div class="feedback-body">{{ app.recruiter_remarks }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if app.hr_feedbacks %}
+                    <div class="hr-feedbacks-wrapper">
+                        {% for fb in app.hr_feedbacks %}
+                        <div class="feedback-card feedback-hr">
+                            <div class="feedback-card-header">
+                                <div class="feedback-avatar">
+                                    {% if fb.hr_user.profile_picture %}
+                                        {% if fb.hr_user.profile_picture.startswith('http') %}
+                                            <img src="{{ fb.hr_user.profile_picture }}" alt="{{ fb.hr_user.username }}" class="feedback-avatar-img">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + fb.hr_user.profile_picture) }}" alt="{{ fb.hr_user.username }}" class="feedback-avatar-img">
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="feedback-avatar-default hr-avatar-bg">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="feedback-meta">
+                                    <span class="feedback-author">
+                                        {% if fb.hr_user.hr_profile %}
+                                            {{ fb.hr_user.hr_profile.first_name }} {{ fb.hr_user.hr_profile.last_name }}
+                                        {% else %}
+                                            {{ fb.hr_user.username }}
+                                        {% endif %}
+                                    </span>
+                                    <span class="feedback-role-tag hr-tag">
+                                        <i class="fas fa-user"></i> HR
+                                    </span>
+                                    <span class="feedback-date">
+                                        {{ fb.updated_at.strftime('%b %d, %Y') if fb.updated_at else fb.created_at.strftime('%b %d, %Y') }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="feedback-body">{{ fb.feedback }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                 </div>
-            </div>
 
-            <div class="app-details">
-                <p><strong><i class="fas fa-envelope"></i> Email:</strong> {{ app.user.email }}</p>
-                
-                {% if app.resume %}
-                <p>
-                    <strong><i class="fas fa-file-pdf"></i> Resume:</strong>
-                    {# ✅ FIXED: applicant_resumes/ subfolder #}
-                    <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + app.resume) }}" 
-                       target="_blank" 
-                       class="file-link">
-                        View Resume <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </p>
-                {% endif %}
+                <hr>
 
-                {% if app.cover_letter %}
-                <div class="cover-letter-section">
-                    <strong><i class="fas fa-comment-alt"></i> Cover Letter:</strong>
-                    <div class="cover-letter-text">{{ app.cover_letter }}</div>
-                </div>
-                {% endif %}
-                
-                {% if app.remarks %}
-                <div class="feedback-section">
-                    <strong><i class="fas fa-comment-dots"></i> Recruiter Feedback:</strong>
-                    <div class="feedback-text">{{ app.remarks }}</div>
-                </div>
-                {% endif %}
-            </div>
+                <!-- HR UPDATE STATUS + FEEDBACK FORM -->
+                <form method="POST" action="{{ url_for('hr.update_application_status', app_id=app.id) }}" class="status-form">
 
-            <hr>
+                    <label for="status-{{ app.id }}">
+                        <i class="fas fa-edit"></i> Update Status:
+                    </label>
+                    <div class="status-form-controls">
+                        <select id="status-{{ app.id }}" name="status" class="status-select">
+                            <option value="pending" {% if app.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="interview" {% if app.status == 'interview' %}selected{% endif %}>Interview</option>
+                            <option value="accepted" {% if app.status == 'accepted' %}selected{% endif %}>Accept</option>
+                            <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Reject</option>
+                        </select>
+                    </div>
 
-            <!-- UPDATE STATUS FORM -->
-            <form method="POST" action="{{ url_for('hr.update_application_status', app_id=app.id) }}" class="status-form">
+                    <label for="hr-feedback-{{ app.id }}">
+                        <i class="fas fa-comment"></i> Your HR Feedback:
+                    </label>
+                    <textarea
+                        id="hr-feedback-{{ app.id }}"
+                        name="hr_feedback"
+                        class="remarks-box"
+                        placeholder="Leave your HR feedback for this applicant..."
+                    >{% for fb in app.hr_feedbacks %}{% if fb.hr_id == current_user.id %}{{ fb.feedback }}{% endif %}{% endfor %}</textarea>
 
-                <label for="status-{{ app.id }}">
-                    <i class="fas fa-edit"></i> Update Status:
-                </label>
-            
-                <div class="status-form-controls">
-                    <select id="status-{{ app.id }}" name="status" class="status-select">
-                        <option value="pending" {% if app.status == 'pending' %}selected{% endif %}>Pending</option>
-                        <option value="interview" {% if app.status == 'interview' %}selected{% endif %}>Interview</option>
-                        <option value="accepted" {% if app.status == 'accepted' %}selected{% endif %}>Accept</option>
-                        <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Reject</option>
-                    </select>
-                </div>
-            
-                <!-- HR FEEDBACK -->
-                <label for="remarks-{{ app.id }}">
-                    <i class="fas fa-comment"></i> HR Feedback:
-                </label>
-            
-                <textarea
-                    id="remarks-{{ app.id }}"
-                    name="remarks"
-                    class="remarks-box"
-                    placeholder="Leave feedback for this applicant..."
-                >{{ app.remarks if app.remarks else '' }}</textarea>
-            
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-save"></i> Update Application
-                </button>
-            
-            </form>
+                    <div class="schedule-form-inline" id="scheduleInline-{{ app.id }}" style="display: {% if app.status == 'interview' %}block{% else %}none{% endif %};">
+                        <label for="interview-{{ app.id }}">
+                            <i class="fas fa-calendar-alt"></i> Schedule Interview Date & Time:
+                        </label>
+                        <div class="schedule-input-row">
+                            <input
+                                type="datetime-local"
+                                name="interview_date"
+                                id="interview-{{ app.id }}"
+                                value="{{ app.interview_date.strftime('%Y-%m-%dT%H:%M') if app.interview_date else '' }}"
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Update Application
+                    </button>
+
+                </form>
+
+            </div><!-- end .app-card-body -->
 
         </div>
         {% endfor %}
 
         {% if applications %}
-        </div>
+        </div><!-- end .applications-container -->
         {% endif %}
 
     </div>
-
 </div>
 
-<script src="{{ url_for('static', filename='js/hr/job_applications.js') }}"></script>
+<script src="{{ url_for('static', filename='js/hr/job_application.js') }}"></script>
 
 {% endblock %}

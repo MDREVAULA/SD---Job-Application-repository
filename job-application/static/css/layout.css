@@ -137,7 +137,6 @@ body {
 
 .login-btn:hover {
     background: #4CAF50;
-    transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
 }
 
