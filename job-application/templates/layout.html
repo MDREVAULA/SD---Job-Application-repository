@@ -147,6 +147,28 @@
             </a>
         </li>
 
+        <!-- PEOPLE -->
+        <li>
+            <a href="{{ url_for('chat.people') }}"
+               class="sidebar-link {% if request.endpoint == 'chat.people' %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>People</span>
+            </a>
+        </li>
+
+        <!-- MESSAGES (logged-in users only) -->
+        {% if current_user.is_authenticated %}
+        <li>
+            <a href="{{ url_for('chat.inbox') }}"
+               class="sidebar-link {% if request.endpoint and 'chat.inbox' in request.endpoint %}active{% endif %}"
+               style="position: relative;">
+                <i class="fas fa-comment-dots"></i>
+                <span>Messages</span>
+                <span class="nav-chat-badge" id="navUnreadBadge" style="display:none;"></span>
+            </a>
+        </li>
+        {% endif %}
+
         <!-- HELP -->
         <li>
             <a href="{{ url_for('auth.help_page') }}"
@@ -316,7 +338,7 @@
 </main>
 
 <!-- FOOTER -->
-{% if request.endpoint != 'auth.login' and request.endpoint != 'auth.register' and request.endpoint != 'admin.admin_login' %}
+{% if request.endpoint != 'auth.login' and request.endpoint != 'auth.register' and request.endpoint != 'admin.admin_login' and request.endpoint != 'chat.inbox'%}
 <footer class="footer">
 
     <div class="footer-content">
@@ -371,6 +393,29 @@
     </div>
 
 </footer>
+{% endif %}
+
+<!-- UNREAD MESSAGE BADGE UPDATER -->
+{% if current_user.is_authenticated %}
+<script>
+function updateUnreadBadge() {
+    fetch('/chat/unread-count')
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById('navUnreadBadge');
+            if (!badge) return;
+            if (data.count > 0) {
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        })
+        .catch(() => {}); // silently fail if not logged in
+}
+updateUnreadBadge();
+setInterval(updateUnreadBadge, 10000);
+</script>
 {% endif %}
 
 </body>

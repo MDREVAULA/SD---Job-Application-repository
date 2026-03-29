@@ -4,8 +4,8 @@
    ================================ */
 
    :root {
-    --primary-color: #0a66c2;
-    --primary-hover: #004182;
+    --primary-color: #4D774E;
+    --primary-hover: #164A41;
     --secondary-color: #057642;
     --text-primary: #000000;
     --text-secondary: #666666;
@@ -835,12 +835,12 @@
 /* Safety Tips Card */
 .tips-card {
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border-color: #fbbf24;
+    border-color: #F1B24A;
 }
 
 .tips-card .sidebar-card-title {
     background: rgba(255, 255, 255, 0.5);
-    border-bottom-color: #fbbf24;
+    border-bottom-color: #F1B24A;
 }
 
 .tips-card .sidebar-card-title i {

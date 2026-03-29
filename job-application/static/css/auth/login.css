@@ -123,7 +123,7 @@ html, body {
     display: block;
     width: 70px;
     height: 4px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4D774E 0%, #164A41 100%);
     border-radius: 2px;
     margin-top: 20px;
 }
@@ -185,14 +185,14 @@ html, body {
 /* Input focus effect */
 .input-group input:focus {
     outline: none;
-    border-color: #667eea;
-    background: white;
+    border-color: #4D774E;
+    background: #efffef;
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
 .input-group input:focus + label,
 .input-group:focus-within label {
-    color: #667eea;
+    color: #4D774E;
 }
 
 
@@ -205,7 +205,7 @@ html, body {
     padding: 16px;
     border: none;
     border-radius: 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F1B24A 0%, #ec9c1b 100%);
     color: white;
     font-size: 16px;
     font-weight: 600;
@@ -288,8 +288,8 @@ html, body {
     width: 200%;
     height: 200%;
     background: 
-        radial-gradient(circle at 30% 40%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 70% 60%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+        radial-gradient(circle at 30% 40%, #4D774E 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, #4D774E 0%, transparent 50%);
     animation: float 20s ease-in-out infinite;
 }
 

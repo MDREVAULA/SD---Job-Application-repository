@@ -1,0 +1,214 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat/inbox.css') }}">
+
+<div class="inbox-layout">
+
+    <!-- ============================
+         LEFT: CONVERSATION LIST
+    ============================ -->
+    <aside class="inbox-sidebar">
+        <div class="inbox-sidebar-header">
+            <h2><i class="fas fa-inbox"></i> Messages</h2>
+            <a href="{{ url_for('chat.people') }}" class="btn-new-chat" title="Find people to message">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+
+        <!-- CONVERSATION LIST -->
+        <div class="conversation-list">
+            {% if conversations %}
+                {% for convo in conversations %}
+                <a href="{{ url_for('chat.conversation', other_id=convo.user.id) }}"
+                   class="conversation-item {% if active_user and active_user.id == convo.user.id %}active{% endif %}">
+
+                    <!-- AVATAR -->
+                    <div class="convo-avatar-wrap">
+                        {% if convo.user.profile_picture %}
+                            {% if convo.user.profile_picture.startswith('http') %}
+                                <img src="{{ convo.user.profile_picture }}" alt="" class="convo-avatar">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + convo.user.profile_picture) }}" alt="" class="convo-avatar">
+                            {% endif %}
+                        {% else %}
+                            <div class="convo-avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                        {% if convo.unread_count > 0 %}
+                            <span class="unread-dot"></span>
+                        {% endif %}
+                    </div>
+
+                    <!-- META -->
+                    <div class="convo-meta">
+                        <div class="convo-top">
+                            <span class="convo-name">{{ convo.display_name }}</span>
+                            {% if convo.last_message %}
+                                <span class="convo-time">{{ convo.last_message.created_at.strftime('%b %d') }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="convo-preview">
+                            {% if convo.last_message %}
+                                {% if convo.last_message.sender_id == current_user.id %}
+                                    <span class="preview-you">You: </span>
+                                {% endif %}
+                                <span class="preview-text">{{ convo.last_message.body[:50] }}{{ '…' if convo.last_message.body|length > 50 }}</span>
+                            {% else %}
+                                <span class="preview-empty">Start a conversation</span>
+                            {% endif %}
+                            {% if convo.unread_count > 0 %}
+                                <span class="unread-badge">{{ convo.unread_count }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="no-conversations">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>No messages yet.<br>
+                        <a href="{{ url_for('chat.people') }}">Find people to message →</a>
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- ============================
+         RIGHT: MESSAGE THREAD
+    ============================ -->
+    <main class="message-panel">
+
+        {% if active_user %}
+
+        <!-- CHAT HEADER -->
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <a href="{{ url_for('chat.inbox') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+
+                {% if active_user.profile_picture %}
+                    {% if active_user.profile_picture.startswith('http') %}
+                        <img src="{{ active_user.profile_picture }}" class="chat-avatar" alt="">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + active_user.profile_picture) }}" class="chat-avatar" alt="">
+                    {% endif %}
+                {% else %}
+                    <div class="chat-avatar-placeholder"><i class="fas fa-user"></i></div>
+                {% endif %}
+
+                <div class="chat-header-info">
+                    <span class="chat-name">{{ active_display_name }}</span>
+                    {% if active_company %}
+                        <span class="chat-sub">{{ active_company }} · {{ active_user.role|title }}</span>
+                    {% else %}
+                        <span class="chat-sub">{{ active_user.role|title }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="chat-header-right">
+                <button
+                    class="btn-follow-sm {% if is_following %}following{% endif %}"
+                    id="follow-btn-header"
+                    onclick="toggleFollowHeader({{ active_user.id }}, this)"
+                >
+                    {% if is_following %}
+                        <i class="fas fa-user-check"></i> Following
+                    {% else %}
+                        <i class="fas fa-user-plus"></i> Follow
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+
+        <!-- MESSAGE THREAD -->
+        <div class="message-thread" id="messageThread">
+            {% if messages %}
+                {% set ns = namespace(prev_date=None) %}
+                {% for msg in messages %}
+                    {% set msg_date = msg.created_at.strftime('%B %d, %Y') %}
+                    {% if msg_date != ns.prev_date %}
+                        <div class="date-divider"><span>{{ msg_date }}</span></div>
+                        {% set ns.prev_date = msg_date %}
+                    {% endif %}
+
+                    <div class="message-bubble {% if msg.sender_id == current_user.id %}mine{% else %}theirs{% endif %}"
+                         data-msg-id="{{ msg.id }}">
+                        <div class="bubble-text">{{ msg.body }}</div>
+                        <div class="bubble-time">{{ msg.created_at.strftime('%I:%M %p') }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="thread-empty">
+                    <i class="fas fa-comments"></i>
+                    <p>This is the beginning of your conversation with <strong>{{ active_display_name }}</strong>.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- MESSAGE INPUT -->
+        <div class="message-input-bar">
+
+            <!-- EMOJI PICKER -->
+            <div class="emoji-picker-wrapper">
+                <button class="emoji-toggle-btn" id="emojiToggleBtn" type="button" title="Emoji">
+                    <i class="far fa-smile"></i>
+                </button>
+                <div class="emoji-picker" id="emojiPicker">
+                    <div class="emoji-categories">
+                        <button class="emoji-cat-btn active" data-cat="smileys" title="Smileys">😀</button>
+                        <button class="emoji-cat-btn" data-cat="gestures" title="Gestures">👍</button>
+                        <button class="emoji-cat-btn" data-cat="hearts" title="Hearts">❤️</button>
+                        <button class="emoji-cat-btn" data-cat="nature" title="Nature">🌿</button>
+                        <button class="emoji-cat-btn" data-cat="food" title="Food">🍕</button>
+                        <button class="emoji-cat-btn" data-cat="travel" title="Travel">✈️</button>
+                        <button class="emoji-cat-btn" data-cat="objects" title="Objects">💡</button>
+                        <button class="emoji-cat-btn" data-cat="symbols" title="Symbols">🔥</button>
+                    </div>
+                    <div class="emoji-grid" id="emojiGrid"></div>
+                </div>
+            </div>
+
+            <textarea
+                id="messageInput"
+                class="message-textarea"
+                placeholder="Write a message..."
+                rows="1"
+                onkeydown="handleKey(event)"
+                oninput="autoResize(this)"
+            ></textarea>
+            <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+
+        {% else %}
+        <!-- NO CONVERSATION SELECTED -->
+        <div class="no-chat-selected">
+            <i class="fas fa-comments"></i>
+            <h3>Your Messages</h3>
+            <p>Select a conversation or find someone new to message.</p>
+            <a href="{{ url_for('chat.people') }}" class="btn-find-people">
+                Find People
+            </a>
+        </div>
+        {% endif %}
+
+    </main>
+</div>
+
+{% if active_user %}
+<!-- Inject conversation variables for inbox.js -->
+<script>
+    const RECEIVER_ID     = {{ active_user.id }};
+    const CURRENT_USER_ID = {{ current_user.id }};
+    let lastMessageId     = {{ messages[-1].id if messages else 0 }};
+</script>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/chat/inbox.js') }}"></script>
+{% endblock %}

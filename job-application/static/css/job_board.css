@@ -17,7 +17,7 @@
    ================================ */
 
 .search-hero {
-    background: linear-gradient(135deg, #4CAF50 0%, #137b16 100%);
+    background: linear-gradient(135deg, #164A41 0%, #4D774E 100%);
     padding: 60px 20px;
     color: white;
 }
@@ -128,7 +128,7 @@
 }
 
 .results-count span {
-    color: #4CAF50;
+    color: #4D774E;
     font-weight: 700;
 }
 
@@ -202,7 +202,7 @@
 .job-logo {
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, #4CAF50 0%, #4CAF50 100%);
+    background: linear-gradient(135deg, #F1B24A 0%, #F1B24A 100%);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -229,7 +229,7 @@
 }
 
 .job-item:hover .job-title-link {
-    color: #4CAF50;
+    color: black;
 }
 
 .job-company {
@@ -282,7 +282,7 @@
 
 .btn-apply {
     padding: 10px 24px;
-    background: #4CAF50;
+    background: #F1B24A;
     color: white;
     border: none;
     border-radius: 6px;
@@ -296,7 +296,7 @@
 }
 
 .btn-apply:hover {
-    background: #1d4ed8;
+    background: #ec9c1b;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     color: white;

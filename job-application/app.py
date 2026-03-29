@@ -30,7 +30,7 @@ class NoStaticFilter(logging.Filter):
         return '/static/' not in record.getMessage()
 
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.INFO)  # Keep Flask URL visible
+log.setLevel(logging.INFO)
 log.addFilter(NoStaticFilter())
 
 # Upload folder configuration
@@ -71,12 +71,14 @@ from routes.applicant import applicant_bp
 from routes.recruiter import recruiter_bp
 from routes.hr import hr_bp
 from routes.admin import admin_bp
+from routes.chat import chat_bp          # ← ADDED
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(applicant_bp)
 app.register_blueprint(recruiter_bp)
 app.register_blueprint(hr_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(chat_bp)          # ← ADDED
 
 # Run App
 if __name__ == "__main__":

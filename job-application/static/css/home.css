@@ -5,14 +5,30 @@ Fonts: Sora (headings) + DM Sans (body)
 
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-/* ---- Root Tokens ---- */
+/* ====================================================
+   ROOT TOKENS — Main Site (Trust Strip → CTA)
+   ==================================================== */
 :root {
-    --brand-green: #22c55e;
-    --brand-green-dark: #16a34a;
-    --brand-green-glow: rgba(34, 197, 94, 0.22);
-    --brand-green-subtle: rgba(34, 197, 94, 0.09);
-    --ink: #0d1117;
-    --ink-light: #374151;
+    /* --- Text accent → warm amber/yellow --- */
+    --brand-green: #F1B24A;
+    --brand-green-dark: #ec9c1b;
+    --brand-green-glow: rgba(241, 178, 74, 0.22);
+    --brand-green-subtle: rgba(241, 178, 74, 0.09);
+
+    /* --- General icons (trust strip, stats, features, steps, job cards) → green --- */
+    --brand-icon: #4D774E;
+    --brand-icon-dark: #4D774E;
+    --brand-icon-glow: rgba(34, 197, 94, 0.22);
+    --brand-icon-subtle: rgba(34, 197, 94, 0.09);
+
+    /* --- Category section icons → orange (fully independent) --- */
+    --brand-icon-category: #f97316;
+    --brand-icon-category-glow: rgba(249, 115, 22, 0.22);
+    --brand-icon-category-subtle: rgba(249, 115, 22, 0.09);
+
+    --ink: #111827;
+    --surface-dark: #163526;
+    --ink-light: #a5aab5;
     --muted: #6b7280;
     --border: #e5e7eb;
     --surface: #ffffff;
@@ -24,16 +40,30 @@ Fonts: Sora (headings) + DM Sans (body)
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
     --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
     --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
-    --shadow-green: 0 8px 32px rgba(34, 197, 94, 0.25);
+    --shadow-green: 0 8px 32px rgba(34, 197, 94, 0.28);
     --transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ====================================================
+   HERO SECTION SCOPED TOKENS
+   ==================================================== */
+.hero-section {
+    --brand-green: #F1B24A;
+    --brand-green-dark: #ec9c1b;
+    --brand-green-glow: rgba(241, 178, 74, 0.22);
+    --brand-green-subtle: rgba(241, 178, 74, 0.09);
+    --ink: #2b4639;
+    --shadow-green: 0 8px 32px #164A41;
+}
+
+/* ================================ */
 
 .main-content > h1:first-child { display: none; }
 *, *::before, *::after { box-sizing: border-box; }
 
 /* ================================
     HERO SECTION
-    ================================ */
+================================ */
 
 .hero-section {
     position: relative;
@@ -138,7 +168,6 @@ Fonts: Sora (headings) + DM Sans (body)
     animation: fadeSlideUp 0.6s 0.18s ease both;
 }
 
-/* Search Bar */
 .hero-search {
     background: rgba(255,255,255,0.055);
     border: 1px solid rgba(255,255,255,0.11);
@@ -154,8 +183,8 @@ Fonts: Sora (headings) + DM Sans (body)
 }
 
 .hero-search:focus-within {
-    border-color: rgba(34,197,94,0.45);
-    box-shadow: 0 0 0 3px rgba(34,197,94,0.09);
+    border-color: rgba(241,178,74,0.45);
+    box-shadow: 0 0 0 3px rgba(241,178,74,0.09);
 }
 
 .hero-search > i { color: var(--brand-green); font-size: 15px; flex-shrink: 0; }
@@ -224,12 +253,11 @@ Fonts: Sora (headings) + DM Sans (body)
 }
 
 .hero-tag:hover {
-    background: rgba(34,197,94,0.1);
-    border-color: rgba(34,197,94,0.3);
+    background: rgba(241,178,74,0.1);
+    border-color: rgba(241,178,74,0.3);
     color: var(--brand-green);
 }
 
-/* Hero Visual Card */
 .hero-visual { position: relative; animation: fadeSlideUp 0.7s 0.14s ease both; }
 
 .hero-card-main {
@@ -277,13 +305,13 @@ Fonts: Sora (headings) + DM Sans (body)
 }
 
 .hero-job-item:first-child {
-    border-color: rgba(34,197,94,0.22);
-    background: rgba(34,197,94,0.04);
+    border-color: rgba(241,178,74,0.22);
+    background: rgba(241,178,74,0.04);
 }
 
 .hero-job-item:hover {
-    background: rgba(34,197,94,0.06);
-    border-color: rgba(34,197,94,0.22);
+    background: rgba(241,178,74,0.06);
+    border-color: rgba(241,178,74,0.22);
     transform: translateX(4px);
 }
 
@@ -298,9 +326,9 @@ Fonts: Sora (headings) + DM Sans (body)
     flex-shrink: 0;
 }
 
-.job-logo-placeholder.green { background: rgba(34,197,94,0.15); color: var(--brand-green); }
-.job-logo-placeholder.blue  { background: rgba(59,130,246,0.15); color: #60a5fa; }
-.job-logo-placeholder.purple{ background: rgba(139,92,246,0.15); color: #a78bfa; }
+.job-logo-placeholder.green  { background: rgba(241,178,74,0.15); color: var(--brand-green); }
+.job-logo-placeholder.blue   { background: rgba(59,130,246,0.15);  color: #60a5fa; }
+.job-logo-placeholder.purple { background: rgba(139,92,246,0.15);  color: #a78bfa; }
 
 .job-item-info { flex: 1; min-width: 0; }
 
@@ -330,9 +358,9 @@ Fonts: Sora (headings) + DM Sans (body)
     font-weight: 700;
     padding: 3px 10px;
     border-radius: 100px;
-    background: rgba(34,197,94,0.12);
+    background: rgba(241,178,74,0.12);
     color: var(--brand-green);
-    border: 1px solid rgba(34,197,94,0.18);
+    border: 1px solid rgba(241,178,74,0.18);
     white-space: nowrap;
 }
 
@@ -364,7 +392,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     TRUST STRIP
-    ================================ */
+================================ */
 
 .trust-strip {
     background: var(--surface-alt);
@@ -413,11 +441,11 @@ Fonts: Sora (headings) + DM Sans (body)
 }
 
 .trust-logo-item:hover { opacity: 1; color: var(--ink); }
-.trust-logo-item i { font-size: 19px; }
+.trust-logo-item i { font-size: 19px; color: var(--brand-icon); }
 
 /* ================================
     STATS SECTION
-    ================================ */
+================================ */
 
 .stats-section {
     padding: 80px 40px;
@@ -452,7 +480,7 @@ Fonts: Sora (headings) + DM Sans (body)
     transform: translateX(-50%) scaleX(0);
     width: 48px;
     height: 3px;
-    background: var(--brand-green);
+    background: var(--brand-icon);
     border-radius: 2px 2px 0 0;
     transition: transform var(--transition);
 }
@@ -464,7 +492,7 @@ Fonts: Sora (headings) + DM Sans (body)
     width: 54px;
     height: 54px;
     margin: 0 auto 16px;
-    background: var(--brand-green-subtle);
+    background: var(--brand-icon-subtle);
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -472,9 +500,9 @@ Fonts: Sora (headings) + DM Sans (body)
     transition: all var(--transition);
 }
 
-.stat-card:hover .stat-icon { background: var(--brand-green); transform: scale(1.07); }
-.stat-icon i { font-size: 21px; color: var(--brand-green); transition: color var(--transition); }
-.stat-card:hover .stat-icon i { color: var(--ink); }
+.stat-card:hover .stat-icon { background: var(--brand-icon); transform: scale(1.07); }
+.stat-icon i { font-size: 21px; color: var(--brand-icon); transition: color var(--transition); }
+.stat-card:hover .stat-icon i { color: white; }
 
 .stat-number {
     font-family: 'Sora', sans-serif;
@@ -489,14 +517,13 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     FEATURED JOBS SECTION
-    ================================ */
+================================ */
 
 .featured-jobs-section {
     padding: 90px 40px;
     background: var(--surface-alt);
 }
 
-/* --- Shared Section Header --- */
 .section-header {
     max-width: 1200px;
     margin: 0 auto 48px;
@@ -555,7 +582,6 @@ Fonts: Sora (headings) + DM Sans (body)
 
 .section-header-action a:hover { border-color: var(--brand-green); }
 
-/* Job Cards */
 .jobs-grid {
     max-width: 1200px;
     margin: 0 auto;
@@ -582,7 +608,7 @@ Fonts: Sora (headings) + DM Sans (body)
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--brand-green), #4ade80);
+    background: linear-gradient(90deg, var(--brand-icon), #4ade80);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform var(--transition);
@@ -628,9 +654,9 @@ Fonts: Sora (headings) + DM Sans (body)
     letter-spacing: 0.04em;
     padding: 4px 10px;
     border-radius: 100px;
-    background: rgba(34,197,94,0.09);
-    color: var(--brand-green);
-    border: 1px solid rgba(34,197,94,0.18);
+    background: var(--brand-icon-subtle);
+    color: var(--brand-icon);
+    border: 1px solid var(--brand-icon-glow);
 }
 
 .job-card-type.remote { background: #eff6ff; color: #2563eb; border-color: rgba(37,99,235,0.18); }
@@ -653,7 +679,7 @@ Fonts: Sora (headings) + DM Sans (body)
     gap: 5px;
 }
 
-.job-card-company i { font-size: 10px; color: var(--brand-green); }
+.job-card-company i { font-size: 10px; color: var(--brand-icon); }
 
 .job-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
 
@@ -698,11 +724,11 @@ Fonts: Sora (headings) + DM Sans (body)
     transition: all var(--transition);
 }
 
-.job-apply-btn:hover { background: var(--brand-green); color: var(--ink); }
+.job-apply-btn:hover { background: var(--brand-icon); color: white; }
 
 /* ================================
     FEATURES SECTION
-    ================================ */
+================================ */
 
 .features-section {
     padding: 90px 40px;
@@ -733,7 +759,7 @@ Fonts: Sora (headings) + DM Sans (body)
     bottom: 0; left: 0;
     width: 100%;
     height: 3px;
-    background: var(--brand-green);
+    background: var(--brand-icon);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform var(--transition);
@@ -741,8 +767,8 @@ Fonts: Sora (headings) + DM Sans (body)
 
 .feature-card:hover {
     background: var(--surface);
-    border-color: var(--brand-green);
-    box-shadow: 0 0 0 1px var(--brand-green), var(--shadow-md);
+    border-color: var(--brand-icon);
+    box-shadow: 0 0 0 1px var(--brand-icon), var(--shadow-md);
     transform: translateY(-3px);
 }
 
@@ -752,8 +778,8 @@ Fonts: Sora (headings) + DM Sans (body)
     width: 54px;
     height: 54px;
     border-radius: 13px;
-    background: var(--brand-green-subtle);
-    border: 1px solid rgba(34,197,94,0.18);
+    background: var(--brand-icon-subtle);
+    border: 1px solid var(--brand-icon-glow);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -761,9 +787,9 @@ Fonts: Sora (headings) + DM Sans (body)
     transition: all var(--transition);
 }
 
-.feature-card:hover .feature-icon { background: var(--brand-green); border-color: var(--brand-green); }
-.feature-icon i { font-size: 21px; color: var(--brand-green); transition: color var(--transition); }
-.feature-card:hover .feature-icon i { color: var(--ink); }
+.feature-card:hover .feature-icon { background: var(--brand-icon); border-color: var(--brand-icon); }
+.feature-icon i { font-size: 21px; color: var(--brand-icon); transition: color var(--transition); }
+.feature-card:hover .feature-icon i { color: white; }
 
 .feature-card h3 {
     font-family: 'Sora', sans-serif;
@@ -777,11 +803,11 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     CATEGORIES SECTION
-    ================================ */
+================================ */
 
 .categories-section {
     padding: 90px 40px;
-    background: var(--ink);
+    background: var(--surface-dark);
 }
 
 .categories-section .section-header { max-width: 1200px; }
@@ -815,13 +841,13 @@ Fonts: Sora (headings) + DM Sans (body)
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(34,197,94,0.07), transparent);
+    background: linear-gradient(135deg, var(--brand-icon-category-glow), transparent);
     opacity: 0;
     transition: opacity var(--transition);
 }
 
 .category-card:hover {
-    border-color: rgba(34,197,94,0.32);
+    border-color: rgba(249, 115, 22, 0.32);
     color: white;
     transform: translateY(-4px);
     box-shadow: 0 8px 32px rgba(0,0,0,0.28);
@@ -843,9 +869,10 @@ Fonts: Sora (headings) + DM Sans (body)
     transition: all var(--transition);
 }
 
-.category-card:hover .category-icon-wrap { background: var(--brand-green); }
-.category-icon-wrap i { font-size: 21px; color: var(--brand-green); transition: color var(--transition); }
-.category-card:hover .category-icon-wrap i { color: var(--ink); }
+/* Category icons → orange, fully independent from --brand-icon */
+.category-icon-wrap i { font-size: 21px; color: var(--brand-icon-category); transition: color var(--transition); }
+.category-card:hover .category-icon-wrap { background: var(--brand-icon-category); }
+.category-card:hover .category-icon-wrap i { color: white; }
 
 .category-card h4 {
     position: relative;
@@ -866,7 +893,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     HOW IT WORKS
-    ================================ */
+================================ */
 
 .how-it-works-section {
     padding: 90px 40px;
@@ -889,7 +916,7 @@ Fonts: Sora (headings) + DM Sans (body)
     left: calc(16.66% + 20px);
     right: calc(16.66% + 20px);
     height: 2px;
-    background: linear-gradient(90deg, var(--brand-green), #4ade80, var(--brand-green));
+    background: linear-gradient(90deg, var(--brand-icon), #4ade80, var(--brand-icon));
     z-index: 0;
 }
 
@@ -921,12 +948,13 @@ Fonts: Sora (headings) + DM Sans (body)
 }
 
 .step-circle i { font-size: 24px; color: var(--muted); transition: color var(--transition); }
+
 .step-number-badge {
     position: absolute;
     top: -8px; right: -8px;
     width: 24px; height: 24px;
-    background: var(--brand-green);
-    color: var(--ink);
+    background: var(--brand-icon);
+    color: white;
     border-radius: 50%;
     font-family: 'Sora', sans-serif;
     font-size: 10.5px;
@@ -936,11 +964,8 @@ Fonts: Sora (headings) + DM Sans (body)
     justify-content: center;
 }
 
-.step-card:hover .step-circle {
-    border-color: var(--brand-green);
-    /* background: var(--brand-green-subtle); */
-}
-.step-card:hover .step-circle i { color: var(--brand-green); }
+.step-card:hover .step-circle { border-color: var(--brand-icon); }
+.step-card:hover .step-circle i { color: var(--brand-icon); }
 
 .step-card h3 {
     font-family: 'Sora', sans-serif;
@@ -954,7 +979,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     TESTIMONIALS
-    ================================ */
+================================ */
 
 .testimonials-section {
     background: var(--surface-alt);
@@ -998,14 +1023,14 @@ Fonts: Sora (headings) + DM Sans (body)
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--brand-green-subtle);
+    background: var(--brand-icon-subtle);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Sora', sans-serif;
     font-size: 13px;
     font-weight: 700;
-    color: var(--brand-green);
+    color: var(--brand-icon);
     flex-shrink: 0;
 }
 
@@ -1021,11 +1046,11 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     CTA SECTION
-    ================================ */
+================================ */
 
 .cta-section {
-    background: var(--ink);
-    padding: 100px 40px;    
+    background: var(--surface-dark);
+    padding: 100px 40px;
     position: relative;
     overflow: hidden;
 }
@@ -1035,8 +1060,8 @@ Fonts: Sora (headings) + DM Sans (body)
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse 55% 75% at 0% 50%, rgba(34,197,94,0.09) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 65% at 100% 50%, rgba(34,197,94,0.07) 0%, transparent 60%);
+        radial-gradient(ellipse 55% 75% at 0% 50%, var(--brand-icon-glow) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 65% at 100% 50%, var(--brand-icon-subtle) 0%, transparent 60%);
 }
 
 .cta-content {
@@ -1067,7 +1092,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     SHARED BUTTONS
-    ================================ */
+================================ */
 
 .btn {
     display: inline-flex;
@@ -1085,7 +1110,7 @@ Fonts: Sora (headings) + DM Sans (body)
     white-space: nowrap;
 }
 
-.btn-primary { background: var(--brand-green); color: var(--ink); border-color: var(--brand-green); }
+.btn-primary { background: var(--brand-green); color: white; border-color: var(--brand-green); }
 .btn-primary:hover { background: var(--brand-green-dark); border-color: var(--brand-green-dark); transform: translateY(-2px); box-shadow: var(--shadow-green); color: white; }
 
 .btn-secondary { background: transparent; color: white; border-color: rgba(255,255,255,0.22); }
@@ -1099,7 +1124,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     ANIMATIONS
-    ================================ */
+================================ */
 
 @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(18px); }
@@ -1108,7 +1133,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 /* ================================
     RESPONSIVE
-    ================================ */
+================================ */
 
 @media (max-width: 1100px) {
     .jobs-grid { grid-template-columns: repeat(2, 1fr); }

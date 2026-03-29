@@ -7,7 +7,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4D774E 0%, #164A41 100%);
     padding: 40px 20px;
     margin: -30px -20px -40px -20px;
 }
@@ -63,7 +63,7 @@
     top: 15px;
     left: 0;
     height: 3px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(90deg, #F1B24A 0%, #ec9c1b 100%);
     transition: width 0.4s ease;
     z-index: 1;
 }
@@ -94,15 +94,15 @@
 }
 
 .progress-step.active .progress-circle {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #F1B24A;
+    background: linear-gradient(135deg, #F1B24A 0%, #ec9c1b 100%);
     color: white;
     transform: scale(1.1);
 }
 
 .progress-step.completed .progress-circle {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #F1B24A;
+    background: linear-gradient(135deg, #F1B24A 0%, #ec9c1b 100%);
     color: white;
 }
 
@@ -114,7 +114,7 @@
 }
 
 .progress-step.active .progress-label {
-    color: #667eea;
+    color: #F1B24A;
     font-weight: 600;
 }
 
@@ -172,7 +172,7 @@
 
 .form-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #4D774E;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     background: white;
 }
@@ -211,7 +211,7 @@ textarea.form-input {
 }
 
 .next-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #F1B24A 0%, #ec9c1b 100%);
     color: white;
     flex: 1;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);

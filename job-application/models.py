@@ -225,6 +225,47 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+# =========================
+# FOLLOW TABLE
+# =========================
+class Follow(db.Model):
+ 
+    id = db.Column(db.Integer, primary_key=True)
+ 
+    # Who is following
+    follower_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    # Who is being followed
+    followed_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+ 
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+ 
+    # Ensure a user can't follow the same person twice
+    __table_args__ = (
+        db.UniqueConstraint("follower_id", "followed_id", name="unique_follow"),
+    )
+ 
+    follower = db.relationship("User", foreign_keys=[follower_id], backref="following")
+    followed = db.relationship("User", foreign_keys=[followed_id], backref="followers")
+ 
+ 
+# =========================
+# MESSAGE TABLE
+# =========================
+class Message(db.Model):
+ 
+    id = db.Column(db.Integer, primary_key=True)
+ 
+    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+ 
+    body = db.Column(db.Text, nullable=False)
+ 
+    is_read = db.Column(db.Boolean, default=False)
+ 
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+ 
+    sender = db.relationship("User", foreign_keys=[sender_id], backref="sent_messages")
+    receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
 
 # =========================
 # HR FEEDBACK TABLE
