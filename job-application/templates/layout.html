@@ -16,8 +16,25 @@
 <script src="{{ url_for('static', filename='js/hr_temporary.js') }}"></script>
 
 <style>
-
-</style>
+    .theme-toggle-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    .theme-toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+    }
+    </style>
 </head>
 
 <body>
@@ -37,6 +54,11 @@
     </div>
 
     <div class="nav-right">
+        <!-- THEME TOGGLE -->
+        <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle light/dark mode">
+            <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+
         {% if current_user.is_authenticated %}
             <div class="user-info">
 
@@ -338,7 +360,9 @@
 </main>
 
 <!-- FOOTER -->
-{% if request.endpoint != 'auth.login' and request.endpoint != 'auth.register' and request.endpoint != 'admin.admin_login' and request.endpoint != 'chat.inbox'%}
+{% if request.endpoint != 'auth.login' and request.endpoint != 'auth.forgot_password' and request.endpoint != 'auth.reset_password' 
+and request.endpoint != 'auth.google_applicant_profile' and request.endpoint != 'auth.google_recruiter_profile' and request.endpoint != 'auth.google_role_select'
+and request.endpoint != 'auth.register' and request.endpoint != 'admin.admin_login' and request.endpoint != 'chat.inbox'%}
 <footer class="footer">
 
     <div class="footer-content">

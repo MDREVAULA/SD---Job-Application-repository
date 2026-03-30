@@ -11,12 +11,13 @@ Clean, polished, real job-site feel
 
 .job-board-container {
     min-height: 100vh;
-    background: #F4F6F9;
+    background: var(--bg-primary);
     font-family: 'DM Sans', sans-serif;
+    transition: background 0.3s ease;
 }
 
 /* ================================
-    SEARCH HERO
+    SEARCH HERO — always dark/green, both modes
     ================================ */
 
 .search-hero {
@@ -43,7 +44,7 @@ Clean, polished, real job-site feel
     bottom: -1px;
     left: 0;
     right: 0;
-    background: #F4F6F9;
+    background: var(--bg-primary, #F4F6F9);
 }
 
 .search-hero-content {
@@ -101,8 +102,8 @@ Clean, polished, real job-site feel
     border: 2px solid transparent;
     border-radius: 10px;
     font-size: 0.9375rem;
-    background: white;
-    color: #111827;
+    background: var(--input-bg);
+    color: var(--text-primary);
     font-weight: 500;
     font-family: 'DM Sans', sans-serif;
     box-shadow: 0 2px 12px rgba(0,0,0,0.12);
@@ -137,9 +138,10 @@ Clean, polished, real job-site feel
     ================================ */
 
 .active-filters-bar {
-    background: #fff;
-    border-bottom: 1px solid #e5e7eb;
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
     padding: 10px 24px;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .active-filters-inner {
@@ -153,7 +155,7 @@ Clean, polished, real job-site feel
 
 .filters-label {
     font-size: 0.8125rem;
-    color: #6b7280;
+    color: var(--text-muted, #6b7280);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -171,8 +173,8 @@ Clean, polished, real job-site feel
     align-items: center;
     gap: 6px;
     padding: 4px 12px;
-    background: #e8f4ea;
-    color: #164A41;
+    background: var(--icon);
+    color: var(--icon-light-2);
     border-radius: 20px;
     font-size: 0.8125rem;
     font-weight: 600;
@@ -181,7 +183,7 @@ Clean, polished, real job-site feel
 .filter-tag button {
     background: none;
     border: none;
-    color: #164A41;
+    color: var(--icon-light);
     cursor: pointer;
     padding: 0;
     font-size: 11px;
@@ -198,7 +200,7 @@ Clean, polished, real job-site feel
     margin-left: auto;
     background: none;
     border: none;
-    color: #6b7280;
+    color: var(--text-muted, #6b7280);
     font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
@@ -212,8 +214,8 @@ Clean, polished, real job-site feel
 }
 
 .clear-all-btn:hover {
-    background: #f3f4f6;
-    color: #374151;
+    background: var(--bg-surface-alt, #f3f4f6);
+    color: var(--text-secondary, #374151);
 }
 
 /* ================================
@@ -236,12 +238,12 @@ Clean, polished, real job-site feel
 
 .results-count {
     font-size: 0.9375rem;
-    color: #6b7280;
+    color: var(--text-muted, #6b7280);
     font-weight: 500;
 }
 
 .results-count span {
-    color: #164A41;
+    color: var(--icon-light);
     font-weight: 700;
     font-size: 1.0625rem;
 }
@@ -253,26 +255,26 @@ Clean, polished, real job-site feel
 
 .sort-btn {
     padding: 9px 16px;
-    background: white;
-    border: 1.5px solid #e5e7eb;
+    background: var(--bg-secondary, white);
+    border: 1.5px solid var(--border-color, #e5e7eb);
     border-radius: 8px;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--text-secondary, #374151);
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
     transition: all 0.2s ease;
     font-family: 'DM Sans', sans-serif;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px var(--shadow-color, rgba(0,0,0,0.05));
 }
 
 .sort-btn:hover,
 .sort-btn.open {
-    background: #f9fafb;
-    border-color: #164A41;
-    color: #164A41;
+    background: var(--bg-surface-alt, #f9fafb);
+    border-color: var(--icon-light);
+    color: var(--icon-light);
 }
 
 .sort-chevron {
@@ -289,10 +291,10 @@ Clean, polished, real job-site feel
     position: absolute;
     right: 0;
     top: calc(100% + 6px);
-    background: white;
-    border: 1.5px solid #e5e7eb;
+    background: var(--bg-secondary, white);
+    border: 1.5px solid var(--border-color, #e5e7eb);
     border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 24px var(--shadow-color, rgba(0,0,0,0.1));
     min-width: 180px;
     z-index: 100;
     overflow: hidden;
@@ -313,31 +315,31 @@ Clean, polished, real job-site feel
     text-align: left;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
+    color: var(--text-secondary, #374151);
     cursor: pointer;
     transition: all 0.15s;
     font-family: 'DM Sans', sans-serif;
 }
 
 .sort-option i {
-    color: #9ca3af;
+    color: var(--text-muted, #9ca3af);
     width: 16px;
     font-size: 13px;
 }
 
 .sort-option:hover {
-    background: #f9fafb;
-    color: #111827;
+    background: var(--bg-surface-alt, #f9fafb);
+    color: var(--text-primary, #111827);
 }
 
 .sort-option.active {
-    background: #e8f4ea;
-    color: #164A41;
+    background: var(--icon);
+    color: var(--icon-light-2);
     font-weight: 700;
 }
 
 .sort-option.active i {
-    color: #164A41;
+    color: var(--icon-light-2);
 }
 
 /* ================================
@@ -352,17 +354,17 @@ Clean, polished, real job-site feel
 
 /* Job Card */
 .job-item {
-    background: white;
+    background: var(--bg-secondary, white);
     border-radius: 12px;
     padding: 22px 24px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 20px;
-    border: 1.5px solid #e9ecef;
+    border: 1.5px solid var(--border-color, #e9ecef);
     transition: all 0.22s ease;
     cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 4px var(--shadow-color, rgba(0,0,0,0.04));
     position: relative;
     overflow: hidden;
 }
@@ -386,7 +388,7 @@ Clean, polished, real job-site feel
 }
 
 .job-item:hover::before {
-    background: #4D774E;
+    background: var(--icon);
 }
 
 /* Job Main */
@@ -404,8 +406,8 @@ Clean, polished, real job-site feel
     border-radius: 10px;
     flex-shrink: 0;
     overflow: hidden;
-    border: 1.5px solid #e9ecef;
-    background: #f8f9fa;
+    border: 1.5px solid var(--border-color, #e9ecef);
+    background: var(--bg-surface-alt, #f8f9fa);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -445,15 +447,15 @@ Clean, polished, real job-site feel
 .job-title-link {
     font-size: 1.125rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary, #111827);
     margin: 0;
     line-height: 1.4;
     transition: color 0.2s ease;
 }
 
-.job-item:hover .job-title-link {
+/* .job-item:hover .job-title-link {
     color: #164A41;
-}
+} */
 
 .expiry-badge {
     flex-shrink: 0;
@@ -472,7 +474,7 @@ Clean, polished, real job-site feel
 
 .job-company {
     font-size: 0.9rem;
-    color: #4D774E;
+    color: var(--icon-light);
     margin: 0 0 12px 0;
     font-weight: 600;
 }
@@ -500,8 +502,9 @@ Clean, polished, real job-site feel
 }
 
 .location-tag {
-    background: #f3f4f6;
-    color: #4b5563;
+    background: var(--bg-surface-alt, #f3f4f6);
+    transition: background 0.3s ease;   
+    color: var(--text-secondary, #4b5563);
 }
 
 .field-tag {
@@ -514,45 +517,22 @@ Clean, polished, real job-site feel
     color: #065f46;
 }
 
-/* Job Type Tags — color-coded */
+/* Job Type Tags */
 .type-tag {
     font-weight: 700;
 }
 
-.type-full-time {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.type-part-time {
-    background: #fce7f3;
-    color: #9d174d;
-}
-
-.type-internship {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.type-freelance {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.type-contract {
-    background: #e0e7ff;
-    color: #3730a3;
-}
-
-.type-other {
-    background: #f3f4f6;
-    color: #374151;
-}
+.type-full-time   { background: #dbeafe; color: #1d4ed8; }
+.type-part-time   { background: #fce7f3; color: #9d174d; }
+.type-internship  { background: #fef3c7; color: #92400e; }
+.type-freelance   { background: #d1fae5; color: #065f46; }
+.type-contract    { background: #e0e7ff; color: #3730a3; }
+.type-other       { background: var(--bg-surface-alt, #f3f4f6); color: var(--text-secondary, #374151); }
 
 /* Job Snippet */
 .job-snippet {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--text-muted, #6b7280);
     line-height: 1.65;
     margin: 0;
     display: -webkit-box;
@@ -575,7 +555,7 @@ Clean, polished, real job-site feel
 
 .btn-apply {
     padding: 11px 26px;
-    background: #164A41;
+    background: #4D774E;
     color: white;
     border: none;
     border-radius: 8px;
@@ -593,14 +573,13 @@ Clean, polished, real job-site feel
 .btn-apply:hover {
     background: #F1B24A;
     color: white;
-    box-shadow: 0 4px 14px rgba(241,178,74,0.35);
 }
 
 .btn-save {
     padding: 10px;
-    background: white;
-    color: #9ca3af;
-    border: 1.5px solid #e5e7eb;
+    background: var(--bg-secondary, white);
+    color: var(--text-muted, #9ca3af);
+    border: 1.5px solid var(--border-color, #e5e7eb);
     border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
@@ -629,34 +608,34 @@ Clean, polished, real job-site feel
 .no-results {
     text-align: center;
     padding: 80px 20px;
-    background: white;
+    background: var(--bg-secondary, white);
     border-radius: 12px;
-    border: 1.5px solid #e9ecef;
+    border: 1.5px solid var(--border-color, #e9ecef);
 }
 
 .no-results i {
     font-size: 52px;
-    color: #d1d5db;
+    color: var(--text-muted, #d1d5db);
     margin-bottom: 18px;
     display: block;
 }
 
 .no-results h3 {
     font-size: 1.375rem;
-    color: #374151;
+    color: var(--text-secondary, #374151);
     margin: 0 0 8px 0;
     font-weight: 700;
 }
 
 .no-results p {
     font-size: 0.9375rem;
-    color: #9ca3af;
+    color: var(--text-muted, #9ca3af);
     margin: 0 0 24px 0;
 }
 
 .reset-btn {
     padding: 11px 28px;
-    background: #164A41;
+    background: var(--icon);
     color: white;
     border: none;
     border-radius: 8px;
@@ -668,7 +647,7 @@ Clean, polished, real job-site feel
 }
 
 .reset-btn:hover {
-    background: #4D774E;
+    background: var(--icon-light);
 }
 
 /* ================================
@@ -676,85 +655,25 @@ Clean, polished, real job-site feel
     ================================ */
 
 @media (max-width: 768px) {
-    .search-hero {
-        padding: 44px 20px 64px;
-    }
-
-    .search-hero h1 {
-        font-size: 2rem;
-    }
-
-    .search-box {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-
-    .results-header {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .job-item {
-        flex-direction: column;
-        gap: 16px;
-        padding: 18px;
-    }
-
-    .job-main {
-        width: 100%;
-    }
-
-    .job-actions {
-        width: 100%;
-        flex-direction: row;
-    }
-
-    .btn-apply {
-        flex: 1;
-    }
-
-    .btn-save {
-        width: 46px;
-        flex-shrink: 0;
-    }
+    .search-hero { padding: 44px 20px 64px; }
+    .search-hero h1 { font-size: 2rem; }
+    .search-box { grid-template-columns: 1fr; gap: 10px; }
+    .results-header { flex-wrap: wrap; gap: 10px; }
+    .job-item { flex-direction: column; gap: 16px; padding: 18px; }
+    .job-main { width: 100%; }
+    .job-actions { width: 100%; flex-direction: row; }
+    .btn-apply { flex: 1; }
+    .btn-save { width: 46px; flex-shrink: 0; }
 }
 
 @media (max-width: 480px) {
-    .search-hero h1 {
-        font-size: 1.625rem;
-    }
-
-    .job-board-content {
-        padding: 20px 16px 48px;
-    }
-
-    .jobs-list {
-        gap: 10px;
-    }
-
-    .job-item {
-        padding: 16px;
-    }
-
-    .job-logo {
-        width: 48px;
-        height: 48px;
-    }
-
-    .logo-placeholder {
-        font-size: 18px;
-    }
-
-    .job-title-link {
-        font-size: 1rem;
-    }
-
-    .job-metadata {
-        gap: 6px;
-    }
-
-    .meta-tag {
-        font-size: 0.75rem;
-        padding: 3px 8px;
-    }
+    .search-hero h1 { font-size: 1.625rem; }
+    .job-board-content { padding: 20px 16px 48px; }
+    .jobs-list { gap: 10px; }
+    .job-item { padding: 16px; }
+    .job-logo { width: 48px; height: 48px; }
+    .logo-placeholder { font-size: 18px; }
+    .job-title-link { font-size: 1rem; }
+    .job-metadata { gap: 6px; }
+    .meta-tag { font-size: 0.75rem; padding: 3px 8px; }
 }

@@ -8,32 +8,42 @@ Clean, flat design inspired by LinkedIn/Facebook People
 :root {
     --p-primary:        #4D774E;
     --p-primary-hover:  #9DC88D;
-    --p-primary-light:  #e8f0fe;
+    --p-primary-light:  rgba(77, 119, 78, 0.1);
     --p-danger:         #b91c1c;
-
+ 
+    --p-shadow-sm:  0 0 0 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
+    --p-shadow:     0 0 0 1px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.07);
+ 
+    --p-radius:     8px;
+    --p-radius-sm:  6px;
+    --p-radius-lg:  12px;
+    --p-radius-xl:  16px;
+ 
+    /* Dark mode defaults */
+    --p-bg:             #1e2022;
+    --p-surface:        #252829;
+    --p-surface-2:      #2c2f31;
+    --p-border:         rgba(255, 255, 255, 0.1);
+    --p-border-light:   rgba(255, 255, 255, 0.06);
+    --p-text:           #e5e7eb;
+    --p-text-2:         #d1d5db;
+    --p-muted:          #9ca3af;
+    --p-subtle:         #6b7280;
+}
+ 
+[data-theme="light"] {
     --p-bg:             #f3f2ef;
     --p-surface:        #ffffff;
     --p-surface-2:      #f9fafb;
     --p-border:         #e0e0e0;
     --p-border-light:   #ebebeb;
-
     --p-text:           #1a1a1a;
     --p-text-2:         #333333;
     --p-muted:          #666666;
     --p-subtle:         #999999;
-
-    --role-applicant:   #057642;
-    --role-recruiter:   #0a66c2;
-    --role-hr:          #5f2eea;
-
-    --p-shadow-sm:  0 0 0 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
-    --p-shadow:     0 0 0 1px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.07);
-
-    --p-radius:     8px;
-    --p-radius-sm:  6px;
-    --p-radius-lg:  12px;
-    --p-radius-xl:  16px;
+    --p-primary-light:  #e8f0fe;
 }
+
 
 /* ── BASE ── */
 .people-page {
@@ -171,7 +181,7 @@ Clean, flat design inspired by LinkedIn/Facebook People
 
 .role-tab:hover {
     border-color: var(--p-primary);
-    color: var(--p-primary);
+    color: var(--icon-light);
     background: var(--p-primary-light);
 }
 
@@ -318,7 +328,7 @@ Clean, flat design inspired by LinkedIn/Facebook People
     margin-bottom: 0.3rem;
 }
 
-.person-role-pill.role-applicant { background: #d1fae5; color: #065f46; }
+.person-role-pill.role-applicant { background: #ffeacc; color: #c79038; }
 .person-role-pill.role-recruiter  { background: #dbeafe; color: #1e40af; }
 .person-role-pill.role-hr         { background: #ede9fe; color: #5b21b6; }
 
@@ -402,8 +412,8 @@ Clean, flat design inspired by LinkedIn/Facebook People
 
 .btn-follow.following {
     background: var(--p-surface);
-    color: var(--p-primary);
-    border-color: var(--p-primary);
+    color: var(--icon-light);
+    border-color: var(--icon-light);
 }
 
 .btn-follow.following:hover {
@@ -425,14 +435,14 @@ Clean, flat design inspired by LinkedIn/Facebook People
 }
 
 .btn-message:hover {
-    border-color: var(--p-primary);
-    color: var(--p-primary);
+    border-color: var(--icon-light);
+    color: var(--icon-light);
     background: var(--p-primary-light);
 }
 
 .btn-view-profile:hover {
-    border-color: var(--p-border);
-    color: var(--p-text);
+    border-color: var(--icon-light);
+    color: var(--icon-light);
     background: var(--p-surface-2);
 }
 
@@ -666,7 +676,7 @@ Clean, flat design inspired by LinkedIn/Facebook People
 
 .modal-btn-follow.following {
     background: var(--p-surface);
-    color: var(--p-primary);
+    color: var(--icon-light);
     border-color: var(--p-primary);
 }
 
@@ -677,8 +687,8 @@ Clean, flat design inspired by LinkedIn/Facebook People
 }
 
 .modal-btn-message:hover {
-    border-color: var(--p-primary);
-    color: var(--p-primary);
+    border-color: var(--icon-light);
+    color: var(--icon-light);
     background: var(--p-primary-light);
 }
 
@@ -713,7 +723,7 @@ Clean, flat design inspired by LinkedIn/Facebook People
     margin-bottom: 1.125rem;
 }
 
-.modal-role-pill.role-applicant { background: #d1fae5; color: #065f46; }
+.modal-role-pill.role-applicant { background: #ffeacc; color: #c79038; }
 .modal-role-pill.role-recruiter  { background: #dbeafe; color: #1e40af; }
 .modal-role-pill.role-hr         { background: #ede9fe; color: #5b21b6; }
 

@@ -7,6 +7,20 @@
     box-sizing: border-box;
 }
 
+/* ================================
+   THEME VARIABLES
+   ================================ */
+   root {
+    /* Link Color */
+    --link-color: #667eea;
+    --link-hover: #764ba2;
+   }
+
+   [data-theme="light"] {
+    --link-color: #8c9de8;
+    --link-hover: #927fa4;
+   }
+
 /* ==========================================
    REMOVE LAYOUT SPACING FOR LOGIN PAGE
    ========================================== */
@@ -78,8 +92,9 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: var(--bg-primary);
     position: relative;
+    transition: background 0.3s ease;
 }
 
 /* Subtle animated background pattern */
@@ -113,7 +128,7 @@ html, body {
 .login-box h2 {
     font-size: 36px;
     font-weight: 700;
-    color: #222;
+    color: var(--text-primary); 
     margin-bottom: 16px;
     letter-spacing: -0.5px;
 }
@@ -130,7 +145,7 @@ html, body {
 
 /* Subtitle text */
 .login-subtitle {
-    color: #6c757d;
+    color: var(--text-muted);
     font-size: 15px;
     margin-bottom: 36px;
     line-height: 1.5;
@@ -172,8 +187,9 @@ html, body {
     border-radius: 12px;
     font-size: 15px;
     font-weight: 500;
-    color: #222;
-    background: #f8f9fa;
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
     transition: all 0.3s ease;
 }
 
@@ -185,8 +201,8 @@ html, body {
 /* Input focus effect */
 .input-group input:focus {
     outline: none;
-    border-color: #4D774E;
-    background: #efffef;
+    border-color: var(--brand-green-dark);
+    background: var(--bg-secondary);
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
@@ -212,7 +228,6 @@ html, body {
     cursor: pointer;
     transition: all 0.3s ease;
     margin-top: 32px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     position: relative;
     overflow: hidden;
 }
@@ -228,10 +243,9 @@ html, body {
     transition: left 0.5s ease;
 }
 
-.login-submit-btn:hover {
+/* .login-submit-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
-}
+} */
 
 .login-submit-btn:hover::before {
     left: 100%;
@@ -425,14 +439,14 @@ html, body {
     margin: 20px 0 28px 0;
 }
 
-.forgot-link {
+/* .forgot-link {
     text-decoration: none;
-    color: #667eea;
+    color: var(--link-color);
     font-weight: 500;
     transition: color 0.2s ease;
 }
 
 .forgot-link:hover {
-    color: #764ba2;
+    color: var(--link-hover);
     text-decoration: underline;
-}
+} */

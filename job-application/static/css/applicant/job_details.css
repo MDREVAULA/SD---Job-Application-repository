@@ -7,10 +7,9 @@
     --primary-color: #4D774E;
     --primary-hover: #164A41;
     --secondary-color: #057642;
-    --text-primary: #000000;
+    /* --text-primary: #000000;
     --text-secondary: #666666;
-    --text-tertiary: #999999;
-    --border-color: #d4d4d8;
+    --text-tertiary: #999999; */
     --bg-white: #ffffff;
     --bg-gray-50: #fafafa;
     --bg-gray-100: #f4f4f5;
@@ -29,7 +28,8 @@
    ================================ */
 
 .job-details-wrapper {
-    background: var(--bg-gray-50);
+    background: var(--bg-primary);
+    transition: background 0.3s ease;
     min-height: 100vh;
     padding: 24px 0 80px;
     margin: 0;
@@ -64,7 +64,7 @@
 }
 
 .breadcrumb-link:hover {
-    color: var(--primary-color);
+    color: var(--icon-light);
 }
 
 .breadcrumb-separator {
@@ -86,12 +86,13 @@
    ================================ */
 
 .job-header-card {
-    background: var(--bg-white);
+    background: var(--bg-secondary);
+    transition: background 0.3s ease;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 32px;
     margin-bottom: 24px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-color);
 }
 
 .job-header-top {
@@ -101,7 +102,7 @@
     gap: 24px;
     margin-bottom: 28px;
     padding-bottom: 28px;
-    border-bottom: 1px solid var(--bg-gray-100);
+    border-bottom: 1px solid var(--bg-hover);
 }
 
 .company-branding {
@@ -213,7 +214,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: var(--bg-white);
+    background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     font-size: 15px;
@@ -225,8 +226,8 @@
 
 .btn-save:hover,
 .btn-share:hover {
-    background: var(--bg-gray-50);
-    border-color: var(--text-secondary);
+    background: var(--brand-accent);
+    border-color: var(--brand-accent-dark);
 }
 
 .btn-share {
@@ -262,7 +263,7 @@
 }
 
 .salary-item i {
-    color: var(--secondary-color);
+    color: var(--icon-light);
 }
 
 .info-content {
@@ -286,7 +287,7 @@
 }
 
 .salary-item .info-value {
-    color: var(--secondary-color);
+    color: var(--icon-light);
     font-weight: 700;
 }
 
@@ -311,7 +312,7 @@
 }
 
 .btn-apply-primary:hover {
-    background: var(--primary-hover);
+    background: var(--brand-accent);
     box-shadow: var(--shadow-lg);
     transform: translateY(-1px);
     color: white;
@@ -323,7 +324,7 @@
     justify-content: center;
     gap: 10px;
     padding: 14px 32px;
-    background: var(--bg-gray-100);
+    background: var(--bg-primary);
     color: var(--text-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -355,11 +356,12 @@
 }
 
 .content-section {
-    background: var(--bg-white);
+    background: var(--bg-secondary);
+    transition: background  0.3s ease;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 32px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-color);
 }
 
 .section-heading {
@@ -371,12 +373,12 @@
     color: var(--text-primary);
     margin: 0 0 20px 0;
     padding-bottom: 16px;
-    border-bottom: 2px solid var(--bg-gray-100);
+    border-bottom: 2px solid var(--bg-hover);
 }
 
 .section-heading i {
     font-size: 18px;
-    color: var(--primary-color);
+    color: var(--icon-light);
 }
 
 .section-body {
@@ -407,7 +409,8 @@
     left: 0;
     right: 0;
     height: 60px;
-    background: linear-gradient(to bottom, transparent, var(--bg-white));
+    background: linear-gradient(to bottom, transparent, var(--bg-secondary));
+    transition: background 0.3s ease;
     pointer-events: none;
     transition: opacity 0.3s ease;
 }
@@ -427,13 +430,13 @@
     border-radius: var(--radius-md);
     font-size: 14px;
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--icon-light);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-toggle-description:hover {
-    background: var(--bg-gray-50);
+    background: var(--bg-primary);
     border-color: var(--primary-color);
 }
 
@@ -458,28 +461,28 @@
     align-items: flex-start;
     gap: 16px;
     padding: 20px;
-    background: var(--bg-gray-50);
-    border: 1px solid var(--bg-gray-100);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     transition: all 0.2s ease;
 }
 
 .company-detail-item:hover {
-    background: var(--bg-white);
+    background: var(--bg-hover);
     border-color: var(--border-color);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-color);
 }
 
 .detail-icon {
     width: 40px;
     height: 40px;
-    background: var(--bg-white);
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--primary-color);
+    color: var(--icon-light);
     font-size: 18px;
     flex-shrink: 0;
 }
@@ -563,7 +566,8 @@
     transform: translateY(-50%);
     width: 44px;
     height: 44px;
-    background: rgba(255, 255, 255, 0.98);
+    background: var(--bg-secondary);
+    transition: background 0.3s ease;
     border: 1px solid var(--border-color);
     border-radius: 50%;
     color: var(--text-primary);
@@ -573,16 +577,16 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-color);
     z-index: 10;
 }
 
 .gallery-nav-btn:hover {
-    background: white;
-    border-color: var(--primary-color);
-    color: var(--primary-color);
+    background: var(--bg-primary);
+    border-color: var(--icon-light-2);
+    color: var(--icon-light-2);
     transform: translateY(-50%) scale(1.1);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-color);
 }
 
 .prev-btn {
@@ -598,8 +602,8 @@
     bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 13px;
@@ -662,8 +666,8 @@
 }
 
 .thumbnail-btn.active {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 1px var(--primary-color);
+    border-color: var(--icon-light-2);
+    box-shadow: 0 0 0 1px var(--icon-light);
 }
 
 /* ================================
@@ -679,11 +683,12 @@
 }
 
 .sidebar-card {
-    background: var(--bg-white);
+    background: var(--bg-secondary);
+    transition: background 0.3s ease;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-color);
 }
 
 .sidebar-card-title {
@@ -692,7 +697,7 @@
     color: var(--text-primary);
     padding: 20px 24px;
     margin: 0;
-    border-bottom: 1px solid var(--bg-gray-100);
+    border-bottom: 1px solid var(--bg-hover);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -723,7 +728,7 @@
 .overview-icon {
     width: 36px;
     height: 36px;
-    background: var(--bg-gray-50);
+    background: var(--bg-primary);
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
@@ -734,8 +739,8 @@
 }
 
 .salary-overview .overview-icon {
-    background: #e6f7f0;
-    color: var(--secondary-color);
+    background: var(--icon);
+    color: var(--icon-light-2);
 }
 
 .overview-content {
@@ -789,7 +794,7 @@
 }
 
 .btn-sidebar-apply:hover {
-    background: var(--primary-hover);
+    background: var(--brand-accent);
     box-shadow: var(--shadow-md);
     color: white;
 }
@@ -801,7 +806,7 @@
     justify-content: center;
     gap: 10px;
     padding: 12px 24px;
-    background: var(--bg-white);
+    background: var(--bg-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -812,8 +817,8 @@
 }
 
 .btn-sidebar-save:hover {
-    background: var(--bg-gray-50);
-    border-color: var(--text-secondary);
+    background: var(--bg-hover);
+    border-color: var(--shadow-color);
 }
 
 .btn-sidebar-disabled {
@@ -823,7 +828,7 @@
     justify-content: center;
     gap: 10px;
     padding: 14px 24px;
-    background: var(--bg-gray-100);
+    background: var(--bg-primary);
     color: var(--text-tertiary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -841,6 +846,7 @@
 .tips-card .sidebar-card-title {
     background: rgba(255, 255, 255, 0.5);
     border-bottom-color: #F1B24A;
+    color: black;
 }
 
 .tips-card .sidebar-card-title i {
@@ -886,7 +892,7 @@
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
-    border: 2px solid var(--bg-gray-200);
+    border: 2px solid var(--border-color);
 }
 
 .recruiter-avatar-img {

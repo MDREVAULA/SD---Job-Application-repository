@@ -5,17 +5,19 @@
 }
 
 .help-center {
+    background: var(--bg-primary);
+    transition: background 0.3s ease;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-    background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 50%, #FAF5FF 100%);
     min-height: 100vh;
     padding-bottom: 40px;
 }
 
 /* Header Section */
 .help-header {
-    background: #FFFFFF;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid #E5E7EB;
+    background: var(--bg-secondary);
+    transition: background 0.3s ease;
+    border-color: var(--border-color);
+    box-shadow: 0 1px 3px var(--shadow-color);
     padding: 48px 24px;
     margin-bottom: 48px;
 }
@@ -32,7 +34,7 @@
     justify-content: center;
     width: 64px;
     height: 64px;
-    background: #9DC88D;
+    background: var(--icon);
     border-radius: 50%;
     margin-bottom: 16px;
 }
@@ -40,19 +42,19 @@
 .header-icon svg {
     width: 32px;
     height: 32px;
-    color: #4D774E;
+    color: var(--icon-light);
 }
 
 .help-center h1 {
     font-size: 2.25rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--text-primary);
     margin: 0 0 12px 0;
 }
 
 .header-subtitle {
     font-size: 1.125rem;
-    color: #6B7280;
+    color: var(--text-muted);
     margin: 0;
 }
 
@@ -86,7 +88,9 @@
     border: 2px solid #E5E7EB;
     font-size: 1rem;
     transition: all 0.2s ease;
-    background: #FFFFFF;
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -110,21 +114,21 @@
     font-weight: 500;
     font-size: 0.875rem;
     border: 1px solid #E5E7EB;
-    background: #FFFFFF;
-    color: #374151;
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .category-btn:hover {
-    background: #F3F4F6;
+    background: var(--bg-surface-alt)
 }
 
 .category-btn.active {
     background: #ec9c1b;;
     color: #FFFFFF;
-    border-color: #f97316;;
-    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+    border-color: #f97316;
 }
 
 /* Questions List */
@@ -136,10 +140,11 @@
 
 /* Question Card */
 .help-center ul li {
-    background: #FFFFFF;
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
     margin-bottom: 12px;
     border-radius: 12px;
-    border: 1px solid #E5E7EB;
+    border-color: var(--border-color);
     overflow: hidden;
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -159,7 +164,7 @@
 }
 
 .question-header:hover {
-    background: #F9FAFB;
+    background: var(--bg-surface-alt)
 }
 
 .question-content {
@@ -170,7 +175,7 @@
 }
 
 .question-icon {
-    color: #4D774E;;
+    color: var(--icon-light);
     width: 20px;
     height: 20px;
     flex-shrink: 0;
@@ -185,7 +190,7 @@
     display: block;
     font-weight: 600;
     font-size: 1.125rem;
-    color: #111827;
+    color: var(--text-primary);
     margin-bottom: 6px;
 }
 
@@ -193,8 +198,8 @@
     display: inline-block;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #4D774E;;
-    background: #EFF6FF;
+    color: var(--text-primary);
+    background: var(--icon);
     padding: 4px 8px;
     border-radius: 4px;
 }
@@ -213,6 +218,7 @@
 
 /* Answer */
 .help-center .answer {
+    color: var(--text-secondary);
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease, padding 0.3s ease;
@@ -222,11 +228,11 @@
 .help-center ul li.active .answer {
     max-height: 500px;
     padding: 0 24px 20px 60px;
-    border-top: 1px solid #F3F4F6;
+    border-top: 1px solid var(--border-subtle);
 }
 
 .help-center .answer p {
-    color: #4B5563;
+    color: var(--text-secondary);
     line-height: 1.6;
     margin: 12px 0 0 0;
 }
@@ -252,7 +258,7 @@
     justify-content: center;
     width: 80px;
     height: 80px;
-    background: #F3F4F6;
+    background: var(--bg-surface-alt);
     border-radius: 50%;
     margin-bottom: 16px;
 }
@@ -266,12 +272,12 @@
 .no-results h3 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-primary);
     margin: 0 0 8px 0;
 }
 
 .no-results p {
-    color: #6B7280;
+    color: var(--text-muted);
     margin: 0;
 }
 
@@ -282,7 +288,7 @@
     padding: 48px 32px;
     text-align: center;
     margin-top: 48px;
-    box-shadow: 0 10px 25px rgba(37, 235, 70, 0.454);
+    box-shadow: var(--shadpw-color);
 }
 
 .contact-support h2 {

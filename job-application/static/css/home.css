@@ -10,14 +10,14 @@ Fonts: Sora (headings) + DM Sans (body)
    ==================================================== */
 :root {
     /* --- Text accent → warm amber/yellow --- */
-    --brand-green: #F1B24A;
-    --brand-green-dark: #ec9c1b;
-    --brand-green-glow: rgba(241, 178, 74, 0.22);
-    --brand-green-subtle: rgba(241, 178, 74, 0.09);
-
+    --brand-yellow: #F1B24A;
+    --brand-yellow-dark: #ec9c1b;
+    --brand-yellow-glow: rgba(241, 178, 74, 0.22);
+    --brand-yellow-subtle: rgba(241, 178, 74, 0.09);
+    
     /* --- General icons (trust strip, stats, features, steps, job cards) → green --- */
-    --brand-icon: #4D774E;
-    --brand-icon-dark: #4D774E;
+    --brand-icon: #9DC88D;
+    --brand-icon-dark: #9DC88D;
     --brand-icon-glow: rgba(34, 197, 94, 0.22);
     --brand-icon-subtle: rgba(34, 197, 94, 0.09);
 
@@ -26,32 +26,56 @@ Fonts: Sora (headings) + DM Sans (body)
     --brand-icon-category-glow: rgba(249, 115, 22, 0.22);
     --brand-icon-category-subtle: rgba(249, 115, 22, 0.09);
 
-    --ink: #111827;
+    /* Dark mode defaults */
+    --ink: #e5e7eb;
+    --ink-light: #9ca3af;
+    --ink-button: #313638;
+    --muted: #9ca3af;
+    --surface: #252829;
+    --surface-alt: #2c2f31;
     --surface-dark: #163526;
-    --ink-light: #a5aab5;
-    --muted: #6b7280;
-    --border: #e5e7eb;
-    --surface: #ffffff;
-    --surface-alt: #f9fafb;
+    --border: rgba(255, 255, 255, 0.1);
+
+
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 22px;
     --radius-xl: 32px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.25);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.3);
+    --shadow-green: 0 8px 32px rgba(34, 197, 94, 0.28);
+    --transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+    --brand-icon: #4D774E;
+    --brand-icon-dark: #4D774E;
+    --brand-icon-glow: rgba(34, 197, 94, 0.22);
+    --brand-icon-subtle: rgba(34, 197, 94, 0.09);
+
+    --ink: #111827;
+    --ink-light: #a5aab5;
+    --ink-button: #e5e7eb;
+    --muted: #6b7280;
+    --surface: #ffffff;
+    --surface-alt: #f9fafb;
+    --surface-dark: #163526;
+    --border: #e5e7eb;
+
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
     --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
     --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
-    --shadow-green: 0 8px 32px rgba(34, 197, 94, 0.28);
-    --transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ====================================================
    HERO SECTION SCOPED TOKENS
    ==================================================== */
 .hero-section {
-    --brand-green: #F1B24A;
-    --brand-green-dark: #ec9c1b;
-    --brand-green-glow: rgba(241, 178, 74, 0.22);
-    --brand-green-subtle: rgba(241, 178, 74, 0.09);
+    --brand-yellow: #F1B24A;
+    --brand-yellow-dark: #ec9c1b;
+    --brand-yellow-glow: rgba(241, 178, 74, 0.22);
+    --brand-yellow-subtle: rgba(241, 178, 74, 0.09);
     --ink: #2b4639;
     --shadow-green: 0 8px 32px #164A41;
 }
@@ -115,7 +139,7 @@ Fonts: Sora (headings) + DM Sans (body)
     gap: 8px;
     background: rgba(34,197,94,0.1);
     border: 1px solid rgba(34,197,94,0.28);
-    color: var(--brand-green);
+    color: var(--brand-yellow);
     font-family: 'Sora', sans-serif;
     font-size: 11.5px;
     font-weight: 600;
@@ -140,7 +164,7 @@ Fonts: Sora (headings) + DM Sans (body)
 }
 
 .hero-title .accent {
-    color: var(--brand-green);
+    color: var(--brand-yellow);
     position: relative;
     display: inline-block;
 }
@@ -152,7 +176,7 @@ Fonts: Sora (headings) + DM Sans (body)
     left: 0;
     width: 100%;
     height: 3px;
-    background: var(--brand-green);
+    background: var(--brand-yellow);
     border-radius: 2px;
     opacity: 0.35;
 }
@@ -187,7 +211,7 @@ Fonts: Sora (headings) + DM Sans (body)
     box-shadow: 0 0 0 3px rgba(241,178,74,0.09);
 }
 
-.hero-search > i { color: var(--brand-green); font-size: 15px; flex-shrink: 0; }
+.hero-search > i { color: var(--brand-yellow); font-size: 15px; flex-shrink: 0; }
 
 .hero-search input {
     flex: 1;
@@ -203,7 +227,7 @@ Fonts: Sora (headings) + DM Sans (body)
 .hero-search input::placeholder { color: rgba(255,255,255,0.3); }
 
 .hero-search-btn {
-    background: var(--brand-green);
+    background: var(--brand-yellow);
     color: #0d1117;
     border: none;
     border-radius: 12px;
@@ -221,7 +245,7 @@ Fonts: Sora (headings) + DM Sans (body)
 }
 
 .hero-search-btn:hover {
-    background: var(--brand-green-dark);
+    background: var(--brand-yellow-dark);
     transform: translateY(-1px);
     box-shadow: var(--shadow-green);
 }
@@ -255,7 +279,7 @@ Fonts: Sora (headings) + DM Sans (body)
 .hero-tag:hover {
     background: rgba(241,178,74,0.1);
     border-color: rgba(241,178,74,0.3);
-    color: var(--brand-green);
+    color: var(--brand-yellow);
 }
 
 .hero-visual { position: relative; animation: fadeSlideUp 0.7s 0.14s ease both; }
@@ -286,7 +310,7 @@ Fonts: Sora (headings) + DM Sans (body)
 
 .hero-panel-count {
     font-size: 12px;
-    color: var(--brand-green);
+    color: var(--brand-yellow);
     font-weight: 600;
 }
 
@@ -326,7 +350,7 @@ Fonts: Sora (headings) + DM Sans (body)
     flex-shrink: 0;
 }
 
-.job-logo-placeholder.green  { background: rgba(241,178,74,0.15); color: var(--brand-green); }
+.job-logo-placeholder.green  { background: rgba(241,178,74,0.15); color: var(--brand-yellow); }
 .job-logo-placeholder.blue   { background: rgba(59,130,246,0.15);  color: #60a5fa; }
 .job-logo-placeholder.purple { background: rgba(139,92,246,0.15);  color: #a78bfa; }
 
@@ -359,7 +383,7 @@ Fonts: Sora (headings) + DM Sans (body)
     padding: 3px 10px;
     border-radius: 100px;
     background: rgba(241,178,74,0.12);
-    color: var(--brand-green);
+    color: var(--brand-yellow);
     border: 1px solid rgba(241,178,74,0.18);
     white-space: nowrap;
 }
@@ -376,11 +400,11 @@ Fonts: Sora (headings) + DM Sans (body)
     font-family: 'DM Sans', sans-serif;
     font-size: 12.5px;
     font-weight: 600;
-    color: var(--ink);
+    color: #111827;
     white-space: nowrap;
 }
 
-.hero-float-badge i { color: var(--brand-green); font-size: 15px; }
+.hero-float-badge i { color: var(--brand-yellow); font-size: 15px; }
 
 .hero-float-badge-1 { top: -18px; right: -18px; animation: floatBadge 3s ease-in-out infinite; }
 .hero-float-badge-2 { bottom: -16px; left: -16px; animation: floatBadge 3s 1.5s ease-in-out infinite; }
@@ -399,6 +423,7 @@ Fonts: Sora (headings) + DM Sans (body)
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
     padding: 26px 40px;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .trust-inner {
@@ -450,6 +475,7 @@ Fonts: Sora (headings) + DM Sans (body)
 .stats-section {
     padding: 80px 40px;
     background: var(--surface);
+    transition: background 0.3s ease;
 }
 
 .stats-container {
@@ -522,6 +548,7 @@ Fonts: Sora (headings) + DM Sans (body)
 .featured-jobs-section {
     padding: 90px 40px;
     background: var(--surface-alt);
+    transition: background 0.3s ease;
 }
 
 .section-header {
@@ -542,7 +569,7 @@ Fonts: Sora (headings) + DM Sans (body)
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--brand-green);
+    color: var(--brand-yellow);
     margin-bottom: 10px;
 }
 
@@ -550,7 +577,7 @@ Fonts: Sora (headings) + DM Sans (body)
     content: '';
     width: 18px;
     height: 2px;
-    background: var(--brand-green);
+    background: var(--brand-yellow);
     border-radius: 1px;
 }
 
@@ -572,7 +599,7 @@ Fonts: Sora (headings) + DM Sans (body)
     font-family: 'DM Sans', sans-serif;
     font-size: 13.5px;
     font-weight: 600;
-    color: var(--brand-green);
+    color: var(--brand-yellow);
     text-decoration: none;
     border-bottom: 2px solid transparent;
     padding-bottom: 2px;
@@ -580,7 +607,7 @@ Fonts: Sora (headings) + DM Sans (body)
     white-space: nowrap;
 }
 
-.section-header-action a:hover { border-color: var(--brand-green); }
+.section-header-action a:hover { border-color: var(--brand-yellow); }
 
 .jobs-grid {
     max-width: 1200px;
@@ -714,7 +741,7 @@ Fonts: Sora (headings) + DM Sans (body)
     align-items: center;
     gap: 5px;
     background: var(--ink);
-    color: white;
+    color: var(--ink-button);
     font-family: 'DM Sans', sans-serif;
     font-size: 12px;
     font-weight: 700;
@@ -733,6 +760,7 @@ Fonts: Sora (headings) + DM Sans (body)
 .features-section {
     padding: 90px 40px;
     background: var(--surface);
+    transition: background 0.3s ease;
 }
 
 .features-inner { max-width: 1200px; margin: 0 auto; }
@@ -811,10 +839,10 @@ Fonts: Sora (headings) + DM Sans (body)
 }
 
 .categories-section .section-header { max-width: 1200px; }
-.categories-section .section-tag { color: var(--brand-green); }
+.categories-section .section-tag { color: var(--brand-yellow); }
 .categories-section .section-header h2 { color: #fff; }
 .categories-section .section-header p { color: rgba(255,255,255,0.48); }
-.categories-section .section-header-action a { color: var(--brand-green); }
+.categories-section .section-header-action a { color: var(--brand-yellow); }
 
 .categories-inner { max-width: 1200px; margin: 0 auto; }
 
@@ -869,7 +897,6 @@ Fonts: Sora (headings) + DM Sans (body)
     transition: all var(--transition);
 }
 
-/* Category icons → orange, fully independent from --brand-icon */
 .category-icon-wrap i { font-size: 21px; color: var(--brand-icon-category); transition: color var(--transition); }
 .category-card:hover .category-icon-wrap { background: var(--brand-icon-category); }
 .category-card:hover .category-icon-wrap i { color: white; }
@@ -898,6 +925,7 @@ Fonts: Sora (headings) + DM Sans (body)
 .how-it-works-section {
     padding: 90px 40px;
     background: var(--surface);
+    transition: background 0.3s ease;
 }
 
 .how-inner { max-width: 1200px; margin: 0 auto; }
@@ -986,6 +1014,7 @@ Fonts: Sora (headings) + DM Sans (body)
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
     padding: 70px 40px;
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .testimonials-inner { max-width: 1200px; margin: 0 auto; }
@@ -1110,13 +1139,13 @@ Fonts: Sora (headings) + DM Sans (body)
     white-space: nowrap;
 }
 
-.btn-primary { background: var(--brand-green); color: white; border-color: var(--brand-green); }
-.btn-primary:hover { background: var(--brand-green-dark); border-color: var(--brand-green-dark); transform: translateY(-2px); box-shadow: var(--shadow-green); color: white; }
+.btn-primary { background: var(--brand-yellow); color: white; border-color: var(--brand-yellow); }
+.btn-primary:hover { background: var(--brand-yellow-dark); border-color: var(--brand-yellow-dark); transform: translateY(-2px); box-shadow: var(--shadow-green); color: white; }
 
 .btn-secondary { background: transparent; color: white; border-color: rgba(255,255,255,0.22); }
 .btn-secondary:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.45); color: white; }
 
-.btn-light { background: white; color: var(--ink); border-color: white; }
+.btn-light { background: white; color: #313638; border-color: white; }
 .btn-light:hover { background: #f1f5f9; color: var(--ink); transform: translateY(-2px); }
 
 .btn-outline { background: transparent; color: white; border-color: rgba(255,255,255,0.28); }
