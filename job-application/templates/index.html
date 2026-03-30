@@ -4,19 +4,19 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/job_board.css') }}">
 
 <div class="job-board-container">
-    
+
     <!-- SEARCH HERO -->
     <div class="search-hero">
         <div class="search-hero-content">
             <h1>Find your next opportunity</h1>
-            <p>Discover thousands of jobs from top companies</p>
-            
+            <p>Discover jobs from verified companies</p>
+
             <div class="search-box">
                 <div class="search-input-group">
                     <i class="fas fa-search"></i>
-                    <input 
-                        type="text" 
-                        id="jobSearchInput" 
+                    <input
+                        type="text"
+                        id="jobSearchInput"
                         placeholder="Job title, keywords, or company"
                     >
                 </div>
@@ -31,70 +31,153 @@
                         <option value="Finance">Finance</option>
                     </select>
                 </div>
+                <div class="filter-input-group">
+                    <i class="fas fa-clock"></i>
+                    <select id="jobTypeFilter">
+                        <option value="">All Job Types</option>
+                        <option value="Full-time">Full-time</option>
+                        <option value="Part-time">Part-time</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Contract">Contract</option>
+                    </select>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ACTIVE FILTERS BAR -->
+    <div class="active-filters-bar" id="activeFiltersBar" style="display:none;">
+        <div class="active-filters-inner">
+            <span class="filters-label">Active filters:</span>
+            <div id="activeFilterTags"></div>
+            <button class="clear-all-btn" id="clearAllFilters">
+                <i class="fas fa-times"></i> Clear all
+            </button>
         </div>
     </div>
 
     <!-- MAIN CONTENT -->
     <div class="job-board-content">
-        
+
         <!-- RESULTS HEADER -->
         <div class="results-header">
             <div class="results-count">
                 <span id="jobsCount">{{ jobs|length }}</span> jobs found
             </div>
             <div class="results-actions">
-                <button class="sort-btn" id="sortBtn">
-                    <i class="fas fa-sort"></i> Sort by: Relevance
-                </button>
+                <div class="sort-dropdown-wrapper">
+                    <button class="sort-btn" id="sortBtn">
+                        <i class="fas fa-sort-amount-down"></i>
+                        <span id="sortLabel">Sort: Newest First</span>
+                        <i class="fas fa-chevron-down sort-chevron"></i>
+                    </button>
+                    <div class="sort-dropdown" id="sortDropdown">
+                        <button class="sort-option active" data-sort="newest">
+                            <i class="fas fa-calendar-alt"></i> Newest First
+                        </button>
+                        <button class="sort-option" data-sort="oldest">
+                            <i class="fas fa-calendar"></i> Oldest First
+                        </button>
+                        <button class="sort-option" data-sort="az">
+                            <i class="fas fa-sort-alpha-down"></i> Title A–Z
+                        </button>
+                        <button class="sort-option" data-sort="za">
+                            <i class="fas fa-sort-alpha-up"></i> Title Z–A
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- JOBS LIST -->
-        <div class="jobs-list">
+        <div class="jobs-list" id="jobsList">
             {% if jobs %}
                 {% for job in jobs %}
-                <div class="job-item" data-field="{{ job.field }}">
-                    
+
+                {# --- Resolve company info --- #}
+                {% set recruiter = job.company_id | get_recruiter_profile %}
+
+                <div class="job-item"
+                     data-field="{{ job.field }}"
+                     data-job-type="{{ job.job_type }}"
+                     data-title="{{ job.title }}"
+                     data-posted="{{ job.id }}"
+                >
+
                     <div class="job-main">
+
+                        <!-- COMPANY LOGO -->
                         <div class="job-logo">
-                            <i class="fas fa-building"></i>
+                            {% if recruiter and recruiter.company_logo %}
+                                <img
+                                    src="{{ url_for('static', filename='uploads/company_logos/' ~ recruiter.company_logo) }}"
+                                    alt="{{ recruiter.company_name }}"
+                                    class="company-logo-img"
+                                >
+                            {% else %}
+                                <div class="logo-placeholder">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                            {% endif %}
                         </div>
-                        
+
                         <div class="job-details">
-                            <h2 class="job-title-link">{{ job.title }}</h2>
-                            <div class="job-company">Company Name</div>
-                            
-                            <div class="job-metadata">
-                                <span class="job-location">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    {{ job.location }}
-                                </span>
-                                <span class="job-type-label">
-                                    <i class="fas fa-clock"></i>
-                                    {{ job.job_type }}
-                                </span>
-                                <span class="job-category">
-                                    <i class="fas fa-tag"></i>
-                                    {{ job.field }}
-                                </span>
+                            <div class="job-header-row">
+                                <h2 class="job-title-link">{{ job.title }}</h2>
+                                {% if job.expiration_date %}
+                                    {% set today = now() %}
+                                    {% set days_left = (job.expiration_date - today.date()).days %}
+                                    {% if days_left <= 7 and days_left >= 0 %}
+                                        <span class="expiry-badge urgent">Closes in {{ days_left }}d</span>
+                                    {% endif %}
+                                {% endif %}
                             </div>
-                            
+
+                            <div class="job-company">
+                                {% if recruiter %}
+                                    {{ recruiter.company_name or 'Company' }}
+                                {% else %}
+                                    Company
+                                {% endif %}
+                            </div>
+
+                            <div class="job-metadata">
+                                <span class="meta-tag location-tag">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ job.location or 'Location not specified' }}
+                                </span>
+                                <span class="meta-tag type-tag type-{{ job.job_type | lower | replace(' ', '-') if job.job_type else 'other' }}">
+                                    <i class="fas fa-briefcase"></i>
+                                    {{ job.job_type or 'Not specified' }}
+                                </span>
+                                <span class="meta-tag field-tag">
+                                    <i class="fas fa-tag"></i>
+                                    {{ job.field or 'General' }}
+                                </span>
+                                {% if job.salary %}
+                                <span class="meta-tag salary-tag">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    {{ job.salary }}
+                                </span>
+                                {% endif %}
+                            </div>
+
                             <div class="job-snippet">
                                 {{ job.description[:180] }}{% if job.description|length > 180 %}...{% endif %}
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="job-actions">
                         <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-apply">
                             View & Apply
                         </a>
-                        <button class="btn-save">
+                        <button class="btn-save" title="Save job">
                             <i class="far fa-bookmark"></i>
                         </button>
                     </div>
-                    
+
                 </div>
                 {% endfor %}
             {% else %}
@@ -106,11 +189,16 @@
             {% endif %}
         </div>
 
-    </div>
+        <!-- EMPTY SEARCH STATE (hidden by default) -->
+        <div class="no-results search-empty-state" id="searchEmptyState" style="display:none;">
+            <i class="fas fa-filter"></i>
+            <h3>No matching jobs</h3>
+            <p>Try different keywords or clear your filters</p>
+            <button class="reset-btn" id="resetSearch">Reset filters</button>
+        </div>
 
+    </div>
 </div>
 
-<!-- LOAD SEARCH SCRIPT -->
 <script src="{{ url_for('static', filename='js/job_search.js') }}"></script>
-
 {% endblock %}

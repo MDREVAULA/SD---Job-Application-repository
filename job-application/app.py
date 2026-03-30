@@ -1,10 +1,11 @@
 from flask import Flask
 from config import Config
-from models import db, User
+from models import db, User, RecruiterProfile
 from flask_login import LoginManager
 from flask_mail import Mail
 from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash
+from datetime import datetime
 import os
 import pymysql
 import secrets
@@ -65,20 +66,38 @@ login_manager.login_message_category = "warning"
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
+# ============================================================
+# JINJA2 FILTER — resolve RecruiterProfile from a user ID
+# Usage in templates: {{ job.company_id | get_recruiter_profile }}
+# ============================================================
+@app.template_filter('get_recruiter_profile')
+def get_recruiter_profile(user_id):
+    if not user_id:
+        return None
+    return RecruiterProfile.query.filter_by(user_id=user_id).first()
+
+# ============================================================
+# CONTEXT PROCESSOR — make now() available in all templates
+# Usage in templates: {{ now() }}
+# ============================================================
+@app.context_processor
+def inject_now():
+    return {'now': datetime.utcnow}
+
 # Register Blueprints
 from routes.auth import auth_bp
 from routes.applicant import applicant_bp
 from routes.recruiter import recruiter_bp
 from routes.hr import hr_bp
 from routes.admin import admin_bp
-from routes.chat import chat_bp          # ← ADDED
+from routes.chat import chat_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(applicant_bp)
 app.register_blueprint(recruiter_bp)
 app.register_blueprint(hr_bp)
 app.register_blueprint(admin_bp)
-app.register_blueprint(chat_bp)          # ← ADDED
+app.register_blueprint(chat_bp)
 
 # Run App
 if __name__ == "__main__":
