@@ -66,9 +66,8 @@ class User(db.Model, UserMixin):
         lazy=True
     )
 
-
 # =========================
-# APPLICANT PROFILE
+# APPLICANT PROFILE (UPDATED)
 # =========================
 class ApplicantProfile(db.Model):
 
@@ -88,6 +87,107 @@ class ApplicantProfile(db.Model):
     country = db.Column(db.String(100))
     city = db.Column(db.String(100))
     home_address = db.Column(db.String(200))
+
+    # NEW FIELDS
+    headline = db.Column(db.String(200))
+    bio = db.Column(db.Text)
+    linkedin = db.Column(db.String(200))
+    github = db.Column(db.String(200))
+    portfolio = db.Column(db.String(200))
+
+    # RELATIONSHIPS
+    work_experiences = db.relationship("WorkExperience", backref="profile", lazy=True, cascade="all, delete-orphan")
+    educations = db.relationship("Education", backref="profile", lazy=True, cascade="all, delete-orphan")
+    skills = db.relationship("Skill", backref="profile", lazy=True, cascade="all, delete-orphan")
+    projects = db.relationship("Project", backref="profile", lazy=True, cascade="all, delete-orphan")
+    certifications = db.relationship("Certification", backref="profile", lazy=True, cascade="all, delete-orphan")
+
+
+# =========================
+# WORK EXPERIENCE
+# =========================
+class WorkExperience(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+
+    job_title = db.Column(db.String(200))
+    company = db.Column(db.String(200))
+    location = db.Column(db.String(200))
+    start_date = db.Column(db.String(50))
+    end_date = db.Column(db.String(50))
+    is_current = db.Column(db.Boolean, default=False)
+    description = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# =========================
+# EDUCATION
+# =========================
+class Education(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+
+    school = db.Column(db.String(200))
+    degree = db.Column(db.String(200))
+    field_of_study = db.Column(db.String(200))
+    start_date = db.Column(db.String(50))
+    end_date = db.Column(db.String(50))
+    is_current = db.Column(db.Boolean, default=False)
+    description = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# =========================
+# SKILL
+# =========================
+class Skill(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+
+    name = db.Column(db.String(100))
+    level = db.Column(db.String(50))  # Beginner, Intermediate, Advanced, Expert
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# =========================
+# PROJECT
+# =========================
+class Project(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+
+    title = db.Column(db.String(200))
+    description = db.Column(db.Text)
+    url = db.Column(db.String(200))
+    start_date = db.Column(db.String(50))
+    end_date = db.Column(db.String(50))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# =========================
+# CERTIFICATION
+# =========================
+class Certification(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+
+    name = db.Column(db.String(200))
+    issuer = db.Column(db.String(200))
+    issue_date = db.Column(db.String(50))
+    expiry_date = db.Column(db.String(50))
+    credential_url = db.Column(db.String(200))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 
 # =========================
@@ -293,3 +393,4 @@ class JobImage(db.Model):
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
     job = db.relationship("Job", backref="images")  
+    # =========================
