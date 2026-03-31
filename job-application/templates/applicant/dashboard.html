@@ -1,71 +1,362 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2>Applicant Dashboard</h2>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/dashboard.css') }}">
 
-<!-- Account Status -->
-{% if current_user.verification_status == "Pending" %}
-    <div style="color: orange; margin-bottom: 20px;">
-        ⚠ Your account is waiting for admin verification. You cannot apply for jobs yet.
+<div class="appdash-wrapper">
+
+    <!-- HEADER -->
+    <div class="appdash-header">
+        <div class="appdash-header-content">
+            <div class="appdash-header-icon">
+                <i class="fas fa-folder-open"></i>
+            </div>
+            <div>
+                <h1>Application Status</h1>
+                <p>Track all your job applications in one place</p>
+            </div>
+        </div>
+        <div class="appdash-header-meta">
+            <div class="appdash-meta-badge">
+                <i class="fas fa-paper-plane"></i>
+                <span>{{ applications | length }} Applied</span>
+            </div>
+            <div class="appdash-meta-badge">
+                <i class="fas fa-check-circle"></i>
+                <span>{{ applications | selectattr('status', 'equalto', 'accepted') | list | length }} Accepted</span>
+            </div>
+            <div class="appdash-meta-badge">
+                <i class="fas fa-clock"></i>
+                <span>{{ applications | selectattr('status', 'equalto', 'pending') | list | length }} Pending</span>
+            </div>
+        </div>
     </div>
 
-{% elif current_user.verification_status == "Rejected" %}
-    <div style="color: red; margin-bottom: 20px;">
-        ❌ Your account was rejected by the admin.<br>
+    <!-- VERIFICATION BANNER -->
+    {% if current_user.verification_status == "Pending" %}
+    <div class="appdash-alert appdash-alert-warning">
+        <i class="fas fa-hourglass-half"></i>
+        <div>
+            <strong>Account Pending Verification</strong>
+            <p>Your account is awaiting admin verification. You cannot apply for jobs yet.</p>
+        </div>
+    </div>
+    {% elif current_user.verification_status == "Rejected" %}
+    <div class="appdash-alert appdash-alert-danger">
+        <i class="fas fa-times-circle"></i>
+        <div>
+            <strong>Account Rejected</strong>
+            <p>Your account was rejected by the admin.{% if current_user.verification_remarks %} Reason: {{ current_user.verification_remarks }}{% endif %}</p>
+        </div>
+    </div>
+    {% elif current_user.verification_status == "Approved" %}
+    <div class="appdash-alert appdash-alert-success">
+        <i class="fas fa-check-circle"></i>
+        <div>
+            <strong>Account Verified</strong>
+            <p>Your account is verified. You can apply for jobs.</p>
+        </div>
+    </div>
+    {% endif %}
 
-        {% if current_user.verification_remarks %}
-            <strong>Reason:</strong> {{ current_user.verification_remarks }}
+    <!-- APPLICATIONS SECTION -->
+    <div class="appdash-applications-list">
+
+        {% if not applications %}
+        <div class="appdash-empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No Applications Yet</h3>
+            <p>You haven't applied to any jobs yet. Browse the job board to get started!</p>
+            <a href="{{ url_for('auth.jobs') }}" class="appdash-btn-browse">
+                <i class="fas fa-search"></i> Browse Jobs
+            </a>
+        </div>
+        {% else %}
+
+        <!-- FILTER TABS -->
+        <div class="appdash-filter-tabs">
+            <button class="appdash-filter-tab active" data-status="all" onclick="appDashFilter('all')">
+                <i class="fas fa-th-large"></i> All Applications
+                <span class="appdash-tab-count" id="tabAllCount">{{ applications | length }}</span>
+            </button>
+            <button class="appdash-filter-tab" data-status="pending" onclick="appDashFilter('pending')">
+                <i class="fas fa-clock"></i> Pending
+                <span class="appdash-tab-count" id="tabPendingCount">0</span>
+            </button>
+            <button class="appdash-filter-tab" data-status="interview" onclick="appDashFilter('interview')">
+                <i class="fas fa-calendar-check"></i> Interview
+                <span class="appdash-tab-count" id="tabInterviewCount">0</span>
+            </button>
+            <button class="appdash-filter-tab" data-status="accepted" onclick="appDashFilter('accepted')">
+                <i class="fas fa-check-circle"></i> Accepted
+                <span class="appdash-tab-count" id="tabAcceptedCount">0</span>
+            </button>
+            <button class="appdash-filter-tab" data-status="rejected" onclick="appDashFilter('rejected')">
+                <i class="fas fa-times-circle"></i> Rejected
+                <span class="appdash-tab-count" id="tabRejectedCount">0</span>
+            </button>
+        </div>
+
+        <!-- SEARCH & SORT TOOLBAR -->
+        <div class="appdash-toolbar">
+            <div class="appdash-toolbar-search">
+                <i class="fas fa-search appdash-search-icon"></i>
+                <input
+                    type="text"
+                    id="appDashSearch"
+                    placeholder="Search by company or job title..."
+                    oninput="appDashApplyFilters()"
+                    autocomplete="off"
+                >
+                <button class="appdash-search-clear" id="appDashSearchClear" onclick="appDashClearSearch()" style="display:none;" title="Clear search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="appdash-toolbar-sort">
+                <span class="appdash-sort-label"><i class="fas fa-sort"></i> Sort:</span>
+                <div class="appdash-sort-buttons">
+                    <button class="appdash-sort-btn active" data-sort="date-desc" onclick="appDashSetSort('date-desc')" title="Newest first">
+                        <i class="fas fa-calendar-alt"></i> Newest
+                    </button>
+                    <button class="appdash-sort-btn" data-sort="date-asc" onclick="appDashSetSort('date-asc')" title="Oldest first">
+                        <i class="fas fa-calendar-alt"></i> Oldest
+                    </button>
+                    <button class="appdash-sort-btn" data-sort="name-asc" onclick="appDashSetSort('name-asc')" title="Company A to Z">
+                        <i class="fas fa-sort-alpha-down"></i> A → Z
+                    </button>
+                    <button class="appdash-sort-btn" data-sort="name-desc" onclick="appDashSetSort('name-desc')" title="Company Z to A">
+                        <i class="fas fa-sort-alpha-up"></i> Z → A
+                    </button>
+                </div>
+            </div>
+            <div class="appdash-toolbar-results">
+                <span id="appDashResultsCount"></span>
+            </div>
+        </div>
+
+        <!-- APPLICATION CARDS -->
+        <div class="appdash-cards-container" id="appDashContainer">
+
+            {% for app in applications %}
+            <div class="appdash-card"
+                 data-status="{{ app.status | lower }}"
+                 data-name="{{ app.job.title | lower if app.job else '' }}"
+                 data-company="{{ app.job.company_id | get_recruiter_profile | string | lower if app.job else '' }}"
+                 data-date="{{ app.created_at.strftime('%Y%m%d%H%M%S') if app.created_at else '0' }}">
+
+                <!-- CARD HEADER (clickable) -->
+                <div class="appdash-card-header appdash-card-toggle" onclick="appDashToggleCard(this)" title="Click to expand">
+
+                    <div class="appdash-card-left">
+                        <!-- Company Logo / Avatar -->
+                        <div class="appdash-company-avatar">
+                            {% set recruiter = app.job.company_id | get_recruiter_profile if app.job else None %}
+                            {% if recruiter and recruiter.company_logo %}
+                                <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter.company_logo) }}" alt="Company Logo" class="appdash-company-logo-img">
+                            {% elif app.job %}
+                                {{ app.job.title[0] | upper }}
+                            {% else %}
+                                ?
+                            {% endif %}
+                        </div>
+
+                        <div class="appdash-card-info">
+                            <!-- Company Name -->
+                            <div class="appdash-company-name">
+                                {% if recruiter and recruiter.company_name %}
+                                    {{ recruiter.company_name }}
+                                {% else %}
+                                    Unknown Company
+                                {% endif %}
+                            </div>
+                            <!-- Job Title -->
+                            <div class="appdash-job-title">
+                                <i class="fas fa-briefcase"></i>
+                                {{ app.job.title if app.job else 'Job Removed' }}
+                            </div>
+                            <!-- Applied Date -->
+                            <div class="appdash-apply-date">
+                                <i class="fas fa-calendar"></i>
+                                Applied {{ app.created_at.strftime('%B %d, %Y') if app.created_at else 'N/A' }}
+                            </div>
+                            <!-- Interview date pill (if scheduled) -->
+                            {% if app.status == 'interview' and app.interview_date %}
+                            <div class="appdash-interview-pill">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span class="appdash-interview-label">Interview:</span>
+                                <span>{{ app.interview_date.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="appdash-card-right">
+                        <!-- Status Badge -->
+                        <div class="appdash-status-badge appdash-status-{{ app.status | lower }}">
+                            {% if app.status | lower == 'pending' %}<i class="fas fa-clock"></i> Pending
+                            {% elif app.status | lower == 'accepted' %}<i class="fas fa-check-circle"></i> Accepted
+                            {% elif app.status | lower == 'rejected' %}<i class="fas fa-times-circle"></i> Rejected
+                            {% elif app.status | lower == 'interview' %}<i class="fas fa-calendar-check"></i> Interview
+                            {% else %}<i class="fas fa-question-circle"></i> {{ app.status }}
+                            {% endif %}
+                        </div>
+                        <!-- Chevron -->
+                        <div class="appdash-toggle-icon">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- COLLAPSIBLE BODY -->
+                <div class="appdash-card-body">
+                    <div class="appdash-card-body-inner">
+
+                        <!-- JOB INFO -->
+                        {% if app.job %}
+                        <div class="appdash-job-details-grid">
+                            {% if app.job.job_type %}
+                            <div class="appdash-detail-chip">
+                                <i class="fas fa-tag"></i>
+                                <span>{{ app.job.job_type }}</span>
+                            </div>
+                            {% endif %}
+                            {% if app.job.location %}
+                            <div class="appdash-detail-chip">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{ app.job.location }}</span>
+                            </div>
+                            {% endif %}
+                            {% if app.job.salary %}
+                            <div class="appdash-detail-chip">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span>{{ app.job.salary }}</span>
+                            </div>
+                            {% endif %}
+                            {% if app.job.expiration_date %}
+                            <div class="appdash-detail-chip">
+                                <i class="fas fa-hourglass-end"></i>
+                                <span>Deadline: {{ app.job.expiration_date.strftime('%b %d, %Y') }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- RESUME LINK -->
+                        {% if app.resume %}
+                        <div class="appdash-section">
+                            <div class="appdash-section-label">
+                                <i class="fas fa-file-pdf"></i> Your Resume
+                            </div>
+                            <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + app.resume) }}"
+                               target="_blank" class="appdash-file-link">
+                                View Submitted Resume <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- COVER LETTER -->
+                        {% if app.cover_letter %}
+                        <div class="appdash-section">
+                            <div class="appdash-section-label">
+                                <i class="fas fa-comment-alt"></i> Your Cover Letter
+                            </div>
+                            <div class="appdash-cover-letter-text">{{ app.cover_letter }}</div>
+                        </div>
+                        {% endif %}
+
+                        <!-- RECRUITER REMARKS -->
+                        {% if app.recruiter_remarks %}
+                        <div class="appdash-section">
+                            <div class="appdash-feedback-card appdash-feedback-recruiter">
+                                <div class="appdash-feedback-header">
+                                    <div class="appdash-feedback-avatar appdash-avatar-recruiter">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                    <div class="appdash-feedback-meta">
+                                        <span class="appdash-feedback-author">
+                                            {% set rec = app.job.company_id | get_recruiter_profile if app.job else None %}
+                                            {% if rec and rec.first_name %}
+                                                {{ rec.first_name }} {{ rec.surname }}
+                                            {% else %}
+                                                Recruiter
+                                            {% endif %}
+                                        </span>
+                                        <span class="appdash-feedback-tag appdash-tag-recruiter">
+                                            <i class="fas fa-user-tie"></i> Recruiter Feedback
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="appdash-feedback-body">{{ app.recruiter_remarks }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- HR FEEDBACKS -->
+                        {% if app.hr_feedbacks %}
+                        <div class="appdash-section">
+                            {% for fb in app.hr_feedbacks %}
+                            <div class="appdash-feedback-card appdash-feedback-hr">
+                                <div class="appdash-feedback-header">
+                                    <div class="appdash-feedback-avatar appdash-avatar-hr">
+                                        {% if fb.hr_user.profile_picture %}
+                                            {% if fb.hr_user.profile_picture.startswith('http') %}
+                                                <img src="{{ fb.hr_user.profile_picture }}" alt="{{ fb.hr_user.username }}" class="appdash-feedback-avatar-img">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + fb.hr_user.profile_picture) }}" alt="{{ fb.hr_user.username }}" class="appdash-feedback-avatar-img">
+                                            {% endif %}
+                                        {% else %}
+                                            <i class="fas fa-user"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="appdash-feedback-meta">
+                                        <span class="appdash-feedback-author">
+                                            {% if fb.hr_user.hr_profile %}
+                                                {{ fb.hr_user.hr_profile.first_name }} {{ fb.hr_user.hr_profile.last_name }}
+                                            {% else %}
+                                                {{ fb.hr_user.username }}
+                                            {% endif %}
+                                        </span>
+                                        <span class="appdash-feedback-tag appdash-tag-hr">
+                                            <i class="fas fa-user"></i> HR Feedback
+                                        </span>
+                                        <span class="appdash-feedback-date">
+                                            {{ fb.updated_at.strftime('%b %d, %Y') if fb.updated_at else fb.created_at.strftime('%b %d, %Y') }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="appdash-feedback-body">{{ fb.feedback }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- INTERVIEW DATE BLOCK -->
+                        {% if app.status == 'interview' and app.interview_date %}
+                        <div class="appdash-interview-block">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <div class="appdash-interview-block-label">Interview Scheduled</div>
+                                <div class="appdash-interview-block-value">
+                                    {{ app.interview_date.strftime('%A, %B %d, %Y at %I:%M %p') }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+                <!-- end .appdash-card-body -->
+
+            </div>
+            {% endfor %}
+
+        </div>
+        <!-- end #appDashContainer -->
+
         {% endif %}
     </div>
+</div>
 
-{% elif current_user.verification_status == "Approved" %}
-    <div style="color: green; margin-bottom: 20px;">
-        ✅ Your account has been verified.
-    </div>
-{% endif %}
-
-
-<h3>My Applications</h3>
-
-<ul>
-
-{% for app in applications %}
-
-<li>
-
-Job: {{ app.job.title }}
-
-<br>
-
-Status:
-
-<strong>
-
-{% if app.status == "Pending" %}
-<span style="color:orange;">Pending</span>
-
-{% elif app.status == "Interview" %}
-<span style="color:blue;">Interview Scheduled</span>
-
-{% elif app.status == "Accepted" %}
-<span style="color:green;">Accepted</span>
-
-{% elif app.status == "Rejected" %}
-<span style="color:red;">Rejected</span>
-
-{% endif %}
-
-</strong>
-
-{% if app.remarks %}
-<br>
-Remarks: {{ app.remarks }}
-{% endif %}
-
-</li>
-
-{% endfor %}
-
-</ul>
-
+<script src="{{ url_for('static', filename='js/applicant/dashboard.js') }}"></script>
 {% endblock %}
