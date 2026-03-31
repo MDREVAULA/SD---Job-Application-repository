@@ -1,59 +1,211 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/base.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hr/profile.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 
-<div class="dashboard-container">
+{% set upload_url = url_for('hr.upload_profile_picture') %}
+{% include 'components/profile_picture_modal.html' %}
 
-    {% set upload_url = url_for('hr.upload_profile_picture') %}
-    {% include 'components/profile_picture_modal.html' %}
+<div class="hr-profile-page">
 
-    <h2>HR Dashboard</h2>
+    <!-- ── PROFILE HERO ── -->
+    <div class="profile-hero-card">
+        <div class="hero-banner">
+            <div class="banner-orb banner-orb-1"></div>
+            <div class="banner-orb banner-orb-2"></div>
+            <div class="banner-orb banner-orb-3"></div>
+        </div>
 
-    <!-- PROFILE UPLOADS CARD -->
-    <div class="card profile-uploads-card">
-        <h3>Profile Settings</h3>
-        <div class="uploads-row">
-            <div class="upload-group">
-                <p class="upload-label"><i class="fas fa-user"></i> Profile Picture</p>
-                <div class="pfp-wrapper">
-                    <div class="pfp-container" onclick="document.getElementById('pfpFileInput').click()">
-                        {% if current_user.profile_picture %}
-                            {% if current_user.profile_picture.startswith('http') %}
-                                <img src="{{ current_user.profile_picture }}" class="pfp-img">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="pfp-img">
-                            {% endif %}
-                        {% else %}
-                            <div class="pfp-default">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-                                </svg>
-                            </div>
-                        {% endif %}
-                        <div class="pfp-overlay"><span>Change Photo</span></div>
+        <div class="hero-body">
+            <!-- Avatar -->
+            <div class="avatar-wrapper" onclick="document.getElementById('pfpFileInput').click()" title="Change profile photo">
+                {% if current_user.profile_picture %}
+                    {% if current_user.profile_picture.startswith('http') %}
+                        <img src="{{ current_user.profile_picture }}" class="avatar-img" alt="Profile">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="avatar-img" alt="Profile">
+                    {% endif %}
+                {% else %}
+                    <div class="avatar-default">
+                        <i class="fas fa-user"></i>
                     </div>
-                    <p class="pfp-hint">Click to upload • Square crop required</p>
+                {% endif %}
+                <div class="avatar-edit-badge">
+                    <i class="fas fa-camera"></i>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- DASHBOARD CARD -->
-    <div class="card">
-        <h3>Welcome to Your Dashboard</h3>
-        <p>Use the sidebar menu to manage your job postings and HR accounts.</p>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 25px;">
-            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
-                <i class="fas fa-file-alt" style="font-size: 32px; margin-bottom: 10px;"></i>
-                <h4 style="margin: 0;">Applications</h4>
-                <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">Review candidates</p>
+            <!-- Identity -->
+            <div class="hero-identity">
+                <h1 class="hero-name">
+                    {% if current_user.hr_profile %}
+                        {{ current_user.hr_profile.first_name }} {{ current_user.hr_profile.last_name }}
+                    {% else %}
+                        {{ current_user.username }}
+                    {% endif %}
+                </h1>
+                <div class="hero-badges">
+                    <span class="badge badge-hr"><i class="fas fa-users"></i> Human Resources</span>
+                    {% if current_user.hr_profile %}
+                        <span class="badge badge-verified"><i class="fas fa-circle-check"></i> Profile Complete</span>
+                    {% else %}
+                        <span class="badge badge-pending"><i class="fas fa-clock"></i> Setup Pending</span>
+                    {% endif %}
+                </div>
+                <p class="hero-email">
+                    <i class="fas fa-at"></i> {{ current_user.username }}
+                </p>
             </div>
         </div>
     </div>
 
+    <!-- ── INCOMPLETE PROFILE NUDGE ── -->
+    {% if not current_user.hr_profile %}
+    <div class="nudge-card">
+        <div class="nudge-icon"><i class="fas fa-id-card"></i></div>
+        <div class="nudge-text">
+            <h3>Complete your profile</h3>
+            <p>Your profile isn't set up yet. Fill in your details so the team knows who you are.</p>
+        </div>
+        <a href="{{ url_for('hr.setup_profile') }}" class="btn-setup">
+            Set Up Now <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- ── INFO GRID ── -->
+    <div class="info-grid">
+
+        <!-- Personal Details -->
+        <div class="info-card">
+            <div class="card-header">
+                <span class="card-icon"><i class="fas fa-user-pen"></i></span>
+                <h2>Personal Details</h2>
+            </div>
+
+            {% if current_user.hr_profile %}
+            <ul class="detail-list">
+                <li>
+                    <span class="detail-label"><i class="fas fa-signature"></i> Full Name</span>
+                    <span class="detail-value">
+                        {{ current_user.hr_profile.first_name }}
+                        {% if current_user.hr_profile.middle_name %} {{ current_user.hr_profile.middle_name }} {% endif %}
+                        {{ current_user.hr_profile.last_name }}
+                    </span>
+                </li>
+                <li>
+                    <span class="detail-label"><i class="fas fa-venus-mars"></i> Gender</span>
+                    <span class="detail-value">{{ current_user.hr_profile.gender or '—' }}</span>
+                </li>
+                <li>
+                    <span class="detail-label"><i class="fas fa-cake-candles"></i> Date of Birth</span>
+                    <span class="detail-value">
+                        {% if current_user.hr_profile.date_of_birth %}
+                            {{ current_user.hr_profile.date_of_birth.strftime('%B %d, %Y') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </span>
+                </li>
+                <li>
+                    <span class="detail-label"><i class="fas fa-phone"></i> Phone</span>
+                    <span class="detail-value">{{ current_user.hr_profile.phone_number or '—' }}</span>
+                </li>
+            </ul>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-user-slash"></i>
+                <p>No personal details yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Location -->
+        <div class="info-card">
+            <div class="card-header">
+                <span class="card-icon"><i class="fas fa-location-dot"></i></span>
+                <h2>Location</h2>
+            </div>
+
+            {% if current_user.hr_profile %}
+            <ul class="detail-list">
+                <li>
+                    <span class="detail-label"><i class="fas fa-globe"></i> Country</span>
+                    <span class="detail-value">{{ current_user.hr_profile.country or '—' }}</span>
+                </li>
+                <li>
+                    <span class="detail-label"><i class="fas fa-city"></i> City</span>
+                    <span class="detail-value">{{ current_user.hr_profile.city or '—' }}</span>
+                </li>
+                <li>
+                    <span class="detail-label"><i class="fas fa-house"></i> Address</span>
+                    <span class="detail-value">{{ current_user.hr_profile.home_address or '—' }}</span>
+                </li>
+            </ul>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-map-pin"></i>
+                <p>No location info yet.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Account Info -->
+        <div class="info-card">
+            <div class="card-header">
+                <span class="card-icon"><i class="fas fa-shield-halved"></i></span>
+                <h2>Account Info</h2>
+            </div>
+
+            <ul class="detail-list">
+                <li>
+                    <span class="detail-label"><i class="fas fa-user"></i> Username</span>
+                    <span class="detail-value">{{ current_user.username }}</span>
+                </li>
+                <li>
+                    <span class="detail-label"><i class="fas fa-tag"></i> Role</span>
+                    <span class="detail-value"><span class="badge badge-hr" style="font-size:11px;">HR</span></span>
+                </li>
+                <li>
+                    <span class="detail-label"><i class="fas fa-key"></i> Password</span>
+                    <span class="detail-value">
+                        <a href="{{ url_for('hr.change_password') }}" class="link-action">
+                            Change password <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="info-card actions-card">
+            <div class="card-header">
+                <span class="card-icon"><i class="fas fa-bolt"></i></span>
+                <h2>Quick Actions</h2>
+            </div>
+
+            <div class="actions-grid">
+                <a href="{{ url_for('hr.job_list') }}" class="action-tile">
+                    <i class="fas fa-list-check"></i>
+                    <span>Job List</span>
+                </a>
+                <a href="{{ url_for('auth.jobs') }}" class="action-tile">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Browse Jobs</span>
+                </a>
+                <a href="{{ url_for('chat.people') }}" class="action-tile">
+                    <i class="fas fa-users"></i>
+                    <span>People</span>
+                </a>
+                <a href="{{ url_for('auth.help_page') }}" class="action-tile">
+                    <i class="fas fa-circle-question"></i>
+                    <span>Help Center</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 {% endblock %}
