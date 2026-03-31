@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
 
-<link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" type="image/x-icon">
+<link rel="shortcut icon" href="{{ url_for('static', filename='hirebon-logo.png') }}" type="image/x-icon">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -48,8 +48,7 @@
         </button>
 
         <div class="website-logo-container">
-            <i class="fas fa-briefcase logo-icon"></i>
-            <h1 class="website-logo">HireBon</h1>
+            <img src="{{ url_for('static', filename='homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
         </div>
     </div>
 
@@ -101,8 +100,7 @@
 
     <div class="sidebar-header">
         <div class="sidebar-logo">
-            <i class="fas fa-briefcase"></i>
-            <h2>HireBon</h2>
+            <img src="{{ url_for('static', filename='homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
         </div>
         <button id="closeBtn" class="close-btn">&times;</button>
     </div>

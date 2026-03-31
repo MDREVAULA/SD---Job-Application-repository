@@ -129,6 +129,12 @@ body {
     box-shadow: 0 2px 10px var(--shadow-color);
 }
 
+.logo-icon {
+    width: 120px;
+    height: 40px;
+    margin-right: 5px;
+}
+
 .nav-left {
     display: flex;
     align-items: center;
@@ -138,19 +144,6 @@ body {
 .website-logo-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-
-.logo-icon {
-    font-size: 24px;
-    color: var(--brand-green);
-}
-
-.website-logo {
-    font-size: 22px;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: 0.5px;
 }
 
 .menu-btn {
@@ -314,18 +307,7 @@ body {
 .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-
-.sidebar-logo i {
-    font-size: 24px;
-    color: var(--brand-green);
-}
-
-.sidebar-logo h2 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
+    gap: 5px;
 }
 
 .close-btn {
@@ -529,7 +511,7 @@ body {
 .sidebar-link:hover,
 .sidebar-link.active {
     color: white;
-    background: #3a3a3a;
+    background: #394a3d;
 }
 
 .sidebar-link:hover::before,
