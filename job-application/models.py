@@ -393,4 +393,3 @@ class JobImage(db.Model):
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
     job = db.relationship("Job", backref="images")  
-    # =========================
