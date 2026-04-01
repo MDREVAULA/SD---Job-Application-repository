@@ -884,3 +884,17 @@ Clean, flat design inspired by LinkedIn/Facebook People
 @media (max-width: 420px) {
     .people-grid { grid-template-columns: 1fr; }
 }
+/* ── C: chat/people.css additions ── */
+
+/*
+   The btn-view-profile class most likely already exists in your people.css
+   (it was an <button> before, now it's an <a>).
+   If the styling breaks, add this:
+*/
+a.btn-view-profile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    /* inherits the rest from your existing .btn-view-profile rule */
+}

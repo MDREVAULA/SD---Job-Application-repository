@@ -160,7 +160,12 @@
                                 </div>
                                 <div class="detail-content">
                                     <span class="detail-label">Recruiter</span>
-                                    <span class="detail-value">{{ job_owner.recruiter_profile.first_name }} {{ job_owner.recruiter_profile.surname }}</span>
+                                    {# ── RECRUITER NAME — now a clickable profile link ── #}
+                                    <a href="{{ url_for('profile_view.view_profile', user_id=job_owner.id) }}"
+                                       class="detail-value detail-profile-link">
+                                        {{ job_owner.recruiter_profile.first_name }} {{ job_owner.recruiter_profile.surname }}
+                                        <i class="fas fa-arrow-up-right-from-square" style="font-size:0.65rem; margin-left:4px;"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -284,7 +289,7 @@
                     </div>
                 </div>
 
-                <!-- APPLY ACTION CARD (Mobile/Sticky) -->
+                <!-- APPLY ACTION CARD -->
                 <div class="sidebar-card apply-card">
                     <div class="sidebar-card-body">
                         {% if current_user.is_authenticated and current_user.role == "applicant" %}
@@ -310,14 +315,16 @@
                     </div>
                 </div>
 
-                <!-- RECRUITER CARD -->
+                <!-- RECRUITER CARD — now fully clickable to view profile -->
                 <div class="sidebar-card recruiter-card">
                     <h3 class="sidebar-card-title">
                         <i class="fas fa-user-tie"></i>
                         Posted By
                     </h3>
                     <div class="sidebar-card-body">
-                        <div class="recruiter-profile">
+                        {# ── Entire recruiter block is now a profile link ── #}
+                        <a href="{{ url_for('profile_view.view_profile', user_id=job_owner.id) }}"
+                           class="recruiter-profile recruiter-profile-link">
                             <div class="recruiter-avatar">
                                 {% if job_owner.profile_picture %}
                                     {% if job_owner.profile_picture.startswith('http') %}
@@ -340,11 +347,14 @@
                                 <span class="recruiter-company">
                                     {{ job_owner.recruiter_profile.company_name }}
                                 </span>
+                                <span class="recruiter-view-cta">
+                                    View Profile <i class="fas fa-arrow-right"></i>
+                                </span>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 </div>
-                
+
                 <!-- JOB SAFETY TIPS CARD -->
                 <div class="sidebar-card tips-card">
                     <h3 class="sidebar-card-title">

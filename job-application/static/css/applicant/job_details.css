@@ -1085,3 +1085,54 @@
         padding: 20px 16px;
     }
 }
+
+/* ── A: job_details.css additions ── */
+
+/* Recruiter name inline link in "About the Company" */
+a.detail-profile-link {
+    color: var(--text-primary, #111);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+a.detail-profile-link:hover { color: #4D774E; }
+
+/* Recruiter sidebar card — entire block is now a link */
+a.recruiter-profile-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 10px;
+    padding: 6px;
+    margin: -6px;
+    transition: background 0.15s;
+}
+a.recruiter-profile-link:hover {
+    background: var(--bg-hover, #f3f4f6);
+}
+[data-theme="dark"] a.recruiter-profile-link:hover {
+    background: var(--bg-hover);
+}
+
+/* "View Profile →" CTA text inside recruiter sidebar card */
+.recruiter-view-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #4D774E;
+    margin-top: 4px;
+    transition: gap 0.15s;
+}
+a.recruiter-profile-link:hover .recruiter-view-cta {
+    gap: 8px;
+    color: #164A41;
+}
+[data-theme="dark"] .recruiter-view-cta { color: #9DC88D; }
+[data-theme="dark"] a.recruiter-profile-link:hover .recruiter-view-cta { color: #9DC88D; }

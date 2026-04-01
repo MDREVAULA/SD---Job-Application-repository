@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/view_profile.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+
+<div class="hr-profile-page">
+
+    <!-- ── BACK BAR ── -->
+    <div class="vp-back-bar">
+        <a href="javascript:history.back()" class="vp-back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('chat.inbox') }}?user={{ viewed_user.id }}" class="vp-message-btn">
+            <i class="fas fa-comment-dots"></i> Message
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- ══ HERO CARD ══ -->
+    <div class="hero-card">
+        <div class="hero-top-row">
+
+            <!-- Avatar (static, no click) -->
+            <div class="hero-avatar-wrap vp-avatar-static" style="cursor:default;">
+                {% if viewed_user.profile_picture %}
+                    {% if viewed_user.profile_picture.startswith('http') %}
+                        <img src="{{ viewed_user.profile_picture }}" class="hero-avatar-img" alt="Profile">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + viewed_user.profile_picture) }}" class="hero-avatar-img" alt="Profile">
+                    {% endif %}
+                {% else %}
+                    <div class="hero-avatar-default"><i class="fas fa-user"></i></div>
+                {% endif %}
+            </div>
+
+            <!-- Identity -->
+            <div class="hero-info">
+                <h1 class="hero-name">
+                    {% if viewed_user.hr_profile and viewed_user.hr_profile.first_name %}
+                        {{ viewed_user.hr_profile.first_name }} {{ viewed_user.hr_profile.last_name }}
+                    {% else %}
+                        {{ viewed_user.username }}
+                    {% endif %}
+                </h1>
+                <p class="hero-role">Human Resources</p>
+                <div class="hero-meta">
+                    {% if viewed_user.hr_profile %}
+                        {% if viewed_user.hr_profile.city or viewed_user.hr_profile.country %}
+                        <span>
+                            <i class="fas fa-location-dot"></i>
+                            {{ viewed_user.hr_profile.city }}{% if viewed_user.hr_profile.city and viewed_user.hr_profile.country %}, {% endif %}{{ viewed_user.hr_profile.country }}
+                        </span>
+                        {% endif %}
+                    {% endif %}
+                    <span><i class="fas fa-envelope"></i> {{ viewed_user.username }}</span>
+                </div>
+            </div>
+
+            <!-- Badges -->
+            <div class="hero-badge-wrap vp-badges">
+                <span class="verified-badge"><i class="fas fa-circle-check"></i> Verified HR</span>
+                <span class="vp-role-tag"><i class="fas fa-users"></i> HR</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══ PERSONAL DETAILS (view only) ══ -->
+    {% if viewed_user.hr_profile %}
+    <div class="profile-card">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-user"></i></span>
+            <h2>Personal Information</h2>
+        </div>
+        <div class="fields-grid">
+            <div class="field-item">
+                <span class="field-label">First Name</span>
+                <span class="field-value">{{ viewed_user.hr_profile.first_name or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Last Name</span>
+                <span class="field-value">{{ viewed_user.hr_profile.last_name or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Gender</span>
+                <span class="field-value">{{ viewed_user.hr_profile.gender or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Phone</span>
+                <span class="field-value">{{ viewed_user.hr_profile.phone_number or '—' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ LOCATION (view only) ══ -->
+    <div class="profile-card">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-location-dot"></i></span>
+            <h2>Location</h2>
+        </div>
+        <div class="fields-grid">
+            <div class="field-item">
+                <span class="field-label">Country</span>
+                <span class="field-value">{{ viewed_user.hr_profile.country or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">City</span>
+                <span class="field-value">{{ viewed_user.hr_profile.city or '—' }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="profile-card">
+        <div class="empty-state">
+            <i class="fas fa-user-slash"></i>
+            <p>This HR member hasn't set up their profile yet.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ══ ACCOUNT INFO ══ -->
+    <div class="profile-card">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-shield-halved"></i></span>
+            <h2>Account Info</h2>
+        </div>
+        <div class="fields-grid">
+            <div class="field-item">
+                <span class="field-label">Username</span>
+                <span class="field-value">{{ viewed_user.username }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Role</span>
+                <span class="field-value"><span class="role-pill">HR</span></span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

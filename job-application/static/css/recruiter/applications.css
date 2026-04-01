@@ -1479,3 +1479,32 @@
         padding: 20px;
     }
 }
+/* ── B: hr/job_application.css AND recruiter/applications.css additions ── */
+
+/* Applicant name in card header — clickable profile link */
+a.applicant-profile-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    transition: color 0.15s;
+    font-size: inherit;
+}
+a.applicant-profile-link:hover { color: #4D774E; }
+[data-theme="dark"] a.applicant-profile-link:hover { color: #9DC88D; }
+
+/* HR feedback author name — clickable profile link */
+a.feedback-author-link {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: inherit;
+    transition: color 0.15s;
+}
+a.feedback-author-link:hover {
+    color: #4D774E;
+    text-decoration: underline;
+}
+[data-theme="dark"] a.feedback-author-link:hover { color: #9DC88D; }

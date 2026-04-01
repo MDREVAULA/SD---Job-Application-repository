@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/view_profile.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+
+<div class="rc-profile-page">
+
+    <!-- ── BACK BAR ── -->
+    <div class="vp-back-bar">
+        <a href="javascript:history.back()" class="vp-back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('chat.inbox') }}?user={{ viewed_user.id }}" class="vp-message-btn">
+            <i class="fas fa-comment-dots"></i> Message
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- ══ HERO ══ -->
+    <div class="hero-card">
+        <div class="hero-top-row">
+
+            <!-- Avatars row: profile pic + company logo -->
+            <div class="hero-avatars">
+
+                <!-- Profile Picture (static) -->
+                <div class="hero-avatar-wrap vp-avatar-static" style="cursor:default;">
+                    {% if viewed_user.profile_picture %}
+                        {% if viewed_user.profile_picture.startswith('http') %}
+                            <img src="{{ viewed_user.profile_picture }}" class="hero-avatar-img" alt="Profile">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + viewed_user.profile_picture) }}" class="hero-avatar-img" alt="Profile">
+                        {% endif %}
+                    {% else %}
+                        <div class="hero-avatar-default"><i class="fas fa-user"></i></div>
+                    {% endif %}
+                </div>
+
+                <!-- Company Logo (static) -->
+                {% if viewed_user.recruiter_profile and viewed_user.recruiter_profile.company_logo %}
+                <div class="hero-logo-wrap" style="cursor:default;">
+                    <img src="{{ url_for('static', filename='uploads/company_logos/' + viewed_user.recruiter_profile.company_logo) }}"
+                         class="hero-logo-img" alt="Company Logo">
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Identity -->
+            <div class="hero-info">
+                <h1 class="hero-name">
+                    {% if viewed_user.recruiter_profile and viewed_user.recruiter_profile.first_name %}
+                        {{ viewed_user.recruiter_profile.first_name }} {{ viewed_user.recruiter_profile.last_name }}
+                    {% else %}
+                        {{ viewed_user.username }}
+                    {% endif %}
+                </h1>
+                <p class="hero-role">
+                    {% if viewed_user.recruiter_profile and viewed_user.recruiter_profile.company_name %}
+                        {{ viewed_user.recruiter_profile.company_name }}
+                    {% else %}
+                        Recruiter
+                    {% endif %}
+                </p>
+                <div class="hero-meta">
+                    {% if viewed_user.recruiter_profile %}
+                        {% if viewed_user.recruiter_profile.city or viewed_user.recruiter_profile.country %}
+                        <span>
+                            <i class="fas fa-location-dot"></i>
+                            {{ viewed_user.recruiter_profile.city }}{% if viewed_user.recruiter_profile.city and viewed_user.recruiter_profile.country %}, {% endif %}{{ viewed_user.recruiter_profile.country }}
+                        </span>
+                        {% endif %}
+                    {% endif %}
+                    <span><i class="fas fa-at"></i> {{ viewed_user.username }}</span>
+                </div>
+            </div>
+
+            <!-- Status badge -->
+            <div class="hero-badge-wrap vp-badges">
+                {% if viewed_user.verification_status == "Approved" %}
+                    <span class="status-badge badge-approved"><i class="fas fa-circle-check"></i> Verified</span>
+                {% elif viewed_user.verification_status == "Pending" %}
+                    <span class="status-badge badge-pending"><i class="fas fa-clock"></i> Pending</span>
+                {% elif viewed_user.verification_status == "Rejected" %}
+                    <span class="status-badge badge-rejected"><i class="fas fa-circle-xmark"></i> Rejected</span>
+                {% endif %}
+                <span class="vp-role-tag"><i class="fas fa-building"></i> Recruiter</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══ PERSONAL INFORMATION ══ -->
+    {% if viewed_user.recruiter_profile %}
+    <div class="profile-card">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-user"></i></span>
+            <h2>Personal Information</h2>
+        </div>
+        <div class="fields-grid">
+            <div class="field-item">
+                <span class="field-label">First Name</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.first_name or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Last Name</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.last_name or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Gender</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.gender or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Phone</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.phone_number or '—' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ COMPANY INFORMATION ══ -->
+    <div class="profile-card">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-building"></i></span>
+            <h2>Company Information</h2>
+        </div>
+        <div class="fields-grid">
+            <div class="field-item">
+                <span class="field-label">Company Name</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.company_name or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Industry</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.company_industry or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Country</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.country or '—' }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">City</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.city or '—' }}</span>
+            </div>
+            {% if viewed_user.recruiter_profile.company_address %}
+            <div class="field-item field-full">
+                <span class="field-label">Company Address</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.company_address }}</span>
+            </div>
+            {% endif %}
+            {% if viewed_user.recruiter_profile.company_website %}
+            <div class="field-item field-full">
+                <span class="field-label">Company Website</span>
+                <span class="field-value">
+                    <a href="{{ viewed_user.recruiter_profile.company_website }}" target="_blank" class="link-action">
+                        {{ viewed_user.recruiter_profile.company_website }}
+                        <i class="fas fa-arrow-up-right-from-square"></i>
+                    </a>
+                </span>
+            </div>
+            {% endif %}
+            {% if viewed_user.recruiter_profile.company_description %}
+            <div class="field-item field-full">
+                <span class="field-label">About the Company</span>
+                <span class="field-value">{{ viewed_user.recruiter_profile.company_description }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% else %}
+    <div class="profile-card">
+        <div class="empty-state">
+            <i class="fas fa-building-circle-exclamation"></i>
+            <p>This recruiter hasn't set up their profile yet.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ══ ACCOUNT INFO ══ -->
+    <div class="profile-card">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-shield-halved"></i></span>
+            <h2>Account Info</h2>
+        </div>
+        <div class="fields-grid">
+            <div class="field-item">
+                <span class="field-label">Username</span>
+                <span class="field-value">{{ viewed_user.username }}</span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Role</span>
+                <span class="field-value"><span class="role-pill">Recruiter</span></span>
+            </div>
+            <div class="field-item">
+                <span class="field-label">Verification</span>
+                <span class="field-value">
+                    {% if viewed_user.verification_status == "Approved" %}
+                        <span class="inline-status approved-text"><i class="fas fa-circle-check"></i> Approved</span>
+                    {% elif viewed_user.verification_status == "Pending" %}
+                        <span class="inline-status pending-text"><i class="fas fa-clock"></i> Pending review</span>
+                    {% elif viewed_user.verification_status == "Rejected" %}
+                        <span class="inline-status rejected-text"><i class="fas fa-circle-xmark"></i> Rejected</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ POSTED JOBS ══ -->
+    {% if posted_jobs %}
+    <div class="profile-card">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-briefcase"></i></span>
+            <h2>Active Job Postings</h2>
+            <span class="vp-count-pill">{{ posted_jobs | length }}</span>
+        </div>
+        <div class="vp-jobs-list">
+            {% for job in posted_jobs %}
+            <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="vp-job-item">
+                <div class="vp-job-icon"><i class="fas fa-briefcase"></i></div>
+                <div class="vp-job-body">
+                    <div class="vp-job-title">{{ job.title }}</div>
+                    <div class="vp-job-meta">
+                        {% if job.location %}<span><i class="fas fa-location-dot"></i> {{ job.location }}</span>{% endif %}
+                        {% if job.job_type %}<span><i class="fas fa-clock"></i> {{ job.job_type }}</span>{% endif %}
+                        {% if job.salary %}<span><i class="fas fa-money-bill-wave"></i> {{ job.salary }}</span>{% endif %}
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right vp-job-arrow"></i>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
