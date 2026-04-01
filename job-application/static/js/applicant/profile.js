@@ -1,5 +1,5 @@
 /* ============================================================
-   APPLICANT PROFILE JS
+   APPLICANT PROFILE JS — Fixed toggle logic
    ============================================================ */
 
 // Toggle inline edit forms (personal info, social links)
@@ -8,27 +8,44 @@ function toggleEdit(section) {
     const form = document.getElementById('edit-' + section);
     if (!view || !form) return;
 
-    const isEditing = form.style.display !== 'none';
-    view.style.display = isEditing ? '' : 'none';
-    form.style.display = isEditing ? 'none' : '';
+    // Use a data attribute as the source of truth instead of style.display
+    // because style.display is '' (not 'none') after a page reload
+    const isEditing = form.dataset.open === 'true';
 
-    // Update button text
-    const btn = document.querySelector('#section-' + section + ' .prof-edit-btn');
-    if (btn) {
+    if (isEditing) {
+        // Close: show view, hide form
+        form.dataset.open = 'false';
+        form.style.display = 'none';
+        view.style.display = '';
+    } else {
+        // Open: hide view, show form
+        form.dataset.open = 'true';
+        form.style.display = '';
+        view.style.display = 'none';
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Update ALL buttons that target this section (header + card)
+    document.querySelectorAll('[data-edit-target="' + section + '"]').forEach(btn => {
         btn.innerHTML = isEditing
             ? '<i class="fas fa-pen"></i> Edit'
             : '<i class="fas fa-times"></i> Cancel';
-    }
+    });
 }
 
 // Toggle add forms (experience, education, skills, etc.)
 function toggleAddForm(formId) {
     const form = document.getElementById(formId);
     if (!form) return;
-    const isVisible = form.style.display !== 'none';
-    form.style.display = isVisible ? 'none' : '';
 
-    if (!isVisible) {
+    const isVisible = form.dataset.open === 'true';
+
+    if (isVisible) {
+        form.dataset.open = 'false';
+        form.style.display = 'none';
+    } else {
+        form.dataset.open = 'true';
+        form.style.display = '';
         form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
@@ -41,9 +58,21 @@ function toggleEndDate(endDateId, checkbox) {
     if (checkbox.checked) endDate.value = '';
 }
 
-// Flash message auto-dismiss
+// On page load — make sure all forms are properly closed
 document.addEventListener('DOMContentLoaded', function () {
-    // Stagger card entrance
+
+    // Force-close all edit forms on load (fixes the page-reload stuck state)
+    document.querySelectorAll('.prof-edit-form, .prof-add-form').forEach(form => {
+        form.style.display = 'none';
+        form.dataset.open = 'false';
+    });
+
+    // Force-show all view panels on load
+    document.querySelectorAll('[id^="view-"]').forEach(view => {
+        view.style.display = '';
+    });
+
+    // Stagger card entrance animation
     document.querySelectorAll('.prof-card').forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(12px)';
