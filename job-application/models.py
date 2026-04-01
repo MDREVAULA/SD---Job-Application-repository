@@ -66,6 +66,7 @@ class User(db.Model, UserMixin):
         lazy=True
     )
 
+
 # =========================
 # APPLICANT PROFILE (UPDATED)
 # =========================
@@ -187,7 +188,6 @@ class Certification(db.Model):
     credential_url = db.Column(db.String(200))
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
 
 
 # =========================
@@ -325,6 +325,7 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+
 # =========================
 # FOLLOW TABLE
 # =========================
@@ -349,7 +350,7 @@ class Follow(db.Model):
  
  
 # =========================
-# MESSAGE TABLE
+# MESSAGE TABLE (with edits & replies)
 # =========================
 class Message(db.Model):
  
@@ -361,11 +362,26 @@ class Message(db.Model):
     body = db.Column(db.Text, nullable=False)
  
     is_read = db.Column(db.Boolean, default=False)
+
+    # ── NEW: edit support ──
+    edited = db.Column(db.Boolean, default=False)
+
+    # ── NEW: reply support ──
+    reply_to_id = db.Column(db.Integer, db.ForeignKey("message.id"), nullable=True)
  
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
  
-    sender = db.relationship("User", foreign_keys=[sender_id], backref="sent_messages")
+    sender   = db.relationship("User", foreign_keys=[sender_id],   backref="sent_messages")
     receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
+
+    # ── NEW: self-referential relationship for reply ──
+    reply_to = db.relationship(
+        "Message",
+        foreign_keys=[reply_to_id],
+        remote_side="Message.id",
+        backref="replies"
+    )
+
 
 # =========================
 # HR FEEDBACK TABLE
@@ -392,6 +408,4 @@ class JobImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
-    job = db.relationship("Job", backref="images")  
-    # =========================
-    # =========================
+    job = db.relationship("Job", backref="images")
