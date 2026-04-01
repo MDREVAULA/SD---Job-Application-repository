@@ -20,6 +20,13 @@ def generate_temp_password(length=10):
 
 recruiter_bp = Blueprint('recruiter', __name__, url_prefix="/recruiter")
 
+@recruiter_bp.route('/applications')
+@login_required
+def all_applications():
+    # Show all applications across all jobs
+    applications = Application.query.join(Job).filter(Job.recruiter_id == current_user.id).all()
+    return render_template('recruiter/all_applications.html', applications=applications)
+
 
 # ===============================
 # RECRUITER DASHBOARD
@@ -537,3 +544,11 @@ def delete_job(job_id):
     flash("Job deleted successfully!", "success")
 
     return redirect(url_for('recruiter.my_job_list'))
+
+@recruiter_bp.route('/setup-profile', methods=['GET', 'POST'])
+@login_required
+def setup_profile():
+    if request.method == 'POST':
+        # handle form saving here
+        pass
+    return redirect(url_for('recruiter.profile'))

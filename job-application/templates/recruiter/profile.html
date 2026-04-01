@@ -3,105 +3,243 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/profile.css') }}">
 
-<div class="dashboard-container">
+{% set upload_url = url_for('recruiter.upload_profile_picture') %}
+{% set logo_upload_url = url_for('recruiter.upload_company_logo') %}
+{% include 'components/profile_picture_modal.html' %}
 
-    {# ── Hidden modal mechanics only (no visible wrappers) ── #}
-    {% set upload_url = url_for('recruiter.upload_profile_picture') %}
-    {% set logo_upload_url = url_for('recruiter.upload_company_logo') %}
-    {% include 'components/profile_picture_modal.html' %}
-    {% include 'components/company_logo_modal.html' %}
 
-    <h2>Recruiter Dashboard</h2>
+<div class="rp-page">
 
-    <div class="status-card">
-        <strong>Account Status:</strong>
-        {% if current_user.verification_status == "Approved" %}
-            <span class="status approved">✅ Verified</span>
-        {% elif current_user.verification_status == "Pending" %}
-            <span class="status pending">⚠️ Pending Verification</span>
-        {% elif current_user.verification_status == "Rejected" %}
-            <span class="status rejected">❌ Rejected</span>
-        {% endif %}
-    </div>
-
-    <!-- PROFILE UPLOADS CARD -->
-    <div class="card profile-uploads-card">
-        <h3>Profile Settings</h3>
-        <div class="uploads-row">
-
-            <!-- Profile Picture -->
-            <div class="upload-group">
-                <p class="upload-label"><i class="fas fa-user"></i> Profile Picture</p>
-                <div class="pfp-wrapper">
-                    <div class="pfp-container" onclick="document.getElementById('pfpFileInput').click()">
-                        {% if current_user.profile_picture %}
-                            {% if current_user.profile_picture.startswith('http') %}
-                                <img src="{{ current_user.profile_picture }}" class="pfp-img">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="pfp-img">
-                            {% endif %}
+    <!-- ── HERO BANNER ── -->
+    <div class="rp-hero">
+        <div class="rp-hero-left">
+            <div class="rp-avatar-wrap">
+                <div class="rp-avatar" onclick="document.getElementById('pfpFileInput').click()">
+                    {% if current_user.profile_picture %}
+                        {% if current_user.profile_picture.startswith('http') %}
+                            <img src="{{ current_user.profile_picture }}" alt="Profile Picture">
                         {% else %}
-                            <div class="pfp-default">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-                                </svg>
-                            </div>
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" alt="Profile Picture">
                         {% endif %}
-                        <div class="pfp-overlay"><span>Change Photo</span></div>
-                    </div>
-                    <p class="pfp-hint">Click to upload • Square crop required</p>
+                    {% else %}
+                        <div class="rp-avatar-default">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    <div class="rp-avatar-overlay"><i class="fas fa-camera"></i></div>
+                </div>
+                <div class="rp-logo-badge" onclick="document.getElementById('logoFileInput').click()">
+                    {% if current_user.recruiter_profile and current_user.recruiter_profile.company_logo %}
+                        <img src="{{ url_for('static', filename='uploads/company_logos/' + current_user.recruiter_profile.company_logo) }}" alt="Company Logo">
+                    {% else %}
+                        <i class="fas fa-building"></i>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- Company Logo -->
-            <div class="upload-group">
-                <p class="upload-label"><i class="fas fa-building"></i> Company Logo</p>
-                <div class="logo-wrapper">
-                    <div class="logo-container" onclick="document.getElementById('logoFileInput').click()">
-                        {% if current_user.recruiter_profile and current_user.recruiter_profile.company_logo %}
-                            <img src="{{ url_for('static', filename='uploads/company_logos/' + current_user.recruiter_profile.company_logo) }}"
-                                 alt="Company Logo"
-                                 class="logo-img">
-                        {% else %}
-                            <div class="logo-default">
-                                <i class="fas fa-building"></i>
-                            </div>
-                        {% endif %}
-                        <div class="logo-overlay"><span>Change Logo</span></div>
-                    </div>
-                    <p class="logo-hint">Click to upload • Free crop</p>
+            <div class="rp-hero-info">
+                <h2>
+                    {% if current_user.recruiter_profile %}
+                        {{ current_user.recruiter_profile.first_name }} {{ current_user.recruiter_profile.last_name }}
+                    {% else %}
+                        {{ current_user.username }}
+                    {% endif %}
+                </h2>
+                <p class="rp-role">Recruiter</p>
+                <div class="rp-hero-meta">
+                    {% if current_user.recruiter_profile and current_user.recruiter_profile.city %}
+                        <span><i class="fas fa-map-marker-alt"></i> {{ current_user.recruiter_profile.city }}, {{ current_user.recruiter_profile.country }}</span>
+                    {% endif %}
+                    {% if current_user.recruiter_profile and current_user.recruiter_profile.phone_number %}
+                        <span><i class="fas fa-phone"></i> {{ current_user.recruiter_profile.phone_number }}</span>
+                    {% endif %}
+                    <span><i class="fas fa-envelope"></i> {{ current_user.email }}</span>
                 </div>
             </div>
+        </div>
 
+        <div class="rp-hero-right">
+            {% if current_user.verification_status == "Approved" %}
+                <span class="rp-status approved"><i class="fas fa-check-circle"></i> Verified</span>
+            {% elif current_user.verification_status == "Pending" %}
+                <span class="rp-status pending"><i class="fas fa-clock"></i> Pending</span>
+            {% elif current_user.verification_status == "Rejected" %}
+                <span class="rp-status rejected"><i class="fas fa-times-circle"></i> Rejected</span>
+            {% endif %}
         </div>
     </div>
 
-    <!-- DASHBOARD CARD -->
-    <div class="card">
-        <h3>Welcome to Your Dashboard</h3>
-        <p>Use the sidebar menu to manage your job postings and HR accounts.</p>
+    <!-- ── CARDS ── -->
+    <div class="rp-cards">
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 25px;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
-                <i class="fas fa-briefcase" style="font-size: 32px; margin-bottom: 10px;"></i>
-                <h4 style="margin: 0;">Post Jobs</h4>
-                <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">Create and manage listings</p>
+        <!-- Personal Information -->
+        <div class="rp-card">
+            <div class="rp-card-header">
+                <div class="rp-card-title">
+                    <div class="rp-card-icon"><i class="fas fa-user"></i></div>
+                    <h3>Personal Information</h3>
+                </div>
+                <a href="{{ url_for('recruiter.setup_profile') }}" class="rp-edit-btn">
+                    <i class="fas fa-pencil-alt"></i> Edit
+                </a>
             </div>
-
-            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
-                <i class="fas fa-users" style="font-size: 32px; margin-bottom: 10px;"></i>
-                <h4 style="margin: 0;">HR Accounts</h4>
-                <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">Manage your team</p>
-            </div>
-
-            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 20px; border-radius: 10px; color: white; text-align: center;">
-                <i class="fas fa-file-alt" style="font-size: 32px; margin-bottom: 10px;"></i>
-                <h4 style="margin: 0;">Applications</h4>
-                <p style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">Review candidates</p>
+            <hr class="rp-divider">
+            <div class="rp-grid">
+                <div class="rp-field">
+                    <span class="rp-label">FIRST NAME</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.first_name if current_user.recruiter_profile else '—' }}</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">LAST NAME</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.last_name if current_user.recruiter_profile else '—' }}</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">MIDDLE NAME</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.middle_name if (current_user.recruiter_profile and current_user.recruiter_profile.middle_name) else '—' }}</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">DATE OF BIRTH</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.date_of_birth.strftime('%B %d, %Y') if (current_user.recruiter_profile and current_user.recruiter_profile.date_of_birth) else '—' }}</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">GENDER</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.gender if current_user.recruiter_profile else '—' }}</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">PHONE</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.phone_number if current_user.recruiter_profile else '—' }}</span>
+                </div>
             </div>
         </div>
-    </div>
 
+        <!-- Location -->
+        <div class="rp-card">
+            <div class="rp-card-header">
+                <div class="rp-card-title">
+                    <div class="rp-card-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h3>Location</h3>
+                </div>
+                <a href="{{ url_for('recruiter.setup_profile') }}" class="rp-edit-btn">
+                    <i class="fas fa-pencil-alt"></i> Edit
+                </a>
+            </div>
+            <hr class="rp-divider">
+            <div class="rp-grid">
+                <div class="rp-field">
+                    <span class="rp-label">COUNTRY</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.country if current_user.recruiter_profile else '—' }}</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">CITY</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.city if current_user.recruiter_profile else '—' }}</span>
+                </div>
+                <div class="rp-field rp-field-full">
+                    <span class="rp-label">ADDRESS</span>
+                    <span class="rp-value">{{ current_user.recruiter_profile.home_address if current_user.recruiter_profile else '—' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Company Info -->
+        <div class="rp-card">
+            <div class="rp-card-header">
+                <div class="rp-card-title">
+                    <div class="rp-card-icon"><i class="fas fa-building"></i></div>
+                    <h3>Company Info</h3>
+                </div>
+                <button class="rp-edit-btn" onclick="document.getElementById('logoFileInput').click()">
+                    <i class="fas fa-upload"></i> Upload Logo
+                </button>
+            </div>
+            <hr class="rp-divider">
+            <div class="rp-company-row">
+                <div class="rp-company-logo-box" onclick="document.getElementById('logoFileInput').click()">
+                    {% if current_user.recruiter_profile and current_user.recruiter_profile.company_logo %}
+                        <img src="{{ url_for('static', filename='uploads/company_logos/' + current_user.recruiter_profile.company_logo) }}" alt="Company Logo">
+                    {% else %}
+                        <i class="fas fa-building"></i>
+                    {% endif %}
+                    <div class="rp-company-logo-overlay"><i class="fas fa-camera"></i></div>
+                </div>
+                <div class="rp-grid" style="flex:1">
+                    <div class="rp-field">
+                        <span class="rp-label">COMPANY NAME</span>
+                        <span class="rp-value">{{ current_user.recruiter_profile.company_name if (current_user.recruiter_profile and current_user.recruiter_profile.company_name) else '—' }}</span>
+                    </div>
+                    <div class="rp-field">
+                        <span class="rp-label">INDUSTRY</span>
+                        <span class="rp-value">{{ current_user.recruiter_profile.industry if (current_user.recruiter_profile and current_user.recruiter_profile.industry) else '—' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Info -->
+        <div class="rp-card">
+            <div class="rp-card-header">
+                <div class="rp-card-title">
+                    <div class="rp-card-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Account Info</h3>
+                </div>
+            </div>
+            <hr class="rp-divider">
+            <div class="rp-grid">
+                <div class="rp-field">
+                    <span class="rp-label">EMAIL</span>
+                    <span class="rp-value">{{ current_user.email }}</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">USERNAME</span>
+                    <span class="rp-value">{{ current_user.username }}</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">ROLE</span>
+                    <span class="rp-value">Recruiter</span>
+                </div>
+                <div class="rp-field">
+                    <span class="rp-label">VERIFICATION</span>
+                    <span class="rp-value">{{ current_user.verification_status }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="rp-card">
+            <div class="rp-card-header">
+                <div class="rp-card-title">
+                    <div class="rp-card-icon"><i class="fas fa-bolt"></i></div>
+                    <h3>Quick Actions</h3>
+                </div>
+            </div>
+            <hr class="rp-divider">
+            <div class="rp-actions-grid">
+                <a href="{{ url_for('recruiter.job_posting') }}" class="rp-action-item">
+                    <div class="rp-action-icon green"><i class="fas fa-briefcase"></i></div>
+                    <div>
+                        <h4>Post Jobs</h4>
+                        <p>Create and manage listings</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('recruiter.hr_accounts') }}" class="rp-action-item">
+                    <div class="rp-action-icon orange"><i class="fas fa-users"></i></div>
+                    <div>
+                        <h4>HR Accounts</h4>
+                        <p>Manage your team</p>
+                    </div>
+                </a>
+                <a href="{{ url_for('recruiter.my_job_list') }}" class="rp-action-item">
+                    <div class="rp-action-icon dark"><i class="fas fa-list"></i></div>
+                    <div>
+                        <h4>Job List</h4>
+                        <p>View all your jobs</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 {% endblock %}

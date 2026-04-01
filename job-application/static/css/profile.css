@@ -1,0 +1,390 @@
+/* ================================
+   RECRUITER PROFILE PAGE
+   ================================ */
+
+.rp-page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+}
+
+/* ── HERO ── */
+.rp-hero {
+    background: linear-gradient(135deg, #1a3c34 0%, #2d6a4f 100%);
+    border-radius: 16px;
+    padding: 32px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+    color: white;
+}
+
+.rp-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.rp-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.rp-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(255,255,255,0.4);
+    cursor: pointer;
+    position: relative;
+    background: #ccc;
+}
+
+.rp-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rp-avatar-default {
+    width: 100%;
+    height: 100%;
+    background: #4a8c6f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.rp-avatar-default svg {
+    width: 48px;
+    height: 48px;
+}
+
+.rp-avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    color: white;
+    font-size: 18px;
+}
+
+.rp-avatar:hover .rp-avatar-overlay {
+    opacity: 1;
+}
+
+/* Company logo badge on avatar */
+.rp-logo-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #1a3c34;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 14px;
+}
+
+.rp-logo-badge img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.rp-hero-info h2 {
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+}
+
+.rp-role {
+    margin: 0 0 10px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.rp-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.rp-hero-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Status badge */
+.rp-status {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.rp-status.approved {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+}
+
+.rp-status.pending {
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    color: #ffe08a;
+}
+
+.rp-status.rejected {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #f8a5ae;
+}
+
+/* ── CARDS ── */
+.rp-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.rp-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8ecf0;
+    padding: 24px 28px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.rp-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.rp-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rp-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f0f4ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a6cf7;
+    font-size: 15px;
+}
+
+.rp-card-title h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.rp-edit-btn {
+    padding: 6px 14px;
+    border: 1px solid #dde1e7;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #495057;
+    background: white;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.rp-edit-btn:hover {
+    border-color: #4a6cf7;
+    color: #4a6cf7;
+    background: #f0f4ff;
+}
+
+.rp-divider {
+    border: none;
+    border-top: 1px solid #f0f2f5;
+    margin: 0 0 20px;
+}
+
+/* ── FIELD GRID ── */
+.rp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 32px;
+}
+
+.rp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rp-field-full {
+    grid-column: 1 / -1;
+}
+
+.rp-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.05em;
+}
+
+.rp-value {
+    font-size: 0.95rem;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+/* ── COMPANY ROW ── */
+.rp-company-row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.rp-company-logo-box {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.rp-company-logo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.rp-company-logo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.rp-company-logo-box:hover .rp-company-logo-overlay {
+    opacity: 1;
+}
+
+/* ── QUICK ACTIONS ── */
+.rp-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.rp-action-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid #e8ecf0;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+}
+
+.rp-action-item:hover {
+    border-color: #4a6cf7;
+    background: #f8f9ff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(74, 108, 247, 0.1);
+}
+
+.rp-action-item h4 {
+    margin: 0 0 2px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.rp-action-item p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #94a3b8;
+}
+
+.rp-action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.rp-action-icon.green  { background: #dcfce7; color: #16a34a; }
+.rp-action-icon.orange { background: #fff7ed; color: #ea580c; }
+.rp-action-icon.dark   { background: #f1f5f9; color: #475569; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+    .rp-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px 20px;
+    }
+
+    .rp-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rp-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rp-company-row {
+        flex-direction: column;
+    }
+}
