@@ -132,6 +132,59 @@ def upload_company_logo():
 
     return redirect(url_for('recruiter.profile'))
 
+# ===============================
+# RECRUITER UPDATE PROFILE
+# ===============================
+@recruiter_bp.route('/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    from models import RecruiterProfile
+    section = request.form.get('section')
+    profile = current_user.recruiter_profile
+
+    if not profile:
+        profile = RecruiterProfile(user_id=current_user.id)
+        db.session.add(profile)
+
+    if section == 'personal':
+        profile.first_name   = request.form.get('first_name', '').strip()
+        profile.middle_name  = request.form.get('middle_name', '').strip()
+        profile.last_name    = request.form.get('last_name', '').strip()
+        profile.gender       = request.form.get('gender', '').strip()
+        profile.phone_number = request.form.get('phone_number', '').strip()
+        dob_str = request.form.get('date_of_birth')
+        if dob_str:
+            try:
+                profile.date_of_birth = datetime.strptime(dob_str, "%Y-%m-%d").date()
+            except ValueError:
+                pass
+
+    elif section == 'company':
+        profile.company_name        = request.form.get('company_name', '').strip()
+        profile.industry            = request.form.get('industry', '').strip()
+        profile.country             = request.form.get('country', '').strip()
+        profile.city                = request.form.get('city', '').strip()
+        profile.company_address     = request.form.get('company_address', '').strip()
+        profile.company_website     = request.form.get('company_website', '').strip()
+        profile.company_description = request.form.get('company_description', '').strip()
+
+    elif section == 'account':
+        new_username = request.form.get('username', '').strip()
+        if new_username and new_username != current_user.username:
+            existing = User.query.filter_by(username=new_username).first()
+            if existing:
+                flash("That username is already taken.", "danger")
+                return redirect(url_for('recruiter.profile'))
+            current_user.username = new_username
+
+    db.session.commit()
+    flash("Profile updated successfully!", "success")
+    return redirect(url_for('recruiter.profile'))
 
 # ===============================
 # POST JOB

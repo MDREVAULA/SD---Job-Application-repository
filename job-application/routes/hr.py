@@ -73,6 +73,55 @@ def upload_profile_picture():
 
     return redirect(url_for('hr.profile'))
 
+# =========================
+# HR UPDATE PROFILE
+# =========================
+@hr_bp.route('/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    section = request.form.get('section')
+    profile = current_user.hr_profile
+
+    # If no profile row exists yet, create one first
+    if not profile:
+        profile = HRProfile(user_id=current_user.id)
+        db.session.add(profile)
+
+    if section == 'personal':
+        profile.first_name   = request.form.get('first_name', '').strip()
+        profile.middle_name  = request.form.get('middle_name', '').strip()
+        profile.last_name    = request.form.get('last_name', '').strip()
+        profile.gender       = request.form.get('gender', '').strip()
+        profile.phone_number = request.form.get('phone_number', '').strip()
+        dob_str = request.form.get('date_of_birth')
+        if dob_str:
+            try:
+                profile.date_of_birth = datetime.strptime(dob_str, "%Y-%m-%d").date()
+            except ValueError:
+                pass
+
+    elif section == 'location':
+        profile.country      = request.form.get('country', '').strip()
+        profile.city         = request.form.get('city', '').strip()
+        profile.home_address = request.form.get('home_address', '').strip()
+
+    elif section == 'account':
+        new_username = request.form.get('username', '').strip()
+        if new_username and new_username != current_user.username:
+            existing = User.query.filter_by(username=new_username).first()
+            if existing:
+                flash("That username is already taken.", "danger")
+                return redirect(url_for('hr.profile'))
+            current_user.username = new_username
+
+    db.session.commit()
+    flash("Profile updated successfully!", "success")
+    return redirect(url_for('hr.profile'))
 
 # =========================
 # CHANGE PASSWORD

@@ -9,35 +9,26 @@
 
 <div class="hr-profile-page">
 
-    <!-- ── PROFILE HERO ── -->
-    <div class="profile-hero-card">
-        <div class="hero-banner">
-            <div class="banner-orb banner-orb-1"></div>
-            <div class="banner-orb banner-orb-2"></div>
-            <div class="banner-orb banner-orb-3"></div>
-        </div>
+    <!-- ══ HERO CARD ══ -->
+    <div class="hero-card">
 
-        <div class="hero-body">
+        <div class="hero-top-row">
             <!-- Avatar -->
-            <div class="avatar-wrapper" onclick="document.getElementById('pfpFileInput').click()" title="Change profile photo">
+            <div class="hero-avatar-wrap" onclick="document.getElementById('pfpFileInput').click()" title="Change photo">
                 {% if current_user.profile_picture %}
                     {% if current_user.profile_picture.startswith('http') %}
-                        <img src="{{ current_user.profile_picture }}" class="avatar-img" alt="Profile">
+                        <img src="{{ current_user.profile_picture }}" class="hero-avatar-img" alt="Profile">
                     {% else %}
-                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="avatar-img" alt="Profile">
+                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="hero-avatar-img" alt="Profile">
                     {% endif %}
                 {% else %}
-                    <div class="avatar-default">
-                        <i class="fas fa-user"></i>
-                    </div>
+                    <div class="hero-avatar-default"><i class="fas fa-user"></i></div>
                 {% endif %}
-                <div class="avatar-edit-badge">
-                    <i class="fas fa-camera"></i>
-                </div>
+                <div class="avatar-cam"><i class="fas fa-camera"></i></div>
             </div>
 
             <!-- Identity -->
-            <div class="hero-identity">
+            <div class="hero-info">
                 <h1 class="hero-name">
                     {% if current_user.hr_profile %}
                         {{ current_user.hr_profile.first_name }} {{ current_user.hr_profile.last_name }}
@@ -45,74 +36,97 @@
                         {{ current_user.username }}
                     {% endif %}
                 </h1>
-                <div class="hero-badges">
-                    <span class="badge badge-hr"><i class="fas fa-users"></i> Human Resources</span>
+                <p class="hero-role">
                     {% if current_user.hr_profile %}
-                        <span class="badge badge-verified"><i class="fas fa-circle-check"></i> Profile Complete</span>
+                        Human Resources
                     {% else %}
-                        <span class="badge badge-pending"><i class="fas fa-clock"></i> Setup Pending</span>
+                        Add a headline to describe yourself
                     {% endif %}
-                </div>
-                <p class="hero-email">
-                    <i class="fas fa-at"></i> {{ current_user.username }}
                 </p>
+
+                <div class="hero-meta">
+                    {% if current_user.hr_profile %}
+                        {% if current_user.hr_profile.city or current_user.hr_profile.country %}
+                        <span><i class="fas fa-location-dot"></i>
+                            {{ current_user.hr_profile.city }}{% if current_user.hr_profile.city and current_user.hr_profile.country %}, {% endif %}{{ current_user.hr_profile.country }}
+                        </span>
+                        {% endif %}
+                        {% if current_user.hr_profile.phone_number %}
+                        <span><i class="fas fa-phone"></i> {{ current_user.hr_profile.phone_number }}</span>
+                        {% endif %}
+                    {% endif %}
+                    <span><i class="fas fa-envelope"></i> {{ current_user.username }}</span>
+                </div>
+            </div>
+
+            <!-- Verified badge -->
+            <div class="hero-badge-wrap">
+                {% if current_user.hr_profile %}
+                <span class="verified-badge"><i class="fas fa-circle-check"></i> Verified</span>
+                {% else %}
+                <span class="pending-badge"><i class="fas fa-clock"></i> Incomplete</span>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- ── INCOMPLETE PROFILE NUDGE ── -->
+    <!-- ══ SETUP NUDGE ══ -->
     {% if not current_user.hr_profile %}
     <div class="nudge-card">
         <div class="nudge-icon"><i class="fas fa-id-card"></i></div>
         <div class="nudge-text">
             <h3>Complete your profile</h3>
-            <p>Your profile isn't set up yet. Fill in your details so the team knows who you are.</p>
+            <p>Fill in your details so the team knows who you are.</p>
         </div>
-        <a href="{{ url_for('hr.setup_profile') }}" class="btn-setup">
+        <a href="{{ url_for('hr.setup_profile') }}" class="btn-cta">
             Set Up Now <i class="fas fa-arrow-right"></i>
         </a>
     </div>
     {% endif %}
 
-    <!-- ── INFO GRID ── -->
-    <div class="info-grid">
+    <!-- ══ PERSONAL DETAILS ══ -->
+    <div class="profile-card" id="card-personal">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-user"></i></span>
+            <h2>Personal Information</h2>
+            <button class="btn-edit" onclick="startEdit('personal')" id="btn-edit-personal">
+                <i class="fas fa-pen"></i> Edit
+            </button>
+        </div>
 
-        <!-- Personal Details -->
-        <div class="info-card">
-            <div class="card-header">
-                <span class="card-icon"><i class="fas fa-user-pen"></i></span>
-                <h2>Personal Details</h2>
-            </div>
-
+        <!-- VIEW -->
+        <div id="view-personal">
             {% if current_user.hr_profile %}
-            <ul class="detail-list">
-                <li>
-                    <span class="detail-label"><i class="fas fa-signature"></i> Full Name</span>
-                    <span class="detail-value">
-                        {{ current_user.hr_profile.first_name }}
-                        {% if current_user.hr_profile.middle_name %} {{ current_user.hr_profile.middle_name }} {% endif %}
-                        {{ current_user.hr_profile.last_name }}
-                    </span>
-                </li>
-                <li>
-                    <span class="detail-label"><i class="fas fa-venus-mars"></i> Gender</span>
-                    <span class="detail-value">{{ current_user.hr_profile.gender or '—' }}</span>
-                </li>
-                <li>
-                    <span class="detail-label"><i class="fas fa-cake-candles"></i> Date of Birth</span>
-                    <span class="detail-value">
+            <div class="fields-grid">
+                <div class="field-item">
+                    <span class="field-label">First Name</span>
+                    <span class="field-value">{{ current_user.hr_profile.first_name or '—' }}</span>
+                </div>
+                <div class="field-item">
+                    <span class="field-label">Last Name</span>
+                    <span class="field-value">{{ current_user.hr_profile.last_name or '—' }}</span>
+                </div>
+                <div class="field-item">
+                    <span class="field-label">Middle Name</span>
+                    <span class="field-value">{{ current_user.hr_profile.middle_name or '—' }}</span>
+                </div>
+                <div class="field-item">
+                    <span class="field-label">Date of Birth</span>
+                    <span class="field-value">
                         {% if current_user.hr_profile.date_of_birth %}
                             {{ current_user.hr_profile.date_of_birth.strftime('%B %d, %Y') }}
-                        {% else %}
-                            —
-                        {% endif %}
+                        {% else %}—{% endif %}
                     </span>
-                </li>
-                <li>
-                    <span class="detail-label"><i class="fas fa-phone"></i> Phone</span>
-                    <span class="detail-value">{{ current_user.hr_profile.phone_number or '—' }}</span>
-                </li>
-            </ul>
+                </div>
+                <div class="field-item">
+                    <span class="field-label">Gender</span>
+                    <span class="field-value">{{ current_user.hr_profile.gender or '—' }}</span>
+                </div>
+                <div class="field-item">
+                    <span class="field-label">Phone</span>
+                    <span class="field-value">{{ current_user.hr_profile.phone_number or '—' }}</span>
+                </div>
+            </div>
             {% else %}
             <div class="empty-state">
                 <i class="fas fa-user-slash"></i>
@@ -121,28 +135,91 @@
             {% endif %}
         </div>
 
-        <!-- Location -->
-        <div class="info-card">
-            <div class="card-header">
-                <span class="card-icon"><i class="fas fa-location-dot"></i></span>
-                <h2>Location</h2>
+        <!-- EDIT FORM -->
+        <form id="form-personal" class="edit-form hidden"
+              action="{{ url_for('hr.update_profile') }}" method="POST">
+            <input type="hidden" name="section" value="personal">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" name="first_name"
+                           value="{{ current_user.hr_profile.first_name if current_user.hr_profile else '' }}"
+                           placeholder="First name">
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" name="last_name"
+                           value="{{ current_user.hr_profile.last_name if current_user.hr_profile else '' }}"
+                           placeholder="Last name">
+                </div>
+                <div class="form-group">
+                    <label>Middle Name</label>
+                    <input type="text" name="middle_name"
+                           value="{{ current_user.hr_profile.middle_name if current_user.hr_profile else '' }}"
+                           placeholder="Middle name">
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" name="date_of_birth"
+                           value="{{ current_user.hr_profile.date_of_birth.strftime('%Y-%m-%d') if current_user.hr_profile and current_user.hr_profile.date_of_birth else '' }}">
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select name="gender">
+                        <option value="">Select gender</option>
+                        {% for g in ['Male', 'Female', 'Non-binary', 'Other', 'Prefer not to say'] %}
+                        <option value="{{ g }}"
+                            {% if current_user.hr_profile and current_user.hr_profile.gender == g %}selected{% endif %}>
+                            {{ g }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" name="phone_number"
+                           value="{{ current_user.hr_profile.phone_number if current_user.hr_profile else '' }}"
+                           placeholder="+63 912 345 6789">
+                </div>
             </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="cancelEdit('personal')">
+                    <i class="fas fa-xmark"></i> Cancel
+                </button>
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
 
+    <!-- ══ LOCATION ══ -->
+    <div class="profile-card" id="card-location">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-location-dot"></i></span>
+            <h2>Location</h2>
+            <button class="btn-edit" onclick="startEdit('location')" id="btn-edit-location">
+                <i class="fas fa-pen"></i> Edit
+            </button>
+        </div>
+
+        <!-- VIEW -->
+        <div id="view-location">
             {% if current_user.hr_profile %}
-            <ul class="detail-list">
-                <li>
-                    <span class="detail-label"><i class="fas fa-globe"></i> Country</span>
-                    <span class="detail-value">{{ current_user.hr_profile.country or '—' }}</span>
-                </li>
-                <li>
-                    <span class="detail-label"><i class="fas fa-city"></i> City</span>
-                    <span class="detail-value">{{ current_user.hr_profile.city or '—' }}</span>
-                </li>
-                <li>
-                    <span class="detail-label"><i class="fas fa-house"></i> Address</span>
-                    <span class="detail-value">{{ current_user.hr_profile.home_address or '—' }}</span>
-                </li>
-            </ul>
+            <div class="fields-grid">
+                <div class="field-item">
+                    <span class="field-label">Country</span>
+                    <span class="field-value">{{ current_user.hr_profile.country or '—' }}</span>
+                </div>
+                <div class="field-item">
+                    <span class="field-label">City</span>
+                    <span class="field-value">{{ current_user.hr_profile.city or '—' }}</span>
+                </div>
+                <div class="field-item field-full">
+                    <span class="field-label">Address</span>
+                    <span class="field-value">{{ current_user.hr_profile.home_address or '—' }}</span>
+                </div>
+            </div>
             {% else %}
             <div class="empty-state">
                 <i class="fas fa-map-pin"></i>
@@ -151,61 +228,99 @@
             {% endif %}
         </div>
 
-        <!-- Account Info -->
-        <div class="info-card">
-            <div class="card-header">
-                <span class="card-icon"><i class="fas fa-shield-halved"></i></span>
-                <h2>Account Info</h2>
+        <!-- EDIT FORM -->
+        <form id="form-location" class="edit-form hidden"
+              action="{{ url_for('hr.update_profile') }}" method="POST">
+            <input type="hidden" name="section" value="location">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Country</label>
+                    <input type="text" name="country"
+                           value="{{ current_user.hr_profile.country if current_user.hr_profile else '' }}"
+                           placeholder="e.g. Philippines">
+                </div>
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" name="city"
+                           value="{{ current_user.hr_profile.city if current_user.hr_profile else '' }}"
+                           placeholder="e.g. Manila">
+                </div>
+                <div class="form-group form-full">
+                    <label>Home Address</label>
+                    <textarea name="home_address" rows="3"
+                              placeholder="Full address">{{ current_user.hr_profile.home_address if current_user.hr_profile else '' }}</textarea>
+                </div>
             </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="cancelEdit('location')">
+                    <i class="fas fa-xmark"></i> Cancel
+                </button>
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
 
-            <ul class="detail-list">
-                <li>
-                    <span class="detail-label"><i class="fas fa-user"></i> Username</span>
-                    <span class="detail-value">{{ current_user.username }}</span>
-                </li>
-                <li>
-                    <span class="detail-label"><i class="fas fa-tag"></i> Role</span>
-                    <span class="detail-value"><span class="badge badge-hr" style="font-size:11px;">HR</span></span>
-                </li>
-                <li>
-                    <span class="detail-label"><i class="fas fa-key"></i> Password</span>
-                    <span class="detail-value">
+    <!-- ══ ACCOUNT INFO ══ -->
+    <div class="profile-card" id="card-account">
+        <div class="card-header">
+            <span class="card-icon"><i class="fas fa-shield-halved"></i></span>
+            <h2>Account Info</h2>
+            <button class="btn-edit" onclick="startEdit('account')" id="btn-edit-account">
+                <i class="fas fa-pen"></i> Edit
+            </button>
+        </div>
+
+        <!-- VIEW -->
+        <div id="view-account">
+            <div class="fields-grid">
+                <div class="field-item">
+                    <span class="field-label">Username</span>
+                    <span class="field-value">{{ current_user.username }}</span>
+                </div>
+                <div class="field-item">
+                    <span class="field-label">Role</span>
+                    <span class="field-value">
+                        <span class="role-pill">HR</span>
+                    </span>
+                </div>
+                <div class="field-item">
+                    <span class="field-label">Password</span>
+                    <span class="field-value">
                         <a href="{{ url_for('hr.change_password') }}" class="link-action">
                             Change password <i class="fas fa-arrow-right"></i>
                         </a>
                     </span>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="info-card actions-card">
-            <div class="card-header">
-                <span class="card-icon"><i class="fas fa-bolt"></i></span>
-                <h2>Quick Actions</h2>
-            </div>
-
-            <div class="actions-grid">
-                <a href="{{ url_for('hr.job_list') }}" class="action-tile">
-                    <i class="fas fa-list-check"></i>
-                    <span>Job List</span>
-                </a>
-                <a href="{{ url_for('auth.jobs') }}" class="action-tile">
-                    <i class="fas fa-briefcase"></i>
-                    <span>Browse Jobs</span>
-                </a>
-                <a href="{{ url_for('chat.people') }}" class="action-tile">
-                    <i class="fas fa-users"></i>
-                    <span>People</span>
-                </a>
-                <a href="{{ url_for('auth.help_page') }}" class="action-tile">
-                    <i class="fas fa-circle-question"></i>
-                    <span>Help Center</span>
-                </a>
+                </div>
             </div>
         </div>
 
+        <!-- EDIT FORM -->
+        <form id="form-account" class="edit-form hidden"
+              action="{{ url_for('hr.update_profile') }}" method="POST">
+            <input type="hidden" name="section" value="account">
+            <div class="form-grid">
+                <div class="form-group form-full">
+                    <label>Username</label>
+                    <input type="text" name="username"
+                           value="{{ current_user.username }}"
+                           placeholder="Username" required>
+                    <span class="field-hint">This is your display name across the platform.</span>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="cancelEdit('account')">
+                    <i class="fas fa-xmark"></i> Cancel
+                </button>
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
     </div>
+
 </div>
 
+<script src="{{ url_for('static', filename='js/hr/profile.js') }}"></script>
 {% endblock %}
