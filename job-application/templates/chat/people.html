@@ -1,291 +1,372 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/chat/inbox.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat/people.css') }}">
 
-<div class="inbox-layout">
-
-    <!-- ============================
-         LEFT: CONVERSATION LIST
-    ============================ -->
-    <aside class="inbox-sidebar">
-        <div class="inbox-sidebar-header">
-            <h2><i class="fas fa-inbox"></i> Messages</h2>
-            <a href="{{ url_for('chat.people') }}" class="btn-new-chat" title="Find people to message">
-                <i class="fas fa-edit"></i>
-            </a>
-        </div>
-
-        <!-- CONVERSATION LIST -->
-        <div class="conversation-list">
-            {% if conversations %}
-                {% for convo in conversations %}
-                <a href="{{ url_for('chat.conversation', other_id=convo.user.id) }}"
-                   class="conversation-item {% if active_user and active_user.id == convo.user.id %}active{% endif %}">
-
-                    <!-- AVATAR -->
-                    <div class="convo-avatar-wrap">
-                        {% if convo.user.profile_picture %}
-                            {% if convo.user.profile_picture.startswith('http') %}
-                                <img src="{{ convo.user.profile_picture }}" alt="" class="convo-avatar">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + convo.user.profile_picture) }}" alt="" class="convo-avatar">
-                            {% endif %}
-                        {% else %}
-                            <div class="convo-avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        {% endif %}
-                        {% if convo.unread_count > 0 %}
-                            <span class="unread-dot"></span>
-                        {% endif %}
-                    </div>
-
-                    <!-- META -->
-                    <div class="convo-meta">
-                        <div class="convo-top">
-                            <span class="convo-name">{{ convo.display_name }}</span>
-                            {% if convo.last_message %}
-                                <span class="convo-time">{{ convo.last_message.created_at.strftime('%b %d') }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="convo-preview">
-                            {% if convo.last_message %}
-                                {% if convo.last_message.sender_id == current_user.id %}
-                                    <span class="preview-you">You: </span>
-                                {% endif %}
-                                <span class="preview-text">{{ convo.last_message.body[:50] }}{{ '…' if convo.last_message.body|length > 50 }}</span>
-                            {% else %}
-                                <span class="preview-empty">Start a conversation</span>
-                            {% endif %}
-                            {% if convo.unread_count > 0 %}
-                                <span class="unread-badge">{{ convo.unread_count }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                <div class="no-conversations">
-                    <i class="fas fa-comment-slash"></i>
-                    <p>No messages yet.<br>
-                        <a href="{{ url_for('chat.people') }}">Find people to message →</a>
-                    </p>
-                </div>
-            {% endif %}
-        </div>
-    </aside>
+<div class="people-page">
+<div class="people-page-inner">
 
     <!-- ============================
-         RIGHT: MESSAGE THREAD
+         TOP BAR
     ============================ -->
-    <main class="message-panel">
+    <div class="people-topbar">
 
-        {% if active_user %}
-
-        <!-- CHAT HEADER -->
-        <div class="chat-header">
-            <div class="chat-header-left">
-                <a href="{{ url_for('chat.inbox') }}" class="back-btn">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
-
-                {% if active_user.profile_picture %}
-                    {% if active_user.profile_picture.startswith('http') %}
-                        <img src="{{ active_user.profile_picture }}" class="chat-avatar" alt="">
-                    {% else %}
-                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + active_user.profile_picture) }}" class="chat-avatar" alt="">
-                    {% endif %}
+        <div class="people-topbar-header">
+            <h1><i class="fas fa-users"></i> People</h1>
+            <span class="people-results-meta">
+                {% if query %}
+                    {{ user_cards|length }} result{{ 's' if user_cards|length != 1 }} for "<strong>{{ query }}</strong>"
                 {% else %}
-                    <div class="chat-avatar-placeholder"><i class="fas fa-user"></i></div>
+                    {{ user_cards|length }} people on HireBon
+                {% endif %}
+            </span>
+        </div>
+
+        <form method="GET" action="{{ url_for('chat.people') }}">
+            <div class="search-input-group">
+                <i class="fas fa-search people-search-icon"></i>
+                <input
+                    type="text"
+                    name="q"
+                    class="people-search-input"
+                    placeholder="Search by name or username..."
+                    value="{{ query }}"
+                    autocomplete="off"
+                >
+                <button type="submit" class="search-btn">Search</button>
+            </div>
+
+            <div class="role-filter-tabs">
+                <a href="{{ url_for('chat.people', q=query) }}"
+                   class="role-tab {% if not role_filter %}active{% endif %}">
+                    All
+                </a>
+                <a href="{{ url_for('chat.people', q=query, role='applicant') }}"
+                   class="role-tab {% if role_filter == 'applicant' %}active{% endif %}">
+                    <i class="fas fa-user-tie"></i> Applicants
+                </a>
+                <a href="{{ url_for('chat.people', q=query, role='recruiter') }}"
+                   class="role-tab {% if role_filter == 'recruiter' %}active{% endif %}">
+                    <i class="fas fa-building"></i> Recruiters
+                </a>
+                <a href="{{ url_for('chat.people', q=query, role='hr') }}"
+                   class="role-tab {% if role_filter == 'hr' %}active{% endif %}">
+                    <i class="fas fa-users-cog"></i> HR
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- GUEST NOTICE -->
+    {% if not current_user.is_authenticated %}
+    <div class="guest-notice">
+        <i class="fas fa-info-circle"></i>
+        <span>You're browsing as a guest. <a href="{{ url_for('auth.login') }}">Log in</a> or <a href="{{ url_for('auth.register') }}">sign up</a> to follow people and send messages.</span>
+    </div>
+    {% endif %}
+
+    <!-- ============================
+         PEOPLE GRID
+    ============================ -->
+    {% if user_cards %}
+    <div class="people-grid">
+        {% for card in user_cards %}
+        <div class="person-card" data-role="{{ card.role }}" data-user-id="{{ card.id }}">
+
+            <!-- COVER STRIP -->
+            <div class="card-cover role-{{ card.role }}">
+                <div class="card-avatar-wrap">
+                    {% if card.profile_picture %}
+                        {% if card.profile_picture.startswith('http') %}
+                            <img src="{{ card.profile_picture }}" alt="{{ card.username }}" class="person-avatar">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + card.profile_picture) }}"
+                                 alt="{{ card.username }}" class="person-avatar">
+                        {% endif %}
+                    {% else %}
+                        <div class="person-avatar-placeholder"><i class="fas fa-user"></i></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- CARD BODY -->
+            <div class="card-body">
+                <h3 class="person-name">{{ card.display_name }}</h3>
+                <span class="person-username">@{{ card.username }}</span>
+
+                <span class="person-role-pill role-{{ card.role }}">
+                    {% if card.role == 'applicant' %}Applicant
+                    {% elif card.role == 'recruiter' %}Recruiter
+                    {% elif card.role == 'hr' %}HR
+                    {% endif %}
+                </span>
+
+                {% if card.company %}
+                <div class="person-company">
+                    <i class="fas fa-briefcase"></i>
+                    {{ card.company }}
+                </div>
                 {% endif %}
 
-                <div class="chat-header-info">
-                    <span class="chat-name">{{ active_display_name }}</span>
-                    {% if active_company %}
-                        <span class="chat-sub">{{ active_company }} · {{ active_user.role|title }}</span>
-                    {% else %}
-                        <span class="chat-sub">{{ active_user.role|title }}</span>
-                    {% endif %}
+                <div class="person-followers">
+                    <i class="fas fa-user-friends"></i>
+                    <span class="follower-count" id="fc-{{ card.id }}">{{ card.follower_count }}</span>
+                    &nbsp;follower{{ 's' if card.follower_count != 1 }}
                 </div>
             </div>
 
-            <div class="chat-header-right">
-                <button
-                    class="btn-follow-sm {% if is_following %}following{% endif %}"
-                    id="follow-btn-header"
-                    onclick="toggleFollowHeader({{ active_user.id }}, this)"
-                >
-                    {% if is_following %}
-                        <i class="fas fa-user-check"></i> Following
-                    {% else %}
-                        <i class="fas fa-user-plus"></i> Follow
-                    {% endif %}
-                </button>
-            </div>
-        </div>
-
-        <!-- MESSAGE THREAD -->
-        <div class="message-thread" id="messageThread">
-            {% if messages %}
-                {% set ns = namespace(prev_date=None) %}
-                {% for msg in messages %}
-                    {% set msg_date = msg.created_at.strftime('%B %d, %Y') %}
-                    {% if msg_date != ns.prev_date %}
-                        <div class="date-divider"><span>{{ msg_date }}</span></div>
-                        {% set ns.prev_date = msg_date %}
-                    {% endif %}
-
-                    <div class="message-bubble {% if msg.sender_id == current_user.id %}mine{% else %}theirs{% endif %}"
-                         data-msg-id="{{ msg.id }}"
-                         data-is-mine="{{ 'true' if msg.sender_id == current_user.id else 'false' }}">
-
-                        {# ── HOVER ACTION TOOLBAR ── #}
-                        <div class="bubble-actions">
-                            {# React button (placeholder) #}
-                            <button class="bubble-action-btn" title="React"
-                                    onclick="bubbleReact(this)">
-                                <i class="far fa-smile"></i>
-                            </button>
-                            {# Reply button #}
-                            <button class="bubble-action-btn" title="Reply"
-                                    onclick="bubbleReplyBtn(this)">
-                                <i class="fas fa-reply"></i>
-                            </button>
-                            {# More (three dots) — opens the context menu #}
-                            <button class="bubble-action-btn bubble-action-more" title="More"
-                                    onclick="bubbleMoreBtn(event, this)">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </button>
-                        </div>
-
-                        {# ── REPLY QUOTE (if this message is a reply) ── #}
-                        {% if msg.reply_to %}
-                        <div class="reply-quote">
-                            <span class="reply-quote-author">
-                                {{ 'You' if msg.reply_to.sender_id == current_user.id else active_display_name }}
-                            </span>
-                            <span class="reply-quote-text">{{ msg.reply_to.body[:80] }}{{ '…' if msg.reply_to.body|length > 80 }}</span>
-                        </div>
+            <!-- CARD FOOTER -->
+            <div class="card-footer">
+                {% if current_user.is_authenticated %}
+                    <button
+                        class="btn-follow {% if card.is_following %}following{% endif %}"
+                        id="follow-btn-{{ card.id }}"
+                        onclick="toggleFollow({{ card.id }}, this)"
+                    >
+                        {% if card.is_following %}
+                            <i class="fas fa-user-check"></i> Following
+                        {% else %}
+                            <i class="fas fa-user-plus"></i> Follow
                         {% endif %}
+                    </button>
 
-                        <div class="bubble-text">{{ msg.body }}</div>
-                        <div class="bubble-time">
-                            {{ msg.created_at.strftime('%I:%M %p') }}
-                            {% if msg.edited %}<span class="edited-label"> · edited</span>{% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="thread-empty">
-                    <i class="fas fa-comments"></i>
-                    <p>This is the beginning of your conversation with <strong>{{ active_display_name }}</strong>.</p>
-                </div>
-            {% endif %}
-        </div>
+                    <a href="{{ url_for('chat.conversation', other_id=card.id) }}"
+                       class="btn-message" title="Message {{ card.display_name }}">
+                        <i class="fas fa-comment"></i>
+                    </a>
 
-        <!-- ── REPLY PREVIEW BAR (shown above input when replying) ── -->
-        <div class="reply-preview-bar" id="replyPreviewBar" style="display:none;">
-            <div class="reply-preview-inner">
-                <div class="reply-preview-line"></div>
-                <div class="reply-preview-content">
-                    <span class="reply-preview-author" id="replyPreviewAuthor"></span>
-                    <span class="reply-preview-text" id="replyPreviewText"></span>
-                </div>
-            </div>
-            <button class="reply-cancel-btn" onclick="cancelReply()" title="Cancel reply">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <!-- ── EDIT MODE BAR (shown above input when editing) ── -->
-        <div class="edit-mode-bar" id="editModeBar" style="display:none;">
-            <div class="edit-mode-inner">
-                <i class="fas fa-pen" style="color:var(--chat-primary); font-size:0.8rem;"></i>
-                <span>Editing message</span>
-            </div>
-            <button class="reply-cancel-btn" onclick="cancelEdit()" title="Cancel edit">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <!-- MESSAGE INPUT -->
-        <div class="message-input-bar">
-
-            <!-- EMOJI PICKER -->
-            <div class="emoji-picker-wrapper">
-                <button class="emoji-toggle-btn" id="emojiToggleBtn" type="button" title="Emoji">
-                    <i class="far fa-smile"></i>
-                </button>
-                <div class="emoji-picker" id="emojiPicker">
-                    <div class="emoji-categories">
-                        <button class="emoji-cat-btn active" data-cat="smileys" title="Smileys">😀</button>
-                        <button class="emoji-cat-btn" data-cat="gestures" title="Gestures">👍</button>
-                        <button class="emoji-cat-btn" data-cat="hearts" title="Hearts">❤️</button>
-                        <button class="emoji-cat-btn" data-cat="nature" title="Nature">🌿</button>
-                        <button class="emoji-cat-btn" data-cat="food" title="Food">🍕</button>
-                        <button class="emoji-cat-btn" data-cat="travel" title="Travel">✈️</button>
-                        <button class="emoji-cat-btn" data-cat="objects" title="Objects">💡</button>
-                        <button class="emoji-cat-btn" data-cat="symbols" title="Symbols">🔥</button>
-                    </div>
-                    <div class="emoji-grid" id="emojiGrid"></div>
-                </div>
+                    <button
+                        class="btn-view-profile"
+                        title="View profile"
+                        onclick="openProfileModal({{ card.id }})"
+                    >
+                        <i class="fas fa-eye"></i>
+                    </button>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn-login-to-connect">
+                        <i class="fas fa-sign-in-alt"></i> Log in to connect
+                    </a>
+                {% endif %}
             </div>
 
-            <textarea
-                id="messageInput"
-                class="message-textarea"
-                placeholder="Write a message..."
-                rows="1"
-                onkeydown="handleKey(event)"
-                oninput="autoResize(this)"
-            ></textarea>
-            <button class="send-btn" onclick="handleSend()" id="sendBtn">
-                <i class="fas fa-paper-plane"></i>
-            </button>
         </div>
+        {% endfor %}
+    </div>
 
-        {% else %}
-        <!-- NO CONVERSATION SELECTED -->
-        <div class="no-chat-selected">
-            <i class="fas fa-comments"></i>
-            <h3>Your Messages</h3>
-            <p>Select a conversation or find someone new to message.</p>
-            <a href="{{ url_for('chat.people') }}" class="btn-find-people">
-                Find People
+    {% else %}
+    <!-- EMPTY STATE -->
+    <div class="people-empty">
+        <i class="fas fa-user-slash"></i>
+        <h3>No people found</h3>
+        <p>Try a different search term or remove the role filter.</p>
+        {% if query %}
+            <a href="{{ url_for('chat.people') }}" class="btn-clear-search">
+                Clear search
             </a>
-        </div>
         {% endif %}
+    </div>
+    {% endif %}
 
-    </main>
+</div><!-- .people-page-inner -->
+</div><!-- .people-page -->
+
+
+<!-- ============================
+     VIEW PROFILE MODAL
+============================ -->
+<div class="profile-modal-overlay" id="profileModalOverlay" onclick="closeProfileModalOnOverlay(event)">
+    <div class="profile-modal" id="profileModal">
+
+        <!-- Cover -->
+        <div class="modal-cover" id="modalCover">
+            <button class="modal-close-btn" onclick="closeProfileModal()" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Avatar + actions -->
+        <div class="modal-avatar-section">
+            <div class="modal-avatar-wrap" id="modalAvatarWrap">
+                <div class="modal-avatar-placeholder"><i class="fas fa-user"></i></div>
+            </div>
+
+            <div class="modal-quick-actions">
+                {% if current_user.is_authenticated %}
+                <button class="modal-btn-follow" id="modalFollowBtn" onclick="toggleFollowModal()">
+                    <i class="fas fa-user-plus"></i> Follow
+                </button>
+                <a class="modal-btn-message" id="modalMessageBtn" href="#">
+                    <i class="fas fa-comment"></i> Message
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <h2 class="modal-name" id="modalName">—</h2>
+            <span class="modal-username" id="modalUsername">@—</span>
+            <span class="modal-role-pill" id="modalRolePill">—</span>
+
+            <!-- Stats -->
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <span class="modal-stat-number" id="modalFollowers">—</span>
+                    <span class="modal-stat-label">Followers</span>
+                </div>
+                <div class="modal-stat">
+                    <span class="modal-stat-number" id="modalFollowing">—</span>
+                    <span class="modal-stat-label">Following</span>
+                </div>
+                <div class="modal-stat">
+                    <span class="modal-stat-number" id="modalMutual">—</span>
+                    <span class="modal-stat-label">Mutual</span>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="modal-details">
+                <div class="modal-detail-row" id="modalCompanyRow" style="display:none">
+                    <span class="modal-detail-icon"><i class="fas fa-briefcase"></i></span>
+                    <span class="modal-detail-text" id="modalCompanyText">—</span>
+                </div>
+                <div class="modal-detail-row">
+                    <span class="modal-detail-icon"><i class="fas fa-id-badge"></i></span>
+                    <span class="modal-detail-text" id="modalRoleText">—</span>
+                </div>
+            </div>
+
+            <div class="modal-divider"></div>
+
+            <!-- About placeholder -->
+            <p class="modal-section-title">About</p>
+            <div class="modal-placeholder-block">
+                <i class="fas fa-file-alt"></i>
+                No bio added yet.
+            </div>
+        </div>
+
+    </div>
 </div>
 
-<!-- ── CONTEXT MENU (right-click on bubble) ── -->
-<div class="bubble-context-menu" id="bubbleContextMenu">
-    <button class="ctx-item" id="ctxReply" onclick="ctxReplyClick()">
-        <i class="fas fa-reply"></i> Reply
-    </button>
-    <button class="ctx-item ctx-mine-only" id="ctxEdit" onclick="ctxEditClick()">
-        <i class="fas fa-pen"></i> Edit
-    </button>
-    <button class="ctx-item ctx-mine-only ctx-danger" id="ctxUnsend" onclick="ctxUnsendClick()">
-        <i class="fas fa-trash"></i> Unsend
-    </button>
-    <div class="ctx-divider"></div>
-    <button class="ctx-item ctx-danger" id="ctxReport" onclick="ctxReportClick()">
-        <i class="fas fa-flag"></i> Report
-    </button>
-</div>
 
-{% if active_user %}
-<!-- Inject conversation variables for inbox.js -->
 <script>
-    const RECEIVER_ID      = {{ active_user.id }};
-    const CURRENT_USER_ID  = {{ current_user.id }};
-    const ACTIVE_DISP_NAME = {{ active_display_name | tojson }};
-    let lastMessageId      = {{ messages[-1].id if messages else 0 }};
-</script>
-{% endif %}
+const PEOPLE_DATA = {
+    {% for card in user_cards %}
+    "{{ card.id }}": {
+        id: {{ card.id }},
+        name: {{ card.display_name | tojson }},
+        username: {{ card.username | tojson }},
+        role: {{ card.role | tojson }},
+        company: {{ (card.company or '') | tojson }},
+        follower_count: {{ card.follower_count }},
+        is_following: {{ 'true' if card.is_following else 'false' }},
+        {% if card.profile_picture and not card.profile_picture.startswith('http') %}
+        avatar_url: "{{ url_for('static', filename='uploads/profile_pictures/' + card.profile_picture) }}",
+        {% elif card.profile_picture %}
+        avatar_url: {{ card.profile_picture | tojson }},
+        {% else %}
+        avatar_url: '',
+        {% endif %}
+        message_url: "{{ url_for('chat.conversation', other_id=card.id) }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
 
-<script src="{{ url_for('static', filename='js/chat/inbox.js') }}"></script>
+let activeModalUserId = null;
+
+const ROLE_LABELS = { applicant: 'Applicant', recruiter: 'Recruiter', hr: 'HR Professional' };
+const ROLE_ICONS  = { applicant: 'fa-user-tie', recruiter: 'fa-building', hr: 'fa-users-cog' };
+
+function openProfileModal(userId) {
+    const d = PEOPLE_DATA[String(userId)];
+    if (!d) return;
+    activeModalUserId = String(userId);
+
+    // Cover color
+    const cover = document.getElementById('modalCover');
+    cover.className = 'modal-cover role-' + d.role;
+
+    // Avatar
+    const wrap = document.getElementById('modalAvatarWrap');
+    if (d.avatar_url) {
+        wrap.innerHTML = `<img src="${d.avatar_url}" alt="${d.name}" class="modal-avatar">`;
+    } else {
+        wrap.innerHTML = `<div class="modal-avatar-placeholder"><i class="fas fa-user"></i></div>`;
+    }
+
+    // Name / username
+    document.getElementById('modalName').textContent = d.name;
+    document.getElementById('modalUsername').textContent = '@' + d.username;
+
+    // Role pill
+    const pill = document.getElementById('modalRolePill');
+    pill.className = 'modal-role-pill role-' + d.role;
+    pill.innerHTML = `<i class="fas ${ROLE_ICONS[d.role] || 'fa-user'} " style="font-size:0.65rem"></i> ${ROLE_LABELS[d.role] || d.role}`;
+
+    // Stats
+    document.getElementById('modalFollowers').textContent = d.follower_count;
+    document.getElementById('modalFollowing').textContent  = '—';
+    document.getElementById('modalMutual').textContent     = '—';
+
+    // Company
+    const compRow = document.getElementById('modalCompanyRow');
+    if (d.company) {
+        compRow.style.display = 'flex';
+        document.getElementById('modalCompanyText').textContent = d.company;
+    } else {
+        compRow.style.display = 'none';
+    }
+
+    // Role text
+    document.getElementById('modalRoleText').textContent = ROLE_LABELS[d.role] || d.role;
+
+    // Follow btn
+    const fb = document.getElementById('modalFollowBtn');
+    if (fb) {
+        fb.className = 'modal-btn-follow' + (d.is_following ? ' following' : '');
+        fb.innerHTML = d.is_following
+            ? '<i class="fas fa-user-check"></i> Following'
+            : '<i class="fas fa-user-plus"></i> Follow';
+    }
+
+    // Message link
+    const mb = document.getElementById('modalMessageBtn');
+    if (mb) mb.href = d.message_url;
+
+    document.getElementById('profileModalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProfileModal() {
+    document.getElementById('profileModalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    activeModalUserId = null;
+}
+
+function closeProfileModalOnOverlay(e) {
+    if (e.target === document.getElementById('profileModalOverlay')) closeProfileModal();
+}
+
+function toggleFollowModal() {
+    if (!activeModalUserId) return;
+    const cardBtn = document.getElementById('follow-btn-' + activeModalUserId);
+    if (cardBtn) cardBtn.click();
+    setTimeout(() => {
+        const fb = document.getElementById('modalFollowBtn');
+        if (!fb || !cardBtn) return;
+        const nowFollowing = cardBtn.classList.contains('following');
+        fb.className = 'modal-btn-follow' + (nowFollowing ? ' following' : '');
+        fb.innerHTML = nowFollowing
+            ? '<i class="fas fa-user-check"></i> Following'
+            : '<i class="fas fa-user-plus"></i> Follow';
+    }, 150);
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeProfileModal();
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/chat/people.js') }}"></script>
 {% endblock %}
