@@ -17,6 +17,63 @@
     padding: 24px 16px 80px;
 }
 
+/* ================================
+   SMOOTH THEME TRANSITION
+   ================================ */
+
+.prof-wrapper *,
+.prof-wrapper *::before,
+.prof-wrapper *::after {
+    transition:
+        background-color 0.3s ease,
+        border-color 0.3s ease,
+        color 0.3s ease,
+        box-shadow 0.3s ease !important;
+}
+
+/* Exclude elements where transition looks wrong */
+.prof-avatar-img,
+.prof-avatar-default,
+.prof-cover-strip,
+.prof-completion-bar-fill {
+    transition: none !important;
+}
+
+/* Preserve specific functional transitions */
+.prof-avatar-wrap {
+    transition: box-shadow 0.2s ease !important;
+}
+
+.prof-avatar-overlay {
+    transition: opacity 0.18s ease !important;
+}
+
+.prof-skill-delete {
+    transition: opacity 0.14s ease !important;
+}
+
+.prof-btn-delete {
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        opacity 0.15s ease !important;
+}
+
+/* Preserve entrance animation — don't let the global transition override it */
+.prof-card,
+.prof-header {
+    transition:
+        background-color 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease !important;
+}
+
+/* Progress bar fill should animate width, not colors */
+.prof-completion-bar-fill {
+    transition: width 0.6s ease !important;
+}
+
 /* ══════════════════════════════════════════
    HEADER CARD
 ══════════════════════════════════════════ */
@@ -68,7 +125,6 @@
     background: var(--bg-card, #fff);
     flex-shrink: 0;
     position: relative;
-    transition: box-shadow 0.2s;
 }
 
 .prof-avatar-wrap:hover {
@@ -102,7 +158,6 @@
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.18s;
     color: #fff;
     font-size: 1.1rem;
     border-radius: 50%;
@@ -127,7 +182,6 @@
     font-size: 0.82rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.16s;
     border: 1.5px solid;
     font-family: inherit;
     white-space: nowrap;
@@ -147,9 +201,7 @@
     color: var(--text-secondary, #374151);
 }
 
-.prof-action-btn-outline:hover {
-    background: var(--bg-hover, #f3f4f6);
-}
+.prof-action-btn-outline:hover { background: var(--bg-hover, #f3f4f6); }
 
 /* Name / headline */
 .prof-header-info h1 {
@@ -200,7 +252,6 @@
     font-size: 0.78rem;
     font-weight: 500;
     text-decoration: none;
-    transition: all 0.15s;
     border: 1px solid var(--border-color, #EAEDE8);
     color: var(--text-secondary, #374151);
     background: var(--bg-surface-alt, #F7F8F6);
@@ -302,7 +353,6 @@
     font-size: 0.775rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
     font-family: inherit;
 }
 
@@ -364,7 +414,6 @@
 }
 .prof-link:hover { text-decoration: underline; }
 
-/* ── Bio text in view ── */
 .prof-bio-text {
     font-size: 0.875rem;
     color: var(--text-secondary, #374151);
@@ -416,7 +465,6 @@
     font-family: 'DM Sans', system-ui, sans-serif;
     color: var(--input-text, #111);
     background: var(--input-bg, #fff);
-    transition: border-color 0.15s, box-shadow 0.15s;
     outline: none;
     -webkit-appearance: none;
     appearance: none;
@@ -474,7 +522,6 @@
     font-size: 0.83rem;
     cursor: pointer;
     font-family: inherit;
-    transition: background 0.15s;
 }
 
 .prof-btn-save:hover { background: #0e3229; border-color: #0e3229; }
@@ -492,7 +539,6 @@
     font-size: 0.83rem;
     cursor: pointer;
     font-family: inherit;
-    transition: all 0.15s;
 }
 
 .prof-btn-cancel:hover { background: var(--bg-hover, #F3F4F6); color: var(--text-secondary, #374151); }
@@ -551,7 +597,6 @@
     background: #F0F7EC;
     padding: 2px 8px;
     border-radius: 20px;
-    transition: all 0.13s;
 }
 
 .prof-item-link:hover {
@@ -594,7 +639,6 @@
     align-items: center;
     justify-content: center;
     font-size: 0.7rem;
-    transition: all 0.15s;
     opacity: 0;
 }
 
@@ -645,7 +689,6 @@
     opacity: 0;
     padding: 0;
     color: inherit;
-    transition: opacity 0.14s;
     display: flex;
     align-items: center;
     line-height: 1;
@@ -716,7 +759,6 @@
     height: 100%;
     background: linear-gradient(90deg, #4D774E, #9DC88D);
     border-radius: 20px;
-    transition: width 0.6s ease;
 }
 
 .prof-completion-pct {
@@ -819,36 +861,29 @@
 [data-theme="dark"] .prof-skill-advanced     { background: rgba(200, 195, 40, 0.15); border-color: rgba(200, 195, 40, 0.3); color: #d9d46a; }
 [data-theme="dark"] .prof-skill-expert       { background: rgba(80, 160, 80, 0.15); border-color: rgba(80, 160, 80, 0.3); color: #85c985; }
 
-/* ── Icon colors — dark mode ── */
 [data-theme="dark"] .prof-card-title i           { color: #9DC88D; }
 [data-theme="dark"] .prof-header-meta i           { color: #9DC88D; }
 [data-theme="dark"] .prof-item-icon               { background: rgba(77,119,78,0.15); border-color: rgba(77,119,78,0.25); color: #9DC88D; }
 [data-theme="dark"] .prof-side-item i             { color: var(--icon-light); }
-[data-theme="dark"] .prof-link            { color: var(--icon-light); }
+[data-theme="dark"] .prof-link                    { color: var(--icon-light); }
 [data-theme="dark"] .prof-completion-tip.done     { color: #9DC88D; }
 [data-theme="dark"] .prof-completion-tip.done .prof-tip-icon { color: #9DC88D; }
 [data-theme="dark"] .prof-completion-tip .prof-tip-icon      { color: rgba(157, 200, 141, 0.25); }
 [data-theme="dark"] .prof-empty-section i         { color: rgba(157, 200, 141, 0.2); }
 [data-theme="dark"] .prof-empty-section p         { color: var(--text-muted); }
-[data-theme="dark"] .prof-side-item-text { color: var(--text-secondary); }
-[data-theme="dark"] .prof-completion-title { color: var(--text-primary); }
-[data-theme="dark"] .prof-completion-bar-bg { background: var(--border-color); }
-[data-theme="dark"] .prof-completion-tip { color: var(--text-muted); }
+[data-theme="dark"] .prof-side-item-text          { color: var(--text-secondary); }
+[data-theme="dark"] .prof-completion-title        { color: var(--text-primary); }
+[data-theme="dark"] .prof-completion-bar-bg       { background: var(--border-color); }
+[data-theme="dark"] .prof-completion-tip          { color: var(--text-muted); }
 
 /* ══════════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-    .prof-body {
-        grid-template-columns: 1fr;
-    }
-    .prof-side {
-        order: -1;
-    }
-    .prof-side .prof-card:not(:first-child) {
-        display: none;
-    }
+    .prof-body { grid-template-columns: 1fr; }
+    .prof-side { order: -1; }
+    .prof-side .prof-card:not(:first-child) { display: none; }
 }
 
 @media (max-width: 600px) {
