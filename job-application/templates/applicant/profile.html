@@ -145,12 +145,10 @@
                             <span class="prof-info-label">Headline</span>
                             <span class="prof-info-value">{{ profile.headline if profile and profile.headline else '—' }}</span>
                         </div>
-                        {% if profile and profile.bio %}
                         <div class="prof-info-item prof-info-full">
                             <span class="prof-info-label">About / Bio</span>
-                            <span class="prof-info-value prof-bio-text">{{ profile.bio }}</span>
+                            <span class="prof-info-value prof-bio-text">{{ profile.bio if profile and profile.bio else '—'}}</span>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
 
@@ -671,7 +669,7 @@
                     <div class="prof-card-title"><i class="fas fa-link"></i> Links</div>
                     <button class="prof-edit-btn" onclick="toggleEdit('social')" data-edit-target="social"><i class="fas fa-pen"></i> Edit</button>
                 </div>
-                <div class="prof-view" id="view-social">
+                <div id="view-social">
                     <div class="prof-side-list">
                         <div class="prof-side-item">
                             <i class="fas fa-envelope"></i>

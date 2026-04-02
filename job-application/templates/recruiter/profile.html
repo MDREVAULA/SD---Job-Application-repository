@@ -1,396 +1,662 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/profile.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 
-{% set upload_url = url_for('recruiter.upload_profile_picture') %}
-{% set logo_upload_url = url_for('recruiter.upload_company_logo') %}
-{% include 'components/profile_picture_modal.html' %}
-{% include 'components/company_logo_modal.html' %}
+<div class="prof-wrapper">
 
-<div class="rc-profile-page">
+    {% set upload_url = url_for('recruiter.upload_profile_picture') %}
+    {% include 'components/profile_picture_modal.html' %}
 
-    <!-- ══ HERO ══ -->
-    <div class="hero-card">
-        <div class="hero-top-row">
+    {% set logo_upload_url = url_for('recruiter.upload_company_logo') %}
+    {% include 'components/company_logo_modal.html' %}
 
-            <!-- Avatars row: profile pic + company logo -->
-            <div class="hero-avatars">
+    <!-- ── HEADER ── -->
+    <div class="prof-header">
+        <div class="prof-cover-strip"></div>
+        <div class="prof-header-inner">
+            <div class="prof-header-top-row">
 
-                <!-- Profile Picture -->
-                <div class="hero-avatar-wrap"
-                     onclick="document.getElementById('pfpFileInput').click()"
-                     title="Change profile photo">
+                <!-- Profile Avatar -->
+                <div class="prof-avatar-wrap" onclick="document.getElementById('pfpFileInput').click()" title="Change photo">
                     {% if current_user.profile_picture %}
                         {% if current_user.profile_picture.startswith('http') %}
-                            <img src="{{ current_user.profile_picture }}" class="hero-avatar-img" alt="Profile">
+                            <img src="{{ current_user.profile_picture }}" class="prof-avatar-img" alt="Profile photo">
                         {% else %}
-                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="hero-avatar-img" alt="Profile">
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="prof-avatar-img" alt="Profile photo">
                         {% endif %}
                     {% else %}
-                        <div class="hero-avatar-default"><i class="fas fa-user"></i></div>
+                        <div class="prof-avatar-default">{{ current_user.username[0] | upper }}</div>
                     {% endif %}
-                    <div class="avatar-cam"><i class="fas fa-camera"></i></div>
+                    <div class="prof-avatar-overlay"><i class="fas fa-camera"></i></div>
                 </div>
 
-                <!-- Company Logo -->
-                <div class="hero-logo-wrap"
-                     onclick="document.getElementById('logoFileInput').click()"
-                     title="Change company logo">
-                    {% if current_user.recruiter_profile and current_user.recruiter_profile.company_logo %}
-                        <img src="{{ url_for('static', filename='uploads/company_logos/' + current_user.recruiter_profile.company_logo) }}"
-                             class="hero-logo-img" alt="Company Logo">
-                    {% else %}
-                        <div class="hero-logo-default"><i class="fas fa-building"></i></div>
-                    {% endif %}
-                    <div class="logo-cam"><i class="fas fa-camera"></i></div>
+                <!-- Action buttons -->
+                <div class="prof-header-actions">
+                    <div class="prof-verification-badge {% if current_user.verification_status == 'Approved' %}badge-verified{% elif current_user.verification_status == 'Pending' %}badge-pending{% else %}badge-rejected{% endif %}">
+                        {% if current_user.verification_status == 'Approved' %}
+                            <i class="fas fa-check-circle"></i> Verified
+                        {% elif current_user.verification_status == 'Pending' %}
+                            <i class="fas fa-hourglass-half"></i> Pending
+                        {% else %}
+                            <i class="fas fa-times-circle"></i> Rejected
+                        {% endif %}
+                    </div>
+                    <button class="prof-action-btn prof-action-btn-outline" onclick="toggleEdit('personal')" data-edit-target="personal">
+                        <i class="fas fa-pen"></i> Edit Profile
+                    </button>
                 </div>
-
             </div>
 
-            <!-- Identity -->
-            <div class="hero-info">
-                <h1 class="hero-name">
-                    {% if current_user.recruiter_profile and current_user.recruiter_profile.first_name %}
-                        {{ current_user.recruiter_profile.first_name }} {{ current_user.recruiter_profile.last_name }}
+            <!-- Name / company / meta -->
+            <div class="prof-header-info">
+                <h1>
+                    {% if profile and profile.first_name %}
+                        {{ profile.first_name }} {{ profile.surname }}
                     {% else %}
                         {{ current_user.username }}
                     {% endif %}
                 </h1>
-                <p class="hero-role">
-                    {% if current_user.recruiter_profile and current_user.recruiter_profile.company_name %}
-                        {{ current_user.recruiter_profile.company_name }}
+                <p class="prof-username">
+                    @{{ current_user.username }}
+                </p>
+                <p class="prof-headline">
+                    {% if profile and profile.headline %}
+                        {{ profile.headline }}
+                    {% elif profile and profile.company_name %}
+                        Recruiter at <strong>{{ profile.company_name }}</strong>
+                        {% if profile.company_industry %} · {{ profile.company_industry }}{% endif %}
                     {% else %}
-                        Recruiter
+                        Add a headline to describe yourself
                     {% endif %}
                 </p>
-                <div class="hero-meta">
-                    {% if current_user.recruiter_profile %}
-                        {% if current_user.recruiter_profile.city or current_user.recruiter_profile.country %}
-                        <span>
-                            <i class="fas fa-location-dot"></i>
-                            {{ current_user.recruiter_profile.city }}{% if current_user.recruiter_profile.city and current_user.recruiter_profile.country %}, {% endif %}{{ current_user.recruiter_profile.country }}
-                        </span>
-                        {% endif %}
-                        {% if current_user.recruiter_profile.phone_number %}
-                        <span><i class="fas fa-phone"></i> {{ current_user.recruiter_profile.phone_number }}</span>
-                        {% endif %}
+                <div class="prof-header-meta">
+                    {% if profile and profile.city %}
+                    <span><i class="fas fa-map-marker-alt"></i>{{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}</span>
                     {% endif %}
-                    <span><i class="fas fa-at"></i> {{ current_user.username }}</span>
+                    {% if profile and profile.phone_number %}
+                    <span><i class="fas fa-phone"></i>{{ profile.phone_number }}</span>
+                    {% endif %}
+                    <span><i class="fas fa-envelope"></i>{{ current_user.email }}</span>
+                    {% if profile and profile.company_address %}
+                    <span><i class="fas fa-building"></i>{{ profile.company_address }}</span>
+                    {% endif %}
+                </div>
+                <!-- Social links -->
+                <div class="prof-social-links">
+                    {% if profile and profile.linkedin %}
+                    <a href="{{ profile.linkedin }}" target="_blank" class="prof-social-btn">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.github %}
+                    <a href="{{ profile.github }}" target="_blank" class="prof-social-btn">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.portfolio %}
+                    <a href="{{ profile.portfolio }}" target="_blank" class="prof-social-btn">
+                        <i class="fas fa-globe"></i> Portfolio
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.company_website %}
+                    <a href="{{ profile.company_website }}" target="_blank" class="prof-social-btn">
+                        <i class="fas fa-briefcase"></i> Company Site
+                    </a>
+                    {% endif %}
                 </div>
             </div>
-
-            <!-- Status badge -->
-            <div class="hero-badge-wrap">
-                {% if current_user.verification_status == "Approved" %}
-                    <span class="status-badge badge-approved"><i class="fas fa-circle-check"></i> Verified</span>
-                {% elif current_user.verification_status == "Pending" %}
-                    <span class="status-badge badge-pending"><i class="fas fa-clock"></i> Pending</span>
-                {% elif current_user.verification_status == "Rejected" %}
-                    <span class="status-badge badge-rejected"><i class="fas fa-circle-xmark"></i> Rejected</span>
-                {% endif %}
-            </div>
-
         </div>
     </div>
 
-    <!-- ══ PERSONAL INFORMATION ══ -->
-    <div class="profile-card" id="card-personal">
-        <div class="card-header">
-            <span class="card-icon"><i class="fas fa-user"></i></span>
-            <h2>Personal Information</h2>
-            <button class="btn-edit" onclick="startEdit('personal')" id="btn-edit-personal">
-                <i class="fas fa-pen"></i> Edit
-            </button>
-        </div>
+    <!-- ── TWO-COLUMN BODY ── -->
+    <div class="prof-body">
 
-        <!-- VIEW -->
-        <div id="view-personal">
-            {% if current_user.recruiter_profile %}
-            <div class="fields-grid">
-                <div class="field-item">
-                    <span class="field-label">First Name</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.first_name or '—' }}</span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Last Name</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.last_name or '—' }}</span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Middle Name</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.middle_name or '—' }}</span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Date of Birth</span>
-                    <span class="field-value">
-                        {% if current_user.recruiter_profile.date_of_birth %}
-                            {{ current_user.recruiter_profile.date_of_birth.strftime('%B %d, %Y') }}
-                        {% else %}—{% endif %}
-                    </span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Gender</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.gender or '—' }}</span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Phone</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.phone_number or '—' }}</span>
-                </div>
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-user-slash"></i>
-                <p>No personal details on file.</p>
-            </div>
-            {% endif %}
-        </div>
+        <!-- ══ MAIN COLUMN ══ -->
+        <div class="prof-main">
 
-        <!-- EDIT FORM -->
-        <form id="form-personal" class="edit-form hidden"
-              action="{{ url_for('recruiter.update_profile') }}" method="POST">
-            <input type="hidden" name="section" value="personal">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>First Name</label>
-                    <input type="text" name="first_name"
-                           value="{{ current_user.recruiter_profile.first_name if current_user.recruiter_profile else '' }}"
-                           placeholder="First name">
+            <!-- ── PERSONAL INFO ── -->
+            <div class="prof-card" id="section-personal" style="animation-delay:0.05s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-id-card"></i> Personal Information</div>
+                    <button class="prof-edit-btn" onclick="toggleEdit('personal')" data-edit-target="personal"><i class="fas fa-pen"></i> Edit</button>
                 </div>
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input type="text" name="last_name"
-                           value="{{ current_user.recruiter_profile.last_name if current_user.recruiter_profile else '' }}"
-                           placeholder="Last name">
-                </div>
-                <div class="form-group">
-                    <label>Middle Name</label>
-                    <input type="text" name="middle_name"
-                           value="{{ current_user.recruiter_profile.middle_name if current_user.recruiter_profile else '' }}"
-                           placeholder="Middle name">
-                </div>
-                <div class="form-group">
-                    <label>Date of Birth</label>
-                    <input type="date" name="date_of_birth"
-                           value="{{ current_user.recruiter_profile.date_of_birth.strftime('%Y-%m-%d') if current_user.recruiter_profile and current_user.recruiter_profile.date_of_birth else '' }}">
-                </div>
-                <div class="form-group">
-                    <label>Gender</label>
-                    <select name="gender">
-                        <option value="">Select gender</option>
-                        {% for g in ['Male', 'Female', 'Non-binary', 'Other', 'Prefer not to say'] %}
-                        <option value="{{ g }}"
-                            {% if current_user.recruiter_profile and current_user.recruiter_profile.gender == g %}selected{% endif %}>
-                            {{ g }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="text" name="phone_number"
-                           value="{{ current_user.recruiter_profile.phone_number if current_user.recruiter_profile else '' }}"
-                           placeholder="+63 912 345 6789">
-                </div>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn-cancel" onclick="cancelEdit('personal')">
-                    <i class="fas fa-xmark"></i> Cancel
-                </button>
-                <button type="submit" class="btn-save">
-                    <i class="fas fa-check"></i> Save Changes
-                </button>
-            </div>
-        </form>
-    </div>
 
-    <!-- ══ COMPANY INFORMATION ══ -->
-    <div class="profile-card" id="card-company">
-        <div class="card-header">
-            <span class="card-icon"><i class="fas fa-building"></i></span>
-            <h2>Company Information</h2>
-            <button class="btn-edit" onclick="startEdit('company')" id="btn-edit-company">
-                <i class="fas fa-pen"></i> Edit
-            </button>
-        </div>
+                <div class="prof-view" id="view-personal">
+                    <div class="prof-info-grid">
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">First Name</span>
+                            <span class="prof-info-value">{{ profile.first_name if profile and profile.first_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Last Name</span>
+                            <span class="prof-info-value">{{ profile.surname if profile and profile.surname else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Middle Name</span>
+                            <span class="prof-info-value">{{ profile.middle_name if profile and profile.middle_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Date of Birth</span>
+                            <span class="prof-info-value">{{ profile.date_of_birth.strftime('%B %d, %Y') if profile and profile.date_of_birth else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Gender</span>
+                            <span class="prof-info-value">{{ profile.gender if profile and profile.gender else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Phone</span>
+                            <span class="prof-info-value">{{ profile.phone_number if profile and profile.phone_number else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Home Address</span>
+                            <span class="prof-info-value">{{ profile.home_address if profile and profile.home_address else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Headline</span>
+                            <span class="prof-info-value">{{ profile.headline if profile and profile.headline else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">About / Bio</span>
+                            <span class="prof-info-value prof-bio-text">{{ profile.bio if profile and profile.bio else '—' }}</span>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- VIEW -->
-        <div id="view-company">
-            {% if current_user.recruiter_profile %}
-            <div class="fields-grid">
-                <div class="field-item">
-                    <span class="field-label">Company Name</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.company_name or '—' }}</span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Industry</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.industry or '—' }}</span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Country</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.country or '—' }}</span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">City</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.city or '—' }}</span>
-                </div>
-                <div class="field-item field-full">
-                    <span class="field-label">Company Address</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.company_address or '—' }}</span>
-                </div>
-                <div class="field-item field-full">
-                    <span class="field-label">Company Website</span>
-                    <span class="field-value">
-                        {% if current_user.recruiter_profile.company_website %}
-                            <a href="{{ current_user.recruiter_profile.company_website }}"
-                               target="_blank" class="link-action">
-                                {{ current_user.recruiter_profile.company_website }}
-                                <i class="fas fa-arrow-up-right-from-square"></i>
-                            </a>
-                        {% else %}—{% endif %}
-                    </span>
-                </div>
-                <div class="field-item field-full">
-                    <span class="field-label">Company Description</span>
-                    <span class="field-value">{{ current_user.recruiter_profile.company_description or '—' }}</span>
+                <div class="prof-edit-form" id="edit-personal" style="display:none;">
+                    <form method="POST" action="{{ url_for('recruiter.update_profile') }}">
+                        <input type="hidden" name="section" value="personal">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>First Name</label>
+                                <input type="text" name="first_name" value="{{ profile.first_name if profile and profile.first_name else '' }}" placeholder="Juan">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Last Name</label>
+                                <input type="text" name="last_name" value="{{ profile.surname if profile and profile.surname else '' }}" placeholder="Dela Cruz">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Middle Name</label>
+                                <input type="text" name="middle_name" value="{{ profile.middle_name if profile and profile.middle_name else '' }}">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" name="date_of_birth" value="{{ profile.date_of_birth.strftime('%Y-%m-%d') if profile and profile.date_of_birth else '' }}">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Gender</label>
+                                <select name="gender">
+                                    <option value="">Select</option>
+                                    <option value="Male" {% if profile and profile.gender == 'Male' %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if profile and profile.gender == 'Female' %}selected{% endif %}>Female</option>
+                                    <option value="Non-binary" {% if profile and profile.gender == 'Non-binary' %}selected{% endif %}>Non-binary</option>
+                                    <option value="Prefer not to say" {% if profile and profile.gender == 'Prefer not to say' %}selected{% endif %}>Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Phone Number</label>
+                                <input type="text" name="phone_number" value="{{ profile.phone_number if profile and profile.phone_number else '' }}" placeholder="+63 9XX XXX XXXX">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Home Address</label>
+                                <input type="text" name="home_address" value="{{ profile.home_address if profile and profile.home_address else '' }}" placeholder="Street, Barangay, City">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Headline <span class="prof-form-hint">e.g. "Senior Recruiter · Tech & Startups"</span></label>
+                                <input type="text" name="headline" value="{{ profile.headline if profile and profile.headline else '' }}" placeholder="Describe yourself in one line">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Bio <span class="prof-form-hint">Tell applicants about yourself</span></label>
+                                <textarea name="bio" rows="4" placeholder="Write a short bio about yourself...">{{ profile.bio if profile and profile.bio else '' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save Changes</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('personal')" data-edit-target="personal">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-building-circle-exclamation"></i>
-                <p>No company details on file.</p>
-            </div>
-            {% endif %}
-        </div>
 
-        <!-- EDIT FORM -->
-        <form id="form-company" class="edit-form hidden"
-              action="{{ url_for('recruiter.update_profile') }}" method="POST">
-            <input type="hidden" name="section" value="company">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Company Name</label>
-                    <input type="text" name="company_name"
-                           value="{{ current_user.recruiter_profile.company_name if current_user.recruiter_profile else '' }}"
-                           placeholder="e.g. Acme Corp">
+            <!-- ── COMPANY INFORMATION ── -->
+            <div class="prof-card" id="section-company" style="animation-delay:0.08s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-building"></i> Company Information</div>
+                    <button class="prof-edit-btn" onclick="toggleEdit('company')" data-edit-target="company"><i class="fas fa-pen"></i> Edit</button>
                 </div>
-                <div class="form-group">
-                    <label>Industry</label>
-                    <input type="text" name="industry"
-                           value="{{ current_user.recruiter_profile.industry if current_user.recruiter_profile else '' }}"
-                           placeholder="e.g. Technology">
-                </div>
-                <div class="form-group">
-                    <label>Country</label>
-                    <input type="text" name="country"
-                           value="{{ current_user.recruiter_profile.country if current_user.recruiter_profile else '' }}"
-                           placeholder="e.g. Philippines">
-                </div>
-                <div class="form-group">
-                    <label>City</label>
-                    <input type="text" name="city"
-                           value="{{ current_user.recruiter_profile.city if current_user.recruiter_profile else '' }}"
-                           placeholder="e.g. Manila">
-                </div>
-                <div class="form-group form-full">
-                    <label>Company Address</label>
-                    <input type="text" name="company_address"
-                           value="{{ current_user.recruiter_profile.company_address if current_user.recruiter_profile else '' }}"
-                           placeholder="Full company address">
-                </div>
-                <div class="form-group form-full">
-                    <label>Company Website</label>
-                    <input type="url" name="company_website"
-                           value="{{ current_user.recruiter_profile.company_website if current_user.recruiter_profile else '' }}"
-                           placeholder="https://yourcompany.com">
-                </div>
-                <div class="form-group form-full">
-                    <label>Company Description</label>
-                    <textarea name="company_description" rows="4"
-                              placeholder="Brief description of your company...">{{ current_user.recruiter_profile.company_description if current_user.recruiter_profile else '' }}</textarea>
-                </div>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn-cancel" onclick="cancelEdit('company')">
-                    <i class="fas fa-xmark"></i> Cancel
-                </button>
-                <button type="submit" class="btn-save">
-                    <i class="fas fa-check"></i> Save Changes
-                </button>
-            </div>
-        </form>
-    </div>
 
-    <!-- ══ ACCOUNT INFO ══ -->
-    <div class="profile-card" id="card-account">
-        <div class="card-header">
-            <span class="card-icon"><i class="fas fa-shield-halved"></i></span>
-            <h2>Account Info</h2>
-            <button class="btn-edit" onclick="startEdit('account')" id="btn-edit-account">
-                <i class="fas fa-pen"></i> Edit
-            </button>
-        </div>
-
-        <!-- VIEW -->
-        <div id="view-account">
-            <div class="fields-grid">
-                <div class="field-item">
-                    <span class="field-label">Username</span>
-                    <span class="field-value">{{ current_user.username }}</span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Role</span>
-                    <span class="field-value">
-                        <span class="role-pill">Recruiter</span>
-                    </span>
-                </div>
-                <div class="field-item">
-                    <span class="field-label">Verification</span>
-                    <span class="field-value">
-                        {% if current_user.verification_status == "Approved" %}
-                            <span class="inline-status approved-text"><i class="fas fa-circle-check"></i> Approved</span>
-                        {% elif current_user.verification_status == "Pending" %}
-                            <span class="inline-status pending-text"><i class="fas fa-clock"></i> Pending review</span>
-                        {% elif current_user.verification_status == "Rejected" %}
-                            <span class="inline-status rejected-text"><i class="fas fa-circle-xmark"></i> Rejected</span>
+                <div class="prof-view" id="view-company">
+                    <div class="prof-info-grid">
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Company Name</span>
+                            <span class="prof-info-value">{{ profile.company_name if profile and profile.company_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Industry</span>
+                            <span class="prof-info-value">{{ profile.company_industry if profile and profile.company_industry else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Country</span>
+                            <span class="prof-info-value">{{ profile.country if profile and profile.country else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">City</span>
+                            <span class="prof-info-value">{{ profile.city if profile and profile.city else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Office / Company Address</span>
+                            <span class="prof-info-value">{{ profile.company_address if profile and profile.company_address else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Company Email Domain</span>
+                            <span class="prof-info-value">{{ profile.company_email_domain if profile and profile.company_email_domain else '—' }}</span>
+                        </div>
+                        {% if profile and profile.company_description %}
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">About the Company</span>
+                            <span class="prof-info-value prof-bio-text">{{ profile.company_description }}</span>
+                        </div>
                         {% endif %}
-                    </span>
+                    </div>
                 </div>
-                <div class="field-item">
-                    <span class="field-label">Password</span>
-                    <span class="field-value">
-                        <a href="{{ url_for('auth.forgot_password') }}" class="link-action">
-                            Change password <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </span>
-                </div>
-            </div>
-        </div>
 
-        <!-- EDIT FORM -->
-        <form id="form-account" class="edit-form hidden"
-              action="{{ url_for('recruiter.update_profile') }}" method="POST">
-            <input type="hidden" name="section" value="account">
-            <div class="form-grid">
-                <div class="form-group form-full">
-                    <label>Username</label>
-                    <input type="text" name="username"
-                           value="{{ current_user.username }}"
-                           placeholder="Username" required>
-                    <span class="field-hint">This is your display name across the platform.</span>
+                <div class="prof-edit-form" id="edit-company" style="display:none;">
+                    <form method="POST" action="{{ url_for('recruiter.update_profile') }}">
+                        <input type="hidden" name="section" value="company">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>Company Name</label>
+                                <input type="text" name="company_name" value="{{ profile.company_name if profile and profile.company_name else '' }}" placeholder="e.g. Acme Corporation">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Industry</label>
+                                <input type="text" name="industry" value="{{ profile.company_industry if profile and profile.company_industry else '' }}" placeholder="e.g. Information Technology">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Country</label>
+                                <input type="text" name="country" value="{{ profile.country if profile and profile.country else '' }}" placeholder="Philippines">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>City</label>
+                                <input type="text" name="city" value="{{ profile.city if profile and profile.city else '' }}" placeholder="Quezon City">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Office / Company Address</label>
+                                <input type="text" name="company_address" value="{{ profile.company_address if profile and profile.company_address else '' }}" placeholder="Building, Street, City">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Company Email Domain <span class="prof-form-hint">e.g. @company.com</span></label>
+                                <input type="text" name="company_website" value="{{ profile.company_email_domain if profile and profile.company_email_domain else '' }}" placeholder="@company.com">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>About the Company <span class="prof-form-hint">Describe your company to attract applicants</span></label>
+                                <textarea name="company_description" rows="4" placeholder="Tell applicants about your company's mission, culture, and values...">{{ profile.company_description if profile and profile.company_description else '' }}</textarea>
+                            </div>
+                        </div>
+                        <!-- Single click target: the whole row triggers the file input -->
+                        <div class="prof-logo-upload-row">
+                            <i class="fas fa-image"></i> Upload or change company logo
+                            <button type="button" class="prof-logo-upload-btn" onclick="document.getElementById('logoFileInput').click()">
+                                <i class="fas fa-camera"></i> Upload
+                            </button>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save Changes</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('company')" data-edit-target="company">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            <div class="form-actions">
-                <button type="button" class="btn-cancel" onclick="cancelEdit('account')">
-                    <i class="fas fa-xmark"></i> Cancel
-                </button>
-                <button type="submit" class="btn-save">
-                    <i class="fas fa-check"></i> Save Changes
-                </button>
-            </div>
-        </form>
-    </div>
 
+            <!-- ── EDUCATION ── -->
+            <div class="prof-card" id="section-education" style="animation-delay:0.11s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-graduation-cap"></i> Education
+                        {% if educations %}<span class="prof-section-count">{{ educations | length }}</span>{% endif %}
+                    </div>
+                    <button class="prof-add-btn" onclick="toggleAddForm('add-education')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+
+                <div class="prof-add-form" id="add-education" style="display:none;">
+                    <form method="POST" action="{{ url_for('recruiter.add_education') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>School / University</label>
+                                <input type="text" name="school" placeholder="e.g. University of the Philippines" required>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Degree</label>
+                                <input type="text" name="degree" placeholder="e.g. Bachelor of Science">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Field of Study</label>
+                                <input type="text" name="field_of_study" placeholder="e.g. Business Administration">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Start Date</label>
+                                <input type="month" name="start_date">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>End Date</label>
+                                <input type="month" name="end_date" id="edu-end-date">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label class="prof-checkbox-label">
+                                    <input type="checkbox" name="is_current" value="1" onchange="toggleEndDate('edu-end-date', this)">
+                                    I am currently studying here
+                                </label>
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Description / Achievements</label>
+                                <textarea name="description" rows="3" placeholder="Honors, achievements, relevant coursework..."></textarea>
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-education')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="prof-items-list">
+                    {% if educations %}
+                        {% for edu in educations %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">{{ edu.school }}</div>
+                                <div class="prof-item-subtitle">{{ edu.degree if edu.degree else '' }}{% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}</div>
+                                <div class="prof-item-date">
+                                    {{ edu.start_date if edu.start_date else '' }}
+                                    {% if edu.is_current %} – Present
+                                    {% elif edu.end_date %} – {{ edu.end_date }}
+                                    {% endif %}
+                                </div>
+                                {% if edu.description %}<div class="prof-item-desc">{{ edu.description }}</div>{% endif %}
+                            </div>
+                            <form method="POST" action="{{ url_for('recruiter.delete_education', edu_id=edu.id) }}" class="prof-item-delete">
+                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this education entry?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-graduation-cap"></i>
+                            <p>No education added yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div><!-- /.prof-main -->
+
+        <!-- ══ SIDEBAR COLUMN ══ -->
+        <div class="prof-side">
+
+            <!-- ── PROFILE COMPLETION ── -->
+            <div class="prof-card" style="animation-delay:0.06s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-star"></i> Profile Strength</div>
+                </div>
+                <div class="prof-completion-wrap">
+                    {% set score = namespace(val=0) %}
+                    {% if profile and profile.first_name %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.bio %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.company_name %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.company_industry %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.company_description %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.phone_number %}{% set score.val = score.val + 5 %}{% endif %}
+                    {% if profile and profile.company_logo %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.linkedin %}{% set score.val = score.val + 5 %}{% endif %}
+                    {% if educations %}{% set score.val = score.val + 5 %}{% endif %}
+                    {% if jobs %}{% set score.val = score.val + 5 %}{% endif %}
+
+                    <div class="prof-completion-title">
+                        {% if score.val >= 80 %}All-Star Profile!
+                        {% elif score.val >= 60 %}Intermediate
+                        {% elif score.val >= 40 %}Beginner
+                        {% else %}Getting Started{% endif %}
+                    </div>
+                    <div class="prof-completion-bar-bg">
+                        <div class="prof-completion-bar-fill" style="width: {{ score.val }}%"></div>
+                    </div>
+                    <div class="prof-completion-pct">{{ score.val }}% complete</div>
+
+                    <div class="prof-completion-tips">
+                        <div class="prof-completion-tip {% if profile and profile.first_name %}done{% endif %}">
+                            <i class="{% if profile and profile.first_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add your full name
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.headline %}done{% endif %}">
+                            <i class="{% if profile and profile.headline %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Write a headline
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.bio %}done{% endif %}">
+                            <i class="{% if profile and profile.bio %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add a bio
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.phone_number %}done{% endif %}">
+                            <i class="{% if profile and profile.phone_number %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add a phone number
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.company_name %}done{% endif %}">
+                            <i class="{% if profile and profile.company_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add your company name
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.company_industry %}done{% endif %}">
+                            <i class="{% if profile and profile.company_industry %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add company industry
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.company_description %}done{% endif %}">
+                            <i class="{% if profile and profile.company_description %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Write a company description
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.company_logo %}done{% endif %}">
+                            <i class="{% if profile and profile.company_logo %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Upload a company logo
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.linkedin %}done{% endif %}">
+                            <i class="{% if profile and profile.linkedin %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Link your LinkedIn
+                        </div>
+                        <div class="prof-completion-tip {% if educations %}done{% endif %}">
+                            <i class="{% if educations %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add education
+                        </div>
+                        <div class="prof-completion-tip {% if jobs %}done{% endif %}">
+                            <i class="{% if jobs %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Post your first job
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── COMPANY CARD (sidebar) ── -->
+            <div class="prof-card prof-side-company-card" style="animation-delay:0.09s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-building"></i> Company</div>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:14px; padding:16px 20px 12px;">
+                    <div class="prof-sidebar-logo-wrap">
+                        {% if profile and profile.company_logo %}
+                            <img src="{{ url_for('static', filename='uploads/company_logos/' + profile.company_logo) }}"
+                                class="prof-company-logo-img" alt="Company logo">
+                        {% else %}
+                            <div class="prof-company-logo-default"><i class="fas fa-building"></i></div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="prof-sidebar-company-name">
+                            {{ profile.company_name if profile and profile.company_name else '—' }}
+                        </div>
+                        <div class="prof-sidebar-company-industry">
+                            {{ profile.company_industry if profile and profile.company_industry else '' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prof-side-list" style="padding-top:0;">
+                    {% if profile and profile.city %}
+                    <div class="prof-side-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">Location</span>
+                            {{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.company_address %}
+                    <div class="prof-side-item">
+                        <i class="fas fa-location-dot"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">Office Address</span>
+                            {{ profile.company_address }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.company_email_domain %}
+                    <div class="prof-side-item">
+                        <i class="fas fa-at"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">Email Domain</span>
+                            {{ profile.company_email_domain }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.company_description %}
+                    <div class="prof-side-item" style="align-items:flex-start;">
+                        <i class="fas fa-circle-info"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">About</span>
+                            {{ profile.company_description | truncate(160) }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if not profile or (not profile.company_name and not profile.company_address) %}
+                    <div class="prof-empty-section" style="padding:12px 0 4px;">
+                        <i class="fas fa-building"></i>
+                        <p>No company info added yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── SOCIAL / LINKS (sidebar) ── -->
+            <div class="prof-card" style="animation-delay:0.13s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-link"></i> Links</div>
+                    <button class="prof-edit-btn" onclick="toggleEdit('social')" data-edit-target="social"><i class="fas fa-pen"></i> Edit</button>
+                </div>
+
+                <div id="view-social">
+                    <div class="prof-side-list">
+                        <div class="prof-side-item">
+                            <i class="fas fa-envelope"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">Email</span>
+                                {{ current_user.email }}
+                            </div>
+                        </div>
+                        {% if profile and profile.phone_number %}
+                        <div class="prof-side-item">
+                            <i class="fas fa-phone"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">Phone</span>
+                                {{ profile.phone_number }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if profile and profile.linkedin %}
+                        <div class="prof-side-item">
+                            <i class="fab fa-linkedin"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">LinkedIn</span>
+                                <a href="{{ profile.linkedin }}" target="_blank" class="prof-link">View Profile</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if profile and profile.github %}
+                        <div class="prof-side-item">
+                            <i class="fab fa-github"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">GitHub</span>
+                                <a href="{{ profile.github }}" target="_blank" class="prof-link">View Profile</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if profile and profile.portfolio %}
+                        <div class="prof-side-item">
+                            <i class="fas fa-globe"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">Portfolio / Website</span>
+                                <a href="{{ profile.portfolio }}" target="_blank" class="prof-link">Visit Site</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="prof-edit-form" id="edit-social" style="display:none;">
+                    <form method="POST" action="{{ url_for('recruiter.update_social') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group prof-form-full">
+                                <label>LinkedIn URL</label>
+                                <input type="url" name="linkedin" value="{{ profile.linkedin if profile and profile.linkedin else '' }}" placeholder="https://linkedin.com/in/yourname">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>GitHub URL</label>
+                                <input type="url" name="github" value="{{ profile.github if profile and profile.github else '' }}" placeholder="https://github.com/yourname">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Portfolio / Website URL</label>
+                                <input type="url" name="portfolio" value="{{ profile.portfolio if profile and profile.portfolio else '' }}" placeholder="https://yourwebsite.com">
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('social')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── QUICK LINKS ── -->
+            <div class="prof-card" style="animation-delay:0.16s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-link"></i> Quick Links</div>
+                </div>
+                <div class="prof-side-list" style="padding-top: 12px;">
+                    <a href="{{ url_for('recruiter.job_posting') }}" class="prof-quick-link">
+                        <i class="fas fa-file-circle-plus"></i>
+                        <span>Post a New Job</span>
+                        <i class="fas fa-chevron-right prof-quick-link-arrow"></i>
+                    </a>
+                    <a href="{{ url_for('recruiter.my_job_list') }}" class="prof-quick-link">
+                        <i class="fas fa-list-check"></i>
+                        <span>My Job Listings</span>
+                        <i class="fas fa-chevron-right prof-quick-link-arrow"></i>
+                    </a>
+                    <a href="{{ url_for('recruiter.hr_accounts') }}" class="prof-quick-link">
+                        <i class="fas fa-users-gear"></i>
+                        <span>Manage HR Accounts</span>
+                        <i class="fas fa-chevron-right prof-quick-link-arrow"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div><!-- /.prof-side -->
+
+    </div><!-- /.prof-body -->
 </div>
 
 <script src="{{ url_for('static', filename='js/recruiter/profile.js') }}"></script>

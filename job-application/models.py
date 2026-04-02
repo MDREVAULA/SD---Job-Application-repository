@@ -209,6 +209,15 @@ class RecruiterProfile(db.Model):
 
     phone_number = db.Column(db.String(50))
 
+    # PERSONAL HEADLINE & BIO
+    headline = db.Column(db.String(200))
+    bio      = db.Column(db.Text)
+ 
+    # SOCIAL LINKS
+    linkedin  = db.Column(db.String(200))
+    github    = db.Column(db.String(200))
+    portfolio = db.Column(db.String(200))
+
     # COMPANY INFORMATION
     company_name = db.Column(db.String(200))
     company_industry = db.Column(db.String(200))
@@ -248,6 +257,15 @@ class HRProfile(db.Model):
     country = db.Column(db.String(100))
     city = db.Column(db.String(100))
     home_address = db.Column(db.String(200))
+
+    # PERSONAL HEADLINE & BIO
+    headline = db.Column(db.String(200))
+    bio = db.Column(db.Text)
+
+    # SOCIAL LINKS
+    linkedin = db.Column(db.String(200))
+    github = db.Column(db.String(200))
+    portfolio = db.Column(db.String(200))
 
 
 # =========================

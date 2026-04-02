@@ -1,13 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/profile.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/view_profile.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/view_profile.css') }}">
 
-<div class="hr-profile-page">
+<div class="prof-wrapper">
 
-    <!-- ── BACK BAR ── -->
+    <!-- ── BACK BUTTON ── -->
     <div class="vp-back-bar">
         <a href="javascript:history.back()" class="vp-back-btn">
             <i class="fas fa-arrow-left"></i> Back
@@ -19,126 +21,305 @@
         {% endif %}
     </div>
 
-    <!-- ══ HERO CARD ══ -->
-    <div class="hero-card">
-        <div class="hero-top-row">
+    <!-- ── HEADER ── -->
+    <div class="prof-header">
+        <div class="prof-cover-strip"></div>
 
-            <!-- Avatar (static, no click) -->
-            <div class="hero-avatar-wrap vp-avatar-static" style="cursor:default;">
-                {% if viewed_user.profile_picture %}
-                    {% if viewed_user.profile_picture.startswith('http') %}
-                        <img src="{{ viewed_user.profile_picture }}" class="hero-avatar-img" alt="Profile">
+        <div class="prof-header-inner">
+            <div class="prof-header-top-row">
+                <!-- Avatar (view only — no click) -->
+                <div class="prof-avatar-wrap vp-avatar-static">
+                    {% if viewed_user.profile_picture %}
+                        {% if viewed_user.profile_picture.startswith('http') %}
+                            <img src="{{ viewed_user.profile_picture }}" class="prof-avatar-img" alt="Profile photo">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + viewed_user.profile_picture) }}" class="prof-avatar-img" alt="Profile photo">
+                        {% endif %}
                     {% else %}
-                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + viewed_user.profile_picture) }}" class="hero-avatar-img" alt="Profile">
+                        <div class="prof-avatar-default">{{ viewed_user.username[0] | upper }}</div>
                     {% endif %}
-                {% else %}
-                    <div class="hero-avatar-default"><i class="fas fa-user"></i></div>
-                {% endif %}
+                </div>
+
+                <!-- Verification badge only -->
+                <div class="prof-header-actions">
+                    <div class="prof-verification-badge {% if viewed_user.verification_status == 'Approved' %}badge-verified{% elif viewed_user.verification_status == 'Pending' %}badge-pending{% else %}badge-rejected{% endif %}">
+                        {% if viewed_user.verification_status == 'Approved' %}
+                            <i class="fas fa-check-circle"></i> Verified
+                        {% elif viewed_user.verification_status == 'Pending' %}
+                            <i class="fas fa-hourglass-half"></i> Pending
+                        {% else %}
+                            <i class="fas fa-times-circle"></i> Rejected
+                        {% endif %}
+                    </div>
+                    <span class="vp-role-pill"><i class="fas fa-user"></i> Applicant</span>
+                </div>
             </div>
 
-            <!-- Identity -->
-            <div class="hero-info">
-                <h1 class="hero-name">
-                    {% if viewed_user.hr_profile and viewed_user.hr_profile.first_name %}
-                        {{ viewed_user.hr_profile.first_name }} {{ viewed_user.hr_profile.last_name }}
+            <!-- Name / headline / meta -->
+            <div class="prof-header-info">
+                <h1>
+                    {% if profile and profile.first_name %}
+                        {{ profile.first_name }} {{ profile.last_name }}
                     {% else %}
                         {{ viewed_user.username }}
                     {% endif %}
                 </h1>
-                <p class="hero-role">Human Resources</p>
-                <div class="hero-meta">
-                    {% if viewed_user.hr_profile %}
-                        {% if viewed_user.hr_profile.city or viewed_user.hr_profile.country %}
-                        <span>
-                            <i class="fas fa-location-dot"></i>
-                            {{ viewed_user.hr_profile.city }}{% if viewed_user.hr_profile.city and viewed_user.hr_profile.country %}, {% endif %}{{ viewed_user.hr_profile.country }}
-                        </span>
-                        {% endif %}
+                <p class="prof-headline">
+                    {{ profile.headline if profile and profile.headline else 'No headline provided.' }}
+                </p>
+                <div class="prof-header-meta">
+                    {% if profile and profile.city %}
+                    <span><i class="fas fa-map-marker-alt"></i>{{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}</span>
                     {% endif %}
-                    <span><i class="fas fa-envelope"></i> {{ viewed_user.username }}</span>
+                </div>
+                <div class="prof-social-links">
+                    {% if profile and profile.linkedin %}
+                    <a href="{{ profile.linkedin }}" target="_blank" class="prof-social-btn">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.github %}
+                    <a href="{{ profile.github }}" target="_blank" class="prof-social-btn">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.portfolio %}
+                    <a href="{{ profile.portfolio }}" target="_blank" class="prof-social-btn">
+                        <i class="fas fa-globe"></i> Portfolio
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TWO-COLUMN BODY ── -->
+    <div class="prof-body">
+
+        <!-- ══ MAIN COLUMN ══ -->
+        <div class="prof-main">
+
+            <!-- ── ABOUT / BIO ── -->
+            {% if profile and profile.bio %}
+            <div class="prof-card" style="animation-delay:0.05s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-id-card"></i> About</div>
+                </div>
+                <div class="prof-view">
+                    <p class="prof-bio-text">{{ profile.bio }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── WORK EXPERIENCE ── -->
+            <div class="prof-card" style="animation-delay:0.08s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-briefcase"></i> Experience
+                        {% if experiences %}<span class="prof-section-count">{{ experiences | length }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="prof-items-list">
+                    {% if experiences %}
+                        {% for exp in experiences %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon"><i class="fas fa-briefcase"></i></div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">{{ exp.job_title }}</div>
+                                <div class="prof-item-subtitle">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</div>
+                                <div class="prof-item-date">
+                                    {{ exp.start_date if exp.start_date else '' }}
+                                    {% if exp.is_current %} – Present
+                                    {% elif exp.end_date %} – {{ exp.end_date }}
+                                    {% endif %}
+                                </div>
+                                {% if exp.description %}<div class="prof-item-desc">{{ exp.description }}</div>{% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-briefcase"></i>
+                            <p>No work experience listed.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- Badges -->
-            <div class="hero-badge-wrap vp-badges">
-                <span class="verified-badge"><i class="fas fa-circle-check"></i> Verified HR</span>
-                <span class="vp-role-tag"><i class="fas fa-users"></i> HR</span>
+            <!-- ── EDUCATION ── -->
+            <div class="prof-card" style="animation-delay:0.11s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-graduation-cap"></i> Education
+                        {% if educations %}<span class="prof-section-count">{{ educations | length }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="prof-items-list">
+                    {% if educations %}
+                        {% for edu in educations %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">{{ edu.school }}</div>
+                                <div class="prof-item-subtitle">{{ edu.degree if edu.degree else '' }}{% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}</div>
+                                <div class="prof-item-date">
+                                    {{ edu.start_date if edu.start_date else '' }}
+                                    {% if edu.is_current %} – Present
+                                    {% elif edu.end_date %} – {{ edu.end_date }}
+                                    {% endif %}
+                                </div>
+                                {% if edu.description %}<div class="prof-item-desc">{{ edu.description }}</div>{% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-graduation-cap"></i>
+                            <p>No education listed.</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
 
-        </div>
-    </div>
+            <!-- ── PROJECTS ── -->
+            {% if projects %}
+            <div class="prof-card" style="animation-delay:0.14s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-laptop-code"></i> Projects
+                        <span class="prof-section-count">{{ projects | length }}</span>
+                    </div>
+                </div>
+                <div class="prof-items-list">
+                    {% for proj in projects %}
+                    <div class="prof-item">
+                        <div class="prof-item-icon"><i class="fas fa-laptop-code"></i></div>
+                        <div class="prof-item-body">
+                            <div class="prof-item-title">
+                                {{ proj.title }}
+                                {% if proj.url %}
+                                <a href="{{ proj.url }}" target="_blank" class="prof-item-link"><i class="fas fa-up-right-from-square"></i> View</a>
+                                {% endif %}
+                            </div>
+                            <div class="prof-item-date">
+                                {{ proj.start_date if proj.start_date else '' }}
+                                {% if proj.end_date %} – {{ proj.end_date }}{% endif %}
+                            </div>
+                            {% if proj.description %}<div class="prof-item-desc">{{ proj.description }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
-    <!-- ══ PERSONAL DETAILS (view only) ══ -->
-    {% if viewed_user.hr_profile %}
-    <div class="profile-card">
-        <div class="card-header">
-            <span class="card-icon"><i class="fas fa-user"></i></span>
-            <h2>Personal Information</h2>
-        </div>
-        <div class="fields-grid">
-            <div class="field-item">
-                <span class="field-label">First Name</span>
-                <span class="field-value">{{ viewed_user.hr_profile.first_name or '—' }}</span>
+            <!-- ── CERTIFICATIONS ── -->
+            {% if certifications %}
+            <div class="prof-card" style="animation-delay:0.17s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-certificate"></i> Certifications
+                        <span class="prof-section-count">{{ certifications | length }}</span>
+                    </div>
+                </div>
+                <div class="prof-items-list">
+                    {% for cert in certifications %}
+                    <div class="prof-item">
+                        <div class="prof-item-icon"><i class="fas fa-certificate"></i></div>
+                        <div class="prof-item-body">
+                            <div class="prof-item-title">
+                                {{ cert.name }}
+                                {% if cert.credential_url %}
+                                <a href="{{ cert.credential_url }}" target="_blank" class="prof-item-link"><i class="fas fa-up-right-from-square"></i> Verify</a>
+                                {% endif %}
+                            </div>
+                            <div class="prof-item-subtitle">{{ cert.issuer if cert.issuer else '' }}</div>
+                            <div class="prof-item-date">
+                                {% if cert.issue_date %}Issued {{ cert.issue_date }}{% endif %}
+                                {% if cert.expiry_date %} · Expires {{ cert.expiry_date }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-            <div class="field-item">
-                <span class="field-label">Last Name</span>
-                <span class="field-value">{{ viewed_user.hr_profile.last_name or '—' }}</span>
-            </div>
-            <div class="field-item">
-                <span class="field-label">Gender</span>
-                <span class="field-value">{{ viewed_user.hr_profile.gender or '—' }}</span>
-            </div>
-            <div class="field-item">
-                <span class="field-label">Phone</span>
-                <span class="field-value">{{ viewed_user.hr_profile.phone_number or '—' }}</span>
-            </div>
-        </div>
-    </div>
+            {% endif %}
 
-    <!-- ══ LOCATION (view only) ══ -->
-    <div class="profile-card">
-        <div class="card-header">
-            <span class="card-icon"><i class="fas fa-location-dot"></i></span>
-            <h2>Location</h2>
-        </div>
-        <div class="fields-grid">
-            <div class="field-item">
-                <span class="field-label">Country</span>
-                <span class="field-value">{{ viewed_user.hr_profile.country or '—' }}</span>
-            </div>
-            <div class="field-item">
-                <span class="field-label">City</span>
-                <span class="field-value">{{ viewed_user.hr_profile.city or '—' }}</span>
-            </div>
-        </div>
-    </div>
+        </div><!-- /.prof-main -->
 
-    {% else %}
-    <div class="profile-card">
-        <div class="empty-state">
-            <i class="fas fa-user-slash"></i>
-            <p>This HR member hasn't set up their profile yet.</p>
-        </div>
-    </div>
-    {% endif %}
+        <!-- ══ SIDEBAR COLUMN ══ -->
+        <div class="prof-side">
 
-    <!-- ══ ACCOUNT INFO ══ -->
-    <div class="profile-card">
-        <div class="card-header">
-            <span class="card-icon"><i class="fas fa-shield-halved"></i></span>
-            <h2>Account Info</h2>
-        </div>
-        <div class="fields-grid">
-            <div class="field-item">
-                <span class="field-label">Username</span>
-                <span class="field-value">{{ viewed_user.username }}</span>
+            <!-- ── SKILLS ── -->
+            <div class="prof-card" style="animation-delay:0.06s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-screwdriver-wrench"></i> Skills
+                        {% if skills %}<span class="prof-section-count">{{ skills | length }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="prof-skills-grid">
+                    {% if skills %}
+                        {% for skill in skills %}
+                        <div class="prof-skill-chip prof-skill-{{ skill.level | lower }}">
+                            <span class="prof-skill-name">{{ skill.name }}</span>
+                            <span class="prof-skill-level">{{ skill.level }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-screwdriver-wrench"></i>
+                            <p>No skills listed.</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="field-item">
-                <span class="field-label">Role</span>
-                <span class="field-value"><span class="role-pill">HR</span></span>
-            </div>
-        </div>
-    </div>
 
+            <!-- ── CONTACT / SOCIAL LINKS ── -->
+            <div class="prof-card" style="animation-delay:0.1s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-link"></i> Links</div>
+                </div>
+                <div class="prof-side-list">
+                    {% if profile and profile.linkedin %}
+                    <div class="prof-side-item">
+                        <i class="fab fa-linkedin"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">LinkedIn</span>
+                            <a href="{{ profile.linkedin }}" target="_blank" class="prof-link">View Profile</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.github %}
+                    <div class="prof-side-item">
+                        <i class="fab fa-github"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">GitHub</span>
+                            <a href="{{ profile.github }}" target="_blank" class="prof-link">View Profile</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.portfolio %}
+                    <div class="prof-side-item">
+                        <i class="fas fa-globe"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">Portfolio</span>
+                            <a href="{{ profile.portfolio }}" target="_blank" class="prof-link">Visit Site</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if not (profile and (profile.linkedin or profile.github or profile.portfolio)) %}
+                    <div class="prof-empty-section">
+                        <i class="fas fa-link"></i>
+                        <p>No links provided.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div><!-- /.prof-side -->
+
+    </div><!-- /.prof-body -->
 </div>
+
 {% endblock %}

@@ -705,6 +705,16 @@
     gap: 10px;
 }
 
+/* Fix Links card icon indent */
+#view-social .prof-side-list {
+    padding: 4px 20px 16px 20px;
+    margin-top: 15px;
+}
+
+#view-social .prof-side-item {
+    padding-left: 0;
+}
+
 .prof-side-item {
     display: flex;
     align-items: flex-start;

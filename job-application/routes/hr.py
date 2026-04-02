@@ -25,7 +25,22 @@ def profile():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    return render_template("hr/profile.html")
+    from models import RecruiterProfile
+
+    hr_profile = current_user.hr_profile
+
+    # Fetch the recruiter who created this HR account
+    recruiter_profile = None
+    if current_user.created_by:
+        recruiter_profile = RecruiterProfile.query.filter_by(
+            user_id=current_user.created_by
+        ).first()
+
+    return render_template(
+        "hr/profile.html",
+        profile=hr_profile,
+        recruiter_profile=recruiter_profile
+    )
 
 
 # ===============================
@@ -98,6 +113,9 @@ def update_profile():
         profile.last_name    = request.form.get('last_name', '').strip()
         profile.gender       = request.form.get('gender', '').strip()
         profile.phone_number = request.form.get('phone_number', '').strip()
+        profile.home_address = request.form.get('home_address', '').strip()
+        profile.headline     = request.form.get('headline', '').strip()
+        profile.bio          = request.form.get('bio', '').strip()
         dob_str = request.form.get('date_of_birth')
         if dob_str:
             try:
@@ -197,6 +215,30 @@ def setup_profile():
 
     return render_template("hr/setup_profile.html")
 
+# =========================
+# HR UPDATE SOCIAL LINKS
+# =========================
+@hr_bp.route('/update-social', methods=['POST'])
+@login_required
+def update_social():
+ 
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+ 
+    profile = current_user.hr_profile
+ 
+    if not profile:
+        profile = HRProfile(user_id=current_user.id)
+        db.session.add(profile)
+ 
+    profile.linkedin  = request.form.get('linkedin', '').strip()
+    profile.github    = request.form.get('github', '').strip()
+    profile.portfolio = request.form.get('portfolio', '').strip()
+ 
+    db.session.commit()
+    flash("Links updated successfully!", "success")
+    return redirect(url_for('hr.profile'))
 
 # ===============================
 # HR JOB LIST (VIEW ALL JOBS)
