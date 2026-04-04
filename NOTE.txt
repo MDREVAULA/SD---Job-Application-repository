@@ -21,6 +21,7 @@
 - Fix company logo spacing for search jobs
 - Add stared jobs for applicants
 - Fix sidebar that overlaps the navbar
+- Add more workfields
 
 LAST PARTS
 - Add privacy for informations of users
@@ -28,5 +29,8 @@ LAST PARTS
 - Add change password
 - Add notification
 - Add notification settings
+
+FOR DEMONSTRATION / DEFENSE
+- Add pre-made recruiter and hr accounts with jobs
 
 === TO BE FOLLOWED ===
