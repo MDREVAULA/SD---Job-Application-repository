@@ -22,4 +22,11 @@
 - Add stared jobs for applicants
 - Fix sidebar that overlaps the navbar
 
+LAST PARTS
+- Add privacy for informations of users
+- Add delete account
+- Add change password
+- Add notification
+- Add notification settings
+
 === TO BE FOLLOWED ===
