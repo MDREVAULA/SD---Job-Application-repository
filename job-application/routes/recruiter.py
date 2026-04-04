@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from models import db, Job, User, Application, JobImage, HRFeedback
+from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -416,6 +416,21 @@ def update_application_status(app_id):
 
     db.session.commit()
 
+    # --- NOTIFICATION: new application status update (only on first-time submission/new app) ---
+    # Notify recruiter when a NEW application arrives (status was just set from outside)
+    # This fires for any status change — recruiter sees own actions in history
+    applicant_user = User.query.get(application.applicant_id)
+    job_for_notif = Job.query.get(application.job_id)
+    if new_status:
+        notif = RecruiterNotification(
+            recruiter_id=current_user.id,
+            type='new_application',
+            message=f"Application status for <strong>{applicant_user.username}</strong> on <strong>{job_for_notif.title}</strong> updated to <strong>{new_status.capitalize()}</strong>.",
+            application_id=application.id
+        )
+        db.session.add(notif)
+        db.session.commit()
+
     flash("Application status updated!", "success")
 
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
@@ -444,6 +459,18 @@ def schedule_interview(app_id):
     if interview_date_str:
         application.interview_date = datetime.strptime(interview_date_str, "%Y-%m-%dT%H:%M")
         application.status = 'interview'
+        db.session.commit()
+
+        # --- NOTIFICATION: interview scheduled ---
+        applicant = User.query.get(application.applicant_id)
+        job = Job.query.get(application.job_id)
+        notif = RecruiterNotification(
+            recruiter_id=current_user.id,
+            type='interview_scheduled',
+            message=f"Interview scheduled for <strong>{applicant.username}</strong> applying for <strong>{job.title}</strong> on {application.interview_date.strftime('%b %d, %Y at %I:%M %p')}.",
+            application_id=application.id
+        )
+        db.session.add(notif)
         db.session.commit()
         flash("Interview scheduled successfully!", "success")
     else:
@@ -590,3 +617,68 @@ def delete_job(job_id):
     flash("Job deleted successfully!", "success")
 
     return redirect(url_for('recruiter.my_job_list'))
+
+# ===============================
+# NOTIFICATIONS API
+# ===============================
+from flask import jsonify
+
+@recruiter_bp.route('/notifications')
+@login_required
+def get_notifications():
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'forbidden'}), 403
+    notifs = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).order_by(RecruiterNotification.created_at.desc()).limit(50).all()
+    unread_count = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).count()
+    return jsonify({
+        'unread_count': unread_count,
+        'notifications': [
+            {
+                'id': n.id,
+                'type': n.type,
+                'message': n.message,
+                'is_read': n.is_read,
+                'created_at': n.created_at.strftime('%b %d, %Y at %I:%M %p')
+            }
+            for n in notifs
+        ]
+    })
+
+@recruiter_bp.route('/notifications/mark-read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    if current_user.role != 'recruiter':
+        return jsonify({'ok': False})
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'ok': True})
+
+@recruiter_bp.route('/notifications/mark-one-read/<int:notif_id>', methods=['POST'])
+@login_required
+def mark_one_read(notif_id):
+    if current_user.role != 'recruiter':
+        return jsonify({'ok': False})
+    notif = RecruiterNotification.query.filter_by(
+        id=notif_id, recruiter_id=current_user.id
+    ).first()
+    if notif:
+        notif.is_read = True
+        db.session.commit()
+    return jsonify({'ok': True})
+
+@recruiter_bp.route('/notifications/clear-all', methods=['POST'])
+@login_required
+def clear_all_notifications():
+    if current_user.role != 'recruiter':
+        return jsonify({'ok': False})
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).delete()
+    db.session.commit()
+    return jsonify({'ok': True})

@@ -12,8 +12,8 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
-<script src="{{ url_for('static', filename='js/hr_temporary.js') }}"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/hr_temporary.js') }}" defer></script>
 
 <style>
     .theme-toggle-btn {
@@ -37,8 +37,7 @@
     </style>
 </head>
 
-<body>
-
+<body {% if current_user.is_authenticated and current_user.role == 'recruiter' %}class="is-recruiter"{% endif %}>
 <!-- TOP NAVBAR -->
 <header class="navbar">
 
@@ -53,6 +52,35 @@
     </div>
 
     <div class="nav-right">
+        <!-- NOTIFICATION BELL (Recruiter only) -->
+        {% if current_user.is_authenticated and current_user.role == 'recruiter' %}
+        <div class="notif-wrapper" id="notifWrapper">
+            <button class="notif-btn" id="notifBtn" title="Notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notif-badge" id="notifBadge" style="display:none;"></span>
+            </button>
+            <div class="notif-panel" id="notifPanel">
+                <div class="notif-panel-header">
+                    <span><i class="fas fa-bell"></i> Notifications</span>
+                    <div class="notif-header-actions">
+                        <button class="notif-mark-all-btn" id="notifMarkAllBtn" title="Mark all as read">
+                            <i class="fas fa-check-double"></i>
+                        </button>
+                        <button class="notif-clear-btn" id="notifClearBtn" title="Clear all">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="notif-list" id="notifList">
+                    <div class="notif-empty">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No notifications yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- THEME TOGGLE -->
         <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle light/dark mode">
             <i class="fas fa-moon" id="themeIcon"></i>

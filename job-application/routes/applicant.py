@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from models import db, Job, Application, User, ApplicantProfile, WorkExperience, Education, Skill, Project, Certification
+from models import RecruiterNotification
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -446,6 +447,18 @@ def apply_job(job_id):
         )
         db.session.add(application)
         db.session.commit()
+
+        # --- NOTIFY RECRUITER of new application ---
+        job_owner = Job.query.get(application.job_id)
+        notif = RecruiterNotification(
+            recruiter_id=job_owner.company_id,
+            type='new_application',
+            message=f"<strong>{current_user.username}</strong> has applied for your job posting: <strong>{job_owner.title}</strong>.",
+            application_id=application.id
+        )
+        db.session.add(notif)
+        db.session.commit()
+
         flash("Application submitted successfully!", "success")
         return redirect(url_for('applicant.dashboard'))
 

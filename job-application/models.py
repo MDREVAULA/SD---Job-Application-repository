@@ -399,6 +399,20 @@ class HRFeedback(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+# =========================
+# RECRUITER NOTIFICATION TABLE
+# =========================
+class RecruiterNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    recruiter_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # 'new_application' or 'interview_scheduled'
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    recruiter = db.relationship("User", foreign_keys=[recruiter_id], backref="notifications")
+    application = db.relationship("Application", foreign_keys=[application_id])
 
 # =========================
 # JOB IMAGE
