@@ -176,7 +176,16 @@
                         {% endif %}
                     </div>
                     <div class="applicant-details">
-                        <h4>{{ app.user.username }}</h4>
+                        {# ── APPLICANT NAME — now a clickable profile link ── #}
+                        <h4>
+                            <a href="{{ url_for('profile_view.view_applicant_profile', user_id=app.user.id) }}"
+                               class="applicant-profile-link"
+                               onclick="event.stopPropagation()"
+                               title="View {{ app.user.username }}'s profile">
+                                {{ app.user.username }}
+                                <i class="fas fa-arrow-up-right-from-square" style="font-size:0.6rem; margin-left:3px; opacity:0.65;"></i>
+                            </a>
+                        </h4>
                         <span class="app-date">
                             <i class="fas fa-calendar"></i>
                             Applied on {{ app.created_at.strftime('%B %d, %Y at %I:%M %p') if app.created_at else 'N/A' }}
@@ -210,6 +219,15 @@
                 <!-- APPLICANT DETAILS -->
                 <div class="app-details">
                     <p><strong><i class="fas fa-envelope"></i> Email:</strong> {{ app.user.email }}</p>
+
+                    {# ── VIEW FULL PROFILE BUTTON inside expanded card ── #}
+                    <p>
+                        <strong><i class="fas fa-user"></i> Profile:</strong>
+                        <a href="{{ url_for('profile_view.view_applicant_profile', user_id=app.user.id) }}"
+                           class="file-link" target="_blank">
+                            View Full Profile <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </p>
 
                     {% if app.resume %}
                     <p>
@@ -281,13 +299,16 @@
                                     {% endif %}
                                 </div>
                                 <div class="feedback-meta">
-                                    <span class="feedback-author">
+                                    {# ── HR FEEDBACK AUTHOR — also a profile link ── #}
+                                    <a href="{{ url_for('profile_view.view_hr_profile', user_id=fb.hr_user.id) }}"
+                                       class="feedback-author feedback-author-link"
+                                       title="View HR profile">
                                         {% if fb.hr_user.hr_profile %}
                                             {{ fb.hr_user.hr_profile.first_name }} {{ fb.hr_user.hr_profile.last_name }}
                                         {% else %}
                                             {{ fb.hr_user.username }}
                                         {% endif %}
-                                    </span>
+                                    </a>
                                     <span class="feedback-role-tag hr-tag">
                                         <i class="fas fa-user"></i> HR
                                     </span>

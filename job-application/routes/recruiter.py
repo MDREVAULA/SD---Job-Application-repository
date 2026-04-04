@@ -31,10 +31,34 @@ def profile():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
+    from models import RecruiterProfile, Education, Follow
+
     jobs = Job.query.filter_by(company_id=current_user.id).all()
     hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
+    rec_profile = RecruiterProfile.query.filter_by(user_id=current_user.id).first()
 
-    return render_template('recruiter/profile.html', jobs=jobs, hrs=hrs)
+    educations = []
+    if rec_profile:
+        educations = Education.query.filter_by(profile_id=rec_profile.id).order_by(Education.created_at.desc()).all()
+
+    follower_rows  = Follow.query.filter_by(followed_id=current_user.id).all()
+    following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
+    followers = [User.query.get(r.follower_id) for r in follower_rows]
+    following = [User.query.get(r.followed_id) for r in following_rows]
+    followers = [u for u in followers if u]
+    following = [u for u in following if u]
+
+    return render_template(
+        'recruiter/profile.html',
+        jobs=jobs,
+        hrs=hrs,
+        profile=rec_profile,
+        educations=educations,
+        follower_count=len(followers),
+        following_count=len(following),
+        followers=followers,
+        following=following,
+    )
 
 
 # ===============================
@@ -132,6 +156,7 @@ def upload_company_logo():
 
     return redirect(url_for('recruiter.profile'))
 
+
 # ===============================
 # RECRUITER UPDATE PROFILE
 # ===============================
@@ -154,9 +179,12 @@ def update_profile():
     if section == 'personal':
         profile.first_name   = request.form.get('first_name', '').strip()
         profile.middle_name  = request.form.get('middle_name', '').strip()
-        profile.last_name    = request.form.get('last_name', '').strip()
+        profile.surname      = request.form.get('last_name', '').strip()       # ← fixed: was profile.last_name
         profile.gender       = request.form.get('gender', '').strip()
         profile.phone_number = request.form.get('phone_number', '').strip()
+        profile.home_address = request.form.get('home_address', '').strip()
+        profile.headline     = request.form.get('headline', '').strip()        # ← new
+        profile.bio          = request.form.get('bio', '').strip()             # ← new
         dob_str = request.form.get('date_of_birth')
         if dob_str:
             try:
@@ -165,13 +193,13 @@ def update_profile():
                 pass
 
     elif section == 'company':
-        profile.company_name        = request.form.get('company_name', '').strip()
-        profile.industry            = request.form.get('industry', '').strip()
-        profile.country             = request.form.get('country', '').strip()
-        profile.city                = request.form.get('city', '').strip()
-        profile.company_address     = request.form.get('company_address', '').strip()
-        profile.company_website     = request.form.get('company_website', '').strip()
-        profile.company_description = request.form.get('company_description', '').strip()
+        profile.company_name         = request.form.get('company_name', '').strip()
+        profile.company_industry     = request.form.get('industry', '').strip()        # ← fixed: was profile.industry
+        profile.country              = request.form.get('country', '').strip()
+        profile.city                 = request.form.get('city', '').strip()
+        profile.company_address      = request.form.get('company_address', '').strip()
+        profile.company_email_domain = request.form.get('company_website', '').strip() # ← fixed: was profile.company_website
+        profile.company_description  = request.form.get('company_description', '').strip()
 
     elif section == 'account':
         new_username = request.form.get('username', '').strip()
@@ -185,6 +213,100 @@ def update_profile():
     db.session.commit()
     flash("Profile updated successfully!", "success")
     return redirect(url_for('recruiter.profile'))
+
+
+# ===============================
+# UPDATE SOCIAL LINKS
+# ===============================
+@recruiter_bp.route('/update-social', methods=['POST'])
+@login_required
+def update_social():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    from models import RecruiterProfile
+    profile = current_user.recruiter_profile
+
+    if not profile:
+        profile = RecruiterProfile(user_id=current_user.id)
+        db.session.add(profile)
+
+    profile.linkedin  = request.form.get('linkedin', '').strip()
+    profile.github    = request.form.get('github', '').strip()
+    profile.portfolio = request.form.get('portfolio', '').strip()
+
+    db.session.commit()
+    flash("Links updated successfully!", "success")
+    return redirect(url_for('recruiter.profile'))
+
+
+# ===============================
+# ADD EDUCATION
+# ===============================
+@recruiter_bp.route('/add-education', methods=['POST'])
+@login_required
+def add_education():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    from models import RecruiterProfile, Education
+
+    profile = current_user.recruiter_profile
+    if not profile:
+        profile = RecruiterProfile(user_id=current_user.id)
+        db.session.add(profile)
+        db.session.flush()
+
+    is_current = request.form.get('is_current') == '1'
+
+    edu = Education(
+        profile_id     = profile.id,
+        school         = request.form.get('school', '').strip(),
+        degree         = request.form.get('degree', '').strip(),
+        field_of_study = request.form.get('field_of_study', '').strip(),
+        start_date     = request.form.get('start_date', '').strip(),
+        end_date       = '' if is_current else request.form.get('end_date', '').strip(),
+        is_current     = is_current,
+        description    = request.form.get('description', '').strip(),
+    )
+
+    db.session.add(edu)
+    db.session.commit()
+
+    flash("Education added!", "success")
+    return redirect(url_for('recruiter.profile'))
+
+
+# ===============================
+# DELETE EDUCATION
+# ===============================
+@recruiter_bp.route('/delete-education/<int:edu_id>', methods=['POST'])
+@login_required
+def delete_education(edu_id):
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    from models import Education
+
+    edu = Education.query.get_or_404(edu_id)
+
+    profile = current_user.recruiter_profile
+    if not profile or edu.profile_id != profile.id:
+        flash("Unauthorized action!", "danger")
+        return redirect(url_for('recruiter.profile'))
+
+    db.session.delete(edu)
+    db.session.commit()
+
+    flash("Education removed.", "success")
+    return redirect(url_for('recruiter.profile'))
+
 
 # ===============================
 # POST JOB
@@ -590,3 +712,180 @@ def delete_job(job_id):
     flash("Job deleted successfully!", "success")
 
     return redirect(url_for('recruiter.my_job_list'))
+
+# ================================================================
+# PUBLIC PROFILE ROUTES
+# File: routes/profile_view.py
+# ================================================================
+
+from flask import Blueprint, render_template, redirect, url_for, flash, abort
+from flask_login import login_required, current_user
+from models import (
+    db, User, ApplicantProfile, WorkExperience,
+    Education, Skill, Project, Certification, Job, Follow
+)
+from datetime import date
+
+profile_view_bp = Blueprint('profile_view', __name__, url_prefix='/profile')
+
+
+# ── SMART REDIRECT — /profile/<user_id> → correct role view ──
+@profile_view_bp.route('/<int:user_id>')
+def view_profile(user_id):
+    """
+    Smart redirect: detects the user's role and sends the viewer
+    to the correct public profile page.
+    Also prevents logged-in users from viewing their own profile through
+    this route (redirects them to their editable profile instead).
+    """
+    user = User.query.get_or_404(user_id)
+
+    # Redirect self to their own editable profile (only if logged in)
+    if current_user.is_authenticated and current_user.id == user_id:
+        if user.role == 'applicant':
+            return redirect(url_for('applicant.profile'))
+        elif user.role == 'hr':
+            return redirect(url_for('hr.profile'))
+        elif user.role == 'recruiter':
+            return redirect(url_for('recruiter.profile'))
+
+    # Route to the correct public view
+    if user.role == 'applicant':
+        return redirect(url_for('profile_view.view_applicant_profile', user_id=user_id))
+    elif user.role == 'hr':
+        return redirect(url_for('profile_view.view_hr_profile', user_id=user_id))
+    elif user.role == 'recruiter':
+        return redirect(url_for('profile_view.view_recruiter_profile', user_id=user_id))
+    else:
+        abort(404)
+
+
+# ── APPLICANT PUBLIC PROFILE ──
+@profile_view_bp.route('/applicant/<int:user_id>')
+@login_required
+def view_applicant_profile(user_id):
+    """
+    Public read-only view of an applicant's profile.
+    Accessible by any logged-in user (recruiter, hr, other applicants).
+    """
+    viewed_user = User.query.get_or_404(user_id)
+
+    if viewed_user.role != 'applicant':
+        flash("This profile is not an applicant.", "warning")
+        return redirect(url_for('profile_view.view_profile', user_id=user_id))
+
+    # Redirect self to own editable profile
+    if current_user.id == user_id:
+        return redirect(url_for('applicant.profile'))
+
+    prof = ApplicantProfile.query.filter_by(user_id=user_id).first()
+
+    experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
+    educations     = Education.query.filter_by(profile_id=prof.id).order_by(Education.created_at.desc()).all() if prof else []
+    skills         = Skill.query.filter_by(profile_id=prof.id).all() if prof else []
+    projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all() if prof else []
+    certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all() if prof else []
+
+    return render_template(
+        'applicant/view_profile.html',
+        viewed_user=viewed_user,
+        profile=prof,
+        experiences=experiences,
+        educations=educations,
+        skills=skills,
+        projects=projects,
+        certifications=certifications
+    )
+
+
+# ── HR PUBLIC PROFILE ──
+# routes/profile_view.py — fix view_hr_profile
+@profile_view_bp.route('/hr/<int:user_id>')
+@login_required
+def view_hr_profile(user_id):
+    viewed_user = User.query.get_or_404(user_id)
+
+    if viewed_user.role != 'hr':
+        flash("This profile is not an HR member.", "warning")
+        return redirect(url_for('profile_view.view_profile', user_id=user_id))
+
+    if current_user.id == user_id:
+        return redirect(url_for('hr.profile'))
+
+    followers, following = _get_follow_lists(user_id)  # add this
+
+    is_following = False
+    if current_user.is_authenticated:
+        is_following = Follow.query.filter_by(
+            follower_id=current_user.id,
+            followed_id=user_id
+        ).first() is not None
+
+    return render_template(
+        'hr/view_profile.html',
+        viewed_user=viewed_user,
+        is_following=is_following,       # add these
+        followers=followers,
+        following=following,
+        follower_count=len(followers),
+        following_count=len(following),
+    )
+
+
+# ── RECRUITER PUBLIC PROFILE ──
+# NOTE: No @login_required — guests can view recruiter profiles
+@profile_view_bp.route('/recruiter/<int:user_id>')
+def view_recruiter_profile(user_id):
+    """
+    Public read-only view of a recruiter's profile.
+    Accessible by guests AND logged-in users.
+    Guests can see everything but Follow/Message buttons redirect to login.
+    """
+    from models import RecruiterProfile
+
+    viewed_user = User.query.get_or_404(user_id)
+
+    if viewed_user.role != 'recruiter':
+        flash("This profile is not a recruiter.", "warning")
+        return redirect(url_for('profile_view.view_profile', user_id=user_id))
+
+    # Redirect self (logged-in recruiter) to own editable profile
+    if current_user.is_authenticated and current_user.id == user_id:
+        return redirect(url_for('recruiter.profile'))
+
+    # Fetch recruiter profile details
+    profile = RecruiterProfile.query.filter_by(user_id=user_id).first()
+
+    # Fetch education entries
+    educations = []
+    if profile:
+        educations = Education.query.filter_by(
+            profile_id=profile.id
+        ).order_by(Education.created_at.desc()).all()
+
+    # Fetch active job postings (all jobs, template decides expired vs active)
+    posted_jobs = Job.query.filter_by(
+        company_id=user_id
+    ).order_by(Job.id.desc()).all()
+
+    # Check if the current user is following this recruiter
+    is_following = False
+    if current_user.is_authenticated:
+        is_following = Follow.query.filter_by(
+            follower_id=current_user.id,
+            followed_id=user_id
+        ).first() is not None
+
+    # Follower count
+    follower_count = Follow.query.filter_by(followed_id=user_id).count()
+
+    return render_template(
+        'recruiter/view_profile.html',
+        viewed_user=viewed_user,
+        profile=profile,
+        educations=educations,
+        posted_jobs=posted_jobs,
+        is_following=is_following,
+        follower_count=follower_count,
+        today=date.today()
+    )

@@ -20,12 +20,36 @@ hr_bp = Blueprint('hr', __name__, url_prefix="/hr")
 @hr_bp.route('/profile')
 @login_required
 def profile():
-
     if current_user.role != 'hr':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    return render_template("hr/profile.html")
+    from models import RecruiterProfile, Follow
+
+    hr_profile = current_user.hr_profile
+
+    recruiter_profile = None
+    if current_user.created_by:
+        recruiter_profile = RecruiterProfile.query.filter_by(
+            user_id=current_user.created_by
+        ).first()
+
+    follower_rows  = Follow.query.filter_by(followed_id=current_user.id).all()
+    following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
+    followers = [User.query.get(r.follower_id) for r in follower_rows]
+    following = [User.query.get(r.followed_id) for r in following_rows]
+    followers = [u for u in followers if u]
+    following = [u for u in following if u]
+
+    return render_template(
+        "hr/profile.html",
+        profile=hr_profile,
+        recruiter_profile=recruiter_profile,
+        follower_count=len(followers),
+        following_count=len(following),
+        followers=followers,
+        following=following,
+    )
 
 
 # ===============================
@@ -73,6 +97,7 @@ def upload_profile_picture():
 
     return redirect(url_for('hr.profile'))
 
+
 # =========================
 # HR UPDATE PROFILE
 # =========================
@@ -87,7 +112,6 @@ def update_profile():
     section = request.form.get('section')
     profile = current_user.hr_profile
 
-    # If no profile row exists yet, create one first
     if not profile:
         profile = HRProfile(user_id=current_user.id)
         db.session.add(profile)
@@ -98,6 +122,9 @@ def update_profile():
         profile.last_name    = request.form.get('last_name', '').strip()
         profile.gender       = request.form.get('gender', '').strip()
         profile.phone_number = request.form.get('phone_number', '').strip()
+        profile.home_address = request.form.get('home_address', '').strip()
+        profile.headline     = request.form.get('headline', '').strip()
+        profile.bio          = request.form.get('bio', '').strip()
         dob_str = request.form.get('date_of_birth')
         if dob_str:
             try:
@@ -123,6 +150,7 @@ def update_profile():
     flash("Profile updated successfully!", "success")
     return redirect(url_for('hr.profile'))
 
+
 # =========================
 # CHANGE PASSWORD
 # =========================
@@ -145,7 +173,6 @@ def change_password():
 
         flash("Password changed successfully! Please complete your profile.", "success")
 
-        # Redirect to setup page after password change
         return redirect(url_for("hr.setup_profile"))
 
     return render_template("hr/change_password.html")
@@ -162,7 +189,6 @@ def setup_profile():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    # If HR already has a profile, skip setup
     if current_user.hr_profile:
         return redirect(url_for('hr.profile'))
 
@@ -196,6 +222,32 @@ def setup_profile():
         return redirect(url_for('hr.profile'))
 
     return render_template("hr/setup_profile.html")
+
+
+# =========================
+# HR UPDATE SOCIAL LINKS
+# =========================
+@hr_bp.route('/update-social', methods=['POST'])
+@login_required
+def update_social():
+
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    profile = current_user.hr_profile
+
+    if not profile:
+        profile = HRProfile(user_id=current_user.id)
+        db.session.add(profile)
+
+    profile.linkedin  = request.form.get('linkedin', '').strip()
+    profile.github    = request.form.get('github', '').strip()
+    profile.portfolio = request.form.get('portfolio', '').strip()
+
+    db.session.commit()
+    flash("Links updated successfully!", "success")
+    return redirect(url_for('hr.profile'))
 
 
 # ===============================
@@ -232,7 +284,6 @@ def job_applications(job_id):
 
     applications = Application.query.filter_by(job_id=job_id).all()
 
-    # Get the recruiter who owns this job for feedback display
     recruiter_user = User.query.get(job.company_id)
 
     return render_template(
@@ -262,7 +313,6 @@ def update_application_status(app_id):
     if new_status:
         application.status = new_status
 
-    # Save or update this HR's feedback for this application
     if new_feedback is not None and new_feedback.strip() != '':
         existing = HRFeedback.query.filter_by(
             application_id=app_id,

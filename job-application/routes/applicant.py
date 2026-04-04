@@ -35,6 +35,8 @@ def profile():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
+    from models import Follow
+
     prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
 
     experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
@@ -43,6 +45,15 @@ def profile():
     projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all() if prof else []
     certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all() if prof else []
 
+    follower_rows  = Follow.query.filter_by(followed_id=current_user.id).all()
+    following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
+
+    from models import User as UserModel
+    followers = [UserModel.query.get(r.follower_id) for r in follower_rows]
+    following = [UserModel.query.get(r.followed_id) for r in following_rows]
+    followers = [u for u in followers if u]
+    following = [u for u in following if u]
+
     return render_template(
         'applicant/profile.html',
         profile=prof,
@@ -50,7 +61,11 @@ def profile():
         educations=educations,
         skills=skills,
         projects=projects,
-        certifications=certifications
+        certifications=certifications,
+        follower_count=len(followers),
+        following_count=len(following),
+        followers=followers,
+        following=following,
     )
 
 
