@@ -31,7 +31,7 @@ def profile():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    from models import RecruiterProfile, Education
+    from models import RecruiterProfile, Education, Follow
 
     jobs = Job.query.filter_by(company_id=current_user.id).all()
     hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
@@ -41,12 +41,23 @@ def profile():
     if rec_profile:
         educations = Education.query.filter_by(profile_id=rec_profile.id).order_by(Education.created_at.desc()).all()
 
+    follower_rows  = Follow.query.filter_by(followed_id=current_user.id).all()
+    following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
+    followers = [User.query.get(r.follower_id) for r in follower_rows]
+    following = [User.query.get(r.followed_id) for r in following_rows]
+    followers = [u for u in followers if u]
+    following = [u for u in following if u]
+
     return render_template(
         'recruiter/profile.html',
         jobs=jobs,
         hrs=hrs,
         profile=rec_profile,
-        educations=educations
+        educations=educations,
+        follower_count=len(followers),
+        following_count=len(following),
+        followers=followers,
+        following=following,
     )
 
 
@@ -788,25 +799,36 @@ def view_applicant_profile(user_id):
 
 
 # ── HR PUBLIC PROFILE ──
+# routes/profile_view.py — fix view_hr_profile
 @profile_view_bp.route('/hr/<int:user_id>')
 @login_required
 def view_hr_profile(user_id):
-    """
-    Public read-only view of an HR member's profile.
-    """
     viewed_user = User.query.get_or_404(user_id)
 
     if viewed_user.role != 'hr':
         flash("This profile is not an HR member.", "warning")
         return redirect(url_for('profile_view.view_profile', user_id=user_id))
 
-    # Redirect self to own editable profile
     if current_user.id == user_id:
         return redirect(url_for('hr.profile'))
 
+    followers, following = _get_follow_lists(user_id)  # add this
+
+    is_following = False
+    if current_user.is_authenticated:
+        is_following = Follow.query.filter_by(
+            follower_id=current_user.id,
+            followed_id=user_id
+        ).first() is not None
+
     return render_template(
         'hr/view_profile.html',
-        viewed_user=viewed_user
+        viewed_user=viewed_user,
+        is_following=is_following,       # add these
+        followers=followers,
+        following=following,
+        follower_count=len(followers),
+        following_count=len(following),
     )
 
 

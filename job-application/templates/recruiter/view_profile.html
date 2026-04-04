@@ -11,21 +11,8 @@
     <!-- ── HEADER CARD ── -->
     <div class="pview-header">
         <div class="pview-cover-strip">
-            <!-- Company logo — bottom right of cover -->
-            {% if profile and profile.company_logo %}
-            <div class="pview-company-logo-wrap">
-                <img src="{{ url_for('static', filename='uploads/company_logos/' + profile.company_logo) }}"
-                     class="pview-company-logo-img" alt="Company logo">
-            </div>
-            {% elif profile and profile.company_name %}
-            <div class="pview-company-logo-wrap">
-                <div class="pview-company-logo-default">
-                    <i class="fas fa-building"></i>
-                </div>
-            </div>
-            {% endif %}
+        <!-- Green Cover Photo -->
         </div>
-
         <div class="pview-header-inner">
             <div class="pview-header-top-row">
 
@@ -62,23 +49,20 @@
                     </div>
 
                     {% if current_user.is_authenticated %}
-                        <!-- Follow button -->
-                        {% if is_following %}
-                        <form method="POST" action="{{ url_for('chat.unfollow', user_id=viewed_user.id) }}" style="display:inline;">
-                            <button type="submit" class="pview-action-btn pview-action-btn-outline">
+                        <!-- Follow button — uses AJAX toggle, same as People page -->
+                        <button
+                            class="pview-action-btn {% if is_following %}pview-action-btn-outline{% else %}pview-action-btn-primary{% endif %}"
+                            id="pview-follow-btn"
+                            onclick="pviewToggleFollow({{ viewed_user.id }}, this)">
+                            {% if is_following %}
                                 <i class="fas fa-user-minus"></i> Unfollow
-                            </button>
-                        </form>
-                        {% else %}
-                        <form method="POST" action="{{ url_for('chat.follow', user_id=viewed_user.id) }}" style="display:inline;">
-                            <button type="submit" class="pview-action-btn pview-action-btn-primary">
+                            {% else %}
                                 <i class="fas fa-user-plus"></i> Follow
-                            </button>
-                        </form>
-                        {% endif %}
+                            {% endif %}
+                        </button>
 
                         <!-- Message button -->
-                        <a href="{{ url_for('chat.inbox', user_id=viewed_user.id) }}"
+                        <a href="{{ url_for('chat.conversation', other_id=viewed_user.id) }}"
                            class="pview-action-btn pview-action-btn-outline">
                             <i class="fas fa-paper-plane"></i> Message
                         </a>
@@ -86,11 +70,7 @@
                         <!-- Guest — prompt to log in -->
                         <a href="{{ url_for('auth.login') }}"
                            class="pview-action-btn pview-action-btn-primary">
-                            <i class="fas fa-user-plus"></i> Follow
-                        </a>
-                        <a href="{{ url_for('auth.login') }}"
-                           class="pview-action-btn pview-action-btn-outline">
-                            <i class="fas fa-paper-plane"></i> Message
+                            <i class="fas fa-user-plus"></i> Join to Connect
                         </a>
                     {% endif %}
                 </div>
@@ -106,16 +86,31 @@
                     {% else %}
                         {{ viewed_user.username }}
                     {% endif %}
+                    <span class="pview-role-pill role-recruiter">Recruiter</span>
                 </h1>
-                <p class="pview-username">@{{ viewed_user.username }}</p>
-
+                <div class="pview-username-row">
+                    <p class="pview-username">@{{ viewed_user.username }}</p>
+                    <div class="pview-follow-counts">
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('followers')">
+                            <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
+                            <span class="pview-follow-count-lbl">Followers</span>
+                        </button>
+                        <span class="pview-follow-count-sep"></span>
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('following')">
+                            <span class="pview-follow-count-val" id="net-following">{{ following_count }}</span>
+                            <span class="pview-follow-count-lbl">Following</span>
+                        </button>
+                    </div>
+                </div>
                 <p class="pview-headline">
                     {% if profile and profile.headline %}
                         {{ profile.headline }}
-                    {% elif profile and profile.company_name %}
+                    {% endif %}
+                    {% if profile and profile.company_name %}
+                        {% if profile and profile.headline %} · {% endif %}
                         Recruiter at <strong>{{ profile.company_name }}</strong>
                         {% if profile.company_industry %} · {{ profile.company_industry }}{% endif %}
-                    {% else %}
+                    {% elif not profile or not profile.headline %}
                         Recruiter
                     {% endif %}
                 </p>
@@ -312,12 +307,12 @@
                         {% if current_user.is_authenticated and current_user.role == 'applicant' %}
                         <a href="{{ url_for('applicant.job_details', job_id=job.id) }}"
                            class="pview-apply-btn">
-                            <i class="fas fa-arrow-right"></i> Apply
+                            <i class="fas fa-arrow-right"></i> View Job
                         </a>
                         {% elif not current_user.is_authenticated %}
-                        <a href="{{ url_for('auth.login') }}"
-                           class="pview-apply-btn pview-apply-btn-ghost">
-                            <i class="fas fa-sign-in-alt"></i> Login to Apply
+                        <a href="{{ url_for('applicant.job_details', job_id=job.id) }}"
+                           class="pview-apply-btn">
+                            <i class="fas fa-arrow-right"></i> View Job
                         </a>
                         {% endif %}
                         {% endif %}
@@ -466,16 +461,9 @@
                         </span>
                         <span class="pview-stat-label">Active</span>
                     </div>
-                    <div class="pview-stat-item">
-                        <span class="pview-stat-value">{{ follower_count }}</span>
-                        <span class="pview-stat-label">Followers</span>
-                    </div>
-                    <div class="pview-stat-item">
-                        <span class="pview-stat-value">{{ educations | length }}</span>
-                        <span class="pview-stat-label">Education</span>
-                    </div>
                 </div>
             </div>
+
 
             <!-- ── GUEST CTA (only shown to non-logged-in visitors) ── -->
             {% if not current_user.is_authenticated %}
@@ -496,5 +484,90 @@
 
     </div><!-- /.pview-body -->
 </div>
+
+
+
+<!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
+<div class="follow-modal-backdrop" id="followModalBackdrop" onclick="closeFollowModal()"></div>
+<div class="follow-modal" id="followModal">
+    <div class="follow-modal-header">
+        <div class="follow-modal-tabs">
+            <button class="follow-tab active" id="tab-followers" onclick="switchTab('followers')">
+                Followers <span class="follow-tab-count" id="tab-count-followers">{{ follower_count }}</span>
+            </button>
+            <button class="follow-tab" id="tab-following" onclick="switchTab('following')">
+                Following <span class="follow-tab-count" id="tab-count-following">{{ following_count }}</span>
+            </button>
+        </div>
+        <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Followers list -->
+    <div class="follow-modal-list" id="list-followers">
+        {% if followers %}
+            {% for u in followers %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-friends"></i>
+                <p>No followers yet.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Following list -->
+    <div class="follow-modal-list" id="list-following" style="display:none;">
+        {% if following %}
+            {% for u in following %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-plus"></i>
+                <p>Not following anyone yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+
+<script>window.PROFILE_USER_ID = {{ viewed_user.id }};</script>
+<script src="{{ url_for('static', filename='js/recruiter/view_profile.js') }}"></script>EventListener('keydown', e => { if (e.key === 'Escape') closeFollowModal(); });
+</script>
 
 {% endblock %}

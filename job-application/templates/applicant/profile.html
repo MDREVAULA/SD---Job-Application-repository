@@ -57,6 +57,21 @@
                         {{ current_user.username }}
                     {% endif %}
                 </h1>
+                <div class="pview-username-row">
+                    <p class="pview-username">@{{ current_user.username }}</p>
+                    <div class="pview-follow-counts">
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('followers')">
+                            <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
+                            <span class="pview-follow-count-lbl">Followers</span>
+                        </button>
+                        <span class="pview-follow-count-sep"></span>
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('following')">
+                            <span class="pview-follow-count-val" id="net-following">{{ following_count }}</span>
+                            <span class="pview-follow-count-lbl">Following</span>
+                        </button>
+                    </div>
+                </div>  <!-- ← make sure this closing tag is here -->
+                
                 <p class="prof-headline">
                     {{ profile.headline if profile and profile.headline else 'Add a headline to describe yourself' }}
                 </p>
@@ -744,6 +759,85 @@
 
     </div><!-- /.prof-body -->
 </div>
+<!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
+<div class="follow-modal-backdrop" id="followModalBackdrop" onclick="closeFollowModal()"></div>
+<div class="follow-modal" id="followModal">
+    <div class="follow-modal-header">
+        <div class="follow-modal-tabs">
+            <button class="follow-tab active" id="tab-followers" onclick="switchTab('followers')">
+                Followers <span class="follow-tab-count" id="tab-count-followers">{{ follower_count }}</span>
+            </button>
+            <button class="follow-tab" id="tab-following" onclick="switchTab('following')">
+                Following <span class="follow-tab-count" id="tab-count-following">{{ following_count }}</span>
+            </button>
+        </div>
+        <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Followers list -->
+    <div class="follow-modal-list" id="list-followers">
+        {% if followers %}
+            {% for u in followers %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-friends"></i>
+                <p>No followers yet.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Following list -->
+    <div class="follow-modal-list" id="list-following" style="display:none;">
+        {% if following %}
+            {% for u in following %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-plus"></i>
+                <p>Not following anyone yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
 
 <script src="{{ url_for('static', filename='js/applicant/profile.js') }}"></script>
+<script>window.PROFILE_USER_ID = {{ current_user.id }};</script>
+<script src="{{ url_for('static', filename='js/follow_modal.js') }}"></script>
 {% endblock %}

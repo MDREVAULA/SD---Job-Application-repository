@@ -142,8 +142,8 @@
                         <i class="fas fa-eye"></i>
                     </a>
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn-login-to-connect">
-                        <i class="fas fa-sign-in-alt"></i> Log in to connect
+                <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}" class="btn-follow">
+                        <i class="fas fa-sign-in-alt"></i> View Profile
                     </a>
                 {% endif %}
             </div>

@@ -48,7 +48,7 @@
         </button>
 
         <div class="website-logo-container">
-            <img src="{{ url_for('static', filename='homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
+            <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
         </div>
     </div>
 
@@ -100,7 +100,7 @@
 
     <div class="sidebar-header">
         <div class="sidebar-logo">
-            <img src="{{ url_for('static', filename='homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
+            <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
         </div>
         <button id="closeBtn" class="close-btn">&times;</button>
     </div>
@@ -358,24 +358,21 @@
 </main>
 
 <!-- FOOTER -->
-{% if request.endpoint != 'auth.login' and request.endpoint != 'auth.forgot_password' and request.endpoint != 'auth.reset_password' 
-and request.endpoint != 'auth.google_applicant_profile' and request.endpoint != 'auth.google_recruiter_profile' and request.endpoint != 'auth.google_role_select'
-and request.endpoint != 'auth.register' and request.endpoint != 'admin.admin_login' and request.endpoint != 'chat.inbox'%}
+{% if request.endpoint == 'auth.index' %}
 <footer class="footer">
 
     <div class="footer-content">
 
         <div class="footer-section">
-            <div class="footer-logo">
-                <i class="fas fa-briefcase"></i>
-                <h3>HireBon</h3>
+            <div class="website-logo-container">
+                <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
             </div>
             <p class="footer-desc">Your trusted platform for finding verified job opportunities from top companies worldwide.</p>
             <div class="social-links">
-                <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
             </div>
         </div>
 
