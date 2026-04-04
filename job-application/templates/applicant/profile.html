@@ -1,917 +1,843 @@
-/* ================================================
-   APPLICANT PROFILE — LinkedIn-inspired 2-column
-   Palette: #164A41 #4D774E #9DC88D #F1B24A
-   ================================================ */
-
-   .prof-wrapper *:not(i):not([class^="fa"]):not([class*=" fa"]) {
-    font-family: 'DM Sans', system-ui, sans-serif;
-}
-
-.prof-wrapper * {
-    box-sizing: border-box;
-}
-
-.prof-wrapper {
-    max-width: 1060px;
-    margin: 0 auto;
-    padding: 24px 16px 80px;
-}
-
-/* ================================
-   SMOOTH THEME TRANSITION
-   ================================ */
-
-.prof-wrapper *:not(.notif-panel):not(.notif-toast):not(.notif-item):not(.notif-badge):not(.notif-btn):not(.notif-wrapper),
-.prof-wrapper *::before,
-.prof-wrapper *::after {
-    transition:
-        background-color 0.3s ease,
-        border-color 0.3s ease,
-        color 0.3s ease,
-        box-shadow 0.3s ease !important;
-}
-
-/* Exclude elements where transition looks wrong */
-.prof-avatar-img,
-.prof-avatar-default,
-.prof-cover-strip,
-.prof-completion-bar-fill {
-    transition: none !important;
-}
-
-/* Preserve specific functional transitions */
-.prof-avatar-wrap {
-    transition: box-shadow 0.2s ease !important;
-}
-
-.prof-avatar-overlay {
-    transition: opacity 0.18s ease !important;
-}
-
-.prof-skill-delete {
-    transition: opacity 0.14s ease !important;
-}
-
-.prof-btn-delete {
-    transition:
-        background-color 0.15s ease,
-        border-color 0.15s ease,
-        color 0.15s ease,
-        opacity 0.15s ease !important;
-}
-
-/* Preserve entrance animation — don't let the global transition override it */
-.prof-card,
-.prof-header {
-    transition:
-        background-color 0.3s ease,
-        border-color 0.3s ease,
-        box-shadow 0.3s ease !important;
-}
-
-/* Progress bar fill should animate width, not colors */
-.prof-completion-bar-fill {
-    transition: width 0.6s ease !important;
-}
-
-/* ══════════════════════════════════════════
-   HEADER CARD
-══════════════════════════════════════════ */
-
-.prof-header {
-    background: var(--bg-card, #fff);
-    border: 1px solid var(--border-color, #EAEDE8);
-    border-radius: 16px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    animation: fadeUp 0.3s ease both;
-}
-
-.prof-cover-strip {
-    height: 130px;
-    background: linear-gradient(135deg, #164A41 0%, #2d6e5e 60%, #4D774E 100%);
-    position: relative;
-}
-
-.prof-cover-strip::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239DC88D' fill-opacity='0.07'%3E%3Ccircle cx='30' cy='30' r='10'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-
-.prof-header-inner {
-    padding: 0 28px 22px;
-}
-
-.prof-header-top-row {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-bottom: 14px;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.prof-avatar-wrap {
-    display: block;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid var(--bg-card, #fff);
-    overflow: hidden;
-    cursor: pointer;
-    margin-top: -50px;
-    background: var(--bg-card, #fff);
-    flex-shrink: 0;
-    position: relative;
-}
-
-.prof-avatar-wrap:hover {
-    box-shadow: 0 0 0 3px #9DC88D;
-}
-
-.prof-avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.prof-avatar-default {
-    width: 100%;
-    height: 100%;
-    background: #EAF3DE;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.2rem;
-    font-weight: 600;
-    color: #164A41;
-}
-
-.prof-avatar-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    color: #fff;
-    font-size: 1.1rem;
-    border-radius: 50%;
-}
-
-.prof-avatar-wrap:hover .prof-avatar-overlay { opacity: 1; }
-
-.prof-header-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-    padding-bottom: 4px;
-}
-
-.prof-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 16px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1.5px solid;
-    font-family: inherit;
-    white-space: nowrap;
-}
-
-.prof-action-btn-primary {
-    background: #164A41;
-    border-color: #164A41;
-    color: #fff;
-}
-
-.prof-action-btn-primary:hover { background: #0e3229; border-color: #0e3229; }
-
-.prof-action-btn-outline {
-    background: transparent;
-    border-color: var(--border-color, #EAEDE8);
-    color: var(--text-secondary, #374151);
-}
-
-.prof-action-btn-outline:hover { background: var(--bg-hover, #f3f4f6); }
-
-/* Name / headline */
-.prof-header-info h1 {
-    margin: 0 0 3px;
-    font-size: 1.55rem;
-    font-weight: 600;
-    color: var(--text-primary, #111);
-    letter-spacing: -0.3px;
-    line-height: 1.2;
-}
-
-.prof-headline {
-    margin: 0 0 10px;
-    font-size: 0.92rem;
-    color: var(--text-secondary, #374151);
-    font-weight: 400;
-}
-
-.prof-header-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 16px;
-    margin-bottom: 12px;
-    font-size: 0.82rem;
-    color: var(--text-muted, #6B7280);
-}
-
-.prof-header-meta span {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.prof-header-meta i { font-size: 0.72rem; color: #4D774E; }
-
-.prof-social-links {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.prof-social-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    text-decoration: none;
-    border: 1px solid var(--border-color, #EAEDE8);
-    color: var(--text-secondary, #374151);
-    background: var(--bg-surface-alt, #F7F8F6);
-}
-
-.prof-social-btn:hover {
-    background: #164A41;
-    border-color: #164A41;
-    color: #fff;
-}
-
-.prof-verification-badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-}
-
-.badge-verified  { background: #EAF3DE; border: 1px solid #C0DD97; color: #27500A; }
-.badge-pending   { background: #FAEEDA; border: 1px solid #FAC775; color: #633806; }
-.badge-rejected  { background: #FCEBEB; border: 1px solid #F7C1C1; color: #501313; }
-
-/* ══════════════════════════════════════════
-   TWO-COLUMN LAYOUT
-══════════════════════════════════════════ */
-
-.prof-body {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 16px;
-    align-items: start;
-}
-
-.prof-main { display: flex; flex-direction: column; gap: 14px; }
-.prof-side { display: flex; flex-direction: column; gap: 14px; }
-
-/* ══════════════════════════════════════════
-   CARD
-══════════════════════════════════════════ */
-
-.prof-card {
-    background: var(--bg-card, #fff);
-    border: 1px solid var(--border-color, #EAEDE8);
-    border-radius: 14px;
-    overflow: hidden;
-    animation: fadeUp 0.28s ease both;
-}
-
-.prof-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color, #f0f2ef);
-}
-
-.prof-card-title {
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: var(--text-primary, #111);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.prof-card-title i {
-    color: #4D774E;
-    font-size: 0.85rem;
-    width: 18px;
-    text-align: center;
-}
-
-.prof-section-count {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: #4D774E;
-    background: #F0F7EC;
-    border: 1px solid #D4ECC8;
-    border-radius: 20px;
-    padding: 1px 7px;
-}
-
-.prof-card-btns {
-    display: flex;
-    gap: 6px;
-}
-
-.prof-edit-btn,
-.prof-add-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 0.775rem;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: inherit;
-}
-
-.prof-edit-btn {
-    background: transparent;
-    border: 1.5px solid var(--border-color, #EAEDE8);
-    color: var(--text-secondary, #374151);
-}
-
-.prof-edit-btn:hover {
-    background: var(--bg-hover, #f3f4f6);
-    border-color: #9DC88D;
-}
-
-.prof-add-btn {
-    background: #164A41;
-    border: 1.5px solid #164A41;
-    color: #fff;
-}
-
-.prof-add-btn:hover { background: var(--brand-accent); border-color: var(--brand-accent-dark); }
-
-/* ── View ── */
-.prof-view { padding: 16px 20px; }
-
-.prof-info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px 24px;
-}
-
-.prof-info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.prof-info-full { grid-column: 1 / -1; }
-
-.prof-info-label {
-    font-size: 0.67rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.7px;
-    color: #9DC88D;
-}
-
-.prof-info-value {
-    font-size: 0.875rem;
-    color: var(--text-primary, #222);
-    line-height: 1.55;
-}
-
-.prof-link {
-    color: var(--icon-light);
-    font-weight: 500;
-    text-decoration: none;
-    word-break: break-all;
-}
-.prof-link:hover { text-decoration: underline; }
-
-.prof-bio-text {
-    font-size: 0.875rem;
-    color: var(--text-secondary, #374151);
-    line-height: 1.7;
-}
-
-/* ── Forms ── */
-.prof-edit-form,
-.prof-add-form {
-    padding: 16px 20px;
-    background: var(--bg-surface-alt, #F9FBF8);
-    border-top: 1px solid var(--border-color, #EAEDE8);
-}
-
-.prof-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 11px;
-    margin-bottom: 14px;
-}
-
-.prof-form-full { grid-column: 1 / -1; }
-
-.prof-form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.prof-form-group label {
-    font-size: 0.74rem;
-    font-weight: 600;
-    color: var(--text-secondary, #374151);
-}
-
-.prof-form-hint {
-    font-weight: 400;
-    color: var(--text-muted, #9CA3AF);
-    font-size: 0.68rem;
-}
-
-.prof-form-group input,
-.prof-form-group select,
-.prof-form-group textarea {
-    padding: 8px 11px;
-    border: 1px solid var(--input-border, #DDE3D8);
-    border-radius: 8px;
-    font-size: 0.855rem;
-    font-family: 'DM Sans', system-ui, sans-serif;
-    color: var(--input-text, #111);
-    background: var(--input-bg, #fff);
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-.prof-form-group input:focus,
-.prof-form-group select:focus,
-.prof-form-group textarea:focus {
-    border-color: #4D774E;
-    box-shadow: 0 0 0 3px rgba(77,119,78,0.1);
-}
-
-.prof-form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-    line-height: 1.6;
-}
-
-.prof-checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.84rem;
-    font-weight: 500;
-    color: var(--text-secondary, #374151);
-    cursor: pointer;
-}
-
-.prof-checkbox-label input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    accent-color: #4D774E;
-    padding: 0;
-    border: none;
-    box-shadow: none;
-    flex-shrink: 0;
-}
-
-.prof-form-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.prof-btn-save {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 20px;
-    background: #164A41;
-    color: #fff;
-    border: 1px solid #164A41;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.83rem;
-    cursor: pointer;
-    font-family: inherit;
-}
-
-.prof-btn-save:hover { background: #0e3229; border-color: #0e3229; }
-
-.prof-btn-cancel {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: transparent;
-    color: var(--text-muted, #6B7280);
-    border: 1px solid var(--border-color, #DDE3D8);
-    border-radius: 20px;
-    font-weight: 500;
-    font-size: 0.83rem;
-    cursor: pointer;
-    font-family: inherit;
-}
-
-.prof-btn-cancel:hover { background: var(--bg-hover, #F3F4F6); color: var(--text-secondary, #374151); }
-
-/* ── Items ── */
-.prof-items-list { padding: 0 20px; }
-
-.prof-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--border-color, #f0f2ef);
-    position: relative;
-}
-
-.prof-item:last-child { border-bottom: none; }
-
-.prof-item-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    background: #F0F7EC;
-    border: 1px solid #D4ECC8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #4D774E;
-    font-size: 0.85rem;
-    flex-shrink: 0;
-}
-
-.prof-item-body { flex: 1; min-width: 0; }
-
-.prof-item-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary, #111);
-    margin-bottom: 1px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    flex-wrap: wrap;
-    line-height: 1.3;
-}
-
-.prof-item-link {
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: #4D774E;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    border: 1px solid #D4ECC8;
-    background: #F0F7EC;
-    padding: 2px 8px;
-    border-radius: 20px;
-}
-
-.prof-item-link:hover {
-    background: #164A41;
-    border-color: #164A41;
-    color: #fff;
-}
-
-.prof-item-subtitle {
-    font-size: 0.845rem;
-    color: #4D774E;
-    font-weight: 500;
-    margin-bottom: 1px;
-}
-
-.prof-item-date {
-    font-size: 0.775rem;
-    color: var(--text-muted, #9CA3AF);
-    margin-bottom: 4px;
-}
-
-.prof-item-desc {
-    font-size: 0.845rem;
-    color: var(--text-secondary, #4B5563);
-    line-height: 1.65;
-    margin-top: 5px;
-}
-
-.prof-item-delete { flex-shrink: 0; }
-
-.prof-btn-delete {
-    background: transparent;
-    border: 1px solid #FECACA;
-    color: #EF4444;
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    opacity: 0;
-}
-
-.prof-item:hover .prof-btn-delete { opacity: 1; }
-
-.prof-btn-delete:hover {
-    background: #EF4444;
-    border-color: #EF4444;
-    color: #fff;
-}
-
-/* ── Skills ── */
-.prof-skills-grid {
-    padding: 14px 20px 18px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-    min-height: 52px;
-}
-
-.prof-skill-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.775rem;
-    font-weight: 500;
-    border: 1px solid transparent;
-}
-
-.prof-skill-beginner     { background: #fbe4e2; border-color: #EDB2AB; color: #9e3a2e; }
-.prof-skill-intermediate { background: #ffecd8; border-color: #F2C596; color: #b8671a; }
-.prof-skill-advanced     { background: #fffdd2; border-color: #ebe682; color: #7a7510; }
-.prof-skill-expert       { background: #EAF3DE; border-color: #CAE29D; color: #3B6D11; }
-
-.prof-skill-level {
-    font-size: 0.64rem;
-    opacity: 0.55;
-    font-weight: 400;
-}
-
-.prof-skill-delete {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.6rem;
-    opacity: 0;
-    padding: 0;
-    color: inherit;
-    display: flex;
-    align-items: center;
-    line-height: 1;
-}
-
-.prof-skill-chip:hover .prof-skill-delete { opacity: 0.65; }
-.prof-skill-delete:hover { opacity: 1 !important; }
-
-/* ── Sidebar info list ── */
-.prof-side-list {
-    padding: 4px 20px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.prof-side-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.prof-side-item i {
-    font-size: 0.82rem;
-    color: #4D774E;
-    margin-top: 3px;
-    width: 16px;
-    flex-shrink: 0;
-}
-
-.prof-side-item-text {
-    font-size: 0.845rem;
-    color: var(--text-secondary, #374151);
-    line-height: 1.5;
-}
-
-.prof-side-item-label {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted, #9CA3AF);
-    font-weight: 600;
-    display: block;
-    margin-bottom: 1px;
-}
-
-/* ── Profile completion widget ── */
-.prof-completion-wrap {
-    padding: 16px 20px;
-}
-
-.prof-completion-title {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text-primary, #111);
-    margin-bottom: 10px;
-}
-
-.prof-completion-bar-bg {
-    height: 6px;
-    background: var(--border-color, #EAEDE8);
-    border-radius: 20px;
-    overflow: hidden;
-    margin-bottom: 8px;
-}
-
-.prof-completion-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #4D774E, #9DC88D);
-    border-radius: 20px;
-}
-
-.prof-completion-pct {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #4D774E;
-    text-align: right;
-    margin-bottom: 12px;
-}
-
-.prof-completion-tips {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-}
-
-.prof-completion-tip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.795rem;
-    color: var(--text-muted, #6B7280);
-}
-
-.prof-completion-tip.done { color: #4D774E; }
-.prof-completion-tip.done .prof-tip-icon { color: #4D774E; }
-.prof-completion-tip .prof-tip-icon { color: var(--text-muted, #CBD5E1); font-size: 0.7rem; }
-
-/* ── Empty ── */
-.prof-empty-section {
-    text-align: center;
-    padding: 24px 20px;
-    width: 100%;
-}
-
-.prof-empty-section i {
-    font-size: 1.5rem;
-    margin-bottom: 7px;
-    display: block;
-    color: #D4ECC8;
-}
-
-.prof-empty-section p {
-    margin: 0;
-    font-size: 0.83rem;
-    color: var(--text-muted, #9CA3AF);
-}
-
-/* ══════════════════════════════════════════
-   DARK MODE
-══════════════════════════════════════════ */
-
-[data-theme="dark"] .prof-header { background: var(--bg-card); border-color: var(--border-color); }
-[data-theme="dark"] .prof-cover-strip { background: linear-gradient(135deg, #0a2419 0%, #164A41 60%, #2d5e2e 100%); }
-[data-theme="dark"] .prof-avatar-wrap { border-color: var(--bg-card); }
-[data-theme="dark"] .prof-avatar-default { background: #1a2e1a; color: #9DC88D; }
-[data-theme="dark"] .prof-header-info h1 { color: var(--text-primary); }
-[data-theme="dark"] .prof-headline { color: var(--text-secondary); }
-[data-theme="dark"] .prof-header-meta { color: var(--text-muted); }
-[data-theme="dark"] .prof-social-btn { background: rgba(255,255,255,0.05); border-color: var(--border-color); color: var(--text-secondary); }
-[data-theme="dark"] .prof-social-btn:hover { background: #164A41; border-color: #164A41; color: #fff; }
-[data-theme="dark"] .prof-action-btn-outline { border-color: var(--border-color); color: var(--text-secondary); background: transparent; }
-[data-theme="dark"] .prof-action-btn-outline:hover { background: var(--bg-hover); }
-
-[data-theme="dark"] .prof-card { background: var(--bg-card); border-color: var(--border-color); }
-[data-theme="dark"] .prof-card-header { border-color: var(--border-color); }
-[data-theme="dark"] .prof-card-title { color: var(--text-primary); }
-[data-theme="dark"] .prof-card-title i { color: #9DC88D; }
-[data-theme="dark"] .prof-section-count { background: rgba(157,200,141,0.08); border-color: rgba(157,200,141,0.2); color: #9DC88D; }
-[data-theme="dark"] .prof-edit-btn { background: transparent; border-color: var(--border-color); color: var(--text-secondary); }
-[data-theme="dark"] .prof-edit-btn:hover { background: var(--bg-hover); border-color: #4D774E; }
-
-[data-theme="dark"] .prof-info-label { color: var(--icon-light); }
-[data-theme="dark"] .prof-info-value { color: var(--text-primary); }
-[data-theme="dark"] .prof-bio-text { color: var(--text-secondary); }
-[data-theme="dark"] .prof-edit-form,
-[data-theme="dark"] .prof-add-form { background: var(--bg-surface-alt); border-color: var(--border-color); }
-[data-theme="dark"] .prof-form-group label { color: var(--text-secondary); }
-[data-theme="dark"] .prof-form-group input,
-[data-theme="dark"] .prof-form-group select,
-[data-theme="dark"] .prof-form-group textarea { background: var(--input-bg); border-color: var(--input-border); color: var(--input-text); }
-[data-theme="dark"] .prof-form-group input:focus,
-[data-theme="dark"] .prof-form-group select:focus,
-[data-theme="dark"] .prof-form-group textarea:focus { border-color: #4D774E; }
-[data-theme="dark"] .prof-checkbox-label { color: var(--text-secondary); }
-[data-theme="dark"] .prof-btn-cancel { border-color: var(--border-color); color: var(--text-muted); }
-[data-theme="dark"] .prof-btn-cancel:hover { background: var(--bg-hover); color: var(--text-primary); }
-
-[data-theme="dark"] .prof-item { border-color: var(--border-color); }
-[data-theme="dark"] .prof-item-icon { background: rgba(77,119,78,0.12); border-color: rgba(77,119,78,0.2); color: #9DC88D; }
-[data-theme="dark"] .prof-item-title { color: var(--text-primary); }
-[data-theme="dark"] .prof-item-subtitle { color: #9DC88D; }
-[data-theme="dark"] .prof-item-date { color: var(--text-muted); }
-[data-theme="dark"] .prof-item-desc { color: var(--text-secondary); }
-[data-theme="dark"] .prof-item-link { background: rgba(77,119,78,0.1); border-color: rgba(77,119,78,0.2); color: #9DC88D; }
-[data-theme="dark"] .prof-item-link:hover { background: #4D774E; border-color: #4D774E; color: #fff; }
-
-[data-theme="dark"] .prof-skill-beginner     { background: rgba(220, 80, 60, 0.15); border-color: rgba(220, 80, 60, 0.3); color: #f0957f; }
-[data-theme="dark"] .prof-skill-intermediate { background: rgba(230, 140, 50, 0.15); border-color: rgba(230, 140, 50, 0.3); color: #f5b87a; }
-[data-theme="dark"] .prof-skill-advanced     { background: rgba(200, 195, 40, 0.15); border-color: rgba(200, 195, 40, 0.3); color: #d9d46a; }
-[data-theme="dark"] .prof-skill-expert       { background: rgba(80, 160, 80, 0.15); border-color: rgba(80, 160, 80, 0.3); color: #85c985; }
-
-[data-theme="dark"] .prof-card-title i           { color: #9DC88D; }
-[data-theme="dark"] .prof-header-meta i           { color: #9DC88D; }
-[data-theme="dark"] .prof-item-icon               { background: rgba(77,119,78,0.15); border-color: rgba(77,119,78,0.25); color: #9DC88D; }
-[data-theme="dark"] .prof-side-item i             { color: var(--icon-light); }
-[data-theme="dark"] .prof-link                    { color: var(--icon-light); }
-[data-theme="dark"] .prof-completion-tip.done     { color: #9DC88D; }
-[data-theme="dark"] .prof-completion-tip.done .prof-tip-icon { color: #9DC88D; }
-[data-theme="dark"] .prof-completion-tip .prof-tip-icon      { color: rgba(157, 200, 141, 0.25); }
-[data-theme="dark"] .prof-empty-section i         { color: rgba(157, 200, 141, 0.2); }
-[data-theme="dark"] .prof-empty-section p         { color: var(--text-muted); }
-[data-theme="dark"] .prof-side-item-text          { color: var(--text-secondary); }
-[data-theme="dark"] .prof-completion-title        { color: var(--text-primary); }
-[data-theme="dark"] .prof-completion-bar-bg       { background: var(--border-color); }
-[data-theme="dark"] .prof-completion-tip          { color: var(--text-muted); }
-
-/* ══════════════════════════════════════════
-   RESPONSIVE
-══════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-    .prof-body { grid-template-columns: 1fr; }
-    .prof-side { order: -1; }
-    .prof-side .prof-card:not(:first-child) { display: none; }
-}
-
-@media (max-width: 600px) {
-    .prof-wrapper { padding: 12px 10px 64px; }
-    .prof-cover-strip { height: 100px; }
-    .prof-header-inner { padding: 0 18px 18px; }
-    .prof-avatar-wrap { width: 84px; height: 84px; margin-top: -42px; }
-    .prof-avatar-default { font-size: 1.8rem; }
-    .prof-header-info h1 { font-size: 1.3rem; }
-    .prof-header-top-row { flex-direction: column; align-items: flex-start; }
-    .prof-info-grid { grid-template-columns: 1fr; }
-    .prof-info-full { grid-column: 1; }
-    .prof-form-grid { grid-template-columns: 1fr; }
-    .prof-form-full { grid-column: 1; }
-    .prof-card-header { padding: 13px 16px; }
-    .prof-view { padding: 14px 16px; }
-    .prof-items-list { padding: 0 16px; }
-    .prof-skills-grid { padding: 12px 16px 16px; }
-    .prof-edit-form, .prof-add-form { padding: 14px 16px; }
-}
-
-@media (max-width: 380px) {
-    .prof-item { flex-direction: column; }
-    .prof-item-delete { align-self: flex-end; }
-}
-
-/* ── Entrance ── */
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/profile.css') }}">
+
+<div class="prof-wrapper">
+
+    {% set upload_url = url_for('applicant.upload_profile_picture') %}
+    {% include 'components/profile_picture_modal.html' %}
+
+    <!-- ── HEADER ── -->
+    <div class="prof-header">
+        <div class="prof-cover-strip"></div>
+
+        <div class="prof-header-inner">
+            <div class="prof-header-top-row">
+                <!-- Avatar -->
+                <div class="prof-avatar-wrap" onclick="document.getElementById('pfpFileInput').click()" title="Change photo">
+                    {% if current_user.profile_picture %}
+                        {% if current_user.profile_picture.startswith('http') %}
+                            <img src="{{ current_user.profile_picture }}" class="prof-avatar-img" alt="Profile photo">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="prof-avatar-img" alt="Profile photo">
+                        {% endif %}
+                    {% else %}
+                        <div class="prof-avatar-default">{{ current_user.username[0] | upper }}</div>
+                    {% endif %}
+                    <div class="prof-avatar-overlay"><i class="fas fa-camera"></i></div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="prof-header-actions">
+                    <div class="prof-verification-badge {% if current_user.verification_status == 'Approved' %}badge-verified{% elif current_user.verification_status == 'Pending' %}badge-pending{% else %}badge-rejected{% endif %}">
+                        {% if current_user.verification_status == 'Approved' %}
+                            <i class="fas fa-check-circle"></i> Verified
+                        {% elif current_user.verification_status == 'Pending' %}
+                            <i class="fas fa-hourglass-half"></i> Pending
+                        {% else %}
+                            <i class="fas fa-times-circle"></i> Rejected
+                        {% endif %}
+                    </div>
+                    <button class="prof-action-btn prof-action-btn-outline" onclick="toggleEdit('personal')" data-edit-target="personal">
+                        <i class="fas fa-pen"></i> Edit Profile
+                    </button>
+                </div>
+            </div>
+
+            <!-- Name / headline / meta -->
+            <div class="prof-header-info">
+                <h1>
+                    {% if profile and profile.first_name %}
+                        {{ profile.first_name }} {{ profile.last_name }}
+                    {% else %}
+                        {{ current_user.username }}
+                    {% endif %}
+                </h1>
+                <div class="pview-username-row">
+                    <p class="pview-username">@{{ current_user.username }}</p>
+                    <div class="pview-follow-counts">
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('followers')">
+                            <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
+                            <span class="pview-follow-count-lbl">Followers</span>
+                        </button>
+                        <span class="pview-follow-count-sep"></span>
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('following')">
+                            <span class="pview-follow-count-val" id="net-following">{{ following_count }}</span>
+                            <span class="pview-follow-count-lbl">Following</span>
+                        </button>
+                    </div>
+                </div>  <!-- ← make sure this closing tag is here -->
+                
+                <p class="prof-headline">
+                    {{ profile.headline if profile and profile.headline else 'Add a headline to describe yourself' }}
+                </p>
+                <div class="prof-header-meta">
+                    {% if profile and profile.city %}
+                    <span><i class="fas fa-map-marker-alt"></i>{{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}</span>
+                    {% endif %}
+                    {% if profile and profile.phone_number %}
+                    <span><i class="fas fa-phone"></i>{{ profile.phone_number }}</span>
+                    {% endif %}
+                    <span><i class="fas fa-envelope"></i>{{ current_user.email }}</span>
+                </div>
+                <div class="prof-social-links">
+                    {% if profile and profile.linkedin %}
+                    <a href="{{ profile.linkedin }}" target="_blank" class="prof-social-btn">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.github %}
+                    <a href="{{ profile.github }}" target="_blank" class="prof-social-btn">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.portfolio %}
+                    <a href="{{ profile.portfolio }}" target="_blank" class="prof-social-btn">
+                        <i class="fas fa-globe"></i> Portfolio
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TWO-COLUMN BODY ── -->
+    <div class="prof-body">
+
+        <!-- ══ MAIN COLUMN ══ -->
+        <div class="prof-main">
+
+            <!-- ── PERSONAL INFO + ABOUT (unified, always visible) ── -->
+            <div class="prof-card" id="section-personal" style="animation-delay:0.05s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-id-card"></i> Personal Information</div>
+                    <button class="prof-edit-btn" onclick="toggleEdit('personal')" data-edit-target="personal"><i class="fas fa-pen"></i> Edit</button>
+                </div>
+
+                <div class="prof-view" id="view-personal">
+                    <div class="prof-info-grid">
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">First Name</span>
+                            <span class="prof-info-value">{{ profile.first_name if profile and profile.first_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Last Name</span>
+                            <span class="prof-info-value">{{ profile.last_name if profile and profile.last_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Middle Name</span>
+                            <span class="prof-info-value">{{ profile.middle_name if profile and profile.middle_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Date of Birth</span>
+                            <span class="prof-info-value">{{ profile.date_of_birth.strftime('%B %d, %Y') if profile and profile.date_of_birth else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Gender</span>
+                            <span class="prof-info-value">{{ profile.gender if profile and profile.gender else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Phone</span>
+                            <span class="prof-info-value">{{ profile.phone_number if profile and profile.phone_number else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Country</span>
+                            <span class="prof-info-value">{{ profile.country if profile and profile.country else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">City</span>
+                            <span class="prof-info-value">{{ profile.city if profile and profile.city else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Address</span>
+                            <span class="prof-info-value">{{ profile.home_address if profile and profile.home_address else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Headline</span>
+                            <span class="prof-info-value">{{ profile.headline if profile and profile.headline else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">About / Bio</span>
+                            <span class="prof-info-value prof-bio-text">{{ profile.bio if profile and profile.bio else '—'}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prof-edit-form" id="edit-personal" style="display:none;">
+                    <form method="POST" action="{{ url_for('applicant.update_personal') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>First Name</label>
+                                <input type="text" name="first_name" value="{{ profile.first_name if profile and profile.first_name else '' }}" placeholder="Juan">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Last Name</label>
+                                <input type="text" name="last_name" value="{{ profile.last_name if profile and profile.last_name else '' }}" placeholder="Dela Cruz">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Middle Name</label>
+                                <input type="text" name="middle_name" value="{{ profile.middle_name if profile and profile.middle_name else '' }}">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" name="date_of_birth" value="{{ profile.date_of_birth.strftime('%Y-%m-%d') if profile and profile.date_of_birth else '' }}">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Gender</label>
+                                <select name="gender">
+                                    <option value="">Select</option>
+                                    <option value="Male" {% if profile and profile.gender == 'Male' %}selected{% endif %}>Male</option>
+                                    <option value="Female" {% if profile and profile.gender == 'Female' %}selected{% endif %}>Female</option>
+                                    <option value="Non-binary" {% if profile and profile.gender == 'Non-binary' %}selected{% endif %}>Non-binary</option>
+                                    <option value="Prefer not to say" {% if profile and profile.gender == 'Prefer not to say' %}selected{% endif %}>Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Phone Number</label>
+                                <input type="text" name="phone_number" value="{{ profile.phone_number if profile and profile.phone_number else '' }}" placeholder="+63 9XX XXX XXXX">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Country</label>
+                                <input type="text" name="country" value="{{ profile.country if profile and profile.country else '' }}" placeholder="Philippines">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>City</label>
+                                <input type="text" name="city" value="{{ profile.city if profile and profile.city else '' }}" placeholder="Quezon City">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Home Address</label>
+                                <input type="text" name="home_address" value="{{ profile.home_address if profile and profile.home_address else '' }}" placeholder="Street, Barangay, City">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Headline <span class="prof-form-hint">e.g. "Full Stack Developer · Open to Work"</span></label>
+                                <input type="text" name="headline" value="{{ profile.headline if profile and profile.headline else '' }}" placeholder="Describe yourself in one line">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Bio <span class="prof-form-hint">Tell employers about yourself</span></label>
+                                <textarea name="bio" rows="4" placeholder="Write a short bio about yourself...">{{ profile.bio if profile and profile.bio else '' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save Changes</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('personal')" data-edit-target="personal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ── WORK EXPERIENCE ── -->
+            <div class="prof-card" id="section-experience" style="animation-delay:0.08s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-briefcase"></i> Experience
+                        {% if experiences %}<span class="prof-section-count">{{ experiences | length }}</span>{% endif %}
+                    </div>
+                    <div class="prof-card-btns">
+                        <button class="prof-add-btn" onclick="toggleAddForm('add-experience')">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+
+                <div class="prof-add-form" id="add-experience" style="display:none;">
+                    <form method="POST" action="{{ url_for('applicant.add_experience') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>Job Title</label>
+                                <input type="text" name="job_title" placeholder="e.g. Software Engineer" required>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Company</label>
+                                <input type="text" name="company" placeholder="e.g. Google" required>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Location</label>
+                                <input type="text" name="location" placeholder="e.g. Manila, PH">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Start Date</label>
+                                <input type="month" name="start_date">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>End Date</label>
+                                <input type="month" name="end_date" id="exp-end-date">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label class="prof-checkbox-label">
+                                    <input type="checkbox" name="is_current" value="1" onchange="toggleEndDate('exp-end-date', this)">
+                                    I currently work here
+                                </label>
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Description</label>
+                                <textarea name="description" rows="3" placeholder="Key responsibilities and achievements..."></textarea>
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-experience')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="prof-items-list">
+                    {% if experiences %}
+                        {% for exp in experiences %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon"><i class="fas fa-briefcase"></i></div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">{{ exp.job_title }}</div>
+                                <div class="prof-item-subtitle">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</div>
+                                <div class="prof-item-date">
+                                    {{ exp.start_date if exp.start_date else '' }}
+                                    {% if exp.is_current %} – Present
+                                    {% elif exp.end_date %} – {{ exp.end_date }}
+                                    {% endif %}
+                                </div>
+                                {% if exp.description %}<div class="prof-item-desc">{{ exp.description }}</div>{% endif %}
+                            </div>
+                            <form method="POST" action="{{ url_for('applicant.delete_experience', exp_id=exp.id) }}" class="prof-item-delete">
+                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this experience?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-briefcase"></i>
+                            <p>No work experience added yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── EDUCATION ── -->
+            <div class="prof-card" id="section-education" style="animation-delay:0.11s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-graduation-cap"></i> Education
+                        {% if educations %}<span class="prof-section-count">{{ educations | length }}</span>{% endif %}
+                    </div>
+                    <button class="prof-add-btn" onclick="toggleAddForm('add-education')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+
+                <div class="prof-add-form" id="add-education" style="display:none;">
+                    <form method="POST" action="{{ url_for('applicant.add_education') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>School / University</label>
+                                <input type="text" name="school" placeholder="e.g. University of the Philippines" required>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Degree</label>
+                                <input type="text" name="degree" placeholder="e.g. Bachelor of Science">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Field of Study</label>
+                                <input type="text" name="field_of_study" placeholder="e.g. Computer Science">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Start Date</label>
+                                <input type="month" name="start_date">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>End Date</label>
+                                <input type="month" name="end_date" id="edu-end-date">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label class="prof-checkbox-label">
+                                    <input type="checkbox" name="is_current" value="1" onchange="toggleEndDate('edu-end-date', this)">
+                                    I am currently studying here
+                                </label>
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Description / Achievements</label>
+                                <textarea name="description" rows="3" placeholder="Honors, achievements, relevant coursework..."></textarea>
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-education')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="prof-items-list">
+                    {% if educations %}
+                        {% for edu in educations %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">{{ edu.school }}</div>
+                                <div class="prof-item-subtitle">{{ edu.degree if edu.degree else '' }}{% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}</div>
+                                <div class="prof-item-date">
+                                    {{ edu.start_date if edu.start_date else '' }}
+                                    {% if edu.is_current %} – Present
+                                    {% elif edu.end_date %} – {{ edu.end_date }}
+                                    {% endif %}
+                                </div>
+                                {% if edu.description %}<div class="prof-item-desc">{{ edu.description }}</div>{% endif %}
+                            </div>
+                            <form method="POST" action="{{ url_for('applicant.delete_education', edu_id=edu.id) }}" class="prof-item-delete">
+                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this education?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-graduation-cap"></i>
+                            <p>No education added yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── PROJECTS ── -->
+            <div class="prof-card" id="section-projects" style="animation-delay:0.14s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-laptop-code"></i> Projects
+                        {% if projects %}<span class="prof-section-count">{{ projects | length }}</span>{% endif %}
+                    </div>
+                    <button class="prof-add-btn" onclick="toggleAddForm('add-project')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+
+                <div class="prof-add-form" id="add-project" style="display:none;">
+                    <form method="POST" action="{{ url_for('applicant.add_project') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>Project Title</label>
+                                <input type="text" name="title" placeholder="e.g. Job Portal Web App" required>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Project URL</label>
+                                <input type="url" name="url" placeholder="https://github.com/...">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Start Date</label>
+                                <input type="month" name="start_date">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>End Date</label>
+                                <input type="month" name="end_date">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Description</label>
+                                <textarea name="description" rows="3" placeholder="Your role, technologies used, and what you built..."></textarea>
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-project')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="prof-items-list">
+                    {% if projects %}
+                        {% for proj in projects %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon"><i class="fas fa-laptop-code"></i></div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">
+                                    {{ proj.title }}
+                                    {% if proj.url %}
+                                    <a href="{{ proj.url }}" target="_blank" class="prof-item-link"><i class="fas fa-up-right-from-square"></i> View</a>
+                                    {% endif %}
+                                </div>
+                                <div class="prof-item-date">
+                                    {{ proj.start_date if proj.start_date else '' }}
+                                    {% if proj.end_date %} – {{ proj.end_date }}{% endif %}
+                                </div>
+                                {% if proj.description %}<div class="prof-item-desc">{{ proj.description }}</div>{% endif %}
+                            </div>
+                            <form method="POST" action="{{ url_for('applicant.delete_project', proj_id=proj.id) }}" class="prof-item-delete">
+                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this project?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-laptop-code"></i>
+                            <p>No projects added yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── CERTIFICATIONS ── -->
+            <div class="prof-card" id="section-certifications" style="animation-delay:0.17s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-certificate"></i> Certifications
+                        {% if certifications %}<span class="prof-section-count">{{ certifications | length }}</span>{% endif %}
+                    </div>
+                    <button class="prof-add-btn" onclick="toggleAddForm('add-certification')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+
+                <div class="prof-add-form" id="add-certification" style="display:none;">
+                    <form method="POST" action="{{ url_for('applicant.add_certification') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>Certification Name</label>
+                                <input type="text" name="name" placeholder="e.g. AWS Certified Developer" required>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Issuing Organization</label>
+                                <input type="text" name="issuer" placeholder="e.g. Amazon Web Services">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Issue Date</label>
+                                <input type="month" name="issue_date">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Expiry Date <span class="prof-form-hint">(optional)</span></label>
+                                <input type="month" name="expiry_date">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Credential URL</label>
+                                <input type="url" name="credential_url" placeholder="https://...">
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-certification')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="prof-items-list">
+                    {% if certifications %}
+                        {% for cert in certifications %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon"><i class="fas fa-certificate"></i></div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">
+                                    {{ cert.name }}
+                                    {% if cert.credential_url %}
+                                    <a href="{{ cert.credential_url }}" target="_blank" class="prof-item-link"><i class="fas fa-up-right-from-square"></i> Verify</a>
+                                    {% endif %}
+                                </div>
+                                <div class="prof-item-subtitle">{{ cert.issuer if cert.issuer else '' }}</div>
+                                <div class="prof-item-date">
+                                    {% if cert.issue_date %}Issued {{ cert.issue_date }}{% endif %}
+                                    {% if cert.expiry_date %} · Expires {{ cert.expiry_date }}{% endif %}
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ url_for('applicant.delete_certification', cert_id=cert.id) }}" class="prof-item-delete">
+                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this certification?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-certificate"></i>
+                            <p>No certifications added yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div><!-- /.prof-main -->
+
+        <!-- ══ SIDEBAR COLUMN ══ -->
+        <div class="prof-side">
+
+            <!-- ── PROFILE COMPLETION ── -->
+            <div class="prof-card" style="animation-delay:0.06s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-star"></i> Profile Strength</div>
+                </div>
+                <div class="prof-completion-wrap">
+                    {% set score = namespace(val=0) %}
+                    {% if profile and profile.first_name %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.bio %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.linkedin %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if experiences %}{% set score.val = score.val + 20 %}{% endif %}
+                    {% if educations %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if skills %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if certifications %}{% set score.val = score.val + 5 %}{% endif %}
+
+                    <div class="prof-completion-title">
+                        {% if score.val >= 80 %}All-Star Profile!
+                        {% elif score.val >= 60 %}Intermediate
+                        {% elif score.val >= 40 %}Beginner
+                        {% else %}Getting Started{% endif %}
+                    </div>
+                    <div class="prof-completion-bar-bg">
+                        <div class="prof-completion-bar-fill" style="width: {{ score.val }}%"></div>
+                    </div>
+                    <div class="prof-completion-pct">{{ score.val }}% complete</div>
+
+                    <div class="prof-completion-tips">
+                        <div class="prof-completion-tip {% if profile and profile.first_name %}done{% endif %}">
+                            <i class="{% if profile and profile.first_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add your full name
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.headline %}done{% endif %}">
+                            <i class="{% if profile and profile.headline %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Write a headline
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.bio %}done{% endif %}">
+                            <i class="{% if profile and profile.bio %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add a bio / about section
+                        </div>
+                        <div class="prof-completion-tip {% if experiences %}done{% endif %}">
+                            <i class="{% if experiences %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add work experience
+                        </div>
+                        <div class="prof-completion-tip {% if educations %}done{% endif %}">
+                            <i class="{% if educations %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add education
+                        </div>
+                        <div class="prof-completion-tip {% if skills %}done{% endif %}">
+                            <i class="{% if skills %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add skills
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.linkedin %}done{% endif %}">
+                            <i class="{% if profile and profile.linkedin %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Link your LinkedIn
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── SKILLS (sidebar) ── -->
+            <div class="prof-card" id="section-skills" style="animation-delay:0.1s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-screwdriver-wrench"></i> Skills
+                        {% if skills %}<span class="prof-section-count">{{ skills | length }}</span>{% endif %}
+                    </div>
+                    <button class="prof-add-btn" onclick="toggleAddForm('add-skill')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+
+                <div class="prof-add-form" id="add-skill" style="display:none;">
+                    <form method="POST" action="{{ url_for('applicant.add_skill') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group prof-form-full">
+                                <label>Skill Name</label>
+                                <input type="text" name="name" placeholder="e.g. Python, Figma, Project Management" required>
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Proficiency Level</label>
+                                <select name="level">
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                    <option value="Expert">Expert</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-skill')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="prof-skills-grid">
+                    {% if skills %}
+                        {% for skill in skills %}
+                        <div class="prof-skill-chip prof-skill-{{ skill.level | lower }}">
+                            <span class="prof-skill-name">{{ skill.name }}</span>
+                            <span class="prof-skill-level">{{ skill.level }}</span>
+                            <form method="POST" action="{{ url_for('applicant.delete_skill', skill_id=skill.id) }}" style="display:inline;">
+                                <button type="submit" class="prof-skill-delete" title="Remove" onclick="return confirm('Remove this skill?')">
+                                    <i class="fas fa-xmark"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-screwdriver-wrench"></i>
+                            <p>No skills added yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── CONTACT / SOCIAL LINKS (sidebar) ── -->
+            <div class="prof-card" style="animation-delay:0.14s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-link"></i> Links</div>
+                    <button class="prof-edit-btn" onclick="toggleEdit('social')" data-edit-target="social"><i class="fas fa-pen"></i> Edit</button>
+                </div>
+                <div id="view-social">
+                    <div class="prof-side-list">
+                        <div class="prof-side-item">
+                            <i class="fas fa-envelope"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">Email</span>
+                                {{ current_user.email }}
+                            </div>
+                        </div>
+                        {% if profile and profile.phone_number %}
+                        <div class="prof-side-item">
+                            <i class="fas fa-phone"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">Phone</span>
+                                {{ profile.phone_number }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if profile and profile.linkedin %}
+                        <div class="prof-side-item">
+                            <i class="fab fa-linkedin"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">LinkedIn</span>
+                                <a href="{{ profile.linkedin }}" target="_blank" class="prof-link">View Profile</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if profile and profile.github %}
+                        <div class="prof-side-item">
+                            <i class="fab fa-github"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">GitHub</span>
+                                <a href="{{ profile.github }}" target="_blank" class="prof-link">View Profile</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if profile and profile.portfolio %}
+                        <div class="prof-side-item">
+                            <i class="fas fa-globe"></i>
+                            <div class="prof-side-item-text">
+                                <span class="prof-side-item-label">Portfolio</span>
+                                <a href="{{ profile.portfolio }}" target="_blank" class="prof-link">Visit Site</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="prof-edit-form" id="edit-social" style="display:none;">
+                    <form method="POST" action="{{ url_for('applicant.update_social') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group prof-form-full">
+                                <label>LinkedIn URL</label>
+                                <input type="url" name="linkedin" value="{{ profile.linkedin if profile and profile.linkedin else '' }}" placeholder="https://linkedin.com/in/yourname">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>GitHub URL</label>
+                                <input type="url" name="github" value="{{ profile.github if profile and profile.github else '' }}" placeholder="https://github.com/yourname">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Portfolio URL</label>
+                                <input type="url" name="portfolio" value="{{ profile.portfolio if profile and profile.portfolio else '' }}" placeholder="https://yourportfolio.com">
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('social')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div><!-- /.prof-side -->
+
+    </div><!-- /.prof-body -->
+</div>
+<!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
+<div class="follow-modal-backdrop" id="followModalBackdrop" onclick="closeFollowModal()"></div>
+<div class="follow-modal" id="followModal">
+    <div class="follow-modal-header">
+        <div class="follow-modal-tabs">
+            <button class="follow-tab active" id="tab-followers" onclick="switchTab('followers')">
+                Followers <span class="follow-tab-count" id="tab-count-followers">{{ follower_count }}</span>
+            </button>
+            <button class="follow-tab" id="tab-following" onclick="switchTab('following')">
+                Following <span class="follow-tab-count" id="tab-count-following">{{ following_count }}</span>
+            </button>
+        </div>
+        <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Followers list -->
+    <div class="follow-modal-list" id="list-followers">
+        {% if followers %}
+            {% for u in followers %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-friends"></i>
+                <p>No followers yet.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Following list -->
+    <div class="follow-modal-list" id="list-following" style="display:none;">
+        {% if following %}
+            {% for u in following %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-plus"></i>
+                <p>Not following anyone yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/applicant/profile.js') }}"></script>
+<script>window.PROFILE_USER_ID = {{ current_user.id }};</script>
+<script src="{{ url_for('static', filename='js/follow_modal.js') }}"></script>
+{% endblock %}
