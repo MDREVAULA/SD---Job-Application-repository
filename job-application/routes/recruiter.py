@@ -920,3 +920,41 @@ def view_recruiter_profile(user_id):
         follower_count=follower_count,
         today=date.today()
     )
+
+# ===============================
+# RECRUITER NOTIFICATION HISTORY PAGE
+# ===============================
+@recruiter_bp.route('/notification-history')
+@login_required
+def notification_history():
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+    notifs = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).order_by(RecruiterNotification.created_at.desc()).all()
+    # Mark all as read when page is opened
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return render_template('recruiter/notification_history.html', notifications=notifs)
+
+# ===============================
+# CLEAR ALL RECRUITER NOTIFICATIONS
+# ===============================
+@recruiter_bp.route('/clear-all-notifications', methods=['POST'])
+@login_required
+def clear_all_notifications():
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).delete()
+
+    db.session.commit()
+
+    flash("All notifications cleared.", "success")
+    return redirect(url_for('recruiter.notification_history'))
