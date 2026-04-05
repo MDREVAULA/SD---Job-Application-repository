@@ -1,25 +1,315 @@
 {% extends "layout.html" %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/apply_job.css') }}">
 
-<h2>Apply for {{ job.title }}</h2>
+<div class="apply-wrapper">
 
-<form method="POST" enctype="multipart/form-data">
+    <!-- BREADCRUMB -->
+    <div class="apply-breadcrumb">
+        <a href="{{ url_for('auth.jobs') }}" class="apply-breadcrumb-link">
+            <i class="fas fa-briefcase"></i> Browse Jobs
+        </a>
+        <i class="fas fa-chevron-right apply-breadcrumb-sep"></i>
+        <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="apply-breadcrumb-link">
+            {{ job.title }}
+        </a>
+        <i class="fas fa-chevron-right apply-breadcrumb-sep"></i>
+        <span class="apply-breadcrumb-current">Apply</span>
+    </div>
 
-<label>Upload Resume</label>
-<input type="file" name="resume" required>
+    <div class="apply-layout">
 
-<br><br>
+        <!-- MAIN FORM -->
+        <div class="apply-main">
 
-<label>Cover Letter</label>
-<textarea name="cover_letter" rows="6"
-placeholder="Tell the recruiter why you are a good fit..."></textarea>
+            <!-- HEADER -->
+            <div class="apply-header-card">
+                <div class="apply-header-inner">
+                    <div class="apply-job-icon">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <div class="apply-header-info">
+                        <h1 class="apply-job-title">{{ job.title }}</h1>
+                        <div class="apply-job-meta">
+                            {% set recruiter = job.company_id | get_recruiter_profile %}
+                            {% if recruiter and recruiter.company_name %}
+                            <span><i class="fas fa-building"></i> {{ recruiter.company_name }}</span>
+                            {% endif %}
+                            {% if job.location %}
+                            <span><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
+                            {% endif %}
+                            {% if job.job_type %}
+                            <span><i class="fas fa-clock"></i> {{ job.job_type }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<br><br>
+            <!-- FORM CARD -->
+            <div class="apply-form-card">
+                <form method="POST" enctype="multipart/form-data" id="applyForm">
 
-<button type="submit" class="btn">
-Submit Application
-</button>
+                    <!-- RESUME SECTION -->
+                    <div class="apply-section">
+                        <div class="apply-section-header">
+                            <div class="apply-section-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div>
+                                <h2 class="apply-section-title">Resume / CV</h2>
+                                <p class="apply-section-subtitle">Upload your most recent resume in PDF, DOC, or DOCX format</p>
+                            </div>
+                        </div>
 
-</form>
+                        <div class="apply-file-drop" id="fileDropZone">
+                            <input
+                                type="file"
+                                name="resume"
+                                id="resumeInput"
+                                accept=".pdf,.doc,.docx"
+                                required
+                                class="apply-file-input"
+                            >
+                            <div class="apply-file-placeholder" id="filePlaceholder">
+                                <div class="apply-file-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <p class="apply-file-text">
+                                    <span class="apply-file-browse">Click to upload</span> or drag and drop
+                                </p>
+                                <p class="apply-file-hint">PDF, DOC, DOCX — Max 10MB</p>
+                            </div>
+                            <div class="apply-file-selected" id="fileSelected" style="display:none;">
+                                <div class="apply-file-preview">
+                                    <div class="apply-file-preview-icon">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                    <div class="apply-file-preview-info">
+                                        <span class="apply-file-name" id="fileName"></span>
+                                        <span class="apply-file-size" id="fileSize"></span>
+                                    </div>
+                                    <button type="button" class="apply-file-remove" id="removeFile" title="Remove file">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="apply-divider"></div>
+
+                    <!-- COVER LETTER SECTION -->
+                    <div class="apply-section">
+                        <div class="apply-section-header">
+                            <div class="apply-section-icon">
+                                <i class="fas fa-comment-alt"></i>
+                            </div>
+                            <div>
+                                <h2 class="apply-section-title">Cover Letter <span class="apply-optional">Optional</span></h2>
+                                <p class="apply-section-subtitle">Tell the recruiter why you're the perfect fit for this role</p>
+                            </div>
+                        </div>
+
+                        <div class="apply-textarea-wrap">
+                            <textarea
+                                name="cover_letter"
+                                id="coverLetter"
+                                class="apply-textarea"
+                                rows="8"
+                                placeholder="Dear Hiring Manager,
+
+I am excited to apply for the {{ job.title }} position. With my background in [relevant field], I believe I can bring significant value to your team...
+
+[Describe your relevant experience and skills]
+
+[Explain why you're interested in this specific company/role]
+
+Thank you for considering my application. I look forward to the opportunity to discuss how I can contribute to your team.
+
+Sincerely,
+[Your Name]"
+                            ></textarea>
+                            <div class="apply-textarea-footer">
+                                <span class="apply-char-count" id="charCount">0 characters</span>
+                                <span class="apply-char-hint">Aim for 200–500 words</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="apply-divider"></div>
+
+                    <!-- SUBMIT SECTION -->
+                    <div class="apply-submit-section">
+                        <div class="apply-submit-info">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Your application will be sent directly to the recruiter. Make sure your resume is up to date.</span>
+                        </div>
+                        <div class="apply-submit-actions">
+                            <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="apply-btn-cancel">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="apply-btn-submit" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i>
+                                Submit Application
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="apply-sidebar">
+
+            <!-- JOB SUMMARY -->
+            <div class="apply-sidebar-card">
+                <div class="apply-sidebar-card-title">
+                    <i class="fas fa-briefcase"></i> Job Summary
+                </div>
+                <div class="apply-sidebar-card-body">
+                    <div class="apply-summary-list">
+                        {% if job.job_type %}
+                        <div class="apply-summary-item">
+                            <div class="apply-summary-icon"><i class="fas fa-clock"></i></div>
+                            <div class="apply-summary-content">
+                                <span class="apply-summary-label">Job Type</span>
+                                <span class="apply-summary-value">{{ job.job_type }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if job.field %}
+                        <div class="apply-summary-item">
+                            <div class="apply-summary-icon"><i class="fas fa-tag"></i></div>
+                            <div class="apply-summary-content">
+                                <span class="apply-summary-label">Field</span>
+                                <span class="apply-summary-value">{{ job.field }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if job.location %}
+                        <div class="apply-summary-item">
+                            <div class="apply-summary-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="apply-summary-content">
+                                <span class="apply-summary-label">Location</span>
+                                <span class="apply-summary-value">{{ job.location }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if job.salary %}
+                        <div class="apply-summary-item">
+                            <div class="apply-summary-icon salary-icon"><i class="fas fa-money-bill-wave"></i></div>
+                            <div class="apply-summary-content">
+                                <span class="apply-summary-label">Salary</span>
+                                <span class="apply-summary-value salary-value">{{ job.salary }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if job.expiration_date %}
+                        <div class="apply-summary-item">
+                            <div class="apply-summary-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <div class="apply-summary-content">
+                                <span class="apply-summary-label">Deadline</span>
+                                <span class="apply-summary-value">{{ job.expiration_date.strftime('%B %d, %Y') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- TIPS CARD -->
+            <div class="apply-sidebar-card apply-tips-card">
+                <div class="apply-sidebar-card-title">
+                    <i class="fas fa-lightbulb"></i> Application Tips
+                </div>
+                <div class="apply-sidebar-card-body">
+                    <ul class="apply-tips-list">
+                        <li>Tailor your resume to match the job description keywords</li>
+                        <li>Keep your cover letter concise and specific to this role</li>
+                        <li>Highlight measurable achievements, not just duties</li>
+                        <li>Proofread everything before submitting</li>
+                        <li>Never share personal financial information</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const resumeInput  = document.getElementById('resumeInput');
+    const fileDropZone = document.getElementById('fileDropZone');
+    const filePlaceholder = document.getElementById('filePlaceholder');
+    const fileSelected = document.getElementById('fileSelected');
+    const fileName     = document.getElementById('fileName');
+    const fileSize     = document.getElementById('fileSize');
+    const removeFile   = document.getElementById('removeFile');
+    const coverLetter  = document.getElementById('coverLetter');
+    const charCount    = document.getElementById('charCount');
+    const submitBtn    = document.getElementById('submitBtn');
+
+    // File input change
+    resumeInput.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            showFile(this.files[0]);
+        }
+    });
+
+    // Drag and drop
+    fileDropZone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        this.classList.add('drag-over');
+    });
+    fileDropZone.addEventListener('dragleave', function () {
+        this.classList.remove('drag-over');
+    });
+    fileDropZone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        this.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            resumeInput.files = e.dataTransfer.files;
+            showFile(file);
+        }
+    });
+
+    function showFile(file) {
+        const sizeKB = file.size / 1024;
+        const sizeStr = sizeKB > 1024
+            ? (sizeKB / 1024).toFixed(1) + ' MB'
+            : Math.round(sizeKB) + ' KB';
+        fileName.textContent = file.name;
+        fileSize.textContent = sizeStr;
+        filePlaceholder.style.display = 'none';
+        fileSelected.style.display = 'block';
+    }
+
+    // Remove file
+    removeFile.addEventListener('click', function () {
+        resumeInput.value = '';
+        filePlaceholder.style.display = 'block';
+        fileSelected.style.display = 'none';
+    });
+
+    // Char count
+    coverLetter.addEventListener('input', function () {
+        const len = this.value.length;
+        charCount.textContent = len + ' character' + (len !== 1 ? 's' : '');
+    });
+
+    // Submit loading state
+    document.getElementById('applyForm').addEventListener('submit', function () {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    });
+});
+</script>
 
 {% endblock %}
