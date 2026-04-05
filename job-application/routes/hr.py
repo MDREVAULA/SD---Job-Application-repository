@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from models import db, Application, Job, HRProfile, HRFeedback, User
+from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification
 from werkzeug.security import generate_password_hash
 from flask import current_app
 from PIL import Image
@@ -282,8 +282,22 @@ def update_application_status(app_id):
 
     db.session.commit()
 
-    flash("Application updated successfully!", "success")
+    # --- NOTIFICATION: status update ---
+    if new_status:
+        applicant_user = User.query.get(application.applicant_id)
+        job_for_notif = Job.query.get(application.job_id)
+        notif = HRNotification(
+            hr_id=current_user.id,
+            type='new_application',
+            message=f"Application status for <strong>{applicant_user.username}</strong> on <strong>{job_for_notif.title}</strong> updated to <strong>{new_status.capitalize()}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
 
+        db.session.add(notif)
+        db.session.commit()
+
+    flash("Application updated successfully!", "success")
     return redirect(
         url_for('hr.job_applications', job_id=application.job_id)
     )
@@ -308,6 +322,20 @@ def schedule_interview(app_id):
         application.interview_date = datetime.strptime(interview_date_str, "%Y-%m-%dT%H:%M")
         application.status = 'interview'
         db.session.commit()
+
+        # --- NOTIFICATION: interview scheduled ---
+        applicant = User.query.get(application.applicant_id)
+        job_notif = Job.query.get(application.job_id)
+        notif = HRNotification(
+            hr_id=current_user.id,
+            type='interview_scheduled',
+            message=f"Interview scheduled for <strong>{applicant.username}</strong> applying for <strong>{job_notif.title}</strong> on {application.interview_date.strftime('%b %d, %Y at %I:%M %p')}.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(notif)
+        db.session.commit()
+
         flash("Interview scheduled successfully!", "success")
     else:
         flash("Please provide a valid date and time.", "danger")
@@ -315,3 +343,75 @@ def schedule_interview(app_id):
     return redirect(
         url_for('hr.job_applications', job_id=application.job_id)
     )
+
+# ===============================
+# HR NOTIFICATIONS API
+# ===============================
+from flask import jsonify
+
+@hr_bp.route('/notifications')
+@login_required
+def get_notifications():
+    if current_user.role != 'hr':
+        return jsonify({'error': 'forbidden'}), 403
+    notifs = HRNotification.query.filter_by(
+        hr_id=current_user.id
+    ).order_by(HRNotification.created_at.desc()).limit(50).all()
+    unread_count = HRNotification.query.filter_by(
+        hr_id=current_user.id, is_read=False
+    ).count()
+    return jsonify({
+        'unread_count': unread_count,
+        'notifications': [
+            {
+                'id': n.id,
+                'type': n.type,
+                'message': n.message,
+                'is_read': n.is_read,
+                'created_at': n.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                'job_id': n.job_id
+            }
+            for n in notifs
+        ]
+    })
+
+@hr_bp.route('/notifications/mark-read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    if current_user.role != 'hr':
+        return jsonify({'error': 'forbidden'}), 403
+    HRNotification.query.filter_by(
+        hr_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'ok': True})
+
+@hr_bp.route('/notifications/clear-all', methods=['POST'])
+@login_required
+def clear_all_notifications():
+    if current_user.role != 'hr':
+        return jsonify({'error': 'forbidden'}), 403
+    HRNotification.query.filter_by(
+        hr_id=current_user.id
+    ).delete()
+    db.session.commit()
+    return jsonify({'ok': True})
+
+# ===============================
+# HR NOTIFICATION HISTORY PAGE
+# ===============================
+@hr_bp.route('/notification-history')
+@login_required
+def notification_history():
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+    notifs = HRNotification.query.filter_by(
+        hr_id=current_user.id
+    ).order_by(HRNotification.created_at.desc()).all()
+    # Mark all as read when page is opened
+    HRNotification.query.filter_by(
+        hr_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return render_template('hr/notification_history.html', notifications=notifs)

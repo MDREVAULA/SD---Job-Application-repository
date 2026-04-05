@@ -426,8 +426,10 @@ def update_application_status(app_id):
             recruiter_id=current_user.id,
             type='new_application',
             message=f"Application status for <strong>{applicant_user.username}</strong> on <strong>{job_for_notif.title}</strong> updated to <strong>{new_status.capitalize()}</strong>.",
-            application_id=application.id
+            application_id=application.id,
+            job_id=application.job_id
         )
+
         db.session.add(notif)
         db.session.commit()
 
@@ -468,8 +470,10 @@ def schedule_interview(app_id):
             recruiter_id=current_user.id,
             type='interview_scheduled',
             message=f"Interview scheduled for <strong>{applicant.username}</strong> applying for <strong>{job.title}</strong> on {application.interview_date.strftime('%b %d, %Y at %I:%M %p')}.",
-            application_id=application.id
+            application_id=application.id,
+            job_id=application.job_id
         )
+
         db.session.add(notif)
         db.session.commit()
         flash("Interview scheduled successfully!", "success")
@@ -642,7 +646,8 @@ def get_notifications():
                 'type': n.type,
                 'message': n.message,
                 'is_read': n.is_read,
-                'created_at': n.created_at.strftime('%b %d, %Y at %I:%M %p')
+                'created_at': n.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                'job_id': n.job_id
             }
             for n in notifs
         ]
@@ -682,3 +687,22 @@ def clear_all_notifications():
     ).delete()
     db.session.commit()
     return jsonify({'ok': True})
+
+# ===============================
+# RECRUITER NOTIFICATION HISTORY PAGE
+# ===============================
+@recruiter_bp.route('/notification-history')
+@login_required
+def notification_history():
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+    notifs = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).order_by(RecruiterNotification.created_at.desc()).all()
+    # Mark all as read when page is opened
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return render_template('recruiter/notification_history.html', notifications=notifs)

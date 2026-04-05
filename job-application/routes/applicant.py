@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from models import db, Job, Application, User, ApplicantProfile, WorkExperience, Education, Skill, Project, Certification
 from models import RecruiterNotification
+from models import HRNotification
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -454,12 +455,22 @@ def apply_job(job_id):
             recruiter_id=job_owner.company_id,
             type='new_application',
             message=f"<strong>{current_user.username}</strong> has applied for your job posting: <strong>{job_owner.title}</strong>.",
-            application_id=application.id
+            application_id=application.id,
+            job_id=job_id
         )
         db.session.add(notif)
-        db.session.commit()
 
-        flash("Application submitted successfully!", "success")
-        return redirect(url_for('applicant.dashboard'))
-
-    return render_template("applicant/apply_job.html", job=job)
+        # --- NOTIFY ALL HR under this recruiter ---
+        hr_users = User.query.filter_by(
+            created_by=job_owner.company_id,
+            role='hr'
+        ).all()
+        for hr in hr_users:
+            hr_notif = HRNotification(
+                hr_id=hr.id,
+                type='new_application',
+                message=f"<strong>{current_user.username}</strong> has applied for <strong>{job_owner.title}</strong>.",
+                application_id=application.id,
+                job_id=job_id
+            )
+            db.session.add(hr_notif)

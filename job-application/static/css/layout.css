@@ -1018,7 +1018,7 @@ body {
 }
 
 /* ================================
-   RECRUITER NOTIFICATION BELL
+   RECRUITER AND HR NOTIFICATION BELL
    ================================ */
 .notif-wrapper {
     position: relative;
@@ -1363,8 +1363,8 @@ body {
     }
 }
 
-/* Safety: hide notification elements if they somehow render for non-recruiters */
-body:not(.is-recruiter) .notif-wrapper,
-body:not(.is-recruiter) .notif-toast {
+/* Safety: hide notification elements for non-recruiter and non-hr users */
+body:not(.is-recruiter):not(.is-hr) .notif-wrapper,
+body:not(.is-recruiter):not(.is-hr) .notif-toast {
     display: none !important;
 }

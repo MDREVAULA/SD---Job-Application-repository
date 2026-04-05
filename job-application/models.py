@@ -405,13 +405,28 @@ class HRFeedback(db.Model):
 class RecruiterNotification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     recruiter_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    type = db.Column(db.String(50), nullable=False)  # 'new_application' or 'interview_scheduled'
+    type = db.Column(db.String(50), nullable=False)
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)  # ADD THIS
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     recruiter = db.relationship("User", foreign_keys=[recruiter_id], backref="notifications")
+    application = db.relationship("Application", foreign_keys=[application_id])
+
+# =========================
+# HR NOTIFICATION TABLE
+# =========================
+class HRNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    hr_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)  # ADD THIS
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    hr = db.relationship("User", foreign_keys=[hr_id], backref="hr_notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
 
 # =========================
