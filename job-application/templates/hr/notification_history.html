@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/notification_history.css') }}">
+
+<div class="notif-history-wrapper">
+    <div class="notif-history-header">
+        <div class="notif-history-title">
+            <i class="fas fa-bell"></i>
+            <h1>Notification History</h1>
+        </div>
+        {% if notifications %}
+        <form method="POST" action="{{ url_for('hr.clear_all_notifications') }}">
+            <button type="submit" class="notif-history-clear-btn">
+                <i class="fas fa-trash"></i> Clear All
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if not notifications %}
+    <div class="notif-history-empty">
+        <i class="fas fa-bell-slash"></i>
+        <h3>No notifications yet</h3>
+        <p>Notifications will appear here when applicants apply or interviews are scheduled.</p>
+    </div>
+    {% else %}
+    <div class="notif-history-list">
+        {% for n in notifications %}
+        <a href="{% if n.job_id %}/hr/job-applications/{{ n.job_id }}{% else %}#{% endif %}"
+           class="notif-history-item {% if not n.is_read %}unread{% endif %}">
+            <div class="notif-history-icon type-{{ n.type }}">
+                {% if n.type == 'interview_scheduled' %}
+                    <i class="fas fa-calendar-check"></i>
+                {% else %}
+                    <i class="fas fa-file-alt"></i>
+                {% endif %}
+            </div>
+            <div class="notif-history-body">
+                <p class="notif-history-msg">{{ n.message | safe }}</p>
+                <span class="notif-history-time">
+                    <i class="fas fa-clock"></i>
+                    {{ n.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                </span>
+            </div>
+            {% if not n.is_read %}
+            <span class="notif-history-unread-dot"></span>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

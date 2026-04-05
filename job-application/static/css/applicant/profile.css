@@ -1138,4 +1138,26 @@
         transform: none; width: 100%; max-width: 100%;
         border-radius: 20px 20px 0 0; max-height: 75vh;
     }
+
+/* ================================
+   NOTIFICATION ISOLATION
+   Prevent profile transitions from
+   bleeding into global notif UI
+   ================================ */
+.notif-panel,
+.notif-panel *,
+.notif-toast,
+.notif-toast *,
+.notif-btn,
+.notif-badge,
+.notif-wrapper {
+    transition: unset !important;
+}
+
+.notif-panel {
+    display: none;
+}
+
+.notif-panel.open {
+    display: flex !important;
 }

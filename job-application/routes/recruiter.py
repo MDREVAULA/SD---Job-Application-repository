@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from models import db, Job, User, Application, JobImage, HRFeedback
+from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -538,6 +538,23 @@ def update_application_status(app_id):
 
     db.session.commit()
 
+    # --- NOTIFICATION: new application status update (only on first-time submission/new app) ---
+    # Notify recruiter when a NEW application arrives (status was just set from outside)
+    # This fires for any status change — recruiter sees own actions in history
+    applicant_user = User.query.get(application.applicant_id)
+    job_for_notif = Job.query.get(application.job_id)
+    if new_status:
+        notif = RecruiterNotification(
+            recruiter_id=current_user.id,
+            type='new_application',
+            message=f"Application status for <strong>{applicant_user.username}</strong> on <strong>{job_for_notif.title}</strong> updated to <strong>{new_status.capitalize()}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+
+        db.session.add(notif)
+        db.session.commit()
+
     flash("Application status updated!", "success")
 
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
@@ -566,6 +583,20 @@ def schedule_interview(app_id):
     if interview_date_str:
         application.interview_date = datetime.strptime(interview_date_str, "%Y-%m-%dT%H:%M")
         application.status = 'interview'
+        db.session.commit()
+
+        # --- NOTIFICATION: interview scheduled ---
+        applicant = User.query.get(application.applicant_id)
+        job = Job.query.get(application.job_id)
+        notif = RecruiterNotification(
+            recruiter_id=current_user.id,
+            type='interview_scheduled',
+            message=f"Interview scheduled for <strong>{applicant.username}</strong> applying for <strong>{job.title}</strong> on {application.interview_date.strftime('%b %d, %Y at %I:%M %p')}.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+
+        db.session.add(notif)
         db.session.commit()
         flash("Interview scheduled successfully!", "success")
     else:
