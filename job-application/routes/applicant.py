@@ -450,8 +450,10 @@ def apply_job(job_id):
         if resume_file and resume_file.filename != "":
             upload_folder = os.path.join(current_app.root_path, "static", "uploads", "applicant_resumes")
             os.makedirs(upload_folder, exist_ok=True)
+
             filename        = secure_filename(resume_file.filename)
             unique_filename = f"{uuid.uuid4()}_{filename}"
+
             resume_file.save(os.path.join(upload_folder, unique_filename))
             resume_filename = unique_filename
 
@@ -464,7 +466,7 @@ def apply_job(job_id):
         db.session.add(application)
         db.session.commit()
 
-        # --- NOTIFY RECRUITER of new application ---
+        # Notify recruiter
         job_owner = Job.query.get(application.job_id)
         notif = RecruiterNotification(
             recruiter_id=job_owner.company_id,
@@ -475,11 +477,12 @@ def apply_job(job_id):
         )
         db.session.add(notif)
 
-        # --- NOTIFY ALL HR under this recruiter ---
+        # Notify HR
         hr_users = User.query.filter_by(
             created_by=job_owner.company_id,
             role='hr'
         ).all()
+
         for hr in hr_users:
             hr_notif = HRNotification(
                 hr_id=hr.id,
@@ -489,3 +492,11 @@ def apply_job(job_id):
                 job_id=job_id
             )
             db.session.add(hr_notif)
+
+        db.session.commit()
+
+        flash("Application submitted successfully!", "success")
+        return redirect(url_for('applicant.dashboard'))
+
+
+    return render_template("applicant/apply_job.html", job=job)
