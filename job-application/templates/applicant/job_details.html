@@ -53,6 +53,16 @@
                                 Posted recently
                             </span>
                         </div>
+
+                        <!-- WORK ARRANGEMENT TAGS (moved here, under company meta) -->
+                        {% if job.arrangement %}
+                        <div class="job-arrangement-row" style="margin-top: 12px; padding-top: 0; border-top: none;">
+                            {% for tag in job.arrangement.split(',') %}
+                            <span class="job-arrangement-tag">{{ tag.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
                     </div>
                 </div>
 
@@ -111,15 +121,6 @@
                     </button>
                 {% endif %}
             </div>
-
-            <!-- WORK ARRANGEMENT TAGS -->
-            {% if job.arrangement %}
-            <div class="job-arrangement-row">
-                {% for tag in job.arrangement.split(',') %}
-                <span class="job-arrangement-tag">{{ tag.strip() }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
 
         </div>
 
@@ -396,7 +397,6 @@
                                 </div>
                             </div>
 
-                            <!-- NEW: Experience Level -->
                             {% if job.experience_level %}
                             <div class="overview-item">
                                 <div class="overview-icon">
@@ -409,7 +409,6 @@
                             </div>
                             {% endif %}
 
-                            <!-- NEW: Education -->
                             {% if job.education %}
                             <div class="overview-item">
                                 <div class="overview-icon">
@@ -422,7 +421,6 @@
                             </div>
                             {% endif %}
 
-                            <!-- NEW: Work Arrangement -->
                             {% if job.arrangement %}
                             <div class="overview-item">
                                 <div class="overview-icon">
@@ -435,7 +433,6 @@
                             </div>
                             {% endif %}
 
-                            <!-- Expiration Date -->
                             {% if job.expiration_date %}
                             <div class="overview-item">
                                 <div class="overview-icon">
