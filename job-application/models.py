@@ -10,6 +10,8 @@ db = SQLAlchemy()
 # =========================
 class User(db.Model, UserMixin):
 
+    profile_completed = db.Column(db.Boolean, default=False)
+
     id = db.Column(db.Integer, primary_key=True)
 
     username = db.Column(db.String(100), unique=True, nullable=False)

@@ -2,128 +2,130 @@
 {% block title %}Complete Your Profile{% endblock %}
 
 {% block content %}
-
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth/register.css') }}">
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-<div class="auth-page">
-    <div class="register-center">
-        <div class="register-container">
+<div class="register-page-wrap">
+    <div class="register-card" style="max-width: 560px;">
 
+        <div class="register-card-header">
+            <div class="register-logo-ring">
+                <i class="fas fa-building"></i>
+            </div>
             <h2 class="register-title">Complete Your Profile</h2>
-
-            <form method="POST" enctype="multipart/form-data">
-
-                <!-- PERSONAL INFORMATION -->
-                <h3>Personal Information</h3>
-
-                <div class="form-group">
-                    <label class="form-label">Last Name / Surname</label>
-                    <input class="form-input" type="text" name="surname" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">First Name</label>
-                    <input class="form-input" type="text" name="first_name" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Middle Name</label>
-                    <input class="form-input" type="text" name="middle_name">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Phone Number</label>
-                    <input class="form-input" type="text" name="phone_number">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Country</label>
-                    <select class="form-input country-select" name="country">
-                        <option>Philippines</option>
-                        <option>United States</option>
-                        <option>United Kingdom</option>
-                        <option>Japan</option>
-                        <option>Australia</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">City</label>
-                    <input class="form-input" type="text" name="city">
-                </div>
-
-                <!-- COMPANY INFORMATION -->
-                <h3 style="margin-top: 30px;">Company Information</h3>
-
-                <div class="form-group">
-                    <label class="form-label">Company Name</label>
-                    <input class="form-input" type="text" name="company_name" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Company Industry</label>
-                    <input class="form-input" type="text" name="company_industry">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Company Description</label>
-                    <textarea class="form-input" name="company_description"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Company Address</label>
-                    <input class="form-input" type="text" name="company_address">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Office Address</label>
-                    <input class="form-input" type="text" name="office_address">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Company Email Domain</label>
-                    <input class="form-input" type="text" name="company_email_domain" placeholder="e.g. company.com">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Upload Company Logo</label>
-                    <input class="form-input" type="file" name="company_logo" id="company_logo" accept="image/*">
-                    <div id="logo-preview-container" style="display:none;">
-                        <img id="logo-preview" src="" alt="Logo Preview">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Upload Company Document</label>
-                    <input class="form-input" type="file" name="company_proof" id="company_proof" accept=".pdf,.doc,.docx,image/*">
-                    <div id="proof-preview-container" style="display:none;">
-                        <img id="proof-preview-img" src="" alt="Document Preview" style="display:none;">
-                        <div id="proof-preview-file" style="display:none;">
-                            <span id="proof-file-icon"></span>
-                            <div>
-                                <p id="proof-file-name"></p>
-                                <p id="proof-file-size"></p>
-                                <a id="proof-file-link" href="#" target="_blank">Click to open file</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-buttons" style="margin-top: 30px;">
-                    <button type="submit" class="register-button">Submit for Verification</button>
-                </div>
-
-            </form>
-
+            <p class="register-subtitle">Tell us about yourself and your company</p>
         </div>
-        <!-- END REGISTER CONTAINER -->
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <!-- PERSONAL INFORMATION -->
+            <p class="register-label" style="margin-bottom: 12px;">
+                <i class="fas fa-user"></i> Personal Information
+            </p>
+
+            <div class="register-field">
+                <label class="register-label">Last Name / Surname</label>
+                <input class="register-input" type="text" name="surname" required>
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">First Name</label>
+                <input class="register-input" type="text" name="first_name" required>
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Middle Name</label>
+                <input class="register-input" type="text" name="middle_name">
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Phone Number</label>
+                <input class="register-input" type="text" name="phone_number">
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Country</label>
+                <select class="register-input" name="country">
+                    <option>Philippines</option>
+                    <option>United States</option>
+                    <option>United Kingdom</option>
+                    <option>Japan</option>
+                    <option>Australia</option>
+                </select>
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">City</label>
+                <input class="register-input" type="text" name="city">
+            </div>
+
+            <!-- COMPANY INFORMATION -->
+            <p class="register-label" style="margin-top: 28px; margin-bottom: 12px;">
+                <i class="fas fa-briefcase"></i> Company Information
+            </p>
+
+            <div class="register-field">
+                <label class="register-label">Company Name</label>
+                <input class="register-input" type="text" name="company_name" required>
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Company Industry</label>
+                <input class="register-input" type="text" name="company_industry">
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Company Description</label>
+                <textarea class="register-input" name="company_description" rows="3" style="resize:vertical;"></textarea>
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Company Address</label>
+                <input class="register-input" type="text" name="company_address">
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Office Address</label>
+                <input class="register-input" type="text" name="office_address">
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Company Email Domain</label>
+                <input class="register-input" type="text" name="company_email_domain" placeholder="e.g. company.com">
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Upload Company Logo</label>
+                <input class="register-input" type="file" name="company_logo" id="company_logo" accept="image/*">
+                <div id="logo-preview-container" style="display:none; margin-top:8px;">
+                    <img id="logo-preview" src="" alt="Logo Preview" style="max-width:120px; border-radius:8px;">
+                </div>
+            </div>
+
+            <div class="register-field">
+                <label class="register-label">Upload Company Document</label>
+                <input class="register-input" type="file" name="company_proof" id="company_proof" accept=".pdf,.doc,.docx,image/*">
+                <div id="proof-preview-container" style="display:none; margin-top:8px;">
+                    <img id="proof-preview-img" src="" alt="Document Preview" style="display:none; max-width:120px; border-radius:8px;">
+                    <div id="proof-preview-file" style="display:none;">
+                        <span id="proof-file-icon"></span>
+                        <p id="proof-file-name" class="register-label"></p>
+                        <p id="proof-file-size" class="register-label"></p>
+                        <a id="proof-file-link" href="#" target="_blank" style="color:#9DC88D;">Click to open file</a>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 28px;">
+                <button type="submit" class="register-submit-btn">
+                    <i class="fas fa-paper-plane"></i> Submit for Verification
+                </button>
+            </div>
+
+        </form>
     </div>
-    <!-- END REGISTER CENTER -->
 </div>
-<!-- END AUTH PAGE -->
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/register.js') }}"></script>
-
 {% endblock %}

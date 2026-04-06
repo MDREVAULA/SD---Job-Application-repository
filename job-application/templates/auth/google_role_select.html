@@ -2,45 +2,53 @@
 {% block title %}Select Role{% endblock %}
 
 {% block content %}
-
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth/register.css') }}">
 
-<div class="auth-page">
-    <div class="register-center">
-        <div class="register-container" style="min-height: auto;">
+<div class="register-page-wrap">
+    <div class="register-card" style="max-width: 420px;">
 
+        <div class="register-card-header">
+            <div class="register-logo-ring">
+                <i class="fas fa-user-circle"></i>
+            </div>
             <h2 class="register-title">Welcome!</h2>
-            <p style="text-align:center; color:#888; margin-bottom: 30px;">
-                How will you be using the Job Portal?
-            </p>
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    <div class="form-error">{{ message }}</div>
-                {% endfor %}
-            {% endwith %}
-
-            <form method="POST">
-
-                <div class="form-group">
-                    <label class="form-label">I am a...</label>
-                    <select class="form-input" name="role" id="role">
-                        <option value="applicant">Applicant — looking for jobs</option>
-                        <option value="recruiter">Recruiter — hiring people</option>
-                    </select>
-                </div>
-
-                <div class="form-buttons">
-                    <button type="submit" class="next-btn">Continue</button>
-                </div>
-
-            </form>
-
+            <p class="register-subtitle">How will you be using the Job Portal?</p>
         </div>
-        <!-- END REGISTER CONTAINER -->
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="register-flash register-flash--{{ category }}">
+                    <i class="fas fa-exclamation-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="register-role-group">
+                <label class="register-role-option">
+                    <input type="radio" name="role" value="applicant" checked>
+                    <div class="register-role-card">
+                        <i class="fas fa-user-tie"></i>
+                        <strong>Applicant</strong>
+                        <small>Looking for jobs</small>
+                    </div>
+                </label>
+                <label class="register-role-option">
+                    <input type="radio" name="role" value="recruiter">
+                    <div class="register-role-card">
+                        <i class="fas fa-building"></i>
+                        <strong>Recruiter</strong>
+                        <small>Hiring people</small>
+                    </div>
+                </label>
+            </div>
+
+            <button type="submit" class="register-submit-btn">
+                <i class="fas fa-arrow-right"></i> Continue
+            </button>
+        </form>
+
     </div>
-    <!-- END REGISTER CENTER -->
 </div>
-<!-- END AUTH PAGE -->
 
 {% endblock %}

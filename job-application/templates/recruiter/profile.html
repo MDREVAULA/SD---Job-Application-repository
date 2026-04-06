@@ -5,6 +5,69 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_completion_banner.css') }}">
+
+{% if current_user.verification_status == 'Pending' %}
+ 
+{% set is_complete = profile and profile.first_name and profile.last_name
+                     and profile.phone_number and profile.country
+                     and profile.city and profile.home_address %}
+ 
+{# Sync: if profile looks complete but flag not set yet, treat as complete visually #}
+{% set show_ready = is_complete or current_user.profile_complete %}
+
+<div class="profile-completion-banner {% if show_ready %}banner--ready{% else %}banner--incomplete{% endif %}">
+ 
+    <div class="pcb-icon">
+        {% if show_ready %}
+            <i class="fas fa-hourglass-half"></i>
+        {% else %}
+            <i class="fas fa-exclamation-triangle"></i>
+        {% endif %}
+    </div>
+ 
+    <div class="pcb-body">
+        {% if show_ready %}
+            <strong>Profile submitted — awaiting admin review</strong>
+            <p>Your profile is complete and has been submitted for admin review. You'll receive a notification once your account is approved and you can start applying for jobs.</p>
+        {% else %}
+            <strong>Complete your profile to submit for verification</strong>
+            <p>Fill in all required fields below. Once complete, your profile will be submitted to the admin for review. You won't be able to apply for jobs until your account is verified.</p>
+        {% endif %}
+    </div>
+ 
+    {% if not show_ready %}
+    <div class="pcb-checklist">
+        <span class="pcb-check {% if profile and profile.first_name %}done{% endif %}">
+            <i class="fas {% if profile and profile.first_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            First name
+        </span>
+        <span class="pcb-check {% if profile and profile.last_name %}done{% endif %}">
+            <i class="fas {% if profile and profile.last_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            Last name
+        </span>
+        <span class="pcb-check {% if profile and profile.phone_number %}done{% endif %}">
+            <i class="fas {% if profile and profile.phone_number %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            Phone number
+        </span>
+        <span class="pcb-check {% if profile and profile.city %}done{% endif %}">
+            <i class="fas {% if profile and profile.city %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            City
+        </span>
+        <span class="pcb-check {% if profile and profile.home_address %}done{% endif %}">
+            <i class="fas {% if profile and profile.home_address %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            Address
+        </span>
+        <span class="pcb-check {% if profile and profile.country %}done{% endif %}">
+            <i class="fas {% if profile and profile.country %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            Country
+        </span>
+    </div>
+    {% endif %}
+ 
+</div>
+{% endif %}
+ 
 
 <div class="prof-wrapper">
 
