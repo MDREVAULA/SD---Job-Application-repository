@@ -22,8 +22,6 @@
 
 /* ================================
    SMOOTH THEME TRANSITION
-   Applied globally so ALL elements
-   animate together when theme changes
    ================================ */
 
 *,
@@ -36,7 +34,6 @@
         box-shadow 0.3s ease !important;
 }
 
-/* Exclude elements where animation looks bad */
 .gallery-image,
 .gallery-background,
 .thumbnail-btn img,
@@ -310,6 +307,28 @@
     font-weight: 700;
 }
 
+/* Work Arrangement Tags (header) */
+.job-arrangement-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--bg-hover);
+}
+
+.job-arrangement-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 14px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
 /* Apply Buttons */
 .btn-apply-primary {
     display: flex;
@@ -410,7 +429,7 @@
     margin: 0;
 }
 
-/* ── Description Toggle ── */
+/* Description Toggle */
 .description-wrapper {
     position: relative;
 }
@@ -463,7 +482,7 @@
     transform: rotate(180deg);
 }
 
-/* Company Details */
+/* Company Details grid */
 .company-details {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -519,6 +538,68 @@
     font-size: 15px;
     color: var(--text-primary);
     font-weight: 600;
+}
+
+/* ================================
+   REQUIREMENTS SECTION
+   ================================ */
+
+.req-skills-block {
+    margin-bottom: 20px;
+}
+
+.req-skills-block:last-child {
+    margin-bottom: 0;
+}
+
+.req-skills-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 10px 0;
+}
+
+.req-skills-label i {
+    font-size: 13px;
+    color: var(--primary-color);
+}
+
+.req-skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.req-skill-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13.5px;
+    font-weight: 500;
+}
+
+.req-skill-required {
+    background: #eef4ee;
+    color: #2d6a30;
+    border: 1px solid #a8d5aa;
+}
+
+.req-skill-preferred {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .req-skill-required {
+    background: rgba(77, 119, 78, 0.18);
+    color: #9DC88D;
+    border-color: rgba(77, 119, 78, 0.35);
 }
 
 /* ================================
@@ -618,7 +699,6 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Thumbnails */
 .gallery-thumbnails {
     display: flex;
     gap: 10px;
@@ -1048,6 +1128,15 @@
         width: 70px;
         height: 70px;
     }
+
+    .req-skills-tags {
+        gap: 6px;
+    }
+
+    .req-skill-tag {
+        font-size: 13px;
+        padding: 5px 11px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1084,11 +1173,16 @@
     .sidebar-card-body {
         padding: 20px 16px;
     }
+
+    .job-arrangement-row {
+        gap: 6px;
+    }
 }
 
-/* ── A: job_details.css additions ── */
+/* ================================
+   PROFILE LINK STYLES
+   ================================ */
 
-/* Recruiter name inline link in "About the Company" */
 a.detail-profile-link {
     color: var(--text-primary, #111);
     text-decoration: none;
@@ -1100,7 +1194,6 @@ a.detail-profile-link {
 }
 a.detail-profile-link:hover { color: #4D774E; }
 
-/* Recruiter sidebar card — entire block is now a link */
 a.recruiter-profile-link {
     display: flex;
     align-items: center;
@@ -1119,7 +1212,6 @@ a.recruiter-profile-link:hover {
     background: var(--bg-hover);
 }
 
-/* "View Profile →" CTA text inside recruiter sidebar card */
 .recruiter-view-cta {
     display: inline-flex;
     align-items: center;

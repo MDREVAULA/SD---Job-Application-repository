@@ -6,7 +6,7 @@
 /* ========== BUTTONS ========== */
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--icon-light);
     color: white;
     border: none;
     padding: 12px 24px;
@@ -21,8 +21,8 @@
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    background: var(--brand-accent);
 }
 
 .btn-secondary {
@@ -109,13 +109,18 @@
 
 /* ========== DELETE MODAL ========== */
 
+/* ============================================================
+   DELETE MODAL — Full dark/light mode support
+   Uses layout.css CSS variables
+   ============================================================ */
+
 .delete-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: var(--overlay-bg);
     display: none;
     justify-content: center;
     align-items: center;
@@ -124,92 +129,101 @@
 }
 
 .delete-modal-content {
-    background: white;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     padding: 35px;
     border-radius: 15px;
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
     text-align: center;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 40px var(--shadow-color);
     animation: modalSlideIn 0.3s ease;
 }
 
 @keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-30px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .delete-modal-content h3 {
-    color: #dc3545;
-    margin: 0 0 15px 0;
-    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin: 0 0 10px 0;
+    font-size: 1.15rem;
+    font-weight: 700;
 }
 
 .delete-modal-content p {
-    color: #666;
-    margin-bottom: 25px;
-    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    font-size: 13.5px;
+    line-height: 1.6;
 }
 
 .modal-buttons {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .modal-icon {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
+    background: rgba(241, 178, 74, 0.15);
+    border: 2px solid var(--brand-accent);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 20px auto;
-    font-size: 40px;
-    color: white;
+    margin: 0 auto 18px auto;
+    font-size: 22px;
+    color: var(--brand-accent);
 }
 
-/* ========== HEADER COMPONENTS ========== */
+/* Override for danger-style modals (e.g. delete job) */
+.modal-icon.modal-icon-danger {
+    background: rgba(255, 107, 107, 0.15);
+    border-color: var(--brand-danger);
+    color: var(--brand-danger);
+}
 
-.header-content {
+.btn-secondary {
+    display: inline-flex;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 15px;
-}
-
-.header-icon {
-    background: rgba(255, 255, 255, 0.2);
-    width: 70px;
-    height: 70px;
-    border-radius: 16px;
-    /* display: flex; */
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    backdrop-filter: blur(10px);
-}
-
-/* ========== FILE INPUT STYLING ========== */
-
-input[type="file"] {
-    border: 2px dashed #667eea;
-    padding: 20px;
-    background: #f8f9fa;
+    gap: 7px;
+    padding: 10px 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--bg-surface-alt);
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background 0.18s, color 0.18s;
+    font-family: inherit;
 }
 
-input[type="file"]:hover {
-    background: #e9ecef;
-    border-color: #5568d3;
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 9px;
+    background: var(--brand-danger);
+    color: #fff;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.18s;
+    font-family: inherit;
+}
+
+.btn-danger:hover { opacity: 0.85; }
 
 /* ========== RESPONSIVE ========== */
 
@@ -231,4 +245,9 @@ input[type="file"]:hover {
     .card {
         padding: 20px;
     }
+}
+
+@media (max-width: 768px) {
+    .modal-buttons { flex-direction: column; }
+    .modal-buttons button { width: 100%; justify-content: center; }
 }

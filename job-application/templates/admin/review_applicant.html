@@ -1,53 +1,145 @@
 {% extends "layout.html" %}
+
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 
-<h2>Review Applicant: {{ applicant.username }}</h2>
+<div class="admin-page-wrapper">
 
-<h3>Account Info</h3>
-<p><strong>Email:</strong> {{ applicant.email }}</p>
-<p><strong>Role:</strong> {{ applicant.role }}</p>
+    <!-- PAGE HEADER -->
+    <div class="admin-page-header">
+        <div class="admin-page-header-left">
+            <div class="admin-page-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div>
+                <h1 class="admin-page-title">Review Applicant</h1>
+                <p class="admin-page-subtitle">{{ applicant.username }} &mdash; Pending Verification</p>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
 
-<h3>Applicant Information</h3>
+    <!-- INFO GRID -->
+    <div class="admin-review-grid">
 
-<p><strong>Last Name:</strong> {{ profile.last_name }}</p>
-<p><strong>First Name:</strong> {{ profile.first_name }}</p>
-<p><strong>Middle Name:</strong> {{ profile.middle_name }}</p>
+        <!-- Account Info -->
+        <div class="admin-info-card">
+            <div class="admin-info-card-header">
+                <i class="fas fa-id-badge"></i>
+                <h3>Account Info</h3>
+            </div>
+            <div class="admin-info-card-body">
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Email</span>
+                    <span class="admin-info-value">{{ applicant.email }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Role</span>
+                    <span class="admin-info-value">{{ applicant.role }}</span>
+                </div>
+            </div>
+        </div>
 
-<p><strong>Date of Birth:</strong> {{ profile.date_of_birth }}</p>
-<p><strong>Gender:</strong> {{ profile.gender }}</p>
+        <!-- Personal Info -->
+        <div class="admin-info-card">
+            <div class="admin-info-card-header">
+                <i class="fas fa-user"></i>
+                <h3>Personal Information</h3>
+            </div>
+            <div class="admin-info-card-body">
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Last Name</span>
+                    <span class="admin-info-value">{{ profile.last_name or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">First Name</span>
+                    <span class="admin-info-value">{{ profile.first_name or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Middle Name</span>
+                    <span class="admin-info-value">{{ profile.middle_name or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Date of Birth</span>
+                    <span class="admin-info-value">{{ profile.date_of_birth or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Gender</span>
+                    <span class="admin-info-value">{{ profile.gender or '—' }}</span>
+                </div>
+            </div>
+        </div>
 
-<p><strong>Phone Number:</strong> {{ profile.phone_number }}</p>
-<p><strong>Country:</strong> {{ profile.country }}</p>
-<p><strong>City:</strong> {{ profile.city }}</p>
-<p><strong>Home Address:</strong> {{ profile.home_address }}</p>
+        <!-- Contact Info -->
+        <div class="admin-info-card" style="grid-column: 1 / -1;">
+            <div class="admin-info-card-header">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Contact &amp; Location</h3>
+            </div>
+            <div class="admin-info-card-body">
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Phone</span>
+                    <span class="admin-info-value">{{ profile.phone_number or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Country</span>
+                    <span class="admin-info-value">{{ profile.country or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">City</span>
+                    <span class="admin-info-value">{{ profile.city or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Address</span>
+                    <span class="admin-info-value">{{ profile.home_address or '—' }}</span>
+                </div>
+            </div>
+        </div>
 
-<hr>
+    </div>
 
-<h3>Verification Action</h3>
+    <!-- VERIFICATION ACTION CARD -->
+    <div class="admin-action-card">
+        <div class="admin-action-card-header">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Verification Decision</h3>
+        </div>
+        <div class="admin-action-card-body">
 
-<!-- Approve -->
-<form method="POST" action="{{ url_for('admin.verify', user_id=applicant.id) }}">
-    <button type="submit">Approve & Verify</button>
-</form>
+            <!-- APPROVE -->
+            <div class="action-approve">
+                <div class="action-approve-text">
+                    <h4>Approve Applicant</h4>
+                    <p>This will verify and activate the applicant's account.</p>
+                </div>
+                <form method="POST" action="{{ url_for('admin.verify', user_id=applicant.id) }}">
+                    <button type="submit" class="btn-approve">
+                        <i class="fas fa-check-circle"></i> Approve &amp; Verify
+                    </button>
+                </form>
+            </div>
 
-<br>
+            <!-- REJECT -->
+            <div class="action-reject">
+                <h4>Reject Applicant</h4>
+                <p>Provide a clear reason — this will be stored in the system for reference.</p>
+                <form method="POST" action="{{ url_for('admin.reject', user_id=applicant.id) }}">
+                    <textarea
+                        class="admin-textarea"
+                        name="remarks"
+                        rows="4"
+                        placeholder="Example: Suspicious account information, incomplete profile, or malicious activity"></textarea>
+                    <br>
+                    <button type="submit" class="btn-reject">
+                        <i class="fas fa-ban"></i> Reject Applicant
+                    </button>
+                </form>
+            </div>
 
-<!-- Reject -->
-<form method="POST" action="{{ url_for('admin.reject', user_id=applicant.id) }}">
+        </div>
+    </div>
 
-    <label>Reason for Rejection:</label><br>
-
-    <textarea name="remarks" rows="4" cols="50"
-    placeholder="Example: Suspicious account information, incomplete profile, or malicious activity"></textarea>
-
-    <br><br>
-
-    <button type="submit">Reject Applicant</button>
-
-</form>
-
-<br>
-
-<a href="{{ url_for('admin.dashboard') }}">Cancel</a>
-
+</div>
 {% endblock %}

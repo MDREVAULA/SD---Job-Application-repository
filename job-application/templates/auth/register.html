@@ -2,255 +2,120 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-
 <link rel="stylesheet" href="{{ url_for('static', filename='css/auth/register.css') }}">
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-<div class="auth-page">
-    <div class="register-center">
-        <div class="register-container">
+<div class="register-page-wrap">
 
-            <h2 class="register-title">Create Account</h2>
+    <div class="register-card">
 
-            <!-- FLASH MESSAGES -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    <div class="form-error">{{ message }}</div>
-                {% endfor %}
-            {% endwith %}
-
-            <!-- PROGRESS INDICATOR -->
-            <div class="progress-indicator">
-                <div class="progress-line"></div>
-                <div class="progress-step active">
-                    <div class="progress-circle">1</div>
-                    <span class="progress-label">Account</span>
-                </div>
-                <div class="progress-step">
-                    <div class="progress-circle">2</div>
-                    <span class="progress-label">Personal</span>
-                </div>
-                <div class="progress-step">
-                    <div class="progress-circle">3</div>
-                    <span class="progress-label">Address</span>
-                </div>
-                <div class="progress-step">
-                    <div class="progress-circle">4</div>
-                    <span class="progress-label">Company</span>
-                </div>
+        <!-- Header -->
+        <div class="register-card-header">
+            <div class="register-logo-ring">
+                <i class="fas fa-user-plus"></i>
             </div>
-            <!-- END PROGRESS INDICATOR -->
-
-            <form method="POST" enctype="multipart/form-data">
-
-                <!-- STEP 1: Account Information -->
-                <div class="form-step active">
-                    <h3>Account Information</h3>
-
-                    <div class="form-group">
-                        <label class="form-label">Role</label>
-                        <select class="form-input" name="role" id="role">
-                            <option value="applicant">Applicant</option>
-                            <option value="recruiter">Recruiter</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Username</label>
-                        <input class="form-input" type="text" name="username" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input class="form-input" type="email" name="email" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <input class="form-input" type="password" name="password" required minlength="8">
-                    </div>
-
-                    <div class="form-buttons">
-                        <button type="button" class="next-btn">Continue</button>
-                    </div>
-
-                    <div style="text-align:center; margin-top: 16px; color: #aaa;">or</div>
-
-                    <a href="{{ url_for('auth.google_login') }}" style="
-                        display: block;
-                        text-align: center;
-                        padding: 12px;
-                        border: 2px solid #e0e0e0;
-                        border-radius: 8px;
-                        text-decoration: none;
-                        color: #444;
-                        font-weight: 600;
-                        background: #fff;
-                        margin-top: 12px;
-                    ">
-                        <img src="https://developers.google.com/identity/images/g-logo.png"
-                             style="width:18px; vertical-align:middle; margin-right:8px;">
-                        Continue with Google
-                    </a>
-                </div>
-                <!-- END STEP 1 -->
-
-                <!-- STEP 2: Personal Information -->
-                <div class="form-step">
-                    <h3>Personal Information</h3>
-
-                    <div class="form-group">
-                        <label class="form-label">Last Name / Surname</label>
-                        <input class="form-input" type="text" name="surname" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">First Name</label>
-                        <input class="form-input" type="text" name="first_name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Middle Name</label>
-                        <input class="form-input" type="text" name="middle_name">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Date of Birth</label>
-                        <input class="form-input" type="date" name="date_of_birth">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Gender</label>
-                        <select class="form-input" name="gender">
-                            <option value="">Select Gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Phone Number</label>
-                        <input class="form-input" type="text" name="phone_number">
-                    </div>
-
-                    <div class="form-buttons">
-                        <button type="button" class="back-btn">Back</button>
-                        <button type="button" class="next-btn">Continue</button>
-                    </div>
-                </div>
-                <!-- END STEP 2 -->
-
-                <!-- STEP 3: Address -->
-                <div class="form-step">
-                    <h3>Address</h3>
-
-                    <div class="form-group">
-                        <label class="form-label">Country</label>
-                        <select class="form-input country-select" name="country">
-                            <option>Philippines</option>
-                            <option>United States</option>
-                            <option>United Kingdom</option>
-                            <option>Japan</option>
-                            <option>Australia</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">City</label>
-                        <input class="form-input" type="text" name="city" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Home Address</label>
-                        <input class="form-input" type="text" name="home_address" required>
-                    </div>
-
-                    <div class="form-buttons">
-                        <button type="button" class="back-btn">Back</button>
-                        <button type="button" class="next-btn" id="step3-btn">Continue</button>
-                    </div>
-                </div>
-                <!-- END STEP 3 -->
-
-                <!-- STEP 4: Company Information (Recruiter Only) -->
-                <div class="form-step recruiter-step">
-                    <h3>Company Information</h3>
-
-                    <div class="form-group">
-                        <label class="form-label">Company Name</label>
-                        <input class="form-input" type="text" name="company_name">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Company Industry</label>
-                        <input class="form-input" type="text" name="company_industry">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Company Description</label>
-                        <textarea class="form-input" name="company_description"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Company Address</label>
-                        <input class="form-input" type="text" name="company_address">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Office Address</label>
-                        <input class="form-input" type="text" name="office_address">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Company Email Domain</label>
-                        <input class="form-input" type="text" name="company_email_domain" placeholder="e.g. company.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Upload Company Logo</label>
-                        <input class="form-input" type="file" name="company_logo" id="company_logo" accept="image/*">
-                        <div id="logo-preview-container" style="display:none;">
-                            <img id="logo-preview" src="" alt="Logo Preview">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Upload Company Document</label>
-                        <input class="form-input" type="file" name="company_proof" id="company_proof" accept=".pdf,.doc,.docx,image/*">
-                        <div id="proof-preview-container" style="display:none;">
-                            <img id="proof-preview-img" src="" alt="Document Preview" style="display:none;">
-                            <div id="proof-preview-file" style="display:none;">
-                                <span id="proof-file-icon"></span>
-                                <div>
-                                    <p id="proof-file-name"></p>
-                                    <p id="proof-file-size"></p>
-                                    <a id="proof-file-link" href="#" target="_blank" style="font-size: 12px; color: #667eea; font-weight: 600;">
-                                        Click to open file
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-buttons">
-                        <button type="button" class="back-btn">Back</button>
-                        <button type="submit" class="register-button">Register</button>
-                    </div>
-                </div>
-                <!-- END STEP 4 -->
-
-            </form>
-            <!-- END FORM -->
-
+            <h2 class="register-title">Create Account</h2>
+            <p class="register-subtitle">Join HireBon and get started in seconds</p>
         </div>
-        <!-- END REGISTER CONTAINER -->
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="register-flash register-flash--{{ category }}">
+                    <i class="fas fa-exclamation-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <!-- Form -->
+        <form method="POST" class="register-form">
+
+            <!-- Role -->
+            <div class="register-role-group">
+                <label class="register-role-option">
+                    <input type="radio" name="role" value="applicant" checked>
+                    <span class="register-role-card">
+                        <i class="fas fa-user"></i>
+                        <strong>Applicant</strong>
+                        <small>Looking for jobs</small>
+                    </span>
+                </label>
+                <label class="register-role-option">
+                    <input type="radio" name="role" value="recruiter">
+                    <span class="register-role-card">
+                        <i class="fas fa-building"></i>
+                        <strong>Recruiter</strong>
+                        <small>Hiring talent</small>
+                    </span>
+                </label>
+            </div>
+
+            <!-- Username -->
+            <div class="register-field">
+                <label class="register-label">
+                    <i class="fas fa-at"></i> Username
+                </label>
+                <input class="register-input" type="text" name="username" placeholder="Choose a username" required autocomplete="username">
+                <div class="register-field-error" id="err-username"></div>
+            </div>
+
+            <!-- Email -->
+            <div class="register-field">
+                <label class="register-label">
+                    <i class="fas fa-envelope"></i> Email
+                </label>
+                <input class="register-input" type="email" name="email" placeholder="your@email.com" required autocomplete="email">
+                <div class="register-field-error" id="err-email"></div>
+            </div>
+
+            <!-- Password -->
+            <div class="register-field">
+                <label class="register-label">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <div class="register-input-wrap">
+                    <input class="register-input" type="password" name="password" id="reg-password"
+                           placeholder="At least 8 characters" required minlength="8" autocomplete="new-password">
+                    <button type="button" class="register-eye-btn" id="togglePassword" tabindex="-1">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                <div class="register-strength-bar">
+                    <div class="register-strength-fill" id="strengthFill"></div>
+                </div>
+                <div class="register-field-error" id="err-password"></div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="register-submit-btn" id="registerBtn">
+                <i class="fas fa-arrow-right"></i> Create Account
+            </button>
+
+        </form>
+
+        <!-- Divider -->
+        <div class="register-divider"><span>or</span></div>
+
+        <!-- Google -->
+        <a href="{{ url_for('auth.google_login') }}" class="register-google-btn">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="register-google-logo">
+            Continue with Google
+        </a>
+
+        <!-- Login link -->
+        <p class="register-login-link">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}">Sign in</a>
+        </p>
+
+        <!-- Info note -->
+        <div class="register-info-note">
+            <i class="fas fa-info-circle"></i>
+            After signing up, you'll complete your profile so we can verify your account.
+        </div>
+
     </div>
-    <!-- END REGISTER CENTER -->
+
 </div>
-<!-- END AUTH PAGE -->
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/register.js') }}"></script>
-
 {% endblock %}
