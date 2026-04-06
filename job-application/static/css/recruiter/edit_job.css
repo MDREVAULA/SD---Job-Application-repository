@@ -29,6 +29,13 @@
 }
 
 /* Current Images Section */
+.current-images-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-style: italic;
+}
+
 .current-images-section {
     margin-bottom: 25px;
     padding: 20px;
@@ -73,10 +80,28 @@
     cursor: pointer;
 }
 
+.preview-card.existing-image .remove-btn::before {
+    content: '×';
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+}
+
 .preview-card.existing-image .remove-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+
+/* Delete image modal icon override */
+#deleteImageModal .modal-icon {
+    background: rgba(241, 178, 74, 0.15);
+    border: 2px solid var(--brand-accent);
+    color: var(--brand-accent);
+}
+ 
+#deleteImageModal .delete-modal-content h3 {
+    color: var(--text-primary);
 
 /* Cancel Button */
 .btn-cancel {
@@ -110,7 +135,7 @@
 
 /* Spinner Animation for Delete Button */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
+    0%   { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
@@ -139,14 +164,29 @@
         gap: 10px;
     }
     
+.footer-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+ 
+@media (max-width: 768px) {
     .footer-actions {
         width: 100%;
         flex-direction: column-reverse;
     }
+ 
+    .footer-actions .btn,
+    .footer-actions .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+}
     
     .btn-cancel,
     .btn-publish {
         width: 100%;
         justify-content: center;
+        }
     }
 }

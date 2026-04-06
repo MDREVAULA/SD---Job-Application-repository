@@ -2,361 +2,330 @@
 {% block content %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/job_posting.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/edit_job.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/delete_modal.css') }}">
 
-<div class="job-posting-wrapper">
+<div class="page-wrapper">
 
-    <!-- HEADER SECTION -->
-    <div class="posting-header">
-        <div class="header-content">
-            <div class="header-icon">
-                <i class="fas fa-edit"></i>
-            </div>
-            <div>
-                <h1>Edit Job Posting</h1>
-                <p>Update the details for "{{ job.title }}"</p>
-            </div>
-        </div>
-        <div class="header-actions">
-            <a href="{{ url_for('recruiter.my_job_list') }}" class="btn-back">
-                <i class="fas fa-arrow-left"></i> Back to Jobs
-            </a>
-        </div>
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb">
+    <a href="{{ url_for('recruiter.my_job_list') }}" class="breadcrumb-link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      My job postings
+    </a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">Edit posting</span>
+  </div>
+
+  <!-- HEADER CARD -->
+  <div class="posting-header">
+    <div class="posting-header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Edit job posting</h1>
+        <p>Updating details for "{{ job.title }}"</p>
+      </div>
     </div>
 
-    <!-- MAIN FORM CONTAINER -->
+    {% if current_user.verification_status != "Approved" %}
+    <div class="status-badge status-warning">
+      <span class="status-dot"></span>
+      Pending verification
+    </div>
+    {% else %}
+    <div class="status-badge status-success">
+      <span class="status-dot"></span>
+      Verified — ready to post
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- FORM SHELL -->
+  <div class="form-shell">
+
+    <!-- TAB BAR -->
+    <div class="form-tabs">
+      <div class="form-tab active" data-tab="details">Job details</div>
+      <div class="form-tab" data-tab="requirements">Requirements</div>
+      <div class="form-tab" data-tab="media">Media</div>
+    </div>
+
+    <!-- MAIN FORM -->
     <form method="POST"
-        action="{{ url_for('recruiter.edit_job', job_id=job.id) }}"
-        enctype="multipart/form-data"
-        class="job-posting-form">
+          action="{{ url_for('recruiter.edit_job', job_id=job.id) }}"
+          enctype="multipart/form-data"
+          class="job-form">
 
-        <div class="form-grid">
+      <!-- ========== TAB: JOB DETAILS ========== -->
+      <div class="tab-panel active" id="tab-details">
+        <div class="form-body two-col">
 
-            <!-- LEFT COLUMN -->
-            <div class="form-section">
-                
-                <div class="section-header">
-                    <i class="fas fa-info-circle"></i>
-                    <h3>Basic Information</h3>
-                </div>
+          <!-- LEFT COLUMN -->
+          <div class="form-col">
+            <div class="section-label">Basic information</div>
 
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-briefcase"></i>
-                        Job Title <span class="required">*</span>
-                    </label>
-                    <input type="text" 
-                           name="title" 
-                           value="{{ job.title }}"
-                           placeholder="e.g., Senior Software Engineer" 
-                           required
-                           class="form-input">
-                    <span class="field-hint">Choose a clear, descriptive title</span>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>
-                            <i class="fas fa-layer-group"></i>
-                            Job Field <span class="required">*</span>
-                        </label>
-                        <select name="field" class="form-select">
-                            <option value="Engineering" {% if job.field=="Engineering" %}selected{% endif %}>💻 Engineering</option>
-                            <option value="IT" {% if job.field=="IT" %}selected{% endif %}>🖥️ IT</option>
-                            <option value="UI/UX Design" {% if job.field=="UI/UX Design" %}selected{% endif %}>🎨 UI/UX Design</option>
-                            <option value="Healthcare" {% if job.field=="Healthcare" %}selected{% endif %}>⚕️ Healthcare</option>
-                            <option value="Marketing" {% if job.field=="Marketing" %}selected{% endif %}>📢 Marketing</option>
-                            <option value="Finance" {% if job.field=="Finance" %}selected{% endif %}>💰 Finance</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <i class="fas fa-clock"></i>
-                            Job Type <span class="required">*</span>
-                        </label>
-                        <select name="job_type" class="form-select">
-                            <option value="Full-time" {% if job.job_type=="Full-time" %}selected{% endif %}>Full-time</option>
-                            <option value="Part-time" {% if job.job_type=="Part-time" %}selected{% endif %}>Part-time</option>
-                            <option value="Contract" {% if job.job_type=="Contract" %}selected{% endif %}>Contract</option>
-                            <option value="Internship" {% if job.job_type=="Internship" %}selected{% endif %}>Internship</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>
-                            <i class="fas fa-map-marker-alt"></i>
-                            Location
-                        </label>
-                        <input type="text" 
-                               name="location" 
-                               value="{{ job.location }}"
-                               placeholder="e.g., New York, NY or Remote"
-                               class="form-input">
-                        <span class="field-hint">City, State or Remote</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <i class="fas fa-dollar-sign"></i>
-                            Salary Range
-                        </label>
-                        <input type="text" 
-                               name="salary" 
-                               value="{{ job.salary }}"
-                               placeholder="e.g., $80,000 - $120,000"
-                               class="form-input">
-                        <span class="field-hint">Annual salary range</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-calendar-times"></i>
-                        Application Deadline
-                    </label>
-                    <input type="date" 
-                           name="expiration_date"
-                           value="{{ job.expiration_date.strftime('%Y-%m-%d') if job.expiration_date }}"
-                           class="form-input">
-                    <span class="field-hint">When should applications close?</span>
-                </div>
-
+            <div class="field">
+              <label>Job title <span class="req">*</span></label>
+              <input type="text" name="title" value="{{ job.title }}" placeholder="e.g. Senior Software Engineer" required>
+              <div class="field-hint">Use a clear, searchable title candidates expect</div>
             </div>
 
-            <!-- RIGHT COLUMN -->
-            <div class="form-section">
-                
-                <div class="section-header">
-                    <i class="fas fa-align-left"></i>
-                    <h3>Job Details</h3>
-                </div>
-
-                <div class="form-group full-width">
-                    <label>
-                        <i class="fas fa-file-alt"></i>
-                        Job Description <span class="required">*</span>
-                    </label>
-                    <textarea name="description" 
-                              class="form-textarea"
-                              placeholder="Describe the role, responsibilities, and requirements..." 
-                              required>{{ job.description }}</textarea>
-                    <span class="field-hint">Be detailed and clear about expectations</span>
-                </div>
-
-                <div class="section-header" style="margin-top: 25px;">
-                    <i class="fas fa-images"></i>
-                    <h3>Media & Visuals</h3>
-                </div>
-
-                <!-- CURRENT IMAGES -->
-                {% if job.images %}
-                <div class="current-images-section">
-                    <div class="current-images-header">
-                        <h4>
-                            <i class="fas fa-image"></i>
-                            Current Images ({{ job.images|length }})
-                        </h4>
-                        <span class="images-hint">Hover over images to delete</span>
-                    </div>
-                    
-                    <div class="image-preview-grid">
-                        {% for image in job.images %}
-                        <div class="preview-card existing-image" id="image-{{ image.id }}">
-                            {# ✅ FIXED: job_posters/ subfolder #}
-                            <img src="{{ url_for('static', filename='uploads/job_posters/' + image.image_path) }}" alt="Job Image">
-                            <button type="button" 
-                                    class="remove-btn" 
-                                    title="Delete image"
-                                    onclick="openDeleteImageModal({{ image.id }})"></button>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- ADD NEW IMAGES -->
-                <div class="form-group full-width" style="margin-top: 25px;">
-                    <label>
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        Add New Images
-                    </label>
-                    
-                    <div class="file-upload-area" onclick="document.getElementById('posterInput').click()">
-                        <div class="upload-icon">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </div>
-                        <p class="upload-text">Click to upload images</p>
-                        <p class="upload-subtext">or drag and drop</p>
-                        <p class="upload-formats">PNG, JPG, GIF up to 10MB</p>
-                    </div>
-
-                    <input
-                        type="file"
-                        id="posterInput"
-                        name="posters"
-                        multiple
-                        accept="image/*"
-                        style="display: none;"
-                    >
-
-                    <!-- NEW IMAGE PREVIEW -->
-                    <div id="imagePreviewContainer" class="image-preview-grid"></div>
-                    
-                    <span class="field-hint">Add more images to showcase your workplace or team</span>
-                </div>
-
+            <div class="field-row">
+              <div class="field">
+                <label>Job field <span class="req">*</span></label>
+                <select name="field">
+                  <option value="Engineering" {% if job.field=="Engineering" %}selected{% endif %}>💻 Engineering</option>
+                  <option value="IT" {% if job.field=="IT" %}selected{% endif %}>🖥️ IT</option>
+                  <option value="UI/UX Design" {% if job.field=="UI/UX Design" %}selected{% endif %}>🎨 UI/UX Design</option>
+                  <option value="Healthcare" {% if job.field=="Healthcare" %}selected{% endif %}>⚕️ Healthcare</option>
+                  <option value="Marketing" {% if job.field=="Marketing" %}selected{% endif %}>📢 Marketing</option>
+                  <option value="Finance" {% if job.field=="Finance" %}selected{% endif %}>💰 Finance</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Employment type <span class="req">*</span></label>
+                <select name="job_type">
+                  <option value="Full-time" {% if job.job_type=="Full-time" %}selected{% endif %}>Full-time</option>
+                  <option value="Part-time" {% if job.job_type=="Part-time" %}selected{% endif %}>Part-time</option>
+                  <option value="Contract" {% if job.job_type=="Contract" %}selected{% endif %}>Contract</option>
+                  <option value="Internship" {% if job.job_type=="Internship" %}selected{% endif %}>Internship</option>
+                </select>
+              </div>
             </div>
 
+            <div class="field-row">
+              <div class="field">
+                <label>Location</label>
+                <input type="text" name="location" value="{{ job.location or '' }}" placeholder="City, State or Remote">
+                <div class="field-hint">City, State or Remote</div>
+              </div>
+              <div class="field">
+                <label>Salary range</label>
+                <input type="text" name="salary" value="{{ job.salary or '' }}" placeholder="e.g. ₱30,000 – ₱50,000">
+                <div class="field-hint">Monthly or annual range</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Application deadline</label>
+              <input type="date" name="expiration_date" value="{{ job.expiration_date.strftime('%Y-%m-%d') if job.expiration_date else '' }}">
+              <div class="field-hint">Listings close automatically after this date</div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section-label">Work arrangement</div>
+            <div class="tag-row" id="arrangementTags">
+              {% set current_arrangement = job.arrangement or '' %}
+              <div class="tag {% if 'On-site' in current_arrangement %}sel{% endif %}" data-val="On-site">On-site</div>
+              <div class="tag {% if 'Remote' in current_arrangement %}sel{% endif %}" data-val="Remote">Remote</div>
+              <div class="tag {% if 'Hybrid' in current_arrangement %}sel{% endif %}" data-val="Hybrid">Hybrid</div>
+              <div class="tag {% if 'Flexible hours' in current_arrangement %}sel{% endif %}" data-val="Flexible hours">Flexible hours</div>
+              <div class="tag {% if 'Night shift' in current_arrangement %}sel{% endif %}" data-val="Night shift">Night shift</div>
+            </div>
+            <input type="hidden" name="arrangement" id="arrangementInput" value="{{ job.arrangement or '' }}">
+          </div>
+
+          <!-- RIGHT COLUMN -->
+          <div class="form-col">
+            <div class="section-label">Job description</div>
+
+            <div class="tip-box">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p>Clear descriptions attract 3× more qualified applicants. Include responsibilities, day-to-day tasks, and what success looks like.</p>
+            </div>
+
+            <div class="field">
+              <label>Description <span class="req">*</span></label>
+              <textarea name="description" placeholder="Describe the role, key responsibilities, qualifications, and what makes this opportunity unique..." required>{{ job.description }}</textarea>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section-label">Posting overview</div>
+
+            <div class="info-cards">
+              <div class="info-card">
+                <div class="info-card-label">Posted by</div>
+                <div class="info-card-val">{{ current_user.company_name or 'Your company' }}</div>
+              </div>
+              <div class="info-card">
+                <div class="info-card-label">Visibility</div>
+                <div class="info-card-val">Public</div>
+              </div>
+              <div class="info-card">
+                <div class="info-card-label">Applicants</div>
+                <div class="info-card-val">{{ job.applications | length }}</div>
+              </div>
+            </div>
+
+          </div>
         </div>
+      </div>
 
-        <!-- SUBMIT SECTION -->
-        <div class="form-footer">
-            <div class="footer-content">
-                <div class="footer-info">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Review your changes carefully before updating</p>
-                </div>
-                
-                <div class="footer-actions">
-                    <a href="{{ url_for('recruiter.my_job_list') }}" class="btn-cancel">
-                        <i class="fas fa-times"></i> Cancel
-                    </a>
-                    <button type="submit" class="btn-publish">
-                        <i class="fas fa-save"></i> Update Job
-                    </button>
-                </div>
+      <!-- ========== TAB: REQUIREMENTS ========== -->
+      <div class="tab-panel" id="tab-requirements">
+        <div class="form-body two-col">
+          <div class="form-col">
+            <div class="section-label">Experience & education</div>
+
+            <div class="field-row">
+              <div class="field">
+                <label>Experience level</label>
+                <select name="experience_level">
+                  <option value="">Select level</option>
+                  <option value="Entry-level" {% if job.experience_level=="Entry-level" %}selected{% endif %}>Entry-level</option>
+                  <option value="Mid-level" {% if job.experience_level=="Mid-level" %}selected{% endif %}>Mid-level</option>
+                  <option value="Senior" {% if job.experience_level=="Senior" %}selected{% endif %}>Senior</option>
+                  <option value="Lead / Manager" {% if job.experience_level=="Lead / Manager" %}selected{% endif %}>Lead / Manager</option>
+                  <option value="Executive" {% if job.experience_level=="Executive" %}selected{% endif %}>Executive</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Years of experience</label>
+                <input type="text" name="years_exp" value="{{ job.years_exp or '' }}" placeholder="e.g. 2–4 years">
+              </div>
             </div>
+
+            <div class="field">
+              <label>Education requirement</label>
+              <select name="education">
+                <option value="">No preference</option>
+                <option value="High school diploma" {% if job.education=="High school diploma" %}selected{% endif %}>High school diploma</option>
+                <option value="Associate degree" {% if job.education=="Associate degree" %}selected{% endif %}>Associate degree</option>
+                <option value="Bachelor's degree" {% if job.education=="Bachelor's degree" %}selected{% endif %}>Bachelor's degree</option>
+                <option value="Master's degree" {% if job.education=="Master's degree" %}selected{% endif %}>Master's degree</option>
+                <option value="PhD" {% if job.education=="PhD" %}selected{% endif %}>PhD</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Required skills</label>
+              <input type="text" name="required_skills" value="{{ job.required_skills or '' }}" placeholder="e.g. Python, SQL, Communication skills">
+              <div class="field-hint">Comma-separated list of required skills</div>
+            </div>
+          </div>
+
+          <div class="form-col">
+            <div class="section-label">Nice to have</div>
+
+            <div class="field">
+              <label>Preferred skills</label>
+              <input type="text" name="preferred_skills" value="{{ job.preferred_skills or '' }}" placeholder="e.g. Docker, AWS, Agile">
+              <div class="field-hint">Comma-separated list of preferred but not required skills</div>
+            </div>
+
+            <div class="field">
+              <label>Languages</label>
+              <input type="text" name="languages" value="{{ job.languages or '' }}" placeholder="e.g. English (fluent), Filipino">
+            </div>
+
+            <div class="field">
+              <label>Additional notes</label>
+              <textarea name="requirements_notes" style="min-height: 120px;" placeholder="Any other requirements, certifications, or details...">{{ job.requirements_notes or '' }}</textarea>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- ========== TAB: MEDIA ========== -->
+      <div class="tab-panel" id="tab-media">
+        <div class="form-body">
+          <div class="section-label">Job images</div>
+          <p class="media-subtext">Showcase your office, team, or workplace culture. Good visuals increase application rates.</p>
+
+          <!-- CURRENT IMAGES -->
+          {% if job.images %}
+          <div class="section-label" style="margin-top: 0;">Current images</div>
+          <div class="current-images-hint">Hover over an image to remove it.</div>
+          <div class="image-preview-grid" style="margin-top: 12px; margin-bottom: 32px;">
+            {% for image in job.images %}
+            <div class="preview-card existing-image" id="image-{{ image.id }}">
+              <img src="{{ url_for('static', filename='uploads/job_posters/' + image.image_path) }}" alt="Job Image">
+              <button type="button" class="remove-btn" title="Delete image" onclick="openDeleteImageModal({{ image.id }})"></button>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="divider"></div>
+          <div class="section-label">Add new images</div>
+          {% endif %}
+
+          <div class="upload-zone" onclick="document.getElementById('posterInput').click()">
+            <div class="upload-zone-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <p class="upload-primary"><span class="upload-link">Click to upload</span> or drag and drop</p>
+            <p class="upload-formats">PNG, JPG, GIF — up to 10 MB each</p>
+          </div>
+
+          <input type="file" id="posterInput" name="posters" multiple accept="image/*" style="display: none;">
+          <div id="imagePreviewContainer" class="image-preview-grid"></div>
+        </div>
+      </div>
+
+      <!-- FORM FOOTER -->
+      <div class="form-footer">
+        <span class="footer-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Review your changes carefully before updating
+        </span>
+        <div class="footer-actions">
+          <a href="{{ url_for('recruiter.my_job_list') }}" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save changes
+          </button>
+        </div>
+      </div>
 
     </form>
-
+  </div>
 </div>
 
 <!-- DELETE IMAGE MODAL -->
 <div id="deleteImageModal" class="delete-modal">
-    <div class="delete-modal-content">
-        <div class="modal-icon">
-            <i class="fas fa-image"></i>
-        </div>
-        <h3>Delete Image</h3>
-        <p>Are you sure you want to delete this image? This action cannot be undone.</p>
-        <div class="modal-buttons">
-            <button class="btn-secondary" onclick="closeDeleteImageModal()">
-                <i class="fas fa-times"></i> Cancel
-            </button>
-            <button class="btn-danger" id="confirmDeleteImageBtn">
-                <i class="fas fa-trash"></i> Delete Image
-            </button>
-        </div>
+  <div class="delete-modal-content">
+    <div class="modal-icon" style="background: #fff3cd; border: 2px solid #ffc107;">
+      <i class="fas fa-image" style="color: #856404; font-size: 22px;"></i>
     </div>
+    <h3>Delete image</h3>
+    <p>Are you sure you want to delete this image? This action cannot be undone.</p>
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeDeleteImageModal()">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button class="btn-danger" id="confirmDeleteImageBtn">
+        <i class="fas fa-trash"></i> Delete image
+      </button>
+    </div>
+  </div>
 </div>
 
-<!-- IMAGE PREVIEW SCRIPT -->
+<style>
+  /* Edit-specific additions that extend job_posting.css */
+  .current-images-hint {
+    font-size: 12px;
+    color: #adb5bd;
+    margin-bottom: 4px;
+    font-style: italic;
+  }
+
+  .preview-card.existing-image {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .preview-card.existing-image .remove-btn::before {
+    content: '×';
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+</style>
+
 <script src="{{ url_for('static', filename='js/recruiter/job_image_preview.js') }}"></script>
-
-<script>
-// Add drag and drop functionality
-const uploadArea = document.querySelector('.file-upload-area');
-const fileInput = document.getElementById('posterInput');
-
-if (uploadArea && fileInput) {
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.style.borderColor = '#667eea';
-        uploadArea.style.background = '#f0f4ff';
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.style.borderColor = '#d1d5db';
-        uploadArea.style.background = '#fafbfc';
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.style.borderColor = '#d1d5db';
-        uploadArea.style.background = '#fafbfc';
-        
-        const files = e.dataTransfer.files;
-        fileInput.files = files;
-        
-        // Trigger change event
-        const event = new Event('change', { bubbles: true });
-        fileInput.dispatchEvent(event);
-    });
-}
-
-// Function to open delete image modal
-function openDeleteImageModal(imageId) {
-    const modal = document.getElementById('deleteImageModal');
-    const confirmBtn = document.getElementById('confirmDeleteImageBtn');
-    confirmBtn.onclick = function() {
-        deleteImage(imageId);
-        closeDeleteImageModal();
-    };
-    modal.style.display = 'flex';
-}
-
-// Function to close delete image modal
-function closeDeleteImageModal() {
-    const modal = document.getElementById('deleteImageModal');
-    modal.style.display = 'none';
-}
-
-// Close modal when clicking outside of it
-window.onclick = function(event) {
-    const modal = document.getElementById('deleteImageModal');
-    if (event.target === modal) {
-        closeDeleteImageModal();
-    }
-}
-
-// Function to delete an image
-function deleteImage(imageId) {
-    const imageCard = document.getElementById(`image-${imageId}`);
-    const button = imageCard.querySelector('.remove-btn');
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    button.disabled = true;
-    
-    fetch(`/recruiter/delete-job-image/${imageId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            imageCard.style.opacity = '0';
-            imageCard.style.transform = 'scale(0.8)';
-            setTimeout(() => {
-                imageCard.remove();
-                
-                const header = document.querySelector('.current-images-header h4');
-                if (header) {
-                    const remainingImages = document.querySelectorAll('.preview-card.existing-image').length;
-                    header.innerHTML = `<i class="fas fa-image"></i> Current Images (${remainingImages})`;
-                    
-                    if (remainingImages === 0) {
-                        document.querySelector('.current-images-section').remove();
-                    }
-                }
-            }, 300);
-        } else {
-            alert('Failed to delete image. Please try again.');
-            button.innerHTML = '';
-            button.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while deleting the image.');
-        button.innerHTML = '';
-        button.disabled = false;
-    });
-}
-</script>
+<script src="{{ url_for('static', filename='js/recruiter/job_posting.js') }}"></script>
+<script src="{{ url_for('static', filename='js/recruiter/edit_job.js') }}"></script>
 
 {% endblock %}

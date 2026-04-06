@@ -603,15 +603,24 @@ def edit_job(job_id):
 
     if request.method == "POST":
 
-        job.title = request.form.get('title')
+        job.title       = request.form.get('title')
         job.description = request.form.get('description')
-        job.field = request.form.get('field')
-        job.job_type = request.form.get('job_type')
-        job.location = request.form.get('location')
-        job.salary = request.form.get('salary')
+        job.field       = request.form.get('field')
+        job.job_type    = request.form.get('job_type')
+        job.location    = request.form.get('location')
+        job.salary      = request.form.get('salary')
+        job.arrangement = request.form.get('arrangement')
+
+        # Requirements tab
+        job.experience_level   = request.form.get('experience_level')
+        job.years_exp          = request.form.get('years_exp')
+        job.education          = request.form.get('education')
+        job.required_skills    = request.form.get('required_skills')
+        job.preferred_skills   = request.form.get('preferred_skills')
+        job.languages          = request.form.get('languages')
+        job.requirements_notes = request.form.get('requirements_notes')
 
         expiration_date = request.form.get('expiration_date')
-
         if expiration_date:
             job.expiration_date = datetime.strptime(expiration_date, "%Y-%m-%d").date()
         else:
@@ -657,17 +666,16 @@ def edit_job(job_id):
 @recruiter_bp.route('/delete-job-image/<int:image_id>', methods=['POST'])
 @login_required
 def delete_job_image(image_id):
+    from flask import jsonify
 
     if current_user.role != 'recruiter':
-        flash("Access denied!", "danger")
-        return redirect(url_for('auth.index'))
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
 
     image = JobImage.query.get_or_404(image_id)
     job = Job.query.get_or_404(image.job_id)
 
     if job.company_id != current_user.id:
-        flash("Unauthorized action!", "danger")
-        return redirect(url_for('recruiter.job_posting'))
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
 
     file_path = os.path.join(
         current_app.root_path,
@@ -681,9 +689,7 @@ def delete_job_image(image_id):
     db.session.delete(image)
     db.session.commit()
 
-    flash("Image deleted.", "success")
-
-    return redirect(url_for('recruiter.edit_job', job_id=job.id))
+    return jsonify({'success': True})
 
 
 # ===============================
