@@ -286,6 +286,17 @@ class Job(db.Model):
     # =========================
     # JOB INFORMATION
     # =========================
+    # ── Work arrangement (e.g. "On-site, Hybrid")
+    arrangement = db.Column(db.String(200))
+
+    # ── Requirements tab fields
+    experience_level  = db.Column(db.String(100))   # Entry-level, Mid-level, Senior, etc.
+    years_exp         = db.Column(db.String(100))   # e.g. "2–4 years"
+    education         = db.Column(db.String(200))   # Bachelor's degree, etc.
+    required_skills   = db.Column(db.Text)          # comma-separated
+    preferred_skills  = db.Column(db.Text)          # comma-separated
+    languages         = db.Column(db.String(200))
+    requirements_notes = db.Column(db.Text)
     field = db.Column(db.String(100))
     job_type = db.Column(db.String(50))
     location = db.Column(db.String(200))
@@ -401,6 +412,7 @@ class Message(db.Model):
         remote_side="Message.id",
         backref="replies"
     )
+
 
 
 # =========================

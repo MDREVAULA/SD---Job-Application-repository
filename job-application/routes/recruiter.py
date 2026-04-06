@@ -327,6 +327,16 @@ def post_job():
     salary = request.form.get('salary')
     expiration_date = request.form.get('expiration_date')
 
+    # ── Requirements tab fields ──
+    arrangement        = request.form.get('arrangement')
+    experience_level   = request.form.get('experience_level')
+    years_exp          = request.form.get('years_exp')
+    education          = request.form.get('education')
+    required_skills    = request.form.get('required_skills')
+    preferred_skills   = request.form.get('preferred_skills')
+    languages          = request.form.get('languages')
+    requirements_notes = request.form.get('requirements_notes')
+
     expiration = None
     if expiration_date:
         expiration = datetime.strptime(expiration_date, "%Y-%m-%d").date()
@@ -339,7 +349,16 @@ def post_job():
         job_type=job_type,
         location=location,
         salary=salary,
-        expiration_date=expiration
+        expiration_date=expiration,
+        # ── newly saved fields ──
+        arrangement=arrangement,
+        experience_level=experience_level,
+        years_exp=years_exp,
+        education=education,
+        required_skills=required_skills,
+        preferred_skills=preferred_skills,
+        languages=languages,
+        requirements_notes=requirements_notes,
     )
 
     db.session.add(job)
@@ -351,25 +370,16 @@ def post_job():
     os.makedirs(upload_folder, exist_ok=True)
 
     for file in poster_files:
-
         if file and file.filename != "":
-
             filename = secure_filename(file.filename)
             unique_name = f"{uuid.uuid4()}_{filename}"
-
             file.save(os.path.join(upload_folder, unique_name))
-
-            image = JobImage(
-                job_id=job.id,
-                image_path=unique_name
-            )
-
+            image = JobImage(job_id=job.id, image_path=unique_name)
             db.session.add(image)
 
     db.session.commit()
 
     flash("Job posted successfully!", "success")
-
     return redirect(url_for('recruiter.job_posting'))
 
 
