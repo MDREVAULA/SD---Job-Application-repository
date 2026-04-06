@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth/register.css') }}">
+
+<div class="register-page-wrap">
+
+    <div class="register-card">
+
+        <!-- Header -->
+        <div class="register-card-header">
+            <div class="register-logo-ring">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h2 class="register-title">Create Account</h2>
+            <p class="register-subtitle">Join HireBon and get started in seconds</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="register-flash register-flash--{{ category }}">
+                    <i class="fas fa-exclamation-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <!-- Form -->
+        <form method="POST" class="register-form">
+
+            <!-- Role -->
+            <div class="register-role-group">
+                <label class="register-role-option">
+                    <input type="radio" name="role" value="applicant" checked>
+                    <span class="register-role-card">
+                        <i class="fas fa-user"></i>
+                        <strong>Applicant</strong>
+                        <small>Looking for jobs</small>
+                    </span>
+                </label>
+                <label class="register-role-option">
+                    <input type="radio" name="role" value="recruiter">
+                    <span class="register-role-card">
+                        <i class="fas fa-building"></i>
+                        <strong>Recruiter</strong>
+                        <small>Hiring talent</small>
+                    </span>
+                </label>
+            </div>
+
+            <!-- Username -->
+            <div class="register-field">
+                <label class="register-label">
+                    <i class="fas fa-at"></i> Username
+                </label>
+                <input class="register-input" type="text" name="username" placeholder="Choose a username" required autocomplete="username">
+                <div class="register-field-error" id="err-username"></div>
+            </div>
+
+            <!-- Email -->
+            <div class="register-field">
+                <label class="register-label">
+                    <i class="fas fa-envelope"></i> Email
+                </label>
+                <input class="register-input" type="email" name="email" placeholder="your@email.com" required autocomplete="email">
+                <div class="register-field-error" id="err-email"></div>
+            </div>
+
+            <!-- Password -->
+            <div class="register-field">
+                <label class="register-label">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <div class="register-input-wrap">
+                    <input class="register-input" type="password" name="password" id="reg-password"
+                           placeholder="At least 8 characters" required minlength="8" autocomplete="new-password">
+                    <button type="button" class="register-eye-btn" id="togglePassword" tabindex="-1">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                <div class="register-strength-bar">
+                    <div class="register-strength-fill" id="strengthFill"></div>
+                </div>
+                <div class="register-field-error" id="err-password"></div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="register-submit-btn" id="registerBtn">
+                <i class="fas fa-arrow-right"></i> Create Account
+            </button>
+
+        </form>
+
+        <!-- Divider -->
+        <div class="register-divider"><span>or</span></div>
+
+        <!-- Google -->
+        <a href="{{ url_for('auth.google_login') }}" class="register-google-btn">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="register-google-logo">
+            Continue with Google
+        </a>
+
+        <!-- Login link -->
+        <p class="register-login-link">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}">Sign in</a>
+        </p>
+
+        <!-- Info note -->
+        <div class="register-info-note">
+            <i class="fas fa-info-circle"></i>
+            After signing up, you'll complete your profile so we can verify your account.
+        </div>
+
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
+<!-- Lucide Icons CDN -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<div class="help-center">
+    <div class="help-header">
+        <div class="header-content">
+            <div class="header-icon">
+                <i data-lucide="help-circle"></i>
+            </div>
+            <h1>Help Center</h1>
+            <p class="header-subtitle">Find answers to frequently asked questions</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Search Bar -->
+        <div class="search-wrapper">
+            <i data-lucide="search" class="search-icon"></i>
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search for a question..."
+            >
+        </div>
+
+        <!-- Category Filter -->
+        <div class="category-filter">
+            <button class="category-btn active" data-category="all">All</button>
+            <button class="category-btn" data-category="Account">Account</button>
+            <button class="category-btn" data-category="Settings">Settings</button>
+            <button class="category-btn" data-category="Billing">Billing</button>
+            <button class="category-btn" data-category="Resources">Resources</button>
+        </div>
+
+        <!-- FAQ List -->
+        <ul id="questionsList">
+            <li data-category="Account">
+                <div class="question-header">
+                    <div class="question-content">
+                        <i data-lucide="user" class="question-icon"></i>
+                        <div>
+                            <span class="question">How do I login to my account?</span>
+                            <span class="category-tag">Account</span>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="answer">
+                    <p>Click the login button in the top right corner, then enter your email address and password. If you've forgotten your password, click the "Forgot Password" link to reset it.</p>
+                </div>
+            </li>
+
+            <li data-category="Account">
+                <div class="question-header">
+                    <div class="question-content">
+                        <i data-lucide="user" class="question-icon"></i>
+                        <div>
+                            <span class="question">How do I create a new account/signup?</span>
+                            <span class="category-tag">Account</span>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="answer">
+                    <p>Click the signup button on the homepage and fill in the required information including your name, email address, and password. You'll receive a confirmation email to verify your account.</p>
+                </div>
+            </li>
+
+            <li data-category="Account">
+                <div class="question-header">
+                    <div class="question-content">
+                        <i data-lucide="lock" class="question-icon"></i>
+                        <div>
+                            <span class="question">I forgot my password. What should I do?</span>
+                            <span class="category-tag">Account</span>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="answer">
+                    <p>Click on the "Forgot Password" link on the login page. Enter your email address and we'll send you instructions to reset your password. Check your spam folder if you don't see the email within a few minutes.</p>
+                </div>
+            </li>
+
+            <li data-category="Settings">
+                <div class="question-header">
+                    <div class="question-content">
+                        <i data-lucide="settings" class="question-icon"></i>
+                        <div>
+                            <span class="question">How do I update my profile information?</span>
+                            <span class="category-tag">Settings</span>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="answer">
+                    <p>Navigate to Settings from your account dashboard. From there, you can update your name, email, profile picture, and other personal information. Don't forget to save your changes!</p>
+                </div>
+            </li>
+
+            <li data-category="Settings">
+                <div class="question-header">
+                    <div class="question-content">
+                        <i data-lucide="mail" class="question-icon"></i>
+                        <div>
+                            <span class="question">How do I change my email preferences?</span>
+                            <span class="category-tag">Settings</span>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="answer">
+                    <p>Go to Settings > Notifications to customize which emails you receive. You can choose to receive updates about new features, promotions, or turn off all marketing emails while keeping essential account notifications.</p>
+                </div>
+            </li>
+
+            <li data-category="Billing">
+                <div class="question-header">
+                    <div class="question-content">
+                        <i data-lucide="credit-card" class="question-icon"></i>
+                        <div>
+                            <span class="question">What payment methods do you accept?</span>
+                            <span class="category-tag">Billing</span>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="answer">
+                    <p>We accept all major credit cards (Visa, Mastercard, American Express), debit cards, and PayPal. All transactions are encrypted and secure.</p>
+                </div>
+            </li>
+
+            <li data-category="Billing">
+                <div class="question-header">
+                    <div class="question-content">
+                        <i data-lucide="credit-card" class="question-icon"></i>
+                        <div>
+                            <span class="question">How do I cancel my subscription?</span>
+                            <span class="category-tag">Billing</span>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="answer">
+                    <p>Go to Settings > Billing and click "Cancel Subscription". You'll retain access until the end of your current billing period. We're sorry to see you go!</p>
+                </div>
+            </li>
+
+            <li data-category="Resources">
+                <div class="question-header">
+                    <div class="question-content">
+                        <i data-lucide="book-open" class="question-icon"></i>
+                        <div>
+                            <span class="question">Where can I find tutorials and guides?</span>
+                            <span class="category-tag">Resources</span>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="answer">
+                    <p>Visit our Learning Center from the main navigation menu. We have video tutorials, step-by-step guides, and best practices to help you get the most out of our platform.</p>
+                </div>
+            </li>
+        </ul>
+
+        <!-- No Results Message -->
+        <div id="noResults" class="no-results" style="display: none;">
+            <div class="no-results-icon">
+                <i data-lucide="search"></i>
+            </div>
+            <h3>No results found</h3>
+            <p>Try adjusting your search or filter to find what you're looking for</p>
+        </div>
+
+        <!-- Contact Support Section -->
+        <div class="contact-support">
+            <h2>Still need help?</h2>
+            <p>Our support team is here to assist you</p>
+            <button class="support-btn">Contact Support</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/help_center.js') }}"></script>
+
+{% endblock %}

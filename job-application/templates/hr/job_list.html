@@ -1,0 +1,181 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/base.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/job_list.css') }}">
+
+<div class="job-list-wrapper">
+
+    <!-- HEADER SECTION -->
+    <div class="job-list-header">
+        <div class="header-content">
+            <div class="header-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div>
+                <h1>All Job Postings</h1>
+                <p>Monitor and review all job postings across departments</p>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-card">
+                <i class="fas fa-clipboard-list"></i>
+                <div>
+                    <h3>{{ jobs | length }}</h3>
+                    <p>Total Jobs</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <div>
+                    <h3>
+                        {% set total_apps = namespace(count=0) %}
+                        {% for job in jobs %}
+                            {% set total_apps.count = total_apps.count + (job.applications | length) %}
+                        {% endfor %}
+                        {{ total_apps.count }}
+                    </h3>
+                    <p>Total Applications</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLS SECTION -->
+    <div class="job-controls-wrapper">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" 
+                   id="jobSearchInput" 
+                   placeholder="Search by job title, field, or location...">
+        </div>
+
+        <div class="filter-controls">
+            <div class="filter-group">
+                <label><i class="fas fa-sort"></i> Sort By:</label>
+                <select id="sortSelect" class="filter-select">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="a-z">Title (A-Z)</option>
+                    <option value="z-a">Title (Z-A)</option>
+                    <option value="deadline-near">Deadline (Nearest)</option>
+                    <option value="deadline-far">Deadline (Farthest)</option>
+                    <option value="most-applicants">Most Applicants</option>
+                    <option value="least-applicants">Least Applicants</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label><i class="fas fa-filter"></i> View:</label>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="view-btn" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JOBS CONTAINER -->
+    <div class="jobs-container grid-view" id="jobsContainer">
+
+        {% if not jobs %}
+        <div class="empty-state">
+            <i class="fas fa-briefcase"></i>
+            <h3>No jobs posted yet</h3>
+            <p>There are no job postings in the system yet.</p>
+        </div>
+        {% endif %}
+
+        {% for job in jobs %}
+
+        <div class="job-card-modern" 
+             data-title="{{ job.title }}"
+             data-field="{{ job.field if job.field else '' }}"
+             data-location="{{ job.location if job.location else '' }}"
+             data-date="{{ job.created_at if job.created_at else '' }}"
+             data-deadline="{{ job.expiration_date if job.expiration_date else '' }}"
+             data-applicants="{{ job.applications | length }}">
+
+            <!-- Card Header -->
+            <div class="card-header-section">
+                <div class="job-badge">{{ job.field if job.field else 'General' }}</div>
+                <div class="applicants-badge">
+                    <i class="fas fa-user"></i> {{ job.applications | length }}
+                </div>
+            </div>
+
+            <!-- Job Title -->
+            <h3 class="job-title">
+                <i class="fas fa-briefcase"></i>
+                {{ job.title }}
+            </h3>
+
+            <!-- Job Meta Info -->
+            <div class="job-meta">
+                {% if job.location %}
+                <span class="meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ job.location }}
+                </span>
+                {% endif %}
+
+                {% if job.job_type %}
+                <span class="meta-item">
+                    <i class="fas fa-clock"></i>
+                    {{ job.job_type }}
+                </span>
+                {% endif %}
+
+                {% if job.salary %}
+                <span class="meta-item">
+                    <i class="fas fa-dollar-sign"></i>
+                    {{ job.salary }}
+                </span>
+                {% endif %}
+                
+                <span class="meta-item">
+                    <i class="fas fa-user-tie"></i>
+                    {{ job.recruiter.username if job.recruiter else 'N/A' }}
+                </span>
+            </div>
+
+            <!-- Job Description -->
+            <p class="job-description">
+                {{ job.description[:120] }}{% if job.description|length > 120 %}...{% endif %}
+            </p>
+
+            <!-- Job Footer -->
+            <div class="job-card-footer">
+                <div class="footer-info">
+                    {% if job.expiration_date %}
+                    <span class="deadline-info">
+                        <i class="fas fa-calendar-times"></i>
+                        Expires: {{ job.expiration_date.strftime('%b %d, %Y') if job.expiration_date is not string else job.expiration_date }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="card-actions">
+                    <a href="{{ url_for('hr.job_applications', job_id=job.id) }}" 
+                       class="btn-view-applicants"
+                       title="View Applicants">
+                        <i class="fas fa-users"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/recruiter/job_list_controls.js') }}"></script>
+
+{% endblock %}

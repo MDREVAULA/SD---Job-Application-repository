@@ -1,0 +1,663 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/view_profile.css') }}">
+
+<div class="pview-wrapper">
+
+    <!-- ── HEADER CARD ── -->
+    <div class="pview-header">
+        <div class="pview-cover-strip">
+        <!-- Green Cover Photo -->
+        </div>
+        <div class="pview-header-inner">
+            <div class="pview-header-top-row">
+
+                <!-- Profile Avatar -->
+                <div class="pview-avatar-wrap">
+                    {% if viewed_user.profile_picture %}
+                        {% if viewed_user.profile_picture.startswith('http') %}
+                            <img src="{{ viewed_user.profile_picture }}" class="pview-avatar-img" alt="Profile photo">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + viewed_user.profile_picture) }}"
+                                 class="pview-avatar-img" alt="Profile photo">
+                        {% endif %}
+                    {% else %}
+                        <div class="pview-avatar-default">
+                            {{ viewed_user.username[0] | upper }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Action buttons -->
+                <div class="pview-header-actions">
+                    <!-- Verification badge -->
+                    <div class="pview-verification-badge
+                        {% if viewed_user.verification_status == 'Approved' %}badge-verified
+                        {% elif viewed_user.verification_status == 'Pending' %}badge-pending
+                        {% else %}badge-rejected{% endif %}">
+                        {% if viewed_user.verification_status == 'Approved' %}
+                            <i class="fas fa-check-circle"></i> Verified
+                        {% elif viewed_user.verification_status == 'Pending' %}
+                            <i class="fas fa-hourglass-half"></i> Pending
+                        {% else %}
+                            <i class="fas fa-times-circle"></i> Not Verified
+                        {% endif %}
+                    </div>
+
+                    {% if current_user.is_authenticated %}
+                        <!-- Follow button — AJAX toggle -->
+                        <button
+                            class="pview-action-btn {% if is_following %}pview-action-btn-outline{% else %}pview-action-btn-primary{% endif %}"
+                            id="pview-follow-btn"
+                            onclick="pviewToggleFollow({{ viewed_user.id }}, this)">
+                            {% if is_following %}
+                                <i class="fas fa-user-minus"></i> Unfollow
+                            {% else %}
+                                <i class="fas fa-user-plus"></i> Follow
+                            {% endif %}
+                        </button>
+
+                        <!-- Message button -->
+                        <a href="{{ url_for('chat.conversation', other_id=viewed_user.id) }}"
+                           class="pview-action-btn pview-action-btn-outline">
+                            <i class="fas fa-paper-plane"></i> Message
+                        </a>
+                    {% else %}
+                        <!-- Guest — prompt to log in -->
+                        <a href="{{ url_for('auth.login') }}"
+                           class="pview-action-btn pview-action-btn-primary">
+                            <i class="fas fa-user-plus"></i> Join to Connect
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Name / headline / meta -->
+            <div class="pview-header-info">
+                <h1>
+                    {% if profile and profile.first_name %}
+                        {{ profile.first_name }}
+                        {% if profile.middle_name %} {{ profile.middle_name[0] }}.{% endif %}
+                        {{ profile.last_name }}
+                    {% else %}
+                        {{ viewed_user.username }}
+                    {% endif %}
+                    <span class="pview-role-pill role-applicant">Applicant</span>
+                </h1>
+
+                <div class="pview-username-row">
+                    <p class="pview-username">@{{ viewed_user.username }}</p>
+                    <div class="pview-follow-counts">
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('followers')">
+                            <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
+                            <span class="pview-follow-count-lbl">Followers</span>
+                        </button>
+                        <span class="pview-follow-count-sep"></span>
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('following')">
+                            <span class="pview-follow-count-val" id="net-following">{{ following_count }}</span>
+                            <span class="pview-follow-count-lbl">Following</span>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="pview-headline">
+                    {% if profile and profile.headline %}
+                        {{ profile.headline }}
+                    {% else %}
+                        Applicant
+                    {% endif %}
+                </p>
+
+                <div class="pview-header-meta">
+                    {% if profile and profile.city %}
+                    <span><i class="fas fa-map-marker-alt"></i>
+                        {{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}
+                    </span>
+                    {% endif %}
+                    {% if profile and profile.phone_number %}
+                    <span><i class="fas fa-phone"></i>{{ profile.phone_number }}</span>
+                    {% endif %}
+                    <span><i class="fas fa-envelope"></i>{{ viewed_user.email }}</span>
+                </div>
+
+                <!-- Social links -->
+                <div class="pview-social-links">
+                    {% if profile and profile.linkedin %}
+                    <a href="{{ profile.linkedin }}" target="_blank" class="pview-social-btn">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.github %}
+                    <a href="{{ profile.github }}" target="_blank" class="pview-social-btn">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.portfolio %}
+                    <a href="{{ profile.portfolio }}" target="_blank" class="pview-social-btn">
+                        <i class="fas fa-globe"></i> Portfolio
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TWO-COLUMN BODY ── -->
+    <div class="pview-body">
+
+        <!-- ══ MAIN COLUMN ══ -->
+        <div class="pview-main">
+
+            <!-- ── ABOUT / BIO ── -->
+            {% if profile and profile.bio %}
+            <div class="pview-card" style="animation-delay:0.05s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-user"></i> About</div>
+                </div>
+                <div class="pview-view">
+                    <p class="pview-bio-text">{{ profile.bio }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── WORK EXPERIENCE ── -->
+            <div class="pview-card" style="animation-delay:0.08s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title">
+                        <i class="fas fa-briefcase"></i> Experience
+                        {% if experiences %}
+                        <span class="pview-section-count">{{ experiences | length }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if experiences %}
+                <div class="pview-items-list">
+                    {% for exp in experiences %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas fa-briefcase"></i></div>
+                        <div class="pview-item-body">
+                            <div class="pview-item-title">{{ exp.job_title }}</div>
+                            <div class="pview-item-subtitle">
+                                {{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}
+                            </div>
+                            <div class="pview-item-date">
+                                {{ exp.start_date if exp.start_date else '' }}
+                                {% if exp.is_current %} – Present
+                                {% elif exp.end_date %} – {{ exp.end_date }}
+                                {% endif %}
+                            </div>
+                            {% if exp.description %}
+                            <div class="pview-item-desc">{{ exp.description }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="pview-empty-section">
+                    <i class="fas fa-briefcase"></i>
+                    <p>No work experience added yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ── EDUCATION ── -->
+            <div class="pview-card" style="animation-delay:0.11s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title">
+                        <i class="fas fa-graduation-cap"></i> Education
+                        {% if educations %}
+                        <span class="pview-section-count">{{ educations | length }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if educations %}
+                <div class="pview-items-list">
+                    {% for edu in educations %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <div class="pview-item-body">
+                            <div class="pview-item-title">{{ edu.school }}</div>
+                            <div class="pview-item-subtitle">
+                                {{ edu.degree if edu.degree else '' }}
+                                {% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}
+                            </div>
+                            <div class="pview-item-date">
+                                {{ edu.start_date if edu.start_date else '' }}
+                                {% if edu.is_current %} – Present
+                                {% elif edu.end_date %} – {{ edu.end_date }}
+                                {% endif %}
+                            </div>
+                            {% if edu.description %}
+                            <div class="pview-item-desc">{{ edu.description }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="pview-empty-section">
+                    <i class="fas fa-graduation-cap"></i>
+                    <p>No education added yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ── PROJECTS ── -->
+            <div class="pview-card" style="animation-delay:0.14s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title">
+                        <i class="fas fa-laptop-code"></i> Projects
+                        {% if projects %}
+                        <span class="pview-section-count">{{ projects | length }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if projects %}
+                <div class="pview-items-list">
+                    {% for proj in projects %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas fa-laptop-code"></i></div>
+                        <div class="pview-item-body">
+                            <div class="pview-item-title">
+                                {{ proj.title }}
+                                {% if proj.url %}
+                                <a href="{{ proj.url }}" target="_blank" class="pview-item-link">
+                                    <i class="fas fa-up-right-from-square"></i> View
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="pview-item-date">
+                                {{ proj.start_date if proj.start_date else '' }}
+                                {% if proj.end_date %} – {{ proj.end_date }}{% endif %}
+                            </div>
+                            {% if proj.description %}
+                            <div class="pview-item-desc">{{ proj.description }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="pview-empty-section">
+                    <i class="fas fa-laptop-code"></i>
+                    <p>No projects added yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ── CERTIFICATIONS ── -->
+            <div class="pview-card" style="animation-delay:0.17s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title">
+                        <i class="fas fa-certificate"></i> Certifications
+                        {% if certifications %}
+                        <span class="pview-section-count">{{ certifications | length }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if certifications %}
+                <div class="pview-items-list">
+                    {% for cert in certifications %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas fa-certificate"></i></div>
+                        <div class="pview-item-body">
+                            <div class="pview-item-title">
+                                {{ cert.name }}
+                                {% if cert.credential_url %}
+                                <a href="{{ cert.credential_url }}" target="_blank" class="pview-item-link">
+                                    <i class="fas fa-up-right-from-square"></i> Verify
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="pview-item-subtitle">{{ cert.issuer if cert.issuer else '' }}</div>
+                            <div class="pview-item-date">
+                                {% if cert.issue_date %}Issued {{ cert.issue_date }}{% endif %}
+                                {% if cert.expiry_date %} · Expires {{ cert.expiry_date }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="pview-empty-section">
+                    <i class="fas fa-certificate"></i>
+                    <p>No certifications added yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div><!-- /.pview-main -->
+
+        <!-- ══ SIDEBAR COLUMN ══ -->
+        <div class="pview-side">
+
+            <!-- ── SKILLS ── -->
+            <div class="pview-card" style="animation-delay:0.06s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title">
+                        <i class="fas fa-screwdriver-wrench"></i> Skills
+                        {% if skills %}
+                        <span class="pview-section-count">{{ skills | length }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if skills %}
+                <div class="pview-skills-grid">
+                    {% for skill in skills %}
+                    <span class="pview-skill-chip skill-{{ skill.level | lower }}">
+                        {{ skill.name }}
+                        <span class="pview-skill-level">{{ skill.level }}</span>
+                    </span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="pview-empty-section">
+                    <i class="fas fa-screwdriver-wrench"></i>
+                    <p>No skills added yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ── STATS ── -->
+            <div class="pview-card" style="animation-delay:0.09s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-chart-simple"></i> Stats</div>
+                </div>
+                <div class="pview-stats-grid">
+                    <div class="pview-stat-item">
+                        <span class="pview-stat-value">{{ experiences | length }}</span>
+                        <span class="pview-stat-label">Experience</span>
+                    </div>
+                    <div class="pview-stat-item">
+                        <span class="pview-stat-value">{{ projects | length }}</span>
+                        <span class="pview-stat-label">Projects</span>
+                    </div>
+                    <div class="pview-stat-item">
+                        <span class="pview-stat-value">{{ certifications | length }}</span>
+                        <span class="pview-stat-label">Certs</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── CONTACT / LINKS ── -->
+            <div class="pview-card" style="animation-delay:0.12s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-link"></i> Contact & Links</div>
+                </div>
+                <div class="pview-side-list">
+                    <div class="pview-side-item">
+                        <i class="fas fa-envelope"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Email</span>
+                            {{ viewed_user.email }}
+                        </div>
+                    </div>
+                    {% if profile and profile.phone_number %}
+                    <div class="pview-side-item">
+                        <i class="fas fa-phone"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Phone</span>
+                            {{ profile.phone_number }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.city %}
+                    <div class="pview-side-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Location</span>
+                            {{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.linkedin %}
+                    <div class="pview-side-item">
+                        <i class="fab fa-linkedin"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">LinkedIn</span>
+                            <a href="{{ profile.linkedin }}" target="_blank" class="pview-link">View Profile</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.github %}
+                    <div class="pview-side-item">
+                        <i class="fab fa-github"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">GitHub</span>
+                            <a href="{{ profile.github }}" target="_blank" class="pview-link">View Profile</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.portfolio %}
+                    <div class="pview-side-item">
+                        <i class="fas fa-globe"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Portfolio</span>
+                            <a href="{{ profile.portfolio }}" target="_blank" class="pview-link">Visit Site</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── GUEST CTA (only shown to non-logged-in visitors) ── -->
+            {% if not current_user.is_authenticated %}
+            <div class="pview-card pview-cta-card" style="animation-delay:0.15s">
+                <div class="pview-cta-inner">
+                    <i class="fas fa-user pview-cta-icon"></i>
+                    <p class="pview-cta-title">Join to Connect</p>
+                    <p class="pview-cta-text">Sign up to follow this applicant, send messages, and build your network.</p>
+                    <a href="{{ url_for('auth.register') }}" class="pview-cta-btn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="pview-cta-link">Already have an account? Log in</a>
+                </div>
+            </div>
+            {% endif %}
+
+        </div><!-- /.pview-side -->
+
+    </div><!-- /.pview-body -->
+</div>
+
+<!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
+<div class="follow-modal-backdrop" id="followModalBackdrop" onclick="closeFollowModal()"></div>
+<div class="follow-modal" id="followModal">
+    <div class="follow-modal-header">
+        <div class="follow-modal-tabs">
+            <button class="follow-tab active" id="tab-followers" onclick="switchTab('followers')">
+                Followers <span class="follow-tab-count" id="tab-count-followers">{{ follower_count }}</span>
+            </button>
+            <button class="follow-tab" id="tab-following" onclick="switchTab('following')">
+                Following <span class="follow-tab-count" id="tab-count-following">{{ following_count }}</span>
+            </button>
+        </div>
+        <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Followers list -->
+    <div class="follow-modal-list" id="list-followers">
+        {% if followers %}
+            {% for u in followers %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-friends"></i>
+                <p>No followers yet.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Following list -->
+    <div class="follow-modal-list" id="list-following" style="display:none;">
+        {% if following %}
+            {% for u in following %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-plus"></i>
+                <p>Not following anyone yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// ── The user ID whose profile we are viewing ──
+const PROFILE_USER_ID = {{ viewed_user.id }};
+
+// ─────────────────────────────────────────────
+// Fetch live follower/following list as JSON
+// and re-render both modal tabs.
+// ─────────────────────────────────────────────
+function refreshFollowLists(callback) {
+    fetch('/profile/follow-list/' + PROFILE_USER_ID)
+        .then(r => r.json())
+        .then(data => {
+            renderList('list-followers', data.followers, 'No followers yet.',     'fa-user-friends');
+            renderList('list-following', data.following, 'Not following anyone yet.', 'fa-user-plus');
+
+            // Update all count badges
+            document.querySelectorAll('#net-followers, #tab-count-followers').forEach(el => {
+                el.textContent = data.follower_count;
+            });
+            document.querySelectorAll('#net-following, #tab-count-following').forEach(el => {
+                el.textContent = data.following_count;
+            });
+
+            if (callback) callback(data);
+        })
+        .catch(err => console.error('Follow list fetch failed:', err));
+}
+
+// Build HTML for one user row
+function buildUserRow(u) {
+    const avatarHtml = u.pic
+        ? `<img src="${u.pic}" alt="${u.username}">`
+        : `<div class="follow-modal-avatar-default">${u.username[0].toUpperCase()}</div>`;
+    return `
+    <a href="${u.profile_url}" class="follow-modal-item">
+        <div class="follow-modal-avatar">${avatarHtml}</div>
+        <div class="follow-modal-info">
+            <span class="follow-modal-name">${u.username}</span>
+            <span class="follow-modal-role">${u.role.charAt(0).toUpperCase() + u.role.slice(1)}</span>
+        </div>
+        <i class="fas fa-chevron-right follow-modal-arrow"></i>
+    </a>`;
+}
+
+function renderList(listId, users, emptyMsg, emptyIcon) {
+    const el = document.getElementById(listId);
+    if (!el) return;
+    el.innerHTML = (!users || users.length === 0)
+        ? `<div class="follow-modal-empty"><i class="fas ${emptyIcon}"></i><p>${emptyMsg}</p></div>`
+        : users.map(buildUserRow).join('');
+}
+
+// ─────────────────────────────────────────────
+// Follow / Unfollow toggle
+// ─────────────────────────────────────────────
+function pviewToggleFollow(userId, btn) {
+    fetch('/chat/follow/' + userId, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.action === 'followed') {
+            btn.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+            btn.classList.remove('pview-action-btn-primary');
+            btn.classList.add('pview-action-btn-outline');
+        } else {
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+            btn.classList.remove('pview-action-btn-outline');
+            btn.classList.add('pview-action-btn-primary');
+        }
+        refreshFollowLists();
+    })
+    .catch(err => console.error('Follow toggle failed:', err));
+}
+
+// ─────────────────────────────────────────────
+// Modal controls
+// ─────────────────────────────────────────────
+let activeTab = 'followers';
+
+function openFollowModal(tab) {
+    activeTab = tab || 'followers';
+    document.getElementById('followModal').classList.add('open');
+    document.getElementById('followModalBackdrop').classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    ['list-followers', 'list-following'].forEach(id => {
+        document.getElementById(id).innerHTML =
+            '<div class="follow-modal-empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>';
+    });
+
+    refreshFollowLists(() => switchTab(activeTab));
+}
+
+function closeFollowModal() {
+    document.getElementById('followModal').classList.remove('open');
+    document.getElementById('followModalBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function switchTab(tab) {
+    activeTab = tab;
+    document.getElementById('list-followers').style.display = tab === 'followers' ? 'block' : 'none';
+    document.getElementById('list-following').style.display = tab === 'following'  ? 'block' : 'none';
+    document.getElementById('tab-followers').classList.toggle('active', tab === 'followers');
+    document.getElementById('tab-following').classList.toggle('active', tab === 'following');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFollowModal(); });
+</script>
+
+{% endblock %}

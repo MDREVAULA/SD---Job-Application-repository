@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
+
+<div class="admin-page-wrapper">
+
+    <!-- PAGE HEADER -->
+    <div class="admin-page-header">
+        <div class="admin-page-header-left">
+            <div class="admin-page-icon danger">
+                <i class="fas fa-user-slash"></i>
+            </div>
+            <div>
+                <h1 class="admin-page-title">Rejected Applicants</h1>
+                <p class="admin-page-subtitle">Applicants flagged or denied during verification</p>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="admin-table-card">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Reason</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applicants %}
+                <tr>
+                    <td>{{ app.username }}</td>
+                    <td>{{ app.email }}</td>
+                    <td>
+                        <span class="badge badge-rejected">
+                            <i class="fas fa-times-circle"></i> Rejected
+                        </span>
+                    </td>
+                    <td>
+                        {% if app.verification_remarks %}
+                            <span class="remarks-text">{{ app.verification_remarks }}</span>
+                        {% else %}
+                            <span class="remarks-none">No remarks</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.restore_applicant', user_id=app.id) }}">
+                            <button type="submit" class="btn-restore">
+                                <i class="fas fa-undo-alt"></i> Restore
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="empty-row">
+                    <td colspan="5">
+                        <i class="fas fa-check-circle" style="color:#9DC88D;"></i>
+                        No rejected applicants found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

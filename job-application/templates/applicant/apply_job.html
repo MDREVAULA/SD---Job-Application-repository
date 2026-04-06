@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Apply for {{ job.title }}</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+<label>Upload Resume</label>
+<input type="file" name="resume" required>
+
+<br><br>
+
+<label>Cover Letter</label>
+<textarea name="cover_letter" rows="6"
+placeholder="Tell the recruiter why you are a good fit..."></textarea>
+
+<br><br>
+
+<button type="submit" class="btn">
+Submit Application
+</button>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat/people.css') }}">
+
+<div class="people-page">
+<div class="people-page-inner">
+
+    <!-- ============================
+         TOP BAR
+    ============================ -->
+    <div class="people-topbar">
+
+        <div class="people-topbar-header">
+            <h1><i class="fas fa-users"></i> People</h1>
+            <span class="people-results-meta">
+                {% if query %}
+                    {{ user_cards|length }} result{{ 's' if user_cards|length != 1 }} for "<strong>{{ query }}</strong>"
+                {% else %}
+                    {{ user_cards|length }} people on HireBon
+                {% endif %}
+            </span>
+        </div>
+
+        <form method="GET" action="{{ url_for('chat.people') }}">
+            <div class="search-input-group">
+                <i class="fas fa-search people-search-icon"></i>
+                <input
+                    type="text"
+                    name="q"
+                    class="people-search-input"
+                    placeholder="Search by name or username..."
+                    value="{{ query }}"
+                    autocomplete="off"
+                >
+                <button type="submit" class="search-btn">Search</button>
+            </div>
+
+            <div class="role-filter-tabs">
+                <a href="{{ url_for('chat.people', q=query) }}"
+                   class="role-tab {% if not role_filter %}active{% endif %}">
+                    All
+                </a>
+                <a href="{{ url_for('chat.people', q=query, role='applicant') }}"
+                   class="role-tab {% if role_filter == 'applicant' %}active{% endif %}">
+                    <i class="fas fa-user-tie"></i> Applicants
+                </a>
+                <a href="{{ url_for('chat.people', q=query, role='recruiter') }}"
+                   class="role-tab {% if role_filter == 'recruiter' %}active{% endif %}">
+                    <i class="fas fa-building"></i> Recruiters
+                </a>
+                <a href="{{ url_for('chat.people', q=query, role='hr') }}"
+                   class="role-tab {% if role_filter == 'hr' %}active{% endif %}">
+                    <i class="fas fa-users-cog"></i> HR
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- GUEST NOTICE -->
+    {% if not current_user.is_authenticated %}
+    <div class="guest-notice">
+        <i class="fas fa-info-circle"></i>
+        <span>You're browsing as a guest. <a href="{{ url_for('auth.login') }}">Log in</a> or <a href="{{ url_for('auth.register') }}">sign up</a> to follow people and send messages.</span>
+    </div>
+    {% endif %}
+
+    <!-- ============================
+         PEOPLE GRID
+    ============================ -->
+    {% if user_cards %}
+    <div class="people-grid">
+        {% for card in user_cards %}
+        <div class="person-card" data-role="{{ card.role }}" data-user-id="{{ card.id }}">
+
+            <!-- COVER STRIP -->
+            <div class="card-cover role-{{ card.role }}">
+                <div class="card-avatar-wrap">
+                    {% if card.profile_picture %}
+                        {% if card.profile_picture.startswith('http') %}
+                            <img src="{{ card.profile_picture }}" alt="{{ card.username }}" class="person-avatar">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + card.profile_picture) }}"
+                                 alt="{{ card.username }}" class="person-avatar">
+                        {% endif %}
+                    {% else %}
+                        <div class="person-avatar-placeholder"><i class="fas fa-user"></i></div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- CARD BODY -->
+            <div class="card-body">
+                <h3 class="person-name">{{ card.display_name }}</h3>
+                <span class="person-username">@{{ card.username }}</span>
+
+                <span class="person-role-pill role-{{ card.role }}">
+                    {% if card.role == 'applicant' %}Applicant
+                    {% elif card.role == 'recruiter' %}Recruiter
+                    {% elif card.role == 'hr' %}HR
+                    {% endif %}
+                </span>
+
+                {% if card.company %}
+                <div class="person-company">
+                    <i class="fas fa-briefcase"></i>
+                    {{ card.company }}
+                </div>
+                {% endif %}
+
+                <div class="person-followers">
+                    <i class="fas fa-user-friends"></i>
+                    <span class="follower-count" id="fc-{{ card.id }}">{{ card.follower_count }}</span>
+                    &nbsp;follower{{ 's' if card.follower_count != 1 }}
+                </div>
+            </div>
+
+            <!-- CARD FOOTER -->
+            <div class="card-footer">
+                {% if current_user.is_authenticated %}
+                    <button
+                        class="btn-follow {% if card.is_following %}following{% endif %}"
+                        id="follow-btn-{{ card.id }}"
+                        onclick="toggleFollow({{ card.id }}, this)"
+                    >
+                        {% if card.is_following %}
+                            <i class="fas fa-user-check"></i> Following
+                        {% else %}
+                            <i class="fas fa-user-plus"></i> Follow
+                        {% endif %}
+                    </button>
+
+                    <a href="{{ url_for('chat.conversation', other_id=card.id) }}"
+                       class="btn-message" title="Message {{ card.display_name }}">
+                        <i class="fas fa-comment"></i>
+                    </a>
+
+                    {# ── VIEW PROFILE LINK — replaces the old modal eye button ── #}
+                    <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}"
+                       class="btn-view-profile"
+                       title="View {{ card.display_name }}'s profile">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                {% else %}
+                <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}" class="btn-follow">
+                        <i class="fas fa-sign-in-alt"></i> View Profile
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- EMPTY STATE -->
+    <div class="people-empty">
+        <i class="fas fa-user-slash"></i>
+        <h3>No people found</h3>
+        <p>Try a different search term or remove the role filter.</p>
+        {% if query %}
+            <a href="{{ url_for('chat.people') }}" class="btn-clear-search">
+                Clear search
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div><!-- .people-page-inner -->
+</div><!-- .people-page -->
+
+{# ── PROFILE MODAL REMOVED — replaced by full page view ── #}
+
+<script>
+{# Follow toggle still works without the modal #}
+</script>
+
+<script src="{{ url_for('static', filename='js/chat/people.js') }}"></script>
+{% endblock %}

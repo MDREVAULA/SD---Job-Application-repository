@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+{% block title %}Complete Your Profile{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth/register.css') }}">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="register-page-wrap">
+    <div class="register-card">
+        <div class="register-card-header">
+            <h2 class="register-title">Complete Your Profile</h2>
+        </div>
+        <form method="POST" enctype="multipart/form-data">
+            <h3>Personal Information</h3>
+            <div class="register-field">
+                <label class="register-label">Last Name / Surname</label>
+                <input class="register-input" type="text" name="surname" required>
+            </div>
+            <div class="register-field">
+                <label class="register-label">First Name</label>
+                <input class="register-input" type="text" name="first_name" required>
+            </div>
+            <div class="register-field">
+                <label class="register-label">Middle Name</label>
+                <input class="register-input" type="text" name="middle_name">
+            </div>
+            <div class="register-field">
+                <label class="register-label">Date of Birth</label>
+                <input class="register-input" type="date" name="date_of_birth">
+            </div>
+            <div class="register-field">
+                <label class="register-label">Gender</label>
+                <select class="register-input" name="gender">
+                    <option value="">Select Gender</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="register-field">
+                <label class="register-label">Phone Number</label>
+                <input class="register-input" type="text" name="phone_number">
+            </div>
+
+            <h3 style="margin-top: 30px; color: var(--text-primary, #fff);">Address</h3>
+
+            <div class="register-field">
+                <label class="register-label">Country</label>
+                <select class="register-input" name="country">
+                    <option>Philippines</option>
+                    <option>United States</option>
+                    <option>United Kingdom</option>
+                    <option>Japan</option>
+                    <option>Australia</option>
+                </select>
+            </div>
+            <div class="register-field">
+                <label class="register-label">City</label>
+                <input class="register-input" type="text" name="city">
+            </div>
+            <div class="register-field">
+                <label class="register-label">Home Address</label>
+                <input class="register-input" type="text" name="home_address">
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button type="submit" class="register-submit-btn">Complete Registration</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+
+{% endblock %}

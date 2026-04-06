@@ -1,0 +1,152 @@
+/* ================================
+   EDIT JOB PAGE ADDITIONAL STYLES
+   ================================ */
+
+/* Header Actions */
+.header-actions {
+    margin-top: 20px;
+}
+
+.btn-back {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-5px);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Current Images Section */
+.current-images-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+}
+
+.current-images-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.current-images-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.current-images-header h4 i {
+    color: #667eea;
+}
+
+.images-hint {
+    font-size: 12px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Existing Image Cards - Smooth Transition */
+.preview-card.existing-image {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.preview-card.existing-image .remove-btn {
+    cursor: pointer;
+}
+
+.preview-card.existing-image .remove-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Cancel Button */
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+}
+
+/* Footer Actions */
+.footer-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Spinner Animation for Delete Button */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fa-spinner.fa-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Delete Image Modal - Custom Icon Color */
+#deleteImageModal .modal-icon {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+#deleteImageModal .delete-modal-content {
+    animation: modalSlideIn 0.3s ease;
+}
+
+#deleteImageModal h3 {
+    color: #667eea;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .current-images-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .footer-actions {
+        width: 100%;
+        flex-direction: column-reverse;
+    }
+    
+    .btn-cancel,
+    .btn-publish {
+        width: 100%;
+        justify-content: center;
+    }
+}

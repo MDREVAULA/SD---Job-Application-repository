@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h2>Recruiter Applicant Review</h2>
+
+<h3>Applications for Your Jobs</h3>
+
+<div class="applications-list">
+
+{% for app in applications %}
+
+<div class="app-card">
+
+<p>
+<strong>Applicant:</strong> {{ app.user.username }}
+</p>
+
+<p>
+<strong>Job:</strong> {{ app.job.title }}
+</p>
+
+<p>
+<strong>Status:</strong> {{ app.status }}
+</p>
+
+<!-- RESUME -->
+<p>
+<strong>Resume:</strong>
+
+{% if app.resume %}
+<a href="{{ url_for('static', filename='resumes/' + app.resume) }}" target="_blank">
+View Resume
+</a>
+{% else %}
+No resume uploaded
+{% endif %}
+
+</p>
+
+<!-- COVER LETTER -->
+<p><strong>Cover Letter:</strong></p>
+
+<div style="background:#f5f5f5;padding:10px;border-radius:5px;margin-bottom:15px;">
+{{ app.cover_letter }}
+</div>
+
+<!-- REVIEW FORM -->
+<form method="POST" action="{{ url_for('hr.review', app_id=app.id) }}">
+
+<label>Status:</label>
+
+<select name="status">
+
+    <option value="pending" {% if app.status=="pending" %}selected{% endif %}>Pending</option>
+    
+    <option value="interview" {% if app.status=="interview" %}selected{% endif %}>Interview</option>
+    
+    <option value="accepted" {% if app.status=="accepted" %}selected{% endif %}>Accepted</option>
+    
+    <option value="rejected" {% if app.status=="rejected" %}selected{% endif %}>Rejected</option>
+    
+</select>
+
+<br><br>
+
+<label>Recruiter Remarks:</label><br>
+
+<textarea name="remarks">{{ app.remarks }}</textarea>
+
+<br><br>
+
+<button type="submit">Submit Review</button>
+
+</form>
+
+</div>
+
+<hr>
+
+{% endfor %}
+
+</div>
+
+{% endblock %}

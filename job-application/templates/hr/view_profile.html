@@ -1,0 +1,403 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/view_profile.css') }}">
+
+<div class="pview-wrapper">
+
+    <!-- ── HEADER CARD ── -->
+    <div class="pview-header">
+        <div class="pview-cover-strip">
+        </div>
+        <div class="pview-header-inner">
+            <div class="pview-header-top-row">
+
+                <!-- Profile Avatar -->
+                <div class="pview-avatar-wrap">
+                    {% if viewed_user.profile_picture %}
+                        {% if viewed_user.profile_picture.startswith('http') %}
+                            <img src="{{ viewed_user.profile_picture }}" class="pview-avatar-img" alt="Profile photo">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + viewed_user.profile_picture) }}"
+                                 class="pview-avatar-img" alt="Profile photo">
+                        {% endif %}
+                    {% else %}
+                        <div class="pview-avatar-default">{{ viewed_user.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Action buttons -->
+                <div class="pview-header-actions">
+                    <div class="pview-verification-badge badge-verified">
+                        <i class="fas fa-id-badge"></i> HR Member
+                    </div>
+
+                    {% if current_user.is_authenticated %}
+                        <button
+                            class="pview-action-btn {% if is_following %}pview-action-btn-outline{% else %}pview-action-btn-primary{% endif %}"
+                            id="pview-follow-btn"
+                            onclick="pviewToggleFollow({{ viewed_user.id }}, this)">
+                            {% if is_following %}
+                                <i class="fas fa-user-minus"></i> Unfollow
+                            {% else %}
+                                <i class="fas fa-user-plus"></i> Follow
+                            {% endif %}
+                        </button>
+                        <a href="{{ url_for('chat.conversation', other_id=viewed_user.id) }}"
+                           class="pview-action-btn pview-action-btn-outline">
+                            <i class="fas fa-paper-plane"></i> Message
+                        </a>
+                    {% else %}
+                        <!-- Guest — prompt to log in -->
+                        <a href="{{ url_for('auth.login') }}"
+                           class="pview-action-btn pview-action-btn-primary">
+                            <i class="fas fa-user-plus"></i> Join to Connect
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Name / meta -->
+            <div class="pview-header-info">
+                <h1>
+                    {% if profile and profile.first_name %}
+                        {{ profile.first_name }}
+                        {% if profile.middle_name %} {{ profile.middle_name[0] }}.{% endif %}
+                        {{ profile.last_name }}
+                    {% else %}
+                        {{ viewed_user.username }}
+                    {% endif %}
+                    <span class="pview-role-pill role-hr">HR</span>
+                </h1>
+
+                <div class="pview-username-row">
+                    <p class="pview-username">@{{ viewed_user.username }}</p>
+                    <div class="pview-follow-counts">
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('followers')">
+                            <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
+                            <span class="pview-follow-count-lbl">Followers</span>
+                        </button>
+                        <span class="pview-follow-count-sep"></span>
+                        <button class="pview-follow-count-btn" onclick="openFollowModal('following')">
+                            <span class="pview-follow-count-val" id="net-following">{{ following_count }}</span>
+                            <span class="pview-follow-count-lbl">Following</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pview-header-meta">
+                    {% if profile and profile.city %}
+                    <span><i class="fas fa-map-marker-alt"></i>
+                        {{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}
+                    </span>
+                    {% endif %}
+                    {% if recruiter_profile and recruiter_profile.company_name %}
+                    <span><i class="fas fa-building"></i>{{ recruiter_profile.company_name }}</span>
+                    {% endif %}
+                    <span><i class="fas fa-envelope"></i>{{ viewed_user.email }}</span>
+                </div>
+
+                <p class="pview-headline">
+                    {% if profile and profile.headline %}
+                        {{ profile.headline }}
+                    {% endif %}
+                    {% if recruiter_profile and recruiter_profile.company_name %}
+                        {% if profile and profile.headline %} · {% endif %}
+                        HR at <strong>{{ recruiter_profile.company_name }}</strong>
+                        {% if recruiter_profile.company_industry %} · {{ recruiter_profile.company_industry }}{% endif %}
+                    {% elif not profile or not profile.headline %}
+                        Human Resources
+                    {% endif %}
+                </p>
+
+                <div class="pview-social-links">
+                    {% if profile and profile.linkedin %}
+                    <a href="{{ profile.linkedin }}" target="_blank" class="pview-social-btn">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.github %}
+                    <a href="{{ profile.github }}" target="_blank" class="pview-social-btn">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                    {% endif %}
+                    {% if profile and profile.portfolio %}
+                    <a href="{{ profile.portfolio }}" target="_blank" class="pview-social-btn">
+                        <i class="fas fa-globe"></i> Portfolio
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TWO-COLUMN BODY ── -->
+    <div class="pview-body">
+
+        <!-- ══ MAIN COLUMN ══ -->
+        <div class="pview-main">
+
+            <!-- ── ABOUT / BIO ── -->
+            {% if profile and profile.bio %}
+            <div class="pview-card" style="animation-delay:0.05s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-user"></i> About</div>
+                </div>
+                <div class="pview-view">
+                    <p class="pview-bio-text">{{ profile.bio }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ── COMPANY INFORMATION ── -->
+            {% if recruiter_profile and (recruiter_profile.company_name or recruiter_profile.company_description) %}
+            <div class="pview-card" style="animation-delay:0.08s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-building"></i> Company Information</div>
+                </div>
+                <div class="pview-view">
+                    <div class="pview-info-grid">
+                        {% if recruiter_profile.company_name %}
+                        <div class="pview-info-item">
+                            <span class="pview-info-label">Company Name</span>
+                            <span class="pview-info-value">{{ recruiter_profile.company_name }}</span>
+                        </div>
+                        {% endif %}
+                        {% if recruiter_profile.company_industry %}
+                        <div class="pview-info-item">
+                            <span class="pview-info-label">Industry</span>
+                            <span class="pview-info-value">{{ recruiter_profile.company_industry }}</span>
+                        </div>
+                        {% endif %}
+                        {% if recruiter_profile.country %}
+                        <div class="pview-info-item">
+                            <span class="pview-info-label">Country</span>
+                            <span class="pview-info-value">{{ recruiter_profile.country }}</span>
+                        </div>
+                        {% endif %}
+                        {% if recruiter_profile.city %}
+                        <div class="pview-info-item">
+                            <span class="pview-info-label">City</span>
+                            <span class="pview-info-value">{{ recruiter_profile.city }}</span>
+                        </div>
+                        {% endif %}
+                        {% if recruiter_profile.company_address %}
+                        <div class="pview-info-item pview-info-full">
+                            <span class="pview-info-label">Office / Company Address</span>
+                            <span class="pview-info-value">{{ recruiter_profile.company_address }}</span>
+                        </div>
+                        {% endif %}
+                        {% if recruiter_profile.company_description %}
+                        <div class="pview-info-item pview-info-full">
+                            <span class="pview-info-label">About the Company</span>
+                            <span class="pview-info-value pview-bio-text">{{ recruiter_profile.company_description }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div><!-- /.pview-main -->
+
+        <!-- ══ SIDEBAR COLUMN ══ -->
+        <div class="pview-side">
+
+            <!-- ── COMPANY CARD ── -->
+            <div class="pview-card" style="animation-delay:0.06s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-building"></i> Company</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; padding:16px 20px 12px;">
+                    <div class="pview-sidebar-logo-wrap">
+                        {% if recruiter_profile and recruiter_profile.company_logo %}
+                            <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter_profile.company_logo) }}"
+                                 class="pview-company-logo-img" alt="Company logo">
+                        {% else %}
+                            <div class="pview-company-logo-default"><i class="fas fa-building"></i></div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="pview-sidebar-company-name">
+                            {{ recruiter_profile.company_name if recruiter_profile and recruiter_profile.company_name else '—' }}
+                        </div>
+                        <div class="pview-sidebar-company-industry">
+                            {{ recruiter_profile.company_industry if recruiter_profile and recruiter_profile.company_industry else '' }}
+                        </div>
+                    </div>
+                </div>
+                <div class="pview-side-list" style="padding-top:0;">
+                    {% if recruiter_profile and recruiter_profile.city %}
+                    <div class="pview-side-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Location</span>
+                            {{ recruiter_profile.city }}{% if recruiter_profile.country %}, {{ recruiter_profile.country }}{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if recruiter_profile and recruiter_profile.company_address %}
+                    <div class="pview-side-item">
+                        <i class="fas fa-location-dot"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Office Address</span>
+                            {{ recruiter_profile.company_address }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if not recruiter_profile or not recruiter_profile.company_name %}
+                    <div class="pview-empty-section" style="padding:12px 0 4px;">
+                        <i class="fas fa-building"></i>
+                        <p>No company info available.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── CONTACT / LINKS ── -->
+            <div class="pview-card" style="animation-delay:0.09s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-link"></i> Contact & Links</div>
+                </div>
+                <div class="pview-side-list">
+                    <div class="pview-side-item">
+                        <i class="fas fa-envelope"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Email</span>
+                            {{ viewed_user.email }}
+                        </div>
+                    </div>
+                    {% if profile and profile.phone_number %}
+                    <div class="pview-side-item">
+                        <i class="fas fa-phone"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Phone</span>
+                            {{ profile.phone_number }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.linkedin %}
+                    <div class="pview-side-item">
+                        <i class="fab fa-linkedin"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">LinkedIn</span>
+                            <a href="{{ profile.linkedin }}" target="_blank" class="pview-link">View Profile</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.github %}
+                    <div class="pview-side-item">
+                        <i class="fab fa-github"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">GitHub</span>
+                            <a href="{{ profile.github }}" target="_blank" class="pview-link">View Profile</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.portfolio %}
+                    <div class="pview-side-item">
+                        <i class="fas fa-globe"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Portfolio</span>
+                            <a href="{{ profile.portfolio }}" target="_blank" class="pview-link">Visit Site</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ── GUEST CTA ── -->
+            {% if not current_user.is_authenticated %}
+            <div class="pview-card pview-cta-card" style="animation-delay:0.15s">
+                <div class="pview-cta-inner">
+                    <i class="fas fa-user pview-cta-icon"></i>
+                    <p class="pview-cta-title">Join to Connect</p>
+                    <p class="pview-cta-text">Sign up to follow this applicant, send messages, and build your network.</p>
+                    <a href="{{ url_for('auth.register') }}" class="pview-cta-btn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </a>
+                    <a href="{{ url_for('auth.login') }}" class="pview-cta-link">Already have an account? Log in</a>
+                </div>
+            </div>
+            {% endif %}
+
+        </div><!-- /.pview-side -->
+
+    </div><!-- /.pview-body -->
+</div>
+
+<!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
+<div class="follow-modal-backdrop" id="followModalBackdrop" onclick="closeFollowModal()"></div>
+<div class="follow-modal" id="followModal">
+    <div class="follow-modal-header">
+        <div class="follow-modal-tabs">
+            <button class="follow-tab active" id="tab-followers" onclick="switchTab('followers')">
+                Followers <span class="follow-tab-count" id="tab-count-followers">{{ follower_count }}</span>
+            </button>
+            <button class="follow-tab" id="tab-following" onclick="switchTab('following')">
+                Following <span class="follow-tab-count" id="tab-count-following">{{ following_count }}</span>
+            </button>
+        </div>
+        <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="follow-modal-list" id="list-followers">
+        {% if followers %}
+            {% for u in followers %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty"><i class="fas fa-user-friends"></i><p>No followers yet.</p></div>
+        {% endif %}
+    </div>
+    <div class="follow-modal-list" id="list-following" style="display:none;">
+        {% if following %}
+            {% for u in following %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
+                <div class="follow-modal-avatar">
+                    {% if u.profile_picture %}
+                        {% if u.profile_picture.startswith('http') %}
+                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+                <div class="follow-modal-info">
+                    <span class="follow-modal-name">{{ u.username }}</span>
+                    <span class="follow-modal-role">{{ u.role | title }}</span>
+                </div>
+                <i class="fas fa-chevron-right follow-modal-arrow"></i>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="follow-modal-empty"><i class="fas fa-user-plus"></i><p>Not following anyone yet.</p></div>
+        {% endif %}
+    </div>
+</div>
+
+<script>window.PROFILE_USER_ID = {{ viewed_user.id }};</script>
+<script src="{{ url_for('static', filename='js/recruiter/view_profile.js') }}"></script>
+
+{% endblock %}

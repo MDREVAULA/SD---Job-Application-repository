@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
+
+<div class="rejected-wrapper">
+    <div class="rejected-card">
+
+        <div class="rejected-icon-wrap">
+            <i class="fas fa-ban"></i>
+        </div>
+
+        <h2>Account Rejected</h2>
+        <p class="subtitle">
+            Your account verification request has been reviewed and rejected by the administrator.
+        </p>
+
+        {% if user.verification_remarks %}
+        <div class="rejected-reason-box">
+            <div class="reason-label">
+                <i class="fas fa-exclamation-circle"></i> Reason for Rejection
+            </div>
+            <div class="reason-text">{{ user.verification_remarks }}</div>
+        </div>
+        {% endif %}
+
+        <div class="rejected-contact-note">
+            <i class="fas fa-envelope"></i>
+            If you believe this is a mistake, please contact the system administrator for assistance.
+        </div>
+
+        <a href="{{ url_for('auth.index') }}" class="btn-home">
+            <i class="fas fa-home"></i> Return to Home
+        </a>
+
+    </div>
+</div>
+
+{% endblock %}
