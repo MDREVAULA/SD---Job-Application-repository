@@ -1,0 +1,197 @@
+/* ================================================================
+   ACCOUNT BANNED PAGE — HIREBON DARK THEME
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.banned-page-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary, #1e2022);
+    padding: 48px 20px;
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+.banned-page-wrap::before {
+    content: '';
+    position: absolute;
+    top: -160px; right: -160px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(220,38,38,0.10) 0%, transparent 68%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.banned-page-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: -180px; left: -180px;
+    width: 580px; height: 580px;
+    background: radial-gradient(circle, rgba(248,113,113,0.06) 0%, transparent 68%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.banned-card {
+    background: var(--bg-surface, #2c2f31);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    border-radius: 20px;
+    padding: 52px 44px;
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 24px 64px rgba(0,0,0,0.45),
+        0 0 40px rgba(220,38,38,0.08);
+    position: relative;
+    z-index: 1;
+    animation: cardIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cardIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.banned-icon-ring {
+    width: 80px;
+    height: 80px;
+    background: rgba(220, 38, 38, 0.12);
+    border: 2px solid rgba(220, 38, 38, 0.35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    animation: iconPop 0.6s 0.15s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+@keyframes iconPop {
+    from { opacity: 0; transform: scale(0.55); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.banned-icon-ring i {
+    font-size: 36px;
+    color: #f87171;
+}
+
+.banned-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-primary, #fff);
+    margin: 0 0 8px;
+    letter-spacing: -0.3px;
+}
+
+.banned-subtitle {
+    font-size: 14px;
+    color: var(--text-muted, #888);
+    margin: 0 0 28px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.banned-reason-box {
+    background: rgba(220, 38, 38, 0.07);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.banned-reason-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #f87171;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.banned-reason-text {
+    font-size: 14px;
+    color: var(--text-secondary, #ccc);
+    margin: 0;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+.banned-meta {
+    font-size: 12.5px;
+    color: var(--text-muted, #777);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.banned-meta i {
+    color: #f87171;
+    font-size: 12px;
+}
+
+.banned-info {
+    padding: 12px 16px;
+    background: rgba(241, 178, 74, 0.07);
+    border: 1px solid rgba(241, 178, 74, 0.2);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--text-muted, #888);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.banned-info i {
+    color: #F1B24A;
+    flex-shrink: 0;
+}
+
+.banned-logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 32px;
+    background: rgba(220, 38, 38, 0.1);
+    border: 1.5px solid rgba(220, 38, 38, 0.3);
+    border-radius: 10px;
+    color: #f87171;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    transition: all 0.2s ease;
+}
+
+.banned-logout-btn:hover {
+    background: rgba(220, 38, 38, 0.18);
+    border-color: rgba(220, 38, 38, 0.5);
+    color: #fca5a5;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 520px) {
+    .banned-card {
+        padding: 36px 24px;
+    }
+    .banned-title {
+        font-size: 22px;
+    }
+}

@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}Account Banned{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account_banned.css') }}">
+
+<div class="banned-page-wrap">
+    <div class="banned-card">
+
+        <div class="banned-icon-ring">
+            <i class="fas fa-ban"></i>
+        </div>
+
+        <h2 class="banned-title">Account Suspended</h2>
+        <p class="banned-subtitle">Your account has been suspended from HireBon.</p>
+
+        {% if user.ban_reason %}
+        <div class="banned-reason-box">
+            <div class="banned-reason-label">
+                <i class="fas fa-info-circle"></i> Reason
+            </div>
+            <p class="banned-reason-text">{{ user.ban_reason }}</p>
+        </div>
+        {% endif %}
+
+        {% if user.banned_at %}
+        <div class="banned-meta">
+            <i class="fas fa-clock"></i>
+            Suspended on {{ user.banned_at.strftime('%B %d, %Y') }}
+        </div>
+        {% endif %}
+
+        <div class="banned-info">
+            <i class="fas fa-envelope"></i>
+            If you believe this is a mistake, please contact our support team.
+        </div>
+
+        <a href="{{ url_for('auth.logout') }}" class="banned-logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Sign Out
+        </a>
+
+    </div>
+</div>
+{% endblock %}

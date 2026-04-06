@@ -1,0 +1,215 @@
+{% extends "layout.html" %}
+{% block title %}All Users — Admin{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+
+<div class="admin-dashboard-wrapper">
+    <div class="admin-dashboard-container">
+
+        <!-- HEADER HERO -->
+        <div class="admin-dashboard-header">
+            <div class="admin-dashboard-header-inner">
+                <div class="admin-dashboard-header-top">
+                    <div>
+                        <h2><i class="fas fa-users"></i> All Users</h2>
+                        <p class="admin-dashboard-subtitle">Browse and manage every account on the platform</p>
+                    </div>
+                    <div class="admin-header-actions">
+                        <a href="{{ url_for('admin.dashboard') }}" class="admin-hero-btn admin-hero-btn--outline">
+                            <i class="fas fa-arrow-left"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS STRIP -->
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <i class="fas fa-users admin-stat-icon"></i>
+                <div class="admin-stat-number">{{ users|length }}</div>
+                <div class="admin-stat-label">Users Shown</div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="admin-content-area">
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="admin-flash admin-flash--{{ category }}">
+                        <i class="fas fa-info-circle"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endwith %}
+
+            <div class="admin-section">
+                <h3>
+                    <i class="fas fa-filter"></i>
+                    Filter by Role
+                </h3>
+
+                <!-- Role Filter Tabs -->
+                <div class="admin-filter-tabs">
+                    <a href="{{ url_for('admin.all_users', role='all') }}"
+                       class="admin-filter-tab {% if role_filter == 'all' %}active{% endif %}">
+                        All
+                    </a>
+                    <a href="{{ url_for('admin.all_users', role='applicant') }}"
+                       class="admin-filter-tab {% if role_filter == 'applicant' %}active{% endif %}">
+                        Applicants
+                    </a>
+                    <a href="{{ url_for('admin.all_users', role='recruiter') }}"
+                       class="admin-filter-tab {% if role_filter == 'recruiter' %}active{% endif %}">
+                        Recruiters
+                    </a>
+                    <a href="{{ url_for('admin.all_users', role='hr') }}"
+                       class="admin-filter-tab {% if role_filter == 'hr' %}active{% endif %}">
+                        HR
+                    </a>
+                </div>
+
+                {% if users %}
+                    <div class="admin-results-header">
+                        <div class="admin-results-count">
+                            <span>{{ users|length }}</span> user{{ 's' if users|length != 1 }} found
+                        </div>
+                    </div>
+
+                    <ul class="admin-list">
+                        {% for user in users %}
+                        <li class="admin-list-item {% if user.is_banned %}admin-list-item--banned{% endif %}">
+                            <div class="admin-user-info">
+                                <div class="admin-user-avatar {% if user.is_banned %}admin-user-avatar--banned{% endif %}">
+                                    {% if user.profile_picture %}
+                                        {% if user.profile_picture.startswith('http') %}
+                                            <img src="{{ user.profile_picture }}" alt="">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture) }}" alt="">
+                                        {% endif %}
+                                    {% else %}
+                                        {{ user.username[0]|upper }}
+                                    {% endif %}
+                                </div>
+                                <div class="admin-user-details">
+                                    <p class="admin-user-name">{{ user.username }}</p>
+                                    <p class="admin-user-email">{{ user.email }}</p>
+                                    <div class="admin-user-meta">
+                                        <span class="admin-meta-tag admin-meta-tag--role-{{ user.role }}">
+                                            <i class="fas fa-user"></i> {{ user.role|capitalize }}
+                                        </span>
+                                        {% if user.is_banned %}
+                                            <span class="admin-meta-tag admin-meta-tag--banned">
+                                                <i class="fas fa-ban"></i> Banned
+                                            </span>
+                                        {% elif user.role == 'recruiter' %}
+                                            {% if user.is_verified %}
+                                                <span class="admin-meta-tag admin-meta-tag--verified">
+                                                    <i class="fas fa-check-circle"></i> Verified
+                                                </span>
+                                            {% elif user.verification_status == 'Rejected' %}
+                                                <span class="admin-meta-tag admin-meta-tag--rejected">
+                                                    <i class="fas fa-times-circle"></i> Rejected
+                                                </span>
+                                            {% else %}
+                                                <span class="admin-meta-tag admin-meta-tag--pending">
+                                                    <i class="fas fa-clock"></i> Pending
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="admin-meta-tag admin-meta-tag--active">
+                                                <i class="fas fa-circle"></i> Active
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-item-actions">
+                                <a href="{{ url_for('profile_view.view_profile', user_id=user.id) }}"
+                                   class="admin-review-btn" target="_blank">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                {% if user.is_banned %}
+                                    <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                                          onsubmit="return confirm('Unban {{ user.username }}?')">
+                                        <input type="hidden" name="next" value="{{ request.url }}">
+                                        <button type="submit" class="admin-action-btn admin-action-btn--approve">
+                                            <i class="fas fa-unlock"></i> Unban
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button type="button" class="admin-action-btn admin-action-btn--reject"
+                                            onclick="openBanModal({{ user.id }}, '{{ user.username }}')">
+                                        <i class="fas fa-ban"></i> Ban
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="admin-empty-state">
+                        <i class="fas fa-users-slash"></i>
+                        <p>No users found for this filter</p>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Ban Modal -->
+<div class="admin-modal-overlay" id="banModalOverlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-ban"></i> Ban User</h3>
+            <button class="admin-modal-close" onclick="closeBanModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                You are about to ban <strong id="banUsername"></strong>.
+                They will be immediately locked out.
+            </p>
+            <form method="POST" id="banForm">
+                <input type="hidden" name="next" value="{{ request.url }}">
+                <div class="admin-modal-field">
+                    <label class="admin-modal-label">
+                        <i class="fas fa-comment-alt"></i> Reason (shown to user)
+                    </label>
+                    <textarea name="ban_reason" class="admin-modal-textarea"
+                              placeholder="e.g. Suspicious activity, spam, policy violation..."
+                              rows="3"></textarea>
+                </div>
+                <div class="admin-modal-footer">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeBanModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
+                        <i class="fas fa-ban"></i> Confirm Ban
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openBanModal(userId, username) {
+    document.getElementById('banUsername').textContent = username;
+    document.getElementById('banForm').action = `/admin/ban/${userId}`;
+    document.getElementById('banModalOverlay').style.display = 'flex';
+}
+function closeBanModal() {
+    document.getElementById('banModalOverlay').style.display = 'none';
+}
+document.getElementById('banModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeBanModal();
+});
+</script>
+
+{% endblock %}

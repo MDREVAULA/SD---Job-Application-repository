@@ -26,10 +26,15 @@ class User(db.Model, UserMixin):
     # Temporary password system
     must_change_password = db.Column(db.Boolean, default=False)
 
-    # Verification system
+    # ── Verification (recruiters only after profile completion) ──
     is_verified = db.Column(db.Boolean, default=False)
     verification_status = db.Column(db.String(20), default="Pending")
     verification_remarks = db.Column(db.Text)
+
+    # ── Ban system (replaces applicant rejection) ──
+    is_banned = db.Column(db.Boolean, default=False)
+    ban_reason = db.Column(db.Text, nullable=True)
+    banned_at = db.Column(db.DateTime, nullable=True)
 
     # HR created by recruiter
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
@@ -214,7 +219,7 @@ class RecruiterProfile(db.Model):
     # PERSONAL HEADLINE & BIO
     headline = db.Column(db.String(200))
     bio      = db.Column(db.Text)
- 
+
     # SOCIAL LINKS
     linkedin  = db.Column(db.String(200))
     github    = db.Column(db.String(200))
@@ -236,6 +241,9 @@ class RecruiterProfile(db.Model):
     # FILES
     company_logo = db.Column(db.String(200))
     company_proof = db.Column(db.String(200))
+
+    # Track whether profile has been submitted for verification
+    submitted_for_review = db.Column(db.Boolean, default=False)
 
 
 # =========================
@@ -350,51 +358,51 @@ class Application(db.Model):
 # FOLLOW TABLE
 # =========================
 class Follow(db.Model):
- 
+
     id = db.Column(db.Integer, primary_key=True)
- 
+
     # Who is following
     follower_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     # Who is being followed
     followed_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
- 
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
- 
+
     # Ensure a user can't follow the same person twice
     __table_args__ = (
         db.UniqueConstraint("follower_id", "followed_id", name="unique_follow"),
     )
- 
+
     follower = db.relationship("User", foreign_keys=[follower_id], backref="following")
     followed = db.relationship("User", foreign_keys=[followed_id], backref="followers")
- 
- 
+
+
 # =========================
 # MESSAGE TABLE (with edits & replies)
 # =========================
 class Message(db.Model):
- 
+
     id = db.Column(db.Integer, primary_key=True)
- 
+
     sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
- 
+
     body = db.Column(db.Text, nullable=False)
- 
+
     is_read = db.Column(db.Boolean, default=False)
 
-    # ── NEW: edit support ──
+    # ── edit support ──
     edited = db.Column(db.Boolean, default=False)
 
-    # ── NEW: reply support ──
+    # ── reply support ──
     reply_to_id = db.Column(db.Integer, db.ForeignKey("message.id"), nullable=True)
- 
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
- 
+
     sender   = db.relationship("User", foreign_keys=[sender_id],   backref="sent_messages")
     receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
 
-    # ── NEW: self-referential relationship for reply ──
+    # ── self-referential relationship for reply ──
     reply_to = db.relationship(
         "Message",
         foreign_keys=[reply_to_id],

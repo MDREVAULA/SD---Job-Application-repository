@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+{% block title %}Banned Users — Admin{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+
+<div class="admin-dashboard-wrapper">
+    <div class="admin-dashboard-container">
+
+        <!-- HEADER HERO -->
+        <div class="admin-dashboard-header">
+            <div class="admin-dashboard-header-inner">
+                <div class="admin-dashboard-header-top">
+                    <div>
+                        <h2><i class="fas fa-ban"></i> Banned Users</h2>
+                        <p class="admin-dashboard-subtitle">View and manage all banned accounts</p>
+                    </div>
+                    <div class="admin-header-actions">
+                        <a href="{{ url_for('admin.dashboard') }}" class="admin-hero-btn admin-hero-btn--outline">
+                            <i class="fas fa-arrow-left"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS STRIP -->
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <i class="fas fa-ban admin-stat-icon admin-stat-icon--danger"></i>
+                <div class="admin-stat-number">{{ banned_users|length }}</div>
+                <div class="admin-stat-label">Banned Users</div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="admin-content-area">
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="admin-flash admin-flash--{{ category }}">
+                        <i class="fas fa-info-circle"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endwith %}
+
+            <div class="admin-section">
+                <h3>
+                    <i class="fas fa-ban"></i>
+                    Banned Accounts
+                    <span class="admin-section-badge admin-section-badge--danger">{{ banned_users|length }}</span>
+                </h3>
+
+                {% if banned_users %}
+                    <div class="admin-results-header">
+                        <div class="admin-results-count">
+                            <span>{{ banned_users|length }}</span> user{{ 's' if banned_users|length != 1 }} banned
+                        </div>
+                    </div>
+
+                    <ul class="admin-list">
+                        {% for user in banned_users %}
+                        <li class="admin-list-item admin-list-item--banned">
+                            <div class="admin-user-info">
+                                <div class="admin-user-avatar admin-user-avatar--banned">
+                                    {% if user.profile_picture %}
+                                        {% if user.profile_picture.startswith('http') %}
+                                            <img src="{{ user.profile_picture }}" alt="">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture) }}" alt="">
+                                        {% endif %}
+                                    {% else %}
+                                        {{ user.username[0]|upper }}
+                                    {% endif %}
+                                </div>
+                                <div class="admin-user-details">
+                                    <p class="admin-user-name">{{ user.username }}</p>
+                                    <p class="admin-user-email">{{ user.email }}</p>
+                                    {% if user.ban_reason %}
+                                    <p class="admin-user-reason">
+                                        <i class="fas fa-comment-alt"></i> {{ user.ban_reason }}
+                                    </p>
+                                    {% endif %}
+                                    <div class="admin-user-meta">
+                                        <span class="admin-meta-tag">
+                                            <i class="fas fa-user"></i> {{ user.role|capitalize }}
+                                        </span>
+                                        <span class="admin-meta-tag admin-meta-tag--banned">
+                                            <i class="fas fa-ban"></i> Banned
+                                        </span>
+                                        {% if user.banned_at %}
+                                        <span class="admin-meta-tag">
+                                            <i class="fas fa-calendar"></i> {{ user.banned_at.strftime('%b %d, %Y') }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                                  onsubmit="return confirm('Unban {{ user.username }}?')">
+                                <button type="submit" class="admin-action-btn admin-action-btn--approve">
+                                    <i class="fas fa-unlock"></i> Unban
+                                </button>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="admin-empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No banned users at this time</p>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

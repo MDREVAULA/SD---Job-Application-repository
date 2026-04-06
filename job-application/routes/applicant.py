@@ -14,6 +14,33 @@ applicant_bp = Blueprint('applicant', __name__, url_prefix="/applicant")
 
 
 # ===============================
+# HELPER — check ban on every request
+# ===============================
+def check_banned():
+    """Returns a redirect response if the user is banned, else None."""
+    if current_user.is_authenticated and current_user.is_banned:
+        from flask import render_template as rt
+        return rt("account_banned.html", user=current_user)
+    return None
+
+
+# ===============================
+# HELPER — profile completion check
+# Minimum required: first_name, last_name, phone_number, city, country
+# ===============================
+def is_profile_complete(prof):
+    if not prof:
+        return False
+    return all([
+        prof.first_name,
+        prof.last_name,
+        prof.phone_number,
+        prof.city,
+        prof.country,
+    ])
+
+
+# ===============================
 # HELPER — get or create profile
 # ===============================
 def get_or_create_profile():
@@ -31,6 +58,10 @@ def get_or_create_profile():
 @applicant_bp.route('/profile')
 @login_required
 def profile():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -54,6 +85,8 @@ def profile():
     followers = [u for u in followers if u]
     following = [u for u in following if u]
 
+    profile_complete = is_profile_complete(prof)
+
     return render_template(
         'applicant/profile.html',
         profile=prof,
@@ -66,6 +99,7 @@ def profile():
         following_count=len(following),
         followers=followers,
         following=following,
+        profile_complete=profile_complete,
     )
 
 
@@ -75,6 +109,10 @@ def profile():
 @applicant_bp.route('/profile/update-personal', methods=['POST'])
 @login_required
 def update_personal():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -99,7 +137,10 @@ def update_personal():
         except:
             pass
 
+    # Sync profile_completed flag on User
+    current_user.profile_completed = is_profile_complete(prof)
     db.session.commit()
+
     flash("Personal information updated!", "success")
     return redirect(url_for('applicant.profile'))
 
@@ -110,6 +151,10 @@ def update_personal():
 @applicant_bp.route('/profile/update-social', methods=['POST'])
 @login_required
 def update_social():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -130,6 +175,10 @@ def update_social():
 @applicant_bp.route('/profile/add-experience', methods=['POST'])
 @login_required
 def add_experience():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -175,6 +224,10 @@ def delete_experience(exp_id):
 @applicant_bp.route('/profile/add-education', methods=['POST'])
 @login_required
 def add_education():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -220,6 +273,10 @@ def delete_education(edu_id):
 @applicant_bp.route('/profile/add-skill', methods=['POST'])
 @login_required
 def add_skill():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -260,6 +317,10 @@ def delete_skill(skill_id):
 @applicant_bp.route('/profile/add-project', methods=['POST'])
 @login_required
 def add_project():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -303,6 +364,10 @@ def delete_project(proj_id):
 @applicant_bp.route('/profile/add-certification', methods=['POST'])
 @login_required
 def add_certification():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -346,6 +411,10 @@ def delete_certification(cert_id):
 @applicant_bp.route('/upload-profile-picture', methods=['POST'])
 @login_required
 def upload_profile_picture():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -383,10 +452,15 @@ def upload_profile_picture():
 
 # ===============================
 # APPLICANT DASHBOARD
+# ── Gated: profile must be complete to apply for jobs
 # ===============================
 @applicant_bp.route('/dashboard')
 @login_required
 def dashboard():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -402,7 +476,14 @@ def dashboard():
         .all()
     )
 
-    return render_template('applicant/dashboard.html', applications=applications)
+    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
+    profile_complete = is_profile_complete(prof)
+
+    return render_template(
+        'applicant/dashboard.html',
+        applications=applications,
+        profile_complete=profile_complete,
+    )
 
 
 # ===============================
@@ -417,17 +498,24 @@ def job_details(job_id):
 
 # ===============================
 # APPLY FOR JOB
+# ── Requires profile completion (not admin verification)
 # ===============================
 @applicant_bp.route('/apply/<int:job_id>', methods=["GET", "POST"])
 @login_required
 def apply_job(job_id):
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    if not current_user.is_verified:
-        flash("Your account is still waiting for admin verification.", "warning")
-        return redirect(url_for('applicant.dashboard'))
+    # Gate: profile must be complete to apply
+    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
+    if not is_profile_complete(prof):
+        flash("Please complete your profile before applying for jobs.", "warning")
+        return redirect(url_for('applicant.profile'))
 
     job = Job.query.get_or_404(job_id)
 

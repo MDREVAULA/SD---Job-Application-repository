@@ -3,6 +3,7 @@ from flask_login import login_required, current_user, login_user
 from werkzeug.security import check_password_hash
 from models import db, User, ApplicantProfile
 from routes.auth import send_verification_email
+from datetime import datetime
 
 admin_bp = Blueprint('admin', __name__, url_prefix="/admin")
 
@@ -13,12 +14,10 @@ admin_bp = Blueprint('admin', __name__, url_prefix="/admin")
 @admin_bp.route('/login/<token>', methods=['GET', 'POST'], endpoint='admin_login')
 def admin_login(token):
 
-    # Validate the token first
     if token != current_app.config.get("ADMIN_TOKEN"):
         flash("Invalid or expired admin link.", "danger")
         return redirect(url_for('auth.login'))
 
-    # On POST — verify credentials
     if request.method == 'POST':
         email = request.form.get("email")
         password = request.form.get("password")
@@ -33,12 +32,12 @@ def admin_login(token):
         flash("Logged in as admin.", "success")
         return redirect(url_for('admin.dashboard'))
 
-    # On GET — show the admin login form
     return render_template("admin/login.html", token=token)
 
 
 # ==============================
 # Admin Dashboard
+# ── Shows pending RECRUITERS only (applicants no longer need verification)
 # ==============================
 @admin_bp.route('/dashboard')
 @login_required
@@ -48,25 +47,79 @@ def dashboard():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    pending_recruiters = User.query.filter_by(
-        role='recruiter',
-        verification_status="Pending"
+    # Only recruiters who have submitted their profile for review
+    from models import RecruiterProfile
+    pending_recruiter_ids = db.session.query(RecruiterProfile.user_id).filter_by(
+        submitted_for_review=True
+    ).subquery()
+
+    pending_recruiters = User.query.filter(
+        User.role == 'recruiter',
+        User.verification_status == 'Pending',
+        User.id.in_(pending_recruiter_ids)
     ).all()
 
-    pending_applicants = User.query.filter_by(
-        role='applicant',
-        verification_status="Pending"
-    ).all()
+    # Banned users (all roles)
+    banned_users = User.query.filter_by(is_banned=True).all()
+
+    # Count all applicants for info panel
+    total_applicants = User.query.filter_by(role='applicant').count()
 
     return render_template(
         'admin/dashboard.html',
         pending_recruiters=pending_recruiters,
-        pending_applicants=pending_applicants
+        banned_users=banned_users,
+        total_applicants=total_applicants,
     )
 
 
 # ==============================
-# Scammer Recruiters Page
+# All Users Page (for banning)
+# ==============================
+@admin_bp.route('/users')
+@login_required
+def all_users():
+
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    role_filter = request.args.get('role', 'all')
+
+    query = User.query.filter(User.role != 'admin')
+    if role_filter != 'all':
+        query = query.filter_by(role=role_filter)
+
+    users = query.order_by(User.id.desc()).all()
+
+    return render_template(
+        'admin/all_users.html',
+        users=users,
+        role_filter=role_filter,
+    )
+
+
+# ==============================
+# Banned Users Page
+# ==============================
+@admin_bp.route('/banned')
+@login_required
+def banned_users():
+
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    banned = User.query.filter_by(is_banned=True).all()
+
+    return render_template(
+        'admin/banned_users.html',
+        banned_users=banned,
+    )
+
+
+# ==============================
+# Rejected Recruiters Page
 # ==============================
 @admin_bp.route('/scammers')
 @login_required
@@ -114,35 +167,7 @@ def review_recruiter(user_id):
 
 
 # ==============================
-# Applicant Review Page
-# ==============================
-@admin_bp.route('/review-applicant/<int:user_id>')
-@login_required
-def review_applicant(user_id):
-
-    if current_user.role != 'admin':
-        flash("Access denied!", "danger")
-        return redirect(url_for('auth.index'))
-
-    applicant = db.session.get(User, user_id)
-
-    if not applicant or applicant.role != 'applicant':
-        flash("Applicant not found!", "danger")
-        return redirect(url_for('admin.dashboard'))
-
-    profile = ApplicantProfile.query.filter_by(
-        user_id=user_id
-    ).first()
-
-    return render_template(
-        'admin/review_applicant.html',
-        applicant=applicant,
-        profile=profile
-    )
-
-
-# ==============================
-# Verify User
+# Verify Recruiter
 # ==============================
 @admin_bp.route('/verify/<int:user_id>', methods=['POST'])
 @login_required
@@ -158,8 +183,8 @@ def verify(user_id):
         flash("User not found!", "danger")
         return redirect(url_for('admin.dashboard'))
 
-    if user.role not in ['recruiter', 'applicant']:
-        flash("Invalid user role for verification!", "danger")
+    if user.role != 'recruiter':
+        flash("Only recruiter accounts require verification!", "danger")
         return redirect(url_for('admin.dashboard'))
 
     user.verification_status = "Approved"
@@ -174,7 +199,7 @@ def verify(user_id):
 
 
 # ==============================
-# Reject User
+# Reject Recruiter
 # ==============================
 @admin_bp.route('/reject/<int:user_id>', methods=['POST'])
 @login_required
@@ -190,10 +215,11 @@ def reject(user_id):
         flash("User not found!", "danger")
         return redirect(url_for('admin.dashboard'))
 
-    remarks = request.form.get("remarks")
+    if user.role != 'recruiter':
+        flash("Only recruiter accounts can be rejected!", "danger")
+        return redirect(url_for('admin.dashboard'))
 
-    if not remarks:
-        remarks = "Account rejected due to suspicious or invalid information."
+    remarks = request.form.get("remarks") or "Account rejected due to suspicious or invalid information."
 
     user.verification_status = "Rejected"
     user.verification_remarks = remarks
@@ -205,29 +231,64 @@ def reject(user_id):
 
 
 # ==============================
-# Rejected Applicants Page
+# BAN User (any role)
 # ==============================
-@admin_bp.route('/rejected-applicants')
+@admin_bp.route('/ban/<int:user_id>', methods=['POST'])
 @login_required
-def rejected_applicants():
+def ban_user(user_id):
 
     if current_user.role != 'admin':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    rejected_applicants = User.query.filter_by(
-        role="applicant",
-        verification_status="Rejected"
-    ).all()
+    user = db.session.get(User, user_id)
 
-    return render_template(
-        "admin/rejected_applicants.html",
-        applicants=rejected_applicants
-    )
+    if not user or user.role == 'admin':
+        flash("User not found or cannot ban admin!", "danger")
+        return redirect(url_for('admin.dashboard'))
+
+    reason = request.form.get("ban_reason") or "Banned due to suspicious activity."
+
+    user.is_banned = True
+    user.ban_reason = reason
+    user.banned_at = datetime.utcnow()
+    db.session.commit()
+
+    flash(f"{user.username} has been banned.", "warning")
+
+    # Redirect back to wherever the admin came from
+    next_url = request.form.get("next") or url_for('admin.dashboard')
+    return redirect(next_url)
 
 
 # ==============================
-# Restore Rejected Recruiter
+# UNBAN User
+# ==============================
+@admin_bp.route('/unban/<int:user_id>', methods=['POST'])
+@login_required
+def unban_user(user_id):
+
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    user = db.session.get(User, user_id)
+
+    if not user:
+        flash("User not found!", "danger")
+        return redirect(url_for('admin.banned_users'))
+
+    user.is_banned = False
+    user.ban_reason = None
+    user.banned_at = None
+    db.session.commit()
+
+    flash(f"{user.username} has been unbanned.", "success")
+    return redirect(url_for('admin.banned_users'))
+
+
+# ==============================
+# Restore Rejected Recruiter → back to Pending
 # ==============================
 @admin_bp.route('/restore/<int:user_id>', methods=['POST'])
 @login_required
@@ -250,29 +311,3 @@ def restore(user_id):
 
     flash(f"{user.username} has been restored to pending verification.", "success")
     return redirect(url_for('admin.scammers'))
-
-
-# ==============================
-# Restore Rejected Applicant
-# ==============================
-@admin_bp.route('/restore-applicant/<int:user_id>', methods=['POST'])
-@login_required
-def restore_applicant(user_id):
-
-    if current_user.role != 'admin':
-        flash("Access denied!", "danger")
-        return redirect(url_for('auth.index'))
-
-    user = db.session.get(User, user_id)
-
-    if not user or user.role != "applicant":
-        flash("Applicant not found!", "danger")
-        return redirect(url_for('admin.rejected_applicants'))
-
-    user.verification_status = "Pending"
-    user.verification_remarks = None
-    user.is_verified = False
-    db.session.commit()
-
-    flash(f"{user.username} has been restored to pending verification.", "success")
-    return redirect(url_for('admin.rejected_applicants'))

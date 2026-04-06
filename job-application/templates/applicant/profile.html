@@ -625,7 +625,7 @@
                 </div>
                 <div class="prof-completion-wrap">
                     {% set score = namespace(val=0) %}
-                    {% if profile and profile.first_name %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.first_name and profile.last_name %}{% set score.val = score.val + 15 %}{% endif %}
                     {% if profile and profile.bio %}{% set score.val = score.val + 15 %}{% endif %}
                     {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.linkedin %}{% set score.val = score.val + 10 %}{% endif %}
@@ -646,8 +646,8 @@
                     <div class="prof-completion-pct">{{ score.val }}% complete</div>
 
                     <div class="prof-completion-tips">
-                        <div class="prof-completion-tip {% if profile and profile.first_name %}done{% endif %}">
-                            <i class="{% if profile and profile.first_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                        <div class="prof-completion-tip {% if profile and profile.first_name and profile.last_name %}done{% endif %}">
+                            <i class="{% if profile and profile.first_name and profile.last_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add your full name
                         </div>
                         <div class="prof-completion-tip {% if profile and profile.headline %}done{% endif %}">
