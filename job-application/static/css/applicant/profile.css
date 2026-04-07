@@ -1161,3 +1161,364 @@
 .notif-panel.open {
     display: flex !important;
 }
+
+/* ══════════════════════════════════════════
+   DOCUMENTS CARD — Tab upload system
+══════════════════════════════════════════ */
+
+/* Tab navigation */
+.doc-tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border-color, #EAEDE8);
+    padding: 0 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.doc-tab-nav::-webkit-scrollbar { display: none; }
+
+.doc-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 13px 18px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted, #9CA3AF);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    white-space: nowrap;
+    margin-bottom: -1px;
+}
+
+.doc-tab i { font-size: 0.78rem; }
+
+.doc-tab.active {
+    color: #164A41;
+    border-bottom-color: #164A41;
+    font-weight: 600;
+}
+
+.doc-tab:hover:not(.active) {
+    color: var(--text-secondary, #374151);
+    background: var(--bg-hover, #F9FBF8);
+}
+
+/* Tab panels */
+.doc-tab-panel {
+    padding: 20px;
+}
+
+/* Upload drop zone */
+.doc-upload-zone {
+    border: 2px dashed var(--border-color, #D4ECC8);
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+    background: var(--bg-surface-alt, #F9FBF8);
+    margin-bottom: 16px;
+    transition: border-color 0.2s ease, background 0.2s ease !important;
+    cursor: default;
+}
+
+.doc-upload-zone.drag-over {
+    border-color: #4D774E;
+    background: #EAF3DE;
+}
+
+.doc-upload-icon {
+    font-size: 2rem;
+    color: #9DC88D;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.doc-upload-label {
+    margin: 0 0 4px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary, #111);
+}
+
+.doc-upload-hint {
+    margin: 0 0 14px;
+    font-size: 0.78rem;
+    color: var(--text-muted, #9CA3AF);
+}
+
+.doc-upload-btn {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border: 1.5px solid #164A41;
+    background: #164A41;
+    color: #fff;
+    font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.doc-upload-btn:hover { background: #0e3229; border-color: #0e3229; }
+
+/* File item row */
+.doc-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.doc-file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color, #f0f2ef);
+}
+
+.doc-file-item:last-child { border-bottom: none; }
+
+.doc-file-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #F0F7EC;
+    border: 1px solid #D4ECC8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #4D774E;
+    flex-shrink: 0;
+}
+
+.doc-file-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.doc-file-name {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-primary, #111);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+}
+
+.doc-file-meta {
+    font-size: 0.73rem;
+    color: var(--text-muted, #9CA3AF);
+    margin-top: 1px;
+}
+
+.doc-file-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.doc-file-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+    border: 1px solid;
+}
+
+.doc-file-btn-view {
+    background: #F0F7EC;
+    border-color: #D4ECC8;
+    color: #4D774E;
+}
+
+.doc-file-btn-view:hover {
+    background: #164A41;
+    border-color: #164A41;
+    color: #fff;
+}
+
+.doc-file-btn-delete {
+    background: transparent;
+    border-color: #FECACA;
+    color: #EF4444;
+}
+
+.doc-file-btn-delete:hover {
+    background: #EF4444;
+    border-color: #EF4444;
+    color: #fff;
+}
+
+/* Limit notice */
+.doc-limit-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #FAEEDA;
+    border: 1px solid #FAC775;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    color: #633806;
+    margin-bottom: 16px;
+}
+
+.doc-limit-notice i { color: #F1B24A; }
+
+/* Empty state inside tabs */
+.doc-empty {
+    padding: 20px 0 8px;
+}
+
+/* ── File size error popup ── */
+.doc-error-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+}
+
+.doc-error-overlay.open {
+    display: flex;
+}
+
+.doc-error-modal {
+    background: var(--bg-card, #fff);
+    border-radius: 16px;
+    padding: 28px 28px 22px;
+    max-width: 400px;
+    width: calc(100% - 40px);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    text-align: center;
+    animation: fadeUp 0.22s ease both;
+}
+
+.doc-error-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #FCEBEB;
+    border: 2px solid #F7C1C1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #EF4444;
+    margin: 0 auto 14px;
+}
+
+.doc-error-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary, #111);
+    margin: 0 0 8px;
+}
+
+.doc-error-body {
+    font-size: 0.845rem;
+    color: var(--text-secondary, #4B5563);
+    margin: 0 0 20px;
+    line-height: 1.6;
+}
+
+.doc-error-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.doc-error-btn-retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 22px;
+    background: #164A41;
+    color: #fff;
+    border: 1px solid #164A41;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.83rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.doc-error-btn-retry:hover { background: #0e3229; border-color: #0e3229; }
+
+.doc-error-btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    background: transparent;
+    color: var(--text-muted, #6B7280);
+    border: 1px solid var(--border-color, #DDE3D8);
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.83rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.doc-error-btn-cancel:hover { background: var(--bg-hover, #F3F4F6); }
+
+/* Dark mode */
+[data-theme="dark"] .doc-upload-zone {
+    background: var(--bg-surface-alt);
+    border-color: rgba(157,200,141,0.2);
+}
+[data-theme="dark"] .doc-upload-zone.drag-over {
+    border-color: #4D774E;
+    background: rgba(77,119,78,0.1);
+}
+[data-theme="dark"] .doc-upload-icon { color: rgba(157,200,141,0.5); }
+[data-theme="dark"] .doc-upload-label { color: var(--text-primary); }
+[data-theme="dark"] .doc-file-icon {
+    background: rgba(77,119,78,0.15);
+    border-color: rgba(77,119,78,0.25);
+    color: #9DC88D;
+}
+[data-theme="dark"] .doc-file-name { color: var(--text-primary); }
+[data-theme="dark"] .doc-file-btn-view {
+    background: rgba(77,119,78,0.12);
+    border-color: rgba(77,119,78,0.25);
+    color: #9DC88D;
+}
+[data-theme="dark"] .doc-file-btn-view:hover { background: #4D774E; border-color: #4D774E; color: #fff; }
+[data-theme="dark"] .doc-limit-notice {
+    background: rgba(241,178,74,0.1);
+    border-color: rgba(241,178,74,0.25);
+    color: #f5c36d;
+}
+[data-theme="dark"] .doc-tab { color: var(--text-muted); }
+[data-theme="dark"] .doc-tab.active { color: #9DC88D; border-bottom-color: #9DC88D; }
+[data-theme="dark"] .doc-tab:hover:not(.active) { background: var(--bg-hover); color: var(--text-secondary); }
+[data-theme="dark"] .doc-error-modal { background: var(--bg-card); }
+[data-theme="dark"] .doc-error-title { color: var(--text-primary); }
+[data-theme="dark"] .doc-error-body { color: var(--text-secondary); }
+[data-theme="dark"] .doc-error-btn-cancel { border-color: var(--border-color); color: var(--text-muted); }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .doc-tab { padding: 11px 12px; font-size: 0.78rem; }
+    .doc-tab-panel { padding: 16px; }
+    .doc-file-name { max-width: 160px; }
+    .doc-file-btn { padding: 5px 9px; font-size: 0.7rem; }
+}

@@ -98,6 +98,13 @@ class ApplicantProfile(db.Model):
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
+    # DOCUMENT UPLOADS
+    resume_file      = db.Column(db.String(200))   # PDF, max 5MB
+    portfolio_file   = db.Column(db.String(200))   # PDF/image, max 10MB
+    
+    # certificates stored as JSON list of filenames
+    certificate_files = db.Column(db.Text)          # JSON array, each max 5MB
+
     # RELATIONSHIPS
     work_experiences = db.relationship("WorkExperience", backref="profile", lazy=True, cascade="all, delete-orphan")
     educations = db.relationship("Education", backref="profile", lazy=True, cascade="all, delete-orphan")
