@@ -12,6 +12,8 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/upload_error_modal.css') }}">
+
 <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/hr_temporary.js') }}" defer></script>
 
@@ -481,5 +483,7 @@ setInterval(updateUnreadBadge, 10000);
 </script>
 {% endif %}
 
+{% include 'components/upload_error_modal.html' %}
+<script src="{{ url_for('static', filename='js/components/upload_error_modal.js') }}" defer></script>
 </body>
 </html>
