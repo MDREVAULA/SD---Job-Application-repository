@@ -1138,7 +1138,7 @@
         transform: none; width: 100%; max-width: 100%;
         border-radius: 20px 20px 0 0; max-height: 75vh;
     }
-
+}
 /* ================================
    NOTIFICATION ISOLATION
    Prevent profile transitions from
