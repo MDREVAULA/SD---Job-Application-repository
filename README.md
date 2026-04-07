@@ -1,5 +1,8 @@
-# 💼 Job Portal — Setup Guide
+# 💼 Welcome to HireBon – Where OPPORTUNITY Meets the Right JOB
 
+---
+
+## Setup Guide
 A Flask-based job portal web application with Google OAuth, email verification, and role-based access (Applicant, Recruiter, HR, Admin).
 
 ---
