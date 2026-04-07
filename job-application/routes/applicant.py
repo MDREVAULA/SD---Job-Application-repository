@@ -11,6 +11,7 @@ import base64
 import io
 import os
 import uuid
+import json
 
 applicant_bp = Blueprint('applicant', __name__, url_prefix="/applicant")
 
@@ -500,3 +501,196 @@ def apply_job(job_id):
 
 
     return render_template("applicant/apply_job.html", job=job)
+
+
+# ===============================
+# UPLOAD RESUME
+# ===============================
+@applicant_bp.route('/profile/upload-resume', methods=['POST'])
+@login_required
+def upload_resume():
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    prof = get_or_create_profile()
+    file = request.files.get('resume_file')
+
+    if not file or file.filename == '':
+        flash("No file selected.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    if not file.filename.lower().endswith('.pdf'):
+        flash("Resume must be a PDF file.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 5 * 1024 * 1024:
+        flash("Resume exceeds the 5MB limit.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'applicant_resumes')
+    os.makedirs(folder, exist_ok=True)
+
+    if prof.resume_file:
+        old = os.path.join(folder, prof.resume_file)
+        if os.path.exists(old):
+            os.remove(old)
+
+    filename = f"resume_{current_user.id}_{uuid.uuid4().hex[:8]}.pdf"
+    file.save(os.path.join(folder, filename))
+    prof.resume_file = filename
+    db.session.commit()
+    flash("Resume uploaded successfully!", "success")
+    return redirect(url_for('applicant.profile'))
+
+
+# ===============================
+# DELETE RESUME
+# ===============================
+@applicant_bp.route('/profile/delete-resume', methods=['POST'])
+@login_required
+def delete_resume():
+    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
+    if prof and prof.resume_file:
+        path = os.path.join(current_app.root_path, 'static', 'uploads', 'applicant_resumes', prof.resume_file)
+        if os.path.exists(path):
+            os.remove(path)
+        prof.resume_file = None
+        db.session.commit()
+        flash("Resume removed.", "success")
+    return redirect(url_for('applicant.profile'))
+
+
+# ===============================
+# UPLOAD PORTFOLIO
+# ===============================
+@applicant_bp.route('/profile/upload-portfolio', methods=['POST'])
+@login_required
+def upload_portfolio():
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    prof = get_or_create_profile()
+    file = request.files.get('portfolio_file')
+
+    if not file or file.filename == '':
+        flash("No file selected.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    allowed = {'.pdf', '.jpg', '.jpeg', '.png'}
+    ext = os.path.splitext(file.filename.lower())[1]
+    if ext not in allowed:
+        flash("Portfolio must be a PDF, JPG, or PNG file.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 10 * 1024 * 1024:
+        flash("Portfolio file exceeds the 10MB limit.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'applicant_resumes')
+    os.makedirs(folder, exist_ok=True)
+
+    if prof.portfolio_file:
+        old = os.path.join(folder, prof.portfolio_file)
+        if os.path.exists(old):
+            os.remove(old)
+
+    filename = f"portfolio_{current_user.id}_{uuid.uuid4().hex[:8]}{ext}"
+    file.save(os.path.join(folder, filename))
+    prof.portfolio_file = filename
+    db.session.commit()
+    flash("Portfolio uploaded successfully!", "success")
+    return redirect(url_for('applicant.profile'))
+
+
+# ===============================
+# DELETE PORTFOLIO
+# ===============================
+@applicant_bp.route('/profile/delete-portfolio', methods=['POST'])
+@login_required
+def delete_portfolio():
+    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
+    if prof and prof.portfolio_file:
+        path = os.path.join(current_app.root_path, 'static', 'uploads', 'applicant_resumes', prof.portfolio_file)
+        if os.path.exists(path):
+            os.remove(path)
+        prof.portfolio_file = None
+        db.session.commit()
+        flash("Portfolio removed.", "success")
+    return redirect(url_for('applicant.profile'))
+
+
+# ===============================
+# UPLOAD CERTIFICATE
+# ===============================
+@applicant_bp.route('/profile/upload-certificate', methods=['POST'])
+@login_required
+def upload_certificate():
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    prof = get_or_create_profile()
+    file = request.files.get('certificate_file')
+
+    if not file or file.filename == '':
+        flash("No file selected.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    allowed = {'.pdf', '.jpg', '.jpeg', '.png'}
+    ext = os.path.splitext(file.filename.lower())[1]
+    if ext not in allowed:
+        flash("Certificate must be a PDF, JPG, or PNG file.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 5 * 1024 * 1024:
+        flash("Certificate file exceeds the 5MB limit.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    existing = json.loads(prof.certificate_files) if prof.certificate_files else []
+    if len(existing) >= 5:
+        flash("You can upload a maximum of 5 certificates.", "warning")
+        return redirect(url_for('applicant.profile'))
+
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'applicant_resumes')
+    os.makedirs(folder, exist_ok=True)
+
+    filename = f"cert_{current_user.id}_{uuid.uuid4().hex[:8]}{ext}"
+    file.save(os.path.join(folder, filename))
+    existing.append(filename)
+    prof.certificate_files = json.dumps(existing)
+    db.session.commit()
+    flash("Certificate uploaded successfully!", "success")
+    return redirect(url_for('applicant.profile'))
+
+
+# ===============================
+# DELETE CERTIFICATE
+# ===============================
+@applicant_bp.route('/profile/delete-certificate/<filename>', methods=['POST'])
+@login_required
+def delete_certificate(filename):
+    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
+    if not prof:
+        return redirect(url_for('applicant.profile'))
+
+    certs = json.loads(prof.certificate_files) if prof.certificate_files else []
+    if filename in certs:
+        path = os.path.join(current_app.root_path, 'static', 'uploads', 'applicant_resumes', filename)
+        if os.path.exists(path):
+            os.remove(path)
+        certs.remove(filename)
+        prof.certificate_files = json.dumps(certs)
+        db.session.commit()
+        flash("Certificate removed.", "success")
+    return redirect(url_for('applicant.profile'))
