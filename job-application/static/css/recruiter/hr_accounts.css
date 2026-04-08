@@ -392,7 +392,7 @@
    ============================================================ */
 .hra-table-wrapper {
   overflow-x: auto;
-  min-height: 350px;
+  min-height: 432px;
 }
 
 .hra-table {
@@ -403,20 +403,21 @@
 
 .hra-table th {
   text-align: left;
-  padding: 12px 8px;
+  padding: 10px 8px !important;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border-color);
+  vertical-align: middle !important;
 }
 
 .hra-table td {
   padding: 10px 8px;
   font-size: 13px;
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
 }
 
@@ -1058,6 +1059,113 @@
 }
 
 /* ============================================================
+   PAGINATION
+   ============================================================ */
+.hra-pagination-wrap {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 14px 0 6px 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+#paginationInfo {
+  display: none !important;
+}
+
+.hra-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hra-page-btn {
+  padding: 6px 14px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+}
+
+.hra-page-btn:hover:not(:disabled) {
+  background: var(--brand-green-dark);
+  border-color: var(--brand-green-dark);
+  color: white;
+}
+
+.hra-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hra-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* All page number buttons — fixed box size regardless of content */
+.hra-page-num {
+  width: 38px;           /* fixed width — same for "7" and "7…" */
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;       /* slightly smaller so "7…" fits without overflow */
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.hra-page-num:hover {
+  background: var(--bg-hover);
+  border-color: var(--brand-green);
+}
+
+.hra-page-num.active {
+  background: var(--brand-green-dark);
+  border-color: var(--brand-green-dark);
+  color: white;
+}
+
+/* "…" variant — same box, muted color to hint there's more */
+.hra-page-num.has-more {
+  color: var(--text-muted);
+  letter-spacing: -0.5px;
+}
+
+.hra-page-num.has-more:hover {
+  background: var(--bg-hover);
+  border-color: var(--brand-green);
+  color: var(--brand-green);
+}
+
+@media (max-width: 768px) {
+  .hra-pagination-wrap {
+    justify-content: center;
+  }
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1100px) {
@@ -1076,259 +1184,61 @@
   .hra-wrapper {
     padding: 14px 14px 50px;
   }
-  
+
   .hra-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
     padding: 18px 20px;
   }
-  
+
   .hra-header-stats {
     width: 100%;
     flex-wrap: wrap;
   }
-  
+
   .hra-stat-card {
     flex: 1;
   }
-  
+
   .hra-card-header {
     flex-wrap: wrap;
   }
-  
+
   .hra-card-actions {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .hra-search input {
     width: 100%;
     min-width: 150px;
   }
-  
+
   .hra-modal-content {
     width: 95%;
     margin: 16px;
   }
-  
+
   .hra-modal-buttons {
     flex-direction: column;
   }
-  
+
   .hra-modal-buttons button {
     width: 100%;
     justify-content: center;
   }
-  
+
   .hra-password-display {
     flex-direction: column;
   }
-  
+
   .hra-copy-btn {
     width: 100%;
     justify-content: center;
   }
-}
 
-.hra-table th {
-    padding: 10px 8px !important;
-    vertical-align: middle !important;
-}
-
-.hra-table th,
-.hra-table td {
-    border-bottom: 1px solid var(--border-color);
-}
-
-.hra-table th:last-child,
-.hra-table td:last-child {
-    text-align: right !important;
-    padding-right: 24px !important;
-}
-
-.hra-pagination-wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0 4px 0;
-    margin-top: 10px;
-    border-top: 1px solid var(--border-color);
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.hra-pagination-info {
-    font-size: 13px;
-    color: var(--text-muted);
-    background: var(--bg-surface-alt);
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-}
-
-.hra-pagination-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.hra-page-btn {
-    padding: 6px 14px;
-    background: var(--bg-surface-alt);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.hra-page-btn:hover:not(:disabled) {
-    background: var(--brand-green-dark);
-    border-color: var(--brand-green-dark);
-    color: white;
-}
-
-.hra-page-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.hra-page-numbers {
-    display: flex;
-    gap: 5px;
-}
-
-.hra-page-num {
-    min-width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
+  .hra-pagination-wrap {
     justify-content: center;
-    background: var(--bg-surface-alt);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.hra-page-num:hover {
-    background: var(--bg-hover);
-    border-color: var(--brand-green);
-}
-
-.hra-page-num.active {
-    background: var(--brand-green-dark);
-    border-color: var(--brand-green-dark);
-    color: white;
-}
-
-@media (max-width: 768px) {
-    .hra-pagination-wrap {
-        flex-direction: column;
-        align-items: center;
-    }
-}
-
-.hra-pagination-wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 0 8px 0;
-    margin-top: 16px;
-    border-top: 1px solid var(--border-color);
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.hra-pagination-info {
-    font-size: 13px;
-    color: var(--text-muted);
-    background: var(--bg-surface-alt);
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-}
-
-.hra-pagination-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.hra-page-btn {
-    padding: 6px 14px;
-    background: var(--bg-surface-alt);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.hra-page-btn:hover:not(:disabled) {
-    background: var(--brand-green-dark);
-    border-color: var(--brand-green-dark);
-    color: white;
-}
-
-.hra-page-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.hra-page-numbers {
-    display: flex;
-    gap: 5px;
-}
-
-.hra-page-num {
-    min-width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-surface-alt);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.hra-page-num:hover {
-    background: var(--bg-hover);
-    border-color: var(--brand-green);
-}
-
-.hra-page-num.active {
-    background: var(--brand-green-dark);
-    border-color: var(--brand-green-dark);
-    color: white;
-}
-
-@media (max-width: 768px) {
-    .hra-pagination-wrap {
-        flex-direction: column;
-        align-items: center;
-    }
+  }
 }

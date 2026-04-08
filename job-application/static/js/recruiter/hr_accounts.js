@@ -7,6 +7,9 @@ var rowsPerPage = 6;
 var allRowsArray = [];
 var currentFilteredRows = [];
 
+// Tracks where the current visible window starts
+var windowStart = 1;
+
 $(document).ready(function() {
 
     function storeAllRows() {
@@ -60,6 +63,7 @@ $(document).ready(function() {
 
         $('#filterMenu').removeClass('show');
         currentPage = 1;
+        windowStart = 1;
         applyFiltersAndPagination();
     });
 
@@ -67,11 +71,13 @@ $(document).ready(function() {
         $('.hra-filter-tab').removeClass('active');
         $(this).addClass('active');
         currentPage = 1;
+        windowStart = 1;
         applyFiltersAndPagination();
     });
 
     $('#hrSearch').on('keyup', function() {
         currentPage = 1;
+        windowStart = 1;
         applyFiltersAndPagination();
     });
 
@@ -79,7 +85,6 @@ $(document).ready(function() {
         var searchTerm = $('#hrSearch').val().toLowerCase();
         var activeTabFilter = $('.hra-filter-tab.active').data('filter');
 
-        // FIX: build fresh copy from allRowsArray so sort works every time
         var filteredRows = [];
 
         allRowsArray.forEach(function($row) {
@@ -104,7 +109,6 @@ $(document).ready(function() {
             }
         });
 
-        // FIX: sort on the data-fullname attribute directly
         if (currentSort === 'name_asc') {
             filteredRows.sort(function(a, b) {
                 var nameA = ($(a).data('fullname') || '').toString().toLowerCase();
@@ -128,17 +132,14 @@ $(document).ready(function() {
         var totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
         if (currentPage > totalPages) currentPage = totalPages;
 
-        var start    = (currentPage - 1) * rowsPerPage;
-        var end      = start + rowsPerPage;
-        var pageRows = filteredRows.slice(start, end);
+        var start = (currentPage - 1) * rowsPerPage;
+        var end   = start + rowsPerPage;
 
-        // FIX: detach all rows first, then re-append in sorted order, then show/hide
         var $tbody = $('#hrTableBody');
         $tbody.children('tr').detach();
         filteredRows.forEach(function($row) {
             $tbody.append($row);
         });
-        // hide all non-page rows
         filteredRows.forEach(function($row, idx) {
             if (idx >= start && idx < end) {
                 $row.show();
@@ -146,7 +147,6 @@ $(document).ready(function() {
                 $row.hide();
             }
         });
-        // hide rows not in filteredRows (filtered-out rows)
         allRowsArray.forEach(function($row) {
             if (filteredRows.indexOf($row) === -1) {
                 $tbody.append($row);
@@ -154,19 +154,13 @@ $(document).ready(function() {
             }
         });
 
-        // Pagination info
-        var startNum = totalRows === 0 ? 0 : start + 1;
-        var endNum   = Math.min(end, totalRows);
-        $('#paginationInfo').text('Showing ' + startNum + ' to ' + endNum + ' of ' + totalRows + ' entries');
+        $('#paginationInfo').hide();
 
-        // Prev / Next buttons
         $('#prevBtn').prop('disabled', currentPage === 1);
         $('#nextBtn').prop('disabled', currentPage === totalPages);
 
-        // Page numbers — show max 4, then "..." dropdown for the rest
         renderPageNumbers(totalPages);
 
-        // Empty state
         if (totalRows === 0) {
             $('.hra-empty-results').show();
             $('#paginationWrap').hide();
@@ -180,56 +174,49 @@ $(document).ready(function() {
         var $pn = $('#pageNumbers');
         $pn.empty();
 
-        var maxVisible = 4;
-        // Calculate the start of the current "window" of 4
-        // Window advances only when currentPage moves past it
-        var windowStart = Math.floor((currentPage - 1) / maxVisible) * maxVisible + 1;
-        var windowEnd   = Math.min(windowStart + maxVisible - 1, totalPages);
+        if (totalPages <= 1) return;
+
+        var maxVisible = 5;
+
+        // Clamp windowStart so the window never goes out of bounds
+        windowStart = Math.max(1, Math.min(windowStart, totalPages - maxVisible + 1));
+
+        var windowEnd = Math.min(windowStart + maxVisible - 1, totalPages);
+        var hasMore   = windowEnd < totalPages; // pages still exist beyond this window
 
         for (var i = windowStart; i <= windowEnd; i++) {
-            var activeClass = (i === currentPage) ? 'active' : '';
-            $pn.append('<div class="hra-page-num ' + activeClass + '" data-page="' + i + '">' + i + '</div>');
+            var isActive = (i === currentPage);
+            var isLast   = (i === windowEnd);
+            var showDots = isLast && hasMore;
+
+            var cls   = 'hra-page-num' + (isActive ? ' active' : '') + (showDots ? ' has-more' : '');
+            var label = showDots ? (i + '…') : i;
+
+            $pn.append('<div class="' + cls + '" data-page="' + i + '">' + label + '</div>');
         }
 
-        if (windowEnd < totalPages) {
-            var $dots = $('<div class="hra-page-dots" title="More pages">&#8230;</div>');
-            var $allPagesMenu = $('<div class="hra-all-pages-menu"></div>');
+        $pn.off('click').on('click', '.hra-page-num', function() {
+            var clickedPage = parseInt($(this).data('page'));
+            var isDotted    = $(this).hasClass('has-more');
 
-            for (var j = 1; j <= totalPages; j++) {
-                var activeClass2 = (j === currentPage) ? 'active' : '';
-                $allPagesMenu.append('<div class="hra-all-page-item ' + activeClass2 + '" data-page="' + j + '">' + j + '</div>');
+            currentPage = clickedPage;
+
+            // Shift the window forward by 1 ONLY when the "…" page is clicked
+            if (isDotted) {
+                windowStart = windowStart + 1;
             }
 
-            var $dotsWrap = $('<div class="hra-dots-wrap"></div>').append($dots).append($allPagesMenu);
-            $pn.append($dotsWrap);
-
-            $dots.on('click', function(e) {
-                e.stopPropagation();
-                $allPagesMenu.toggleClass('show');
-            });
-
-            $(document).on('click.dotsMenu', function() {
-                $allPagesMenu.removeClass('show');
-            });
-
-            $allPagesMenu.on('click', '.hra-all-page-item', function() {
-                currentPage = parseInt($(this).data('page'));
-                $allPagesMenu.removeClass('show');
-                applyFiltersAndPagination();
-            });
-        }
-
-        // Page number click
-        $pn.on('click', '.hra-page-num', function() {
-            currentPage = parseInt($(this).data('page'));
             applyFiltersAndPagination();
         });
     }
 
-    // FIX: Prev/Next buttons — use currentFilteredRows
     $('#prevBtn').on('click', function() {
         if (currentPage > 1) {
             currentPage--;
+            // If previous goes behind the window, slide the window back
+            if (currentPage < windowStart) {
+                windowStart = Math.max(1, windowStart - 1);
+            }
             applyFiltersAndPagination();
         }
     });
@@ -238,40 +225,32 @@ $(document).ready(function() {
         var totalPages = Math.max(1, Math.ceil(currentFilteredRows.length / rowsPerPage));
         if (currentPage < totalPages) {
             currentPage++;
+            var windowEnd = windowStart + 5 - 1;
+            // If next goes beyond the window, slide the window forward
+            if (currentPage > windowEnd) {
+                windowStart = windowStart + 1;
+            }
             applyFiltersAndPagination();
         }
     });
 
-    // View HR Details
     $(document).on('click', '.view-hr', function() {
         var hrId     = $(this).data('id');
         var hrName   = $(this).closest('tr').find('.hra-member-name').text();
         var hrEmail  = $(this).closest('tr').find('.hra-contact-info div').text().trim();
         var hrStatus = $(this).closest('tr').find('.hra-badge').text().trim();
 
-        var detailsHtml = `
-            <div class="hr-detail-section">
-                <h4><i class="fas fa-user"></i> Basic Information</h4>
-                <div class="hr-detail-row">
-                    <div class="hr-detail-label">Full Name:</div>
-                    <div class="hr-detail-value"><strong>${hrName}</strong></div>
-                </div>
-                <div class="hr-detail-row">
-                    <div class="hr-detail-label">Email:</div>
-                    <div class="hr-detail-value">${hrEmail}</div>
-                </div>
-                <div class="hr-detail-row">
-                    <div class="hr-detail-label">Status:</div>
-                    <div class="hr-detail-value">${hrStatus}</div>
-                </div>
-            </div>
-            <div class="hr-detail-section">
-                <h4><i class="fas fa-chart-line"></i> Activity Timeline</h4>
-                <div id="hrActivityTimeline">
-                    <p style="color:#9ca3af;text-align:center;padding:20px;">Loading activity data...</p>
-                </div>
-            </div>
-        `;
+        var detailsHtml =
+            '<div class="hr-detail-section">' +
+                '<h4><i class="fas fa-user"></i> Basic Information</h4>' +
+                '<div class="hr-detail-row"><div class="hr-detail-label">Full Name:</div><div class="hr-detail-value"><strong>' + hrName + '</strong></div></div>' +
+                '<div class="hr-detail-row"><div class="hr-detail-label">Email:</div><div class="hr-detail-value">' + hrEmail + '</div></div>' +
+                '<div class="hr-detail-row"><div class="hr-detail-label">Status:</div><div class="hr-detail-value">' + hrStatus + '</div></div>' +
+            '</div>' +
+            '<div class="hr-detail-section">' +
+                '<h4><i class="fas fa-chart-line"></i> Activity Timeline</h4>' +
+                '<div id="hrActivityTimeline"><p style="color:#9ca3af;text-align:center;padding:20px;">Loading activity data...</p></div>' +
+            '</div>';
 
         $('#hrDetailsContent').html(detailsHtml);
         $('#hrDetailsModal').addClass('show');
@@ -283,10 +262,7 @@ $(document).ready(function() {
                 if (response.activities && response.activities.length > 0) {
                     var html = '<div class="hra-timeline">';
                     response.activities.forEach(function(a) {
-                        html += `<div class="hra-timeline-item">
-                            <div class="hra-timeline-time">${a.time}</div>
-                            <div class="hra-timeline-content"><i class="fas ${a.icon}"></i><span>${a.message}</span></div>
-                        </div>`;
+                        html += '<div class="hra-timeline-item"><div class="hra-timeline-time">' + a.time + '</div><div class="hra-timeline-content"><i class="fas ' + a.icon + '"></i><span>' + a.message + '</span></div></div>';
                     });
                     html += '</div>';
                     $('#hrActivityTimeline').html(html);
@@ -300,7 +276,6 @@ $(document).ready(function() {
         });
     });
 
-    // FIX: Delete — use delegated event so it works after pagination re-renders
     $(document).on('click', '.delete-hr', function() {
         var hrId   = $(this).data('id');
         var hrName = $(this).data('name');
@@ -329,7 +304,6 @@ $(document).ready(function() {
         );
     });
 
-    // Modal close
     $('.hra-modal-close').on('click', function() {
         $(this).closest('.hra-modal').removeClass('show');
     });
@@ -340,7 +314,6 @@ $(document).ready(function() {
         }
     });
 
-    // Initialize
     applyFiltersAndPagination();
 });
 
@@ -374,7 +347,6 @@ function showConfirmModal(title, message, onConfirm) {
     $('#confirmTitle').text(title);
     $('#confirmMessage').html(message);
     $('#confirmModal').addClass('show');
-    // FIX: unbind previous handler before binding new one
     $('#confirmActionBtn').off('click').on('click', function() {
         $('#confirmModal').removeClass('show');
         onConfirm();
