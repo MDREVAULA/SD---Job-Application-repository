@@ -95,8 +95,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const notifMarkAll = document.getElementById('notifMarkAllBtn');
     const notifClear   = document.getElementById('notifClearBtn');
 
-    const isHR       = document.body.classList.contains('is-hr');
-    const API_BASE   = isHR ? '/hr/notifications' : '/recruiter/notifications';
+    const isHR     = document.body.classList.contains('is-hr');
+    const API_BASE = isHR ? '/hr/notifications' : '/recruiter/notifications';
 
     let lastUnreadCount = 0;
     let shownToastIds   = new Set();
@@ -138,6 +138,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateBadge(0);
             });
     });
+
+    // ── Icon + title + URL map for all notification types ──
+    const TYPE_META = {
+        new_application:    { icon: 'fa-file-alt',        title: 'New Application' },
+        interview_scheduled:{ icon: 'fa-calendar-check',  title: 'Interview Scheduled' },
+        new_message:        { icon: 'fa-comment-dots',    title: 'New Message' },
+        new_follow:         { icon: 'fa-user-plus',       title: 'New Follower' },
+        job_update:         { icon: 'fa-briefcase',       title: 'Job Update' },
+        application_status: { icon: 'fa-clipboard-check', title: 'Application Update' },
+    };
+
+    function getTypeMeta(type) {
+        return TYPE_META[type] || { icon: 'fa-bell', title: 'Notification' };
+    }
+
+    function getNotifUrl(n) {
+        if (n.type === 'new_message') return '/chat/inbox';
+        if (n.type === 'new_follow')  return isHR ? '/hr/profile' : '/recruiter/profile';
+        if (n.job_id) return isHR
+            ? '/hr/job-applications/' + n.job_id
+            : '/recruiter/job-applications/' + n.job_id;
+        return '#';
+    }
 
     // ── Fetch & render ──
     function loadNotifications(silent) {
@@ -198,15 +221,13 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         notifList.innerHTML = notifications.map(function (n) {
-            const icon = n.type === 'interview_scheduled'
-                ? '<i class="fas fa-calendar-check"></i>'
-                : '<i class="fas fa-file-alt"></i>';
-            const url = n.job_id
-                ? (isHR ? '/hr/job-applications/' + n.job_id : '/recruiter/job-applications/' + n.job_id)
-                : '#';
+            const meta = getTypeMeta(n.type);
+            const url  = getNotifUrl(n);
             return `
             <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" onclick="window.location.href='${url}'">
-                <div class="notif-icon type-${n.type}">${icon}</div>
+                <div class="notif-icon type-${n.type}">
+                    <i class="fas ${meta.icon}"></i>
+                </div>
                 <div class="notif-body">
                     <p class="notif-msg">${n.message}</p>
                     <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
@@ -217,18 +238,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showToast(notif) {
         if (document.querySelectorAll('.notif-toast').length >= 3) return;
-        const icon = notif.type === 'interview_scheduled'
-            ? '<i class="fas fa-calendar-check"></i>'
-            : '<i class="fas fa-file-alt"></i>';
-        const title = notif.type === 'interview_scheduled'
-            ? 'Interview Scheduled'
-            : 'New Job Application';
+        const meta = getTypeMeta(notif.type);
         const toast = document.createElement('div');
         toast.className = `notif-toast type-${notif.type}`;
         toast.innerHTML = `
-            <div class="notif-toast-icon">${icon}</div>
+            <div class="notif-toast-icon"><i class="fas ${meta.icon}"></i></div>
             <div class="notif-toast-body">
-                <div class="notif-toast-title">${title}</div>
+                <div class="notif-toast-title">${meta.title}</div>
                 <div class="notif-toast-msg">${notif.message}</div>
             </div>
             <button class="notif-toast-close" title="Dismiss"><i class="fas fa-times"></i></button>`;

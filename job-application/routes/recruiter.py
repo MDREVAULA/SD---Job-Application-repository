@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import jsonify
 from flask_login import login_required, current_user
 from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification, ApplicantNotification
 from werkzeug.security import generate_password_hash
@@ -989,3 +990,56 @@ def clear_all_notifications():
 
     flash("All notifications cleared.", "success")
     return redirect(url_for('recruiter.notification_history'))
+
+# ===============================
+# RECRUITER NOTIFICATIONS API
+# ===============================
+
+
+@recruiter_bp.route('/notifications')
+@login_required
+def get_notifications():
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'forbidden'}), 403
+    notifs = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).order_by(RecruiterNotification.created_at.desc()).limit(50).all()
+    unread_count = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).count()
+    return jsonify({
+        'unread_count': unread_count,
+        'notifications': [
+            {
+                'id': n.id,
+                'type': n.type,
+                'message': n.message,
+                'is_read': n.is_read,
+                'created_at': n.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                'job_id': n.job_id
+            }
+            for n in notifs
+        ]
+    })
+
+@recruiter_bp.route('/notifications/mark-read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'forbidden'}), 403
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'ok': True})
+
+@recruiter_bp.route('/notifications/clear-all', methods=['POST'])
+@login_required
+def clear_all_notifications_api():
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'forbidden'}), 403
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).delete()
+    db.session.commit()
+    return jsonify({'ok': True})
