@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile, HRProfile
+from models import ApplicantNotification, RecruiterNotification, HRNotification
 from datetime import datetime
 from sqlalchemy import or_, and_
 
@@ -72,7 +73,6 @@ def serialize_message(m, current_user_id, active_display_name=None):
 
     if m.reply_to_id and m.reply_to:
         reply_to_body = m.reply_to.body
-        # Determine author label: "You" if the quoted message was sent by current user
         if m.reply_to.sender_id == current_user_id:
             reply_to_author = "You"
         else:
@@ -89,6 +89,96 @@ def serialize_message(m, current_user_id, active_display_name=None):
         "reply_to_body":   reply_to_body,
         "reply_to_author": reply_to_author,
     }
+
+
+def _notify_new_message(sender, receiver, message_preview):
+    """
+    Create a new_message notification for the receiver regardless of role.
+    Only fires once per conversation (avoids spam): checks if there's already
+    an unread new_message notification from this sender.
+    """
+    preview = (message_preview[:60] + '…') if len(message_preview) > 60 else message_preview
+    msg_text = f"<strong>{sender.username}</strong> sent you a message: \"{preview}\""
+
+    if receiver.role == 'applicant':
+        # Check for recent unread notification from same sender to avoid spam
+        existing = ApplicantNotification.query.filter_by(
+            applicant_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            ApplicantNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = ApplicantNotification(
+                applicant_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+    elif receiver.role == 'recruiter':
+        existing = RecruiterNotification.query.filter_by(
+            recruiter_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            RecruiterNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = RecruiterNotification(
+                recruiter_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+    elif receiver.role == 'hr':
+        existing = HRNotification.query.filter_by(
+            hr_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            HRNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = HRNotification(
+                hr_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+
+def _notify_new_follow(follower, followed):
+    """
+    Create a new_follow notification for the followed user regardless of role.
+    """
+    msg_text = f"<strong>{follower.username}</strong> started following you."
+
+    if followed.role == 'applicant':
+        notif = ApplicantNotification(
+            applicant_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
+
+    elif followed.role == 'recruiter':
+        notif = RecruiterNotification(
+            recruiter_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
+
+    elif followed.role == 'hr':
+        notif = HRNotification(
+            hr_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
 
 
 # =========================
@@ -158,6 +248,10 @@ def follow(target_id):
     else:
         new_follow = Follow(follower_id=current_user.id, followed_id=target.id)
         db.session.add(new_follow)
+
+        # Notify the followed user
+        _notify_new_follow(current_user, target)
+
         db.session.commit()
         action = "followed"
 
@@ -301,7 +395,6 @@ def conversation(other_id):
 
 # =========================
 # SEND MESSAGE  (AJAX POST)
-# Now accepts optional reply_to_id from the request body
 # =========================
 @chat_bp.route("/send/<int:receiver_id>", methods=["POST"])
 @login_required
@@ -319,13 +412,12 @@ def send_message(receiver_id):
     # ── reply support ──
     reply_to_id = data.get("reply_to_id")
     if reply_to_id:
-        # Validate the quoted message actually belongs to this conversation
         quoted = Message.query.get(reply_to_id)
         if not quoted or not (
             (quoted.sender_id == current_user.id   and quoted.receiver_id == receiver_id) or
             (quoted.sender_id == receiver_id        and quoted.receiver_id == current_user.id)
         ):
-            reply_to_id = None   # silently ignore invalid reply targets
+            reply_to_id = None
 
     msg = Message(
         sender_id   = current_user.id,
@@ -334,6 +426,10 @@ def send_message(receiver_id):
         reply_to_id = reply_to_id,
     )
     db.session.add(msg)
+
+    # Notify receiver of new message (for all roles)
+    _notify_new_message(current_user, receiver, body)
+
     db.session.commit()
 
     # Build reply preview fields for the JS
@@ -400,7 +496,6 @@ def unread_count():
 
 # =========================
 # EDIT MESSAGE  (AJAX POST)
-# URL: /chat/edit/<msg_id>   ← no extra /chat/ prefix, blueprint handles it
 # =========================
 @chat_bp.route("/edit/<int:msg_id>", methods=["POST"])
 @login_required
@@ -432,7 +527,6 @@ def edit_message(msg_id):
 
 # =========================
 # UNSEND MESSAGE  (AJAX POST)
-# URL: /chat/unsend/<msg_id>
 # =========================
 @chat_bp.route("/unsend/<int:msg_id>", methods=["POST"])
 @login_required
@@ -442,8 +536,6 @@ def unsend_message(msg_id):
     if msg.sender_id != current_user.id:
         return jsonify({"error": "Unauthorized"}), 403
 
-    # Clear reply_to_id on any messages that quoted this one
-    # so child bubbles don't crash (reply_to becomes None gracefully)
     Message.query.filter_by(reply_to_id=msg_id).update({"reply_to_id": None})
 
     db.session.delete(msg)

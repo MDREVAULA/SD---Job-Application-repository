@@ -1367,8 +1367,65 @@ body {
     }
 }
 
-/* Safety: hide notification elements for non-recruiter and non-hr users */
-body:not(.is-recruiter):not(.is-hr) .notif-wrapper,
-body:not(.is-recruiter):not(.is-hr) .notif-toast {
+body.is-applicant .notif-wrapper {
+    display: flex;   /* ensure it shows for applicants */
+}
+
+/* ── New notification icon type colours ── */
+
+/* New Message */
+.notif-icon.type-new_message,
+.notif-history-icon.type-new_message {
+    background: rgba(100, 181, 246, 0.18);
+    color: #64b5f6;
+}
+
+/* New Follow */
+.notif-icon.type-new_follow,
+.notif-history-icon.type-new_follow {
+    background: rgba(186, 104, 200, 0.18);
+    color: #ba68c8;
+}
+
+/* Job Update */
+.notif-icon.type-job_update,
+.notif-history-icon.type-job_update {
+    background: rgba(157, 200, 141, 0.18);
+    color: var(--brand-green);
+}
+
+/* Application Status */
+.notif-icon.type-application_status,
+.notif-history-icon.type-application_status {
+    background: rgba(241, 178, 74, 0.18);
+    color: var(--brand-accent);
+}
+
+/* Interview Scheduled — already defined, but keep for history page */
+.notif-history-icon.type-interview_scheduled {
+    background: rgba(241, 178, 74, 0.15);
+    color: var(--brand-accent);
+}
+
+/* New Application — already defined, keep for history page */
+.notif-history-icon.type-new_application {
+    background: rgba(157, 200, 141, 0.15);
+    color: var(--brand-green);
+}
+
+/* ── Toast border colour for new types ── */
+.notif-toast.new_message  { border-left-color: #64b5f6; }
+.notif-toast.new_follow   { border-left-color: #ba68c8; }
+.notif-toast.job_update   { border-left-color: var(--brand-green); }
+.notif-toast.application_status { border-left-color: var(--brand-accent); }
+
+.notif-toast.new_message  .notif-toast-icon { color: #64b5f6; }
+.notif-toast.new_follow   .notif-toast-icon { color: #ba68c8; }
+.notif-toast.job_update   .notif-toast-icon { color: var(--brand-green); }
+.notif-toast.application_status .notif-toast-icon { color: var(--brand-accent); }
+
+/* ── Safety rule update: show bell for applicants too ── */
+body:not(.is-recruiter):not(.is-hr):not(.is-applicant) .notif-wrapper,
+body:not(.is-recruiter):not(.is-hr):not(.is-applicant) .notif-toast {
     display: none !important;
 }

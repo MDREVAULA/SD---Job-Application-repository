@@ -39,7 +39,8 @@
     </style>
 </head>
 
-<body {% if current_user.is_authenticated %}class="{% if current_user.role == 'recruiter' %}is-recruiter{% elif current_user.role == 'hr' %}is-hr{% endif %}"{% endif %}>
+<body {% if current_user.is_authenticated %}class="{% if current_user.role == 'recruiter' %}is-recruiter{% elif current_user.role == 'hr' %}is-hr{% elif current_user.role == 'applicant' %}is-applicant{% endif %}"{% endif %}>
+
     <!-- TOP NAVBAR -->
 <header class="navbar">
 
@@ -54,8 +55,8 @@
     </div>
 
     <div class="nav-right">
-        <!-- NOTIFICATION BELL (Recruiter and HR only) -->
-        {% if current_user.is_authenticated and current_user.role in ['recruiter', 'hr'] %}
+        <!-- NOTIFICATION BELL (Recruiter, HR, and Applicant) -->
+        {% if current_user.is_authenticated and current_user.role in ['recruiter', 'hr', 'applicant'] %}
         <div class="notif-wrapper" id="notifWrapper">
             <button class="notif-btn" id="notifBtn" title="Notifications">
                 <i class="fas fa-bell"></i>
@@ -94,18 +95,15 @@
                 {# ---- NAVBAR PROFILE PICTURE ---- #}
                 {% if current_user.profile_picture %}
                     {% if current_user.profile_picture.startswith('http') %}
-                        {# Google profile picture (full URL) #}
                         <img src="{{ current_user.profile_picture }}"
                              alt="Profile"
                              class="nav-avatar">
                     {% else %}
-                        {# Uploaded local profile picture #}
                         <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}"
                              alt="Profile"
                              class="nav-avatar">
                     {% endif %}
                 {% else %}
-                    {# No photo yet — show default icon #}
                     <i class="fas fa-user-circle nav-avatar-placeholder"></i>
                 {% endif %}
 
@@ -142,18 +140,15 @@
         <div class="sidebar-user-avatar">
             {% if current_user.profile_picture %}
                 {% if current_user.profile_picture.startswith('http') %}
-                    {# Google profile picture (full URL) #}
                     <img src="{{ current_user.profile_picture }}"
                          alt="Profile"
                          class="sidebar-avatar-img">
                 {% else %}
-                    {# Uploaded local profile picture #}
                     <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}"
                          alt="Profile"
                          class="sidebar-avatar-img">
                 {% endif %}
             {% else %}
-                {# No photo yet — show default icon #}
                 <i class="fas fa-user-circle sidebar-avatar-placeholder"></i>
             {% endif %}
         </div>
@@ -247,7 +242,6 @@
                 <span>Notifications</span>
             </a>
         </li>
-        
 
         <li class="dropdown">
             <a href="#" class="dropdown-toggle sidebar-link">
@@ -304,7 +298,6 @@
             </a>
         </li>
 
-
         <li class="dropdown">
             <a href="#" class="dropdown-toggle sidebar-link">
                 <div class="link-content">
@@ -344,6 +337,15 @@
                class="sidebar-link {% if request.endpoint == 'applicant.dashboard' %}active{% endif %}">
                 <i class="fa-solid fa-address-card"></i>
                 <span>Dashboard</span>
+            </a>
+        </li>
+
+        <!-- APPLICANT NOTIFICATIONS SIDEBAR LINK -->
+        <li>
+            <a href="{{ url_for('applicant.notification_history') }}"
+               class="sidebar-link {% if request.endpoint == 'applicant.notification_history' %}active{% endif %}">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
             </a>
         </li>
 
@@ -476,10 +478,203 @@ function updateUnreadBadge() {
                 badge.style.display = 'none';
             }
         })
-        .catch(() => {}); // silently fail if not logged in
+        .catch(() => {});
 }
 updateUnreadBadge();
 setInterval(updateUnreadBadge, 10000);
+</script>
+{% endif %}
+
+<!-- NOTIFICATION BELL SCRIPT (Recruiter, HR, and Applicant) -->
+{% if current_user.is_authenticated and current_user.role in ['recruiter', 'hr', 'applicant'] %}
+<script>
+(function () {
+    // ── Resolve the correct API endpoints based on role ──
+    {% if current_user.role == 'recruiter' %}
+    const NOTIF_API      = '/recruiter/notifications';
+    const MARK_READ_API  = '/recruiter/notifications/mark-read';
+    const CLEAR_API      = '/recruiter/notifications/clear-all';
+    {% elif current_user.role == 'hr' %}
+    const NOTIF_API      = '/hr/notifications';
+    const MARK_READ_API  = '/hr/notifications/mark-read';
+    const CLEAR_API      = '/hr/notifications/clear-all';
+    {% elif current_user.role == 'applicant' %}
+    const NOTIF_API      = '/applicant/notifications';
+    const MARK_READ_API  = '/applicant/notifications/mark-read';
+    const CLEAR_API      = '/applicant/notifications/clear-all';
+    {% endif %}
+
+    const btn      = document.getElementById('notifBtn');
+    const panel    = document.getElementById('notifPanel');
+    const badge    = document.getElementById('notifBadge');
+    const list     = document.getElementById('notifList');
+    const markBtn  = document.getElementById('notifMarkAllBtn');
+    const clearBtn = document.getElementById('notifClearBtn');
+
+    let lastUnread = 0;
+    let knownIds   = new Set();
+
+    // ── Icon map for all notification types ──
+    const ICONS = {
+        new_application:    { cls: 'type-new_application',   icon: 'fa-file-alt' },
+        interview_scheduled:{ cls: 'type-interview_scheduled',icon: 'fa-calendar-check' },
+        new_message:        { cls: 'type-new_message',        icon: 'fa-comment-dots' },
+        new_follow:         { cls: 'type-new_follow',         icon: 'fa-user-plus' },
+        job_update:         { cls: 'type-job_update',         icon: 'fa-briefcase' },
+        application_status: { cls: 'type-application_status', icon: 'fa-clipboard-check' },
+    };
+
+    function typeInfo(type) {
+        return ICONS[type] || { cls: 'type-new_application', icon: 'fa-bell' };
+    }
+
+    function renderNotifs(notifs) {
+        if (!notifs.length) {
+            list.innerHTML = `
+                <div class="notif-empty">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No notifications yet</p>
+                </div>`;
+            return;
+        }
+        list.innerHTML = notifs.map(n => {
+            const t = typeInfo(n.type);
+            return `
+            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+                <div class="notif-icon ${t.cls}">
+                    <i class="fas ${t.icon}"></i>
+                </div>
+                <div class="notif-body">
+                    <p class="notif-msg">${n.message}</p>
+                    <span class="notif-time">${n.created_at}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function showToast(n) {
+        const t = typeInfo(n.type);
+        const titleMap = {
+            new_application:    'New Application',
+            interview_scheduled:'Interview Scheduled',
+            new_message:        'New Message',
+            new_follow:         'New Follower',
+            job_update:         'Job Update',
+            application_status: 'Application Update',
+        };
+        const title = titleMap[n.type] || 'Notification';
+        const toast = document.createElement('div');
+        toast.className = `notif-toast ${n.type}`;
+        toast.innerHTML = `
+            <div class="notif-toast-icon"><i class="fas ${t.icon}"></i></div>
+            <div class="notif-toast-body">
+                <div class="notif-toast-title">${title}</div>
+                <div class="notif-toast-msg">${n.message}</div>
+            </div>
+            <button class="notif-toast-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'toastSlideOut 0.35s ease forwards';
+            setTimeout(() => toast.remove(), 350);
+        }, 5000);
+    }
+
+    function fetchNotifs() {
+        fetch(NOTIF_API)
+            .then(r => r.json())
+            .then(data => {
+                const count = data.unread_count || 0;
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.style.display = 'inline-flex';
+                    if (count > lastUnread) btn.classList.add('has-unread');
+                } else {
+                    badge.style.display = 'none';
+                    btn.classList.remove('has-unread');
+                }
+
+                // Toast new notifications
+                if (data.notifications) {
+                    data.notifications.forEach(n => {
+                        if (!knownIds.has(n.id)) {
+                            knownIds.add(n.id);
+                            if (!n.is_read && lastUnread !== null) showToast(n);
+                        }
+                    });
+                    if (panel.classList.contains('open')) {
+                        renderNotifs(data.notifications);
+                    }
+                }
+                lastUnread = count;
+            })
+            .catch(() => {});
+    }
+
+    // Initial fetch (no toasts on first load)
+    fetch(NOTIF_API)
+        .then(r => r.json())
+        .then(data => {
+            lastUnread = data.unread_count || 0;
+            if (lastUnread > 0) {
+                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
+                badge.style.display = 'inline-flex';
+                btn.classList.add('has-unread');
+            }
+            if (data.notifications) {
+                data.notifications.forEach(n => knownIds.add(n.id));
+                if (panel.classList.contains('open')) renderNotifs(data.notifications);
+            }
+        }).catch(() => {});
+
+    setInterval(fetchNotifs, 15000);
+
+    // Toggle panel
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = panel.classList.toggle('open');
+        if (isOpen) {
+            fetch(NOTIF_API)
+                .then(r => r.json())
+                .then(data => renderNotifs(data.notifications || []))
+                .catch(() => {});
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!document.getElementById('notifWrapper').contains(e.target)) {
+            panel.classList.remove('open');
+        }
+    });
+
+    // Mark all read
+    markBtn.addEventListener('click', () => {
+        fetch(MARK_READ_API, { method: 'POST' })
+            .then(() => {
+                badge.style.display = 'none';
+                btn.classList.remove('has-unread');
+                lastUnread = 0;
+                list.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+            }).catch(() => {});
+    });
+
+    // Clear all
+    clearBtn.addEventListener('click', () => {
+        fetch(CLEAR_API, { method: 'POST' })
+            .then(() => {
+                badge.style.display = 'none';
+                btn.classList.remove('has-unread');
+                lastUnread = 0;
+                knownIds.clear();
+                list.innerHTML = `
+                    <div class="notif-empty">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No notifications yet</p>
+                    </div>`;
+            }).catch(() => {});
+    });
+})();
 </script>
 {% endif %}
 

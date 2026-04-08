@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification
+from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification
 from werkzeug.security import generate_password_hash
 from flask import current_app
 from PIL import Image
@@ -332,19 +332,28 @@ def update_application_status(app_id):
 
     db.session.commit()
 
-    # --- NOTIFICATION: status update ---
+    # --- HR NOTIFICATION: status update (HR's own log) ---
     if new_status:
         applicant_user = User.query.get(application.applicant_id)
         job_for_notif = Job.query.get(application.job_id)
-        notif = HRNotification(
+        hr_notif = HRNotification(
             hr_id=current_user.id,
             type='new_application',
             message=f"Application status for <strong>{applicant_user.username}</strong> on <strong>{job_for_notif.title}</strong> updated to <strong>{new_status.capitalize()}</strong>.",
             application_id=application.id,
             job_id=application.job_id
         )
+        db.session.add(hr_notif)
 
-        db.session.add(notif)
+        # --- APPLICANT NOTIFICATION: their status changed ---
+        app_notif = ApplicantNotification(
+            applicant_id=application.applicant_id,
+            type='application_status',
+            message=f"Your application for <strong>{job_for_notif.title}</strong> has been updated to <strong>{new_status.capitalize()}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(app_notif)
         db.session.commit()
 
     flash("Application updated successfully!", "success")
@@ -373,17 +382,28 @@ def schedule_interview(app_id):
         application.status = 'interview'
         db.session.commit()
 
-        # --- NOTIFICATION: interview scheduled ---
         applicant = User.query.get(application.applicant_id)
         job_notif = Job.query.get(application.job_id)
-        notif = HRNotification(
+
+        # --- HR NOTIFICATION: interview scheduled (HR's own log) ---
+        hr_notif = HRNotification(
             hr_id=current_user.id,
             type='interview_scheduled',
             message=f"Interview scheduled for <strong>{applicant.username}</strong> applying for <strong>{job_notif.title}</strong> on {application.interview_date.strftime('%b %d, %Y at %I:%M %p')}.",
             application_id=application.id,
             job_id=application.job_id
         )
-        db.session.add(notif)
+        db.session.add(hr_notif)
+
+        # --- APPLICANT NOTIFICATION: interview scheduled ---
+        app_notif = ApplicantNotification(
+            applicant_id=application.applicant_id,
+            type='interview_scheduled',
+            message=f"An interview has been scheduled for your application to <strong>{job_notif.title}</strong> on <strong>{application.interview_date.strftime('%b %d, %Y at %I:%M %p')}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(app_notif)
         db.session.commit()
 
         flash("Interview scheduled successfully!", "success")
@@ -393,6 +413,7 @@ def schedule_interview(app_id):
     return redirect(
         url_for('hr.job_applications', job_id=application.job_id)
     )
+
 
 # ===============================
 # HR NOTIFICATIONS API

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification
+from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification, ApplicantNotification
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -518,9 +518,8 @@ def view_job_applications(job_id):
         applications=applications
     )
 
-
 # ===============================
-# RECRUITER UPDATE APPLICATION STATUS
+# RECRUITER UPDATE APPLICATION STATUS  
 # ===============================
 @recruiter_bp.route('/update-application-status/<int:app_id>', methods=['POST'])
 @login_required
@@ -548,12 +547,11 @@ def update_application_status(app_id):
 
     db.session.commit()
 
-    # --- NOTIFICATION: new application status update (only on first-time submission/new app) ---
-    # Notify recruiter when a NEW application arrives (status was just set from outside)
-    # This fires for any status change — recruiter sees own actions in history
     applicant_user = User.query.get(application.applicant_id)
     job_for_notif = Job.query.get(application.job_id)
+
     if new_status:
+        # Recruiter's own log
         notif = RecruiterNotification(
             recruiter_id=current_user.id,
             type='new_application',
@@ -561,59 +559,76 @@ def update_application_status(app_id):
             application_id=application.id,
             job_id=application.job_id
         )
-
         db.session.add(notif)
+
+        # Notify the applicant their status changed
+        app_notif = ApplicantNotification(
+            applicant_id=application.applicant_id,
+            type='application_status',
+            message=f"Your application for <strong>{job_for_notif.title}</strong> has been updated to <strong>{new_status.capitalize()}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(app_notif)
         db.session.commit()
 
     flash("Application status updated!", "success")
-
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
 
-
 # ===============================
-# RECRUITER SCHEDULE INTERVIEW
+# RECRUITER SCHEDULE INTERVIEW  
 # ===============================
 @recruiter_bp.route('/schedule-interview/<int:app_id>', methods=['POST'])
 @login_required
 def schedule_interview(app_id):
-
+ 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
-
+ 
     application = Application.query.get_or_404(app_id)
     job = Job.query.get_or_404(application.job_id)
-
+ 
     if job.company_id != current_user.id:
         flash("Unauthorized action!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
-
+ 
     interview_date_str = request.form.get('interview_date')
-
+ 
     if interview_date_str:
         application.interview_date = datetime.strptime(interview_date_str, "%Y-%m-%dT%H:%M")
         application.status = 'interview'
         db.session.commit()
-
-        # --- NOTIFICATION: interview scheduled ---
+ 
         applicant = User.query.get(application.applicant_id)
-        job = Job.query.get(application.job_id)
+        job_ref = Job.query.get(application.job_id)
+ 
+        # Recruiter's own log
         notif = RecruiterNotification(
             recruiter_id=current_user.id,
             type='interview_scheduled',
-            message=f"Interview scheduled for <strong>{applicant.username}</strong> applying for <strong>{job.title}</strong> on {application.interview_date.strftime('%b %d, %Y at %I:%M %p')}.",
+            message=f"Interview scheduled for <strong>{applicant.username}</strong> applying for <strong>{job_ref.title}</strong> on {application.interview_date.strftime('%b %d, %Y at %I:%M %p')}.",
             application_id=application.id,
             job_id=application.job_id
         )
-
         db.session.add(notif)
+ 
+        # Notify the applicant
+        app_notif = ApplicantNotification(
+            applicant_id=application.applicant_id,
+            type='interview_scheduled',
+            message=f"An interview has been scheduled for your application to <strong>{job_ref.title}</strong> on <strong>{application.interview_date.strftime('%b %d, %Y at %I:%M %p')}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(app_notif)
         db.session.commit()
+ 
         flash("Interview scheduled successfully!", "success")
     else:
         flash("Please provide a valid date and time.", "danger")
-
+ 
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
-
 
 # ===============================
 # EDIT JOB

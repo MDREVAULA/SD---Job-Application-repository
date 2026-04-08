@@ -1,8 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_required, current_user
 from models import db, Job, Application, User, ApplicantProfile, WorkExperience, Education, Skill, Project, Certification
-from models import RecruiterNotification
-from models import HRNotification
+from models import RecruiterNotification, HRNotification, ApplicantNotification
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -494,11 +493,20 @@ def apply_job(job_id):
             )
             db.session.add(hr_notif)
 
+        # Notify applicant: job application submitted
+        app_notif = ApplicantNotification(
+            applicant_id=current_user.id,
+            type='job_update',
+            message=f"Your application for <strong>{job_owner.title}</strong> has been submitted successfully.",
+            application_id=application.id,
+            job_id=job_id
+        )
+        db.session.add(app_notif)
+
         db.session.commit()
 
         flash("Application submitted successfully!", "success")
         return redirect(url_for('applicant.dashboard'))
-
 
     return render_template("applicant/apply_job.html", job=job)
 
@@ -694,3 +702,91 @@ def delete_certificate(filename):
         db.session.commit()
         flash("Certificate removed.", "success")
     return redirect(url_for('applicant.profile'))
+
+
+# ===============================
+# APPLICANT NOTIFICATIONS API
+# ===============================
+@applicant_bp.route('/notifications')
+@login_required
+def get_notifications():
+    if current_user.role != 'applicant':
+        return jsonify({'error': 'forbidden'}), 403
+    notifs = ApplicantNotification.query.filter_by(
+        applicant_id=current_user.id
+    ).order_by(ApplicantNotification.created_at.desc()).limit(50).all()
+    unread_count = ApplicantNotification.query.filter_by(
+        applicant_id=current_user.id, is_read=False
+    ).count()
+    return jsonify({
+        'unread_count': unread_count,
+        'notifications': [
+            {
+                'id': n.id,
+                'type': n.type,
+                'message': n.message,
+                'is_read': n.is_read,
+                'created_at': n.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                'job_id': n.job_id,
+                'application_id': n.application_id
+            }
+            for n in notifs
+        ]
+    })
+
+
+@applicant_bp.route('/notifications/mark-read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    if current_user.role != 'applicant':
+        return jsonify({'error': 'forbidden'}), 403
+    ApplicantNotification.query.filter_by(
+        applicant_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'ok': True})
+
+# ===============================
+# CLEAR ALL NOTIFICATIONS
+# ===============================
+
+@applicant_bp.route('/notifications/clear-all', methods=['POST'])
+@login_required
+def clear_all_notifications():
+    if current_user.role != 'applicant':
+        if request.is_json:
+            return jsonify({'error': 'forbidden'}), 403
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    ApplicantNotification.query.filter_by(
+        applicant_id=current_user.id
+    ).delete()
+    db.session.commit()
+
+    # JSON request (bell dropdown AJAX)
+    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'ok': True})
+
+    # Form POST (from notification history page)
+    flash("All notifications cleared.", "success")
+    return redirect(url_for('applicant.notification_history'))
+
+# ===============================
+# APPLICANT NOTIFICATION HISTORY PAGE
+# ===============================
+@applicant_bp.route('/notification-history')
+@login_required
+def notification_history():
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+    notifs = ApplicantNotification.query.filter_by(
+        applicant_id=current_user.id
+    ).order_by(ApplicantNotification.created_at.desc()).all()
+    # Mark all as read when page is opened
+    ApplicantNotification.query.filter_by(
+        applicant_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return render_template('applicant/notification_history.html', notifications=notifs)
