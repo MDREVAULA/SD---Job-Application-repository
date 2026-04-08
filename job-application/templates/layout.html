@@ -324,6 +324,7 @@
 
         <div class="sidebar-section-label-role">Applicant</div>
 
+        <!-- 1. My Profile -->
         <li>
             <a href="{{ url_for('applicant.profile') }}"
                class="sidebar-link {% if request.endpoint == 'applicant.profile' %}active{% endif %}">
@@ -332,20 +333,21 @@
             </a>
         </li>
 
-        <li>
-            <a href="{{ url_for('applicant.dashboard') }}"
-               class="sidebar-link {% if request.endpoint == 'applicant.dashboard' %}active{% endif %}">
-                <i class="fa-solid fa-address-card"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
-
-        <!-- APPLICANT NOTIFICATIONS SIDEBAR LINK -->
+        <!-- 2. Notifications (between My Profile and Dashboard) -->
         <li>
             <a href="{{ url_for('applicant.notification_history') }}"
                class="sidebar-link {% if request.endpoint == 'applicant.notification_history' %}active{% endif %}">
                 <i class="fas fa-bell"></i>
                 <span>Notifications</span>
+            </a>
+        </li>
+
+        <!-- 3. Dashboard -->
+        <li>
+            <a href="{{ url_for('applicant.dashboard') }}"
+               class="sidebar-link {% if request.endpoint == 'applicant.dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-address-card"></i>
+                <span>Dashboard</span>
             </a>
         </li>
 
@@ -494,14 +496,17 @@ setInterval(updateUnreadBadge, 10000);
     const NOTIF_API      = '/recruiter/notifications';
     const MARK_READ_API  = '/recruiter/notifications/mark-read';
     const CLEAR_API      = '/recruiter/notifications/clear-all';
+    const ROLE           = 'recruiter';
     {% elif current_user.role == 'hr' %}
     const NOTIF_API      = '/hr/notifications';
     const MARK_READ_API  = '/hr/notifications/mark-read';
     const CLEAR_API      = '/hr/notifications/clear-all';
+    const ROLE           = 'hr';
     {% elif current_user.role == 'applicant' %}
     const NOTIF_API      = '/applicant/notifications';
     const MARK_READ_API  = '/applicant/notifications/mark-read';
     const CLEAR_API      = '/applicant/notifications/clear-all';
+    const ROLE           = 'applicant';
     {% endif %}
 
     const btn      = document.getElementById('notifBtn');
@@ -528,6 +533,29 @@ setInterval(updateUnreadBadge, 10000);
         return ICONS[type] || { cls: 'type-new_application', icon: 'fa-bell' };
     }
 
+    // ── Resolve redirect URL for each notification type ──
+    function getNotifUrl(n) {
+        if (n.type === 'new_message') {
+            return '/chat/inbox';
+        }
+        if (n.type === 'new_follow') {
+            if (ROLE === 'recruiter') return '/recruiter/profile';
+            if (ROLE === 'hr')        return '/hr/profile';
+            if (ROLE === 'applicant') return '/applicant/profile';
+        }
+        if (n.type === 'new_application' && n.job_id) {
+            if (ROLE === 'recruiter') return '/recruiter/job-applications/' + n.job_id;
+            if (ROLE === 'hr')        return '/hr/job-applications/' + n.job_id;
+        }
+        if ((n.type === 'application_status' || n.type === 'interview_scheduled') && n.application_id) {
+            return '/applicant/dashboard';
+        }
+        if (n.type === 'job_update' && n.job_id) {
+            return '/jobs/' + n.job_id;
+        }
+        return '#';
+    }
+
     function renderNotifs(notifs) {
         if (!notifs.length) {
             list.innerHTML = `
@@ -538,21 +566,24 @@ setInterval(updateUnreadBadge, 10000);
             return;
         }
         list.innerHTML = notifs.map(n => {
-            const t = typeInfo(n.type);
+            const t   = typeInfo(n.type);
+            const url = getNotifUrl(n);
             return `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
+                 onclick="window.location.href='${url}'" style="cursor:pointer;">
                 <div class="notif-icon ${t.cls}">
                     <i class="fas ${t.icon}"></i>
                 </div>
                 <div class="notif-body">
                     <p class="notif-msg">${n.message}</p>
-                    <span class="notif-time">${n.created_at}</span>
+                    <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
                 </div>
             </div>`;
         }).join('');
     }
 
     function showToast(n) {
+        if (document.querySelectorAll('.notif-toast').length >= 3) return;
         const t = typeInfo(n.type);
         const titleMap = {
             new_application:    'New Application',
@@ -563,17 +594,23 @@ setInterval(updateUnreadBadge, 10000);
             application_status: 'Application Update',
         };
         const title = titleMap[n.type] || 'Notification';
+        const url   = getNotifUrl(n);
         const toast = document.createElement('div');
-        toast.className = `notif-toast ${n.type}`;
+        toast.className = `notif-toast type-${n.type}`;
         toast.innerHTML = `
             <div class="notif-toast-icon"><i class="fas ${t.icon}"></i></div>
             <div class="notif-toast-body">
                 <div class="notif-toast-title">${title}</div>
                 <div class="notif-toast-msg">${n.message}</div>
             </div>
-            <button class="notif-toast-close" onclick="this.parentElement.remove()">
+            <button class="notif-toast-close" onclick="event.stopPropagation();this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>`;
+        // Clicking the toast body navigates to the relevant page
+        toast.addEventListener('click', function (e) {
+            if (e.target.closest('.notif-toast-close')) return;
+            if (url !== '#') window.location.href = url;
+        });
         document.body.appendChild(toast);
         setTimeout(() => {
             toast.style.animation = 'toastSlideOut 0.35s ease forwards';
