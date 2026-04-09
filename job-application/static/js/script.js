@@ -260,3 +260,72 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(function () { loadNotifications(true); }, 15000);
 
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const deleteButtons = document.querySelectorAll(".delete-hr");
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener("click", function () {
+            const hrId = this.dataset.id;
+            const hrName = this.dataset.name;
+
+            document.getElementById("confirmMessage").innerHTML =
+                `Are you sure you want to delete <strong>${hrName}</strong>? This cannot be undone.`;
+
+            document.getElementById("deleteForm").action =
+                `/recruiter/delete-hr/${hrId}`;
+
+            document.getElementById("confirmModal").style.display = "flex";
+        });
+    });
+
+});
+
+function closeConfirmModal() {
+    document.getElementById("confirmModal").style.display = "none";
+}
+document.addEventListener("DOMContentLoaded", function () {
+
+    const deleteButtons = document.querySelectorAll(".delete-hr");
+    const deleteAllBtn = document.getElementById("deleteAllHrBtn");
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener("click", function () {
+            const hrId = this.dataset.id;
+            const hrName = this.dataset.name;
+
+            document.getElementById("confirmTitle").textContent = "Delete HR Account";
+            document.getElementById("confirmMessage").innerHTML =
+                `Are you sure you want to delete <strong>${hrName}</strong>? This cannot be undone.`;
+
+            document.getElementById("deleteForm").action =
+                `/recruiter/delete-hr/${hrId}`;
+
+            document.getElementById("confirmModal").style.display = "flex";
+        });
+    });
+
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener("click", function () {
+            document.getElementById("confirmTitle").textContent = "Delete All HR Accounts";
+            document.getElementById("confirmMessage").innerHTML =
+                `Are you sure you want to delete <strong>all HR accounts</strong>? This cannot be undone.`;
+
+            document.getElementById("deleteForm").action =
+                `/recruiter/delete-all-hr`;
+
+            document.getElementById("confirmModal").style.display = "flex";
+        });
+    }
+
+    const closeButtons = document.querySelectorAll("#confirmModal .hra-modal-close");
+    closeButtons.forEach(btn => {
+        btn.addEventListener("click", closeConfirmModal);
+    });
+
+});
+
+function closeConfirmModal() {
+    document.getElementById("confirmModal").style.display = "none";
+}

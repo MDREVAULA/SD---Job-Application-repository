@@ -489,6 +489,46 @@ def create_hr():
         hrs=hrs,
         temp_password=temp_password
     )
+# ===============================
+# DELETE HR ACCOUNT
+# ===============================
+@recruiter_bp.route('/delete-hr/<int:hr_id>', methods=['POST'])
+@login_required
+def delete_hr(hr_id):
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    hr = User.query.filter_by(
+        id=hr_id,
+        role='hr',
+        created_by=current_user.id
+    ).first()
+
+    if not hr:
+        flash("HR account not found.", "danger")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    try:
+        # ✅ delete related HR profile FIRST (fixes your error)
+        if hr.hr_profile:
+            db.session.delete(hr.hr_profile)
+
+        # ✅ delete feedbacks if any
+        HRFeedback.query.filter_by(hr_id=hr.id).delete()
+
+        # ✅ finally delete user
+        db.session.delete(hr)
+        db.session.commit()
+
+        flash("HR account deleted successfully!", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting HR account: {str(e)}", "danger")
+
+    return redirect(url_for('recruiter.hr_accounts'))
 
 # ===============================
 # VIEW JOB APPLICATIONS (SPECIFIC JOB)
@@ -792,21 +832,38 @@ def clear_all_notifications():
     return redirect(url_for('recruiter.notification_history'))
 
 # ===============================
-# DELETE HR ACCOUNT
+# DELETE ALL HR ACCOUNTS
 # ===============================
-@recruiter_bp.route('/delete-hr', methods=['POST'])
+@recruiter_bp.route('/delete-all-hr', methods=['POST'])
 @login_required
-def delete_hr():
+def delete_all_hr():
+
     if current_user.role != 'recruiter':
-        return jsonify({'success': False, 'error': 'Access denied'}), 403
-    
-    hr_id = request.form.get('hr_id')
-    hr = User.query.get_or_404(hr_id)
-    
-    if hr.created_by != current_user.id or hr.role != 'hr':
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
-    
-    db.session.delete(hr)
-    db.session.commit()
-    
-    return jsonify({'success': True})
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    hrs = User.query.filter_by(
+        created_by=current_user.id,
+        role='hr'
+    ).all()
+
+    if not hrs:
+        flash("No HR accounts found.", "warning")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    try:
+        for hr in hrs:
+            if hr.hr_profile:
+                db.session.delete(hr.hr_profile)
+
+            HRFeedback.query.filter_by(hr_id=hr.id).delete()
+            db.session.delete(hr)
+
+        db.session.commit()
+        flash("All HR accounts deleted successfully!", "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting all HR accounts: {str(e)}", "danger")
+
+    return redirect(url_for('recruiter.hr_accounts'))
