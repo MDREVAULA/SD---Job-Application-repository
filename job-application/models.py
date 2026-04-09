@@ -498,3 +498,55 @@ class JobImage(db.Model):
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
     job = db.relationship("Job", backref="images")
+
+# =========================
+# SETTINGS TAB
+# =========================
+
+class UserSettings(db.Model):
+    """Stores per-user settings (privacy, notifications, appearance, etc.)"""
+    __tablename__ = 'user_settings'
+ 
+    id      = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
+ 
+    # ── Privacy ──────────────────────────────────────────────
+    # 'yes' = everyone | 'mutual' = mutual followers only
+    show_name         = db.Column(db.String(20), default='mutual')
+ 
+    # 'yes' = everyone | 'custom' = docs_audience_json list
+    show_docs         = db.Column(db.String(20), default='custom')
+    # JSON list: e.g. '["recruiter","hr","mutual"]'
+    docs_audience_json = db.Column(db.Text, default='["recruiter","hr"]')
+ 
+    # 'yes' = everyone | 'self' = only me
+    show_follow_list  = db.Column(db.String(10), default='yes')
+    show_follow_count = db.Column(db.String(10), default='yes')
+ 
+    # 'all' | 'recruiters' | 'mutual'
+    who_can_message   = db.Column(db.String(20), default='all')
+ 
+    # ── Notifications ─────────────────────────────────────────
+    notif_app_status  = db.Column(db.Boolean, default=True)
+    notif_messages    = db.Column(db.Boolean, default=True)
+    notif_followers   = db.Column(db.Boolean, default=True)
+    notif_jobs        = db.Column(db.Boolean, default=False)
+ 
+    # ── Appearance ────────────────────────────────────────────
+    # 'light' | 'dark' | 'system'
+    theme             = db.Column(db.String(10), default='light')
+    # 'comfortable' | 'compact'
+    density           = db.Column(db.String(15), default='comfortable')
+ 
+    # ── Language ─────────────────────────────────────────────
+    language          = db.Column(db.String(10), default='en')
+    timezone          = db.Column(db.String(50), default='Asia/Manila')
+ 
+    # ── Two-factor (security section) ────────────────────────
+    two_factor        = db.Column(db.Boolean, default=False)
+ 
+    # Relationship back to user
+    user = db.relationship('User', backref=db.backref('settings', uselist=False))
+ 
+    def __repr__(self):
+        return f'<UserSettings user_id={self.user_id}>'
