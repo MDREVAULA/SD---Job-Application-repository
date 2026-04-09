@@ -107,11 +107,7 @@
                             <i class="fas fa-search"></i>
                             <input type="text" id="hrSearch" placeholder="Search by name or email...">
                         </div>
-                            {% if hrs %}
-                            <button type="button" class="hra-submit-btn" id="deleteAllHrBtn">
-                                <i class="fas fa-trash"></i> Delete All
-                            </button>
-                            {% endif %}
+        
                         <div class="hra-filter-dropdown">
                             <button class="hra-filter-btn" id="filterBtn">
                                 <i class="fas fa-sort"></i>
@@ -214,8 +210,18 @@
                 </div>
                 
                 <!-- PAGINATION -->
-                <div class="hra-pagination-wrap" id="paginationWrap">
-                    <div class="hra-pagination-info" id="paginationInfo"></div>
+                 <div class="hra-pagination-wrap" id="paginationWrap">
+                    
+                    <!-- LEFT SIDE (Delete All) -->
+                     <div class="hra-pagination-left">
+                         {% if hrs|length > 0 %}
+                         <button type="button" class="hra-submit-btn" id="deleteAllHrBtn">
+                            <i class="fas fa-trash"></i> Delete All
+                         </button>
+                         {% endif %}
+                        </div>
+                        
+                        <div class="hra-pagination-info" id="paginationInfo"></div>
                     <div class="hra-pagination-controls">
                         <button class="hra-page-btn" id="prevBtn">Previous</button>
                         <div class="hra-page-numbers" id="pageNumbers"></div>

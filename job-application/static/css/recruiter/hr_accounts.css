@@ -1242,3 +1242,14 @@
     justify-content: center;
   }
 }
+
+.hra-pagination-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hra-pagination-left {
+    display: flex;
+    align-items: center;
+}
