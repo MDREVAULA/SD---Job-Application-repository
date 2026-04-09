@@ -1,5 +1,5 @@
-# Hindi pa tapos!
-1. Delete button not working
+# tapos na!
+1. Delete button working
 
 # Files that were changed
 - routes/recruiter.py
