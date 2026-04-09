@@ -135,16 +135,15 @@
                         <i class="fas fa-comment"></i>
                     </a>
 
-                    <button
-                        class="btn-view-profile"
-                        title="View profile"
-                        onclick="openProfileModal({{ card.id }})"
-                    >
+                    {# ── VIEW PROFILE LINK — replaces the old modal eye button ── #}
+                    <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}"
+                       class="btn-view-profile"
+                       title="View {{ card.display_name }}'s profile">
                         <i class="fas fa-eye"></i>
-                    </button>
+                    </a>
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn-login-to-connect">
-                        <i class="fas fa-sign-in-alt"></i> Log in to connect
+                <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}" class="btn-follow">
+                        <i class="fas fa-sign-in-alt"></i> View Profile
                     </a>
                 {% endif %}
             </div>
@@ -170,202 +169,10 @@
 </div><!-- .people-page-inner -->
 </div><!-- .people-page -->
 
-
-<!-- ============================
-     VIEW PROFILE MODAL
-============================ -->
-<div class="profile-modal-overlay" id="profileModalOverlay" onclick="closeProfileModalOnOverlay(event)">
-    <div class="profile-modal" id="profileModal">
-
-        <!-- Cover -->
-        <div class="modal-cover" id="modalCover">
-            <button class="modal-close-btn" onclick="closeProfileModal()" title="Close">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <!-- Avatar + actions -->
-        <div class="modal-avatar-section">
-            <div class="modal-avatar-wrap" id="modalAvatarWrap">
-                <div class="modal-avatar-placeholder"><i class="fas fa-user"></i></div>
-            </div>
-
-            <div class="modal-quick-actions">
-                {% if current_user.is_authenticated %}
-                <button class="modal-btn-follow" id="modalFollowBtn" onclick="toggleFollowModal()">
-                    <i class="fas fa-user-plus"></i> Follow
-                </button>
-                <a class="modal-btn-message" id="modalMessageBtn" href="#">
-                    <i class="fas fa-comment"></i> Message
-                </a>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Body -->
-        <div class="modal-body">
-            <h2 class="modal-name" id="modalName">—</h2>
-            <span class="modal-username" id="modalUsername">@—</span>
-            <span class="modal-role-pill" id="modalRolePill">—</span>
-
-            <!-- Stats -->
-            <div class="modal-stats">
-                <div class="modal-stat">
-                    <span class="modal-stat-number" id="modalFollowers">—</span>
-                    <span class="modal-stat-label">Followers</span>
-                </div>
-                <div class="modal-stat">
-                    <span class="modal-stat-number" id="modalFollowing">—</span>
-                    <span class="modal-stat-label">Following</span>
-                </div>
-                <div class="modal-stat">
-                    <span class="modal-stat-number" id="modalMutual">—</span>
-                    <span class="modal-stat-label">Mutual</span>
-                </div>
-            </div>
-
-            <!-- Details -->
-            <div class="modal-details">
-                <div class="modal-detail-row" id="modalCompanyRow" style="display:none">
-                    <span class="modal-detail-icon"><i class="fas fa-briefcase"></i></span>
-                    <span class="modal-detail-text" id="modalCompanyText">—</span>
-                </div>
-                <div class="modal-detail-row">
-                    <span class="modal-detail-icon"><i class="fas fa-id-badge"></i></span>
-                    <span class="modal-detail-text" id="modalRoleText">—</span>
-                </div>
-            </div>
-
-            <div class="modal-divider"></div>
-
-            <!-- About placeholder -->
-            <p class="modal-section-title">About</p>
-            <div class="modal-placeholder-block">
-                <i class="fas fa-file-alt"></i>
-                No bio added yet.
-            </div>
-        </div>
-
-    </div>
-</div>
-
+{# ── PROFILE MODAL REMOVED — replaced by full page view ── #}
 
 <script>
-const PEOPLE_DATA = {
-    {% for card in user_cards %}
-    "{{ card.id }}": {
-        id: {{ card.id }},
-        name: {{ card.display_name | tojson }},
-        username: {{ card.username | tojson }},
-        role: {{ card.role | tojson }},
-        company: {{ (card.company or '') | tojson }},
-        follower_count: {{ card.follower_count }},
-        is_following: {{ 'true' if card.is_following else 'false' }},
-        {% if card.profile_picture and not card.profile_picture.startswith('http') %}
-        avatar_url: "{{ url_for('static', filename='uploads/profile_pictures/' + card.profile_picture) }}",
-        {% elif card.profile_picture %}
-        avatar_url: {{ card.profile_picture | tojson }},
-        {% else %}
-        avatar_url: '',
-        {% endif %}
-        message_url: "{{ url_for('chat.conversation', other_id=card.id) }}"
-    }{% if not loop.last %},{% endif %}
-    {% endfor %}
-};
-
-let activeModalUserId = null;
-
-const ROLE_LABELS = { applicant: 'Applicant', recruiter: 'Recruiter', hr: 'HR Professional' };
-const ROLE_ICONS  = { applicant: 'fa-user-tie', recruiter: 'fa-building', hr: 'fa-users-cog' };
-
-function openProfileModal(userId) {
-    const d = PEOPLE_DATA[String(userId)];
-    if (!d) return;
-    activeModalUserId = String(userId);
-
-    // Cover color
-    const cover = document.getElementById('modalCover');
-    cover.className = 'modal-cover role-' + d.role;
-
-    // Avatar
-    const wrap = document.getElementById('modalAvatarWrap');
-    if (d.avatar_url) {
-        wrap.innerHTML = `<img src="${d.avatar_url}" alt="${d.name}" class="modal-avatar">`;
-    } else {
-        wrap.innerHTML = `<div class="modal-avatar-placeholder"><i class="fas fa-user"></i></div>`;
-    }
-
-    // Name / username
-    document.getElementById('modalName').textContent = d.name;
-    document.getElementById('modalUsername').textContent = '@' + d.username;
-
-    // Role pill
-    const pill = document.getElementById('modalRolePill');
-    pill.className = 'modal-role-pill role-' + d.role;
-    pill.innerHTML = `<i class="fas ${ROLE_ICONS[d.role] || 'fa-user'} " style="font-size:0.65rem"></i> ${ROLE_LABELS[d.role] || d.role}`;
-
-    // Stats
-    document.getElementById('modalFollowers').textContent = d.follower_count;
-    document.getElementById('modalFollowing').textContent  = '—';
-    document.getElementById('modalMutual').textContent     = '—';
-
-    // Company
-    const compRow = document.getElementById('modalCompanyRow');
-    if (d.company) {
-        compRow.style.display = 'flex';
-        document.getElementById('modalCompanyText').textContent = d.company;
-    } else {
-        compRow.style.display = 'none';
-    }
-
-    // Role text
-    document.getElementById('modalRoleText').textContent = ROLE_LABELS[d.role] || d.role;
-
-    // Follow btn
-    const fb = document.getElementById('modalFollowBtn');
-    if (fb) {
-        fb.className = 'modal-btn-follow' + (d.is_following ? ' following' : '');
-        fb.innerHTML = d.is_following
-            ? '<i class="fas fa-user-check"></i> Following'
-            : '<i class="fas fa-user-plus"></i> Follow';
-    }
-
-    // Message link
-    const mb = document.getElementById('modalMessageBtn');
-    if (mb) mb.href = d.message_url;
-
-    document.getElementById('profileModalOverlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeProfileModal() {
-    document.getElementById('profileModalOverlay').classList.remove('open');
-    document.body.style.overflow = '';
-    activeModalUserId = null;
-}
-
-function closeProfileModalOnOverlay(e) {
-    if (e.target === document.getElementById('profileModalOverlay')) closeProfileModal();
-}
-
-function toggleFollowModal() {
-    if (!activeModalUserId) return;
-    const cardBtn = document.getElementById('follow-btn-' + activeModalUserId);
-    if (cardBtn) cardBtn.click();
-    setTimeout(() => {
-        const fb = document.getElementById('modalFollowBtn');
-        if (!fb || !cardBtn) return;
-        const nowFollowing = cardBtn.classList.contains('following');
-        fb.className = 'modal-btn-follow' + (nowFollowing ? ' following' : '');
-        fb.innerHTML = nowFollowing
-            ? '<i class="fas fa-user-check"></i> Following'
-            : '<i class="fas fa-user-plus"></i> Follow';
-    }, 150);
-}
-
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeProfileModal();
-});
+{# Follow toggle still works without the modal #}
 </script>
 
 <script src="{{ url_for('static', filename='js/chat/people.js') }}"></script>

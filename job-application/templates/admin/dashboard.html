@@ -1,59 +1,155 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2>Admin Dashboard</h2>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
 
-<!-- ============================ -->
-<!-- Pending Recruiter Requests -->
-<!-- ============================ -->
-<h3>Pending Recruiter Verification</h3>
+<div class="admin-dashboard-wrapper">
+    <div class="admin-dashboard-container">
 
-<ul>
-{% for rec in pending_recruiters %}
-<li>
-    {{ rec.username }} - {{ rec.email }}
+        <!-- HEADER HERO — mirrors .search-hero -->
+        <div class="admin-dashboard-header">
+            <div class="admin-dashboard-header-inner">
+                <h2><i class="fas fa-shield-alt"></i> Admin Dashboard</h2>
+                <p class="admin-dashboard-subtitle">Manage and verify user accounts</p>
+            </div>
+        </div>
 
-    <a href="{{ url_for('admin.review_recruiter', user_id=rec.id) }}">
-        Review
-    </a>
+        <!-- STATS STRIP — floats over hero bottom -->
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <i class="fas fa-building admin-stat-icon"></i>
+                <div class="admin-stat-number">{{ pending_recruiters|length }}</div>
+                <div class="admin-stat-label">Pending Recruiters</div>
+            </div>
+            <div class="admin-stat-card">
+                <i class="fas fa-user-tie admin-stat-icon"></i>
+                <div class="admin-stat-number">{{ pending_applicants|length }}</div>
+                <div class="admin-stat-label">Pending Applicants</div>
+            </div>
+        </div>
 
-</li>
-{% else %}
-<li>No pending recruiters</li>
-{% endfor %}
-</ul>
+        <!-- MAIN CONTENT -->
+        <div class="admin-content-area">
 
+            <!-- Pending Recruiter Verification -->
+            <div class="admin-section">
+                <h3>
+                    <i class="fas fa-building"></i>
+                    Pending Recruiter Verification
+                    <span class="admin-section-badge">{{ pending_recruiters|length }}</span>
+                </h3>
 
-<!-- ============================ -->
-<!-- Pending Applicant Requests -->
-<!-- ============================ -->
-<h3>Pending Applicant Verification</h3>
+                {% if pending_recruiters %}
+                    <!-- Results count bar -->
+                    <div class="admin-results-header">
+                        <div class="admin-results-count">
+                            <span>{{ pending_recruiters|length }}</span> recruiter{{ 's' if pending_recruiters|length != 1 }} awaiting review
+                        </div>
+                    </div>
 
-<ul>
-{% for app in pending_applicants %}
-<li>
-    {{ app.username }} - {{ app.email }}
+                    <ul class="admin-list">
+                        {% for rec in pending_recruiters %}
+                        <li class="admin-list-item">
+                            <div class="admin-user-info">
+                                <div class="admin-user-avatar">
+                                    {{ rec.username[0]|upper }}
+                                </div>
+                                <div class="admin-user-details">
+                                    <p class="admin-user-name">{{ rec.username }}</p>
+                                    <p class="admin-user-email">{{ rec.email }}</p>
+                                    <div class="admin-user-meta">
+                                        <span class="admin-meta-tag">
+                                            <i class="fas fa-building"></i> Recruiter
+                                        </span>
+                                        <span class="admin-meta-tag">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('admin.review_recruiter', user_id=rec.id) }}" class="admin-review-btn">
+                                <i class="fas fa-search"></i>
+                                Review
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="admin-empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No pending recruiters</p>
+                    </div>
+                {% endif %}
+            </div>
 
-    <a href="{{ url_for('admin.review_applicant', user_id=app.id) }}">
-        Review
-    </a>
+            <!-- Pending Applicant Verification -->
+            <div class="admin-section">
+                <h3>
+                    <i class="fas fa-user-tie"></i>
+                    Pending Applicant Verification
+                    <span class="admin-section-badge">{{ pending_applicants|length }}</span>
+                </h3>
 
-</li>
-{% else %}
-<li>No pending applicants</li>
-{% endfor %}
-</ul>
+                {% if pending_applicants %}
+                    <!-- Results count bar -->
+                    <div class="admin-results-header">
+                        <div class="admin-results-count">
+                            <span>{{ pending_applicants|length }}</span> applicant{{ 's' if pending_applicants|length != 1 }} awaiting review
+                        </div>
+                    </div>
 
-<p>
-    <a href="{{ url_for('admin.rejected_applicants') }}">
-    View Rejected Applicants
-    </a>
-    </p>
+                    <ul class="admin-list">
+                        {% for app in pending_applicants %}
+                        <li class="admin-list-item">
+                            <div class="admin-user-info">
+                                <div class="admin-user-avatar">
+                                    {{ app.username[0]|upper }}
+                                </div>
+                                <div class="admin-user-details">
+                                    <p class="admin-user-name">{{ app.username }}</p>
+                                    <p class="admin-user-email">{{ app.email }}</p>
+                                    <div class="admin-user-meta">
+                                        <span class="admin-meta-tag">
+                                            <i class="fas fa-user"></i> Applicant
+                                        </span>
+                                        <span class="admin-meta-tag">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('admin.review_applicant', user_id=app.id) }}" class="admin-review-btn">
+                                <i class="fas fa-search"></i>
+                                Review
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="admin-empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No pending applicants</p>
+                    </div>
+                {% endif %}
+            </div>
 
-<p>
-    <a href="{{ url_for('admin.scammers') }}">
-    View Rejected Recruiters
-    </a>
-    </p>
+            <!-- Navigation Cards -->
+            <div class="admin-nav-links">
+                <a href="{{ url_for('admin.rejected_applicants') }}" class="admin-nav-card">
+                    <i class="fas fa-user-times admin-nav-card-icon"></i>
+                    <h4 class="admin-nav-card-title">Rejected Applicants</h4>
+                    <p class="admin-nav-card-desc">View all rejected applicant accounts</p>
+                </a>
+
+                <a href="{{ url_for('admin.scammers') }}" class="admin-nav-card">
+                    <i class="fas fa-ban admin-nav-card-icon"></i>
+                    <h4 class="admin-nav-card-title">Rejected Recruiters</h4>
+                    <p class="admin-nav-card-desc">View all rejected recruiter accounts</p>
+                </a>
+            </div>
+
+        </div><!-- /.admin-content-area -->
+    </div>
+</div>
 
 {% endblock %}

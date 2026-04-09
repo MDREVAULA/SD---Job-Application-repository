@@ -1,34 +1,39 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 
-<div style="max-width:600px;margin:auto;text-align:center;padding:40px;">
+<div class="rejected-wrapper">
+    <div class="rejected-card">
 
-    <h2 style="color:red;">Account Rejected</h2>
+        <div class="rejected-icon-wrap">
+            <i class="fas fa-ban"></i>
+        </div>
 
-    <p>
-        Your account verification request has been rejected by the administrator.
-    </p>
-
-    {% if user.verification_remarks %}
-        <p>
-            <strong>Reason:</strong>
-            {{ user.verification_remarks }}
+        <h2>Account Rejected</h2>
+        <p class="subtitle">
+            Your account verification request has been reviewed and rejected by the administrator.
         </p>
-    {% endif %}
 
-    <br>
+        {% if user.verification_remarks %}
+        <div class="rejected-reason-box">
+            <div class="reason-label">
+                <i class="fas fa-exclamation-circle"></i> Reason for Rejection
+            </div>
+            <div class="reason-text">{{ user.verification_remarks }}</div>
+        </div>
+        {% endif %}
 
-    <p>
-        If you believe this decision is incorrect, please contact the system administrator.
-    </p>
+        <div class="rejected-contact-note">
+            <i class="fas fa-envelope"></i>
+            If you believe this is a mistake, please contact the system administrator for assistance.
+        </div>
 
-    <br>
+        <a href="{{ url_for('auth.index') }}" class="btn-home">
+            <i class="fas fa-home"></i> Return to Home
+        </a>
 
-    <a href="{{ url_for('auth.index') }}">
-        <button>Return to Home</button>
-    </a>
-
+    </div>
 </div>
 
 {% endblock %}

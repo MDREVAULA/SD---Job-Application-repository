@@ -6,7 +6,12 @@ load_dotenv()
 class Config:
     SECRET_KEY = "supersecretkey"
 
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = False 
+
     DB_NAME = "job_portal"
+
+    
 
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:@localhost/job_portal"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -22,3 +27,6 @@ class Config:
     # Google OAuth
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+
+    # Admin Token
+    ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "admintoken123")

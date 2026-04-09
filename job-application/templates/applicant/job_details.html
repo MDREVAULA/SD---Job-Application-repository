@@ -53,6 +53,16 @@
                                 Posted recently
                             </span>
                         </div>
+
+                        <!-- WORK ARRANGEMENT TAGS (moved here, under company meta) -->
+                        {% if job.arrangement %}
+                        <div class="job-arrangement-row" style="margin-top: 12px; padding-top: 0; border-top: none;">
+                            {% for tag in job.arrangement.split(',') %}
+                            <span class="job-arrangement-tag">{{ tag.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
                     </div>
                 </div>
 
@@ -111,6 +121,7 @@
                     </button>
                 {% endif %}
             </div>
+
         </div>
 
         <!-- MAIN CONTENT AREA -->
@@ -137,6 +148,104 @@
                     </div>
                 </section>
 
+                <!-- REQUIREMENTS SECTION -->
+                {% if job.required_skills or job.preferred_skills or job.experience_level
+                      or job.education or job.years_exp or job.languages
+                      or job.requirements_notes %}
+                <section class="content-section">
+                    <h2 class="section-heading">
+                        <i class="fas fa-list-check"></i>
+                        Requirements
+                    </h2>
+
+                    <!-- Experience & Education grid -->
+                    {% if job.experience_level or job.years_exp or job.education or job.languages %}
+                    <div class="company-details" style="margin-bottom: 24px;">
+
+                        {% if job.experience_level %}
+                        <div class="company-detail-item">
+                            <div class="detail-icon"><i class="fas fa-layer-group"></i></div>
+                            <div class="detail-content">
+                                <span class="detail-label">Experience Level</span>
+                                <span class="detail-value">{{ job.experience_level }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if job.years_exp %}
+                        <div class="company-detail-item">
+                            <div class="detail-icon"><i class="fas fa-clock"></i></div>
+                            <div class="detail-content">
+                                <span class="detail-label">Years of Experience</span>
+                                <span class="detail-value">{{ job.years_exp }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if job.education %}
+                        <div class="company-detail-item">
+                            <div class="detail-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="detail-content">
+                                <span class="detail-label">Education</span>
+                                <span class="detail-value">{{ job.education }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if job.languages %}
+                        <div class="company-detail-item">
+                            <div class="detail-icon"><i class="fas fa-language"></i></div>
+                            <div class="detail-content">
+                                <span class="detail-label">Languages</span>
+                                <span class="detail-value">{{ job.languages }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                    {% endif %}
+
+                    <!-- Required Skills -->
+                    {% if job.required_skills %}
+                    <div class="req-skills-block">
+                        <p class="req-skills-label">
+                            <i class="fas fa-circle-check"></i> Required Skills
+                        </p>
+                        <div class="req-skills-tags">
+                            {% for skill in job.required_skills.split(',') %}
+                            <span class="req-skill-tag req-skill-required">{{ skill.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Preferred Skills -->
+                    {% if job.preferred_skills %}
+                    <div class="req-skills-block">
+                        <p class="req-skills-label">
+                            <i class="fas fa-circle-plus"></i> Preferred Skills
+                        </p>
+                        <div class="req-skills-tags">
+                            {% for skill in job.preferred_skills.split(',') %}
+                            <span class="req-skill-tag req-skill-preferred">{{ skill.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Additional Notes -->
+                    {% if job.requirements_notes %}
+                    <div class="req-skills-block">
+                        <p class="req-skills-label">
+                            <i class="fas fa-note-sticky"></i> Additional Notes
+                        </p>
+                        <p class="job-description">{{ job.requirements_notes }}</p>
+                    </div>
+                    {% endif %}
+
+                </section>
+                {% endif %}
+
                 <!-- COMPANY INFORMATION SECTION -->
                 <section class="content-section">
                     <h2 class="section-heading">
@@ -160,14 +269,18 @@
                                 </div>
                                 <div class="detail-content">
                                     <span class="detail-label">Recruiter</span>
-                                    <span class="detail-value">{{ job_owner.recruiter_profile.first_name }} {{ job_owner.recruiter_profile.surname }}</span>
+                                    <a href="{{ url_for('profile_view.view_profile', user_id=job_owner.id) }}"
+                                       class="detail-value detail-profile-link">
+                                        {{ job_owner.recruiter_profile.first_name }} {{ job_owner.recruiter_profile.surname }}
+                                        <i class="fas fa-arrow-up-right-from-square" style="font-size:0.65rem; margin-left:4px;"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- JOB GALLERY SECTION (if images exist) -->
+                <!-- JOB GALLERY SECTION -->
                 {% if job.images and job.images|length > 0 %}
                 <section class="content-section">
                     <h2 class="section-heading">
@@ -232,7 +345,10 @@
 
                 <!-- JOB OVERVIEW CARD -->
                 <div class="sidebar-card">
-                    <h3 class="sidebar-card-title">Job Overview</h3>
+                    <h3 class="sidebar-card-title">
+                        <i class="fas fa-list-ul"></i>
+                        Job Overview
+                    </h3>
                     <div class="sidebar-card-body">
                         <div class="overview-list">
                             <div class="overview-item">
@@ -280,11 +396,60 @@
                                     <span class="overview-value">{{ job.salary }}</span>
                                 </div>
                             </div>
+
+                            {% if job.experience_level %}
+                            <div class="overview-item">
+                                <div class="overview-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <div class="overview-content">
+                                    <span class="overview-label">Experience Level</span>
+                                    <span class="overview-value">{{ job.experience_level }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if job.education %}
+                            <div class="overview-item">
+                                <div class="overview-icon">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="overview-content">
+                                    <span class="overview-label">Education</span>
+                                    <span class="overview-value">{{ job.education }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if job.arrangement %}
+                            <div class="overview-item">
+                                <div class="overview-icon">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div class="overview-content">
+                                    <span class="overview-label">Work Arrangement</span>
+                                    <span class="overview-value">{{ job.arrangement }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if job.expiration_date %}
+                            <div class="overview-item">
+                                <div class="overview-icon">
+                                    <i class="fas fa-calendar-xmark"></i>
+                                </div>
+                                <div class="overview-content">
+                                    <span class="overview-label">Deadline</span>
+                                    <span class="overview-value">{{ job.expiration_date.strftime('%b %d, %Y') }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+
                         </div>
                     </div>
                 </div>
 
-                <!-- APPLY ACTION CARD (Mobile/Sticky) -->
+                <!-- APPLY ACTION CARD -->
                 <div class="sidebar-card apply-card">
                     <div class="sidebar-card-body">
                         {% if current_user.is_authenticated and current_user.role == "applicant" %}
@@ -317,7 +482,8 @@
                         Posted By
                     </h3>
                     <div class="sidebar-card-body">
-                        <div class="recruiter-profile">
+                        <a href="{{ url_for('profile_view.view_profile', user_id=job_owner.id) }}"
+                           class="recruiter-profile recruiter-profile-link">
                             <div class="recruiter-avatar">
                                 {% if job_owner.profile_picture %}
                                     {% if job_owner.profile_picture.startswith('http') %}
@@ -340,12 +506,15 @@
                                 <span class="recruiter-company">
                                     {{ job_owner.recruiter_profile.company_name }}
                                 </span>
+                                <span class="recruiter-view-cta">
+                                    View Profile <i class="fas fa-arrow-right"></i>
+                                </span>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 </div>
-                
-                <!-- JOB SAFETY TIPS CARD -->
+
+                <!-- SAFETY TIPS CARD -->
                 <div class="sidebar-card tips-card">
                     <h3 class="sidebar-card-title">
                         <i class="fas fa-shield-alt"></i>

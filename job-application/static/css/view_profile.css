@@ -1,0 +1,253 @@
+/* ================================================
+   VIEW PROFILE — Shared overrides & new components
+   Applies to: applicant, hr, recruiter public views
+   Palette matches existing: #164A41 #4D774E #9DC88D #F1B24A
+   ================================================ */
+
+/* ── BACK BAR ── */
+.vp-back-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 10px;
+}
+
+.vp-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-secondary, #374151);
+    border: 1.5px solid var(--border-color, #EAEDE8);
+    background: var(--bg-card, #fff);
+    transition: all 0.18s;
+    font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.vp-back-btn:hover {
+    background: #164A41;
+    border-color: #164A41;
+    color: #fff;
+}
+
+.vp-back-btn i { font-size: 0.78rem; }
+
+/* ── MESSAGE BUTTON ── */
+.vp-message-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 18px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #fff;
+    background: #164A41;
+    border: 1.5px solid #164A41;
+    transition: all 0.18s;
+    font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.vp-message-btn:hover {
+    background: #4D774E;
+    border-color: #4D774E;
+    color: #fff;
+}
+
+.vp-message-btn i { font-size: 0.82rem; }
+
+/* ── ROLE PILL (header badge) ── */
+.vp-role-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #EAF3DE;
+    border: 1px solid #C0DD97;
+    color: #27500A;
+    font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+[data-theme="dark"] .vp-role-pill {
+    background: rgba(157,200,141,0.1);
+    border-color: rgba(157,200,141,0.25);
+    color: #9DC88D;
+}
+
+/* ── ROLE TAG (used in hero-card on dark bg) ── */
+.vp-role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 13px;
+    border-radius: 100px;
+    border: 1.5px solid rgba(157,200,141,0.45);
+    color: #9DC88D;
+    background: rgba(157,200,141,0.1);
+}
+
+/* ── BADGES COLUMN ── */
+.vp-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+/* ── AVATAR: disable camera overlay & pointer on view pages ── */
+.vp-avatar-static {
+    cursor: default !important;
+    pointer-events: none;
+}
+
+.vp-avatar-static .prof-avatar-overlay,
+.vp-avatar-static .avatar-cam,
+.vp-avatar-static .logo-cam {
+    display: none !important;
+}
+
+/* ── COUNT PILL (recruiter posted jobs header) ── */
+.vp-count-pill {
+    margin-left: auto;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #4D774E;
+    background: #F0F7EC;
+    border: 1px solid #D4ECC8;
+    border-radius: 20px;
+    padding: 1px 8px;
+}
+
+[data-theme="dark"] .vp-count-pill {
+    background: rgba(157,200,141,0.08);
+    border-color: rgba(157,200,141,0.2);
+    color: #9DC88D;
+}
+
+/* ── RECRUITER POSTED JOBS LIST ── */
+.vp-jobs-list {
+    padding: 4px 0 4px;
+}
+
+.vp-job-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border-color, #f0f2ef);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
+}
+
+.vp-job-item:last-child { border-bottom: none; }
+
+.vp-job-item:hover {
+    background: var(--bg-hover, #f3f4f6);
+}
+
+[data-theme="dark"] .vp-job-item:hover {
+    background: var(--bg-hover);
+}
+
+.vp-job-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #F0F7EC;
+    border: 1px solid #D4ECC8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4D774E;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .vp-job-icon {
+    background: rgba(77,119,78,0.12);
+    border-color: rgba(77,119,78,0.2);
+    color: #9DC88D;
+}
+
+.vp-job-body { flex: 1; min-width: 0; }
+
+.vp-job-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary, #111);
+    margin-bottom: 3px;
+    font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+[data-theme="dark"] .vp-job-title { color: var(--text-primary); }
+
+.vp-job-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 12px;
+    font-size: 0.75rem;
+    color: var(--text-muted, #9CA3AF);
+    font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.vp-job-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vp-job-meta i { font-size: 0.65rem; color: #9DC88D; }
+
+[data-theme="dark"] .vp-job-meta i { color: #9DC88D; }
+
+.vp-job-arrow {
+    font-size: 0.72rem;
+    color: var(--text-muted, #9CA3AF);
+    flex-shrink: 0;
+    transition: transform 0.15s;
+}
+
+.vp-job-item:hover .vp-job-arrow {
+    transform: translateX(3px);
+    color: #4D774E;
+}
+
+/* ── DARK MODE — back bar ── */
+[data-theme="dark"] .vp-back-btn {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .vp-back-btn:hover {
+    background: #164A41;
+    border-color: #164A41;
+    color: #fff;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+    .vp-back-bar {
+        flex-wrap: wrap;
+    }
+    .vp-message-btn,
+    .vp-back-btn {
+        font-size: 0.78rem;
+        padding: 6px 14px;
+    }
+    .vp-badges {
+        align-items: flex-start;
+    }
+}

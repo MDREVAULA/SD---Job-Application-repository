@@ -1,0 +1,113 @@
+/* ================================================================
+   PROFILE COMPLETION BANNER
+   Append to both applicant/profile.css and recruiter/profile.css
+   ================================================================ */
+
+.profile-completion-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+    border: 1px solid;
+    flex-wrap: wrap;
+    animation: bannerIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+}
+
+@keyframes bannerIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Incomplete state — amber warning */
+.banner--incomplete {
+    background: rgba(241, 178, 74, 0.07);
+    border-color: rgba(241, 178, 74, 0.25);
+}
+
+.banner--incomplete .pcb-icon i {
+    color: #F1B24A;
+}
+
+/* Ready / pending review state — green */
+.banner--ready {
+    background: rgba(77, 119, 78, 0.07);
+    border-color: rgba(157, 200, 141, 0.25);
+}
+
+.banner--ready .pcb-icon i {
+    color: #9DC88D;
+}
+
+/* Icon */
+.pcb-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.pcb-icon i {
+    font-size: 20px;
+}
+
+/* Body text */
+.pcb-body {
+    flex: 1;
+    min-width: 200px;
+}
+
+.pcb-body strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary, #fff);
+    margin-bottom: 4px;
+}
+
+.pcb-body p {
+    font-size: 13px;
+    color: var(--text-muted, #888);
+    margin: 0;
+    line-height: 1.55;
+    font-weight: 500;
+}
+
+/* Checklist */
+.pcb-checklist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.pcb-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: 20px;
+    background: var(--bg-surface-alt, #313638);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: var(--text-muted, #888);
+}
+
+.pcb-check i {
+    font-size: 11px;
+    color: var(--text-muted, #666);
+}
+
+.pcb-check.done {
+    background: rgba(77, 119, 78, 0.12);
+    border-color: rgba(157, 200, 141, 0.25);
+    color: #9DC88D;
+}
+
+.pcb-check.done i {
+    color: #9DC88D;
+}

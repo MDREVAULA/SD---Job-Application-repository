@@ -137,9 +137,43 @@
                     {% endif %}
 
                     <div class="message-bubble {% if msg.sender_id == current_user.id %}mine{% else %}theirs{% endif %}"
-                         data-msg-id="{{ msg.id }}">
+                         data-msg-id="{{ msg.id }}"
+                         data-is-mine="{{ 'true' if msg.sender_id == current_user.id else 'false' }}">
+
+                        {# ── HOVER ACTION TOOLBAR ── #}
+                        <div class="bubble-actions">
+                            {# React button (placeholder) #}
+                            <button class="bubble-action-btn" title="React"
+                                    onclick="bubbleReact(this)">
+                                <i class="far fa-smile"></i>
+                            </button>
+                            {# Reply button #}
+                            <button class="bubble-action-btn" title="Reply"
+                                    onclick="bubbleReplyBtn(this)">
+                                <i class="fas fa-reply"></i>
+                            </button>
+                            {# More (three dots) — opens the context menu #}
+                            <button class="bubble-action-btn bubble-action-more" title="More"
+                                    onclick="bubbleMoreBtn(event, this)">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+
+                        {# ── REPLY QUOTE (if this message is a reply) ── #}
+                        {% if msg.reply_to %}
+                        <div class="reply-quote">
+                            <span class="reply-quote-author">
+                                {{ 'You' if msg.reply_to.sender_id == current_user.id else active_display_name }}
+                            </span>
+                            <span class="reply-quote-text">{{ msg.reply_to.body[:80] }}{{ '…' if msg.reply_to.body|length > 80 }}</span>
+                        </div>
+                        {% endif %}
+
                         <div class="bubble-text">{{ msg.body }}</div>
-                        <div class="bubble-time">{{ msg.created_at.strftime('%I:%M %p') }}</div>
+                        <div class="bubble-time">
+                            {{ msg.created_at.strftime('%I:%M %p') }}
+                            {% if msg.edited %}<span class="edited-label"> · edited</span>{% endif %}
+                        </div>
                     </div>
                 {% endfor %}
             {% else %}
@@ -148,6 +182,31 @@
                     <p>This is the beginning of your conversation with <strong>{{ active_display_name }}</strong>.</p>
                 </div>
             {% endif %}
+        </div>
+
+        <!-- ── REPLY PREVIEW BAR (shown above input when replying) ── -->
+        <div class="reply-preview-bar" id="replyPreviewBar" style="display:none;">
+            <div class="reply-preview-inner">
+                <div class="reply-preview-line"></div>
+                <div class="reply-preview-content">
+                    <span class="reply-preview-author" id="replyPreviewAuthor"></span>
+                    <span class="reply-preview-text" id="replyPreviewText"></span>
+                </div>
+            </div>
+            <button class="reply-cancel-btn" onclick="cancelReply()" title="Cancel reply">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- ── EDIT MODE BAR (shown above input when editing) ── -->
+        <div class="edit-mode-bar" id="editModeBar" style="display:none;">
+            <div class="edit-mode-inner">
+                <i class="fas fa-pen" style="color:var(--chat-primary); font-size:0.8rem;"></i>
+                <span>Editing message</span>
+            </div>
+            <button class="reply-cancel-btn" onclick="cancelEdit()" title="Cancel edit">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
         <!-- MESSAGE INPUT -->
@@ -181,7 +240,7 @@
                 onkeydown="handleKey(event)"
                 oninput="autoResize(this)"
             ></textarea>
-            <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+            <button class="send-btn" onclick="handleSend()" id="sendBtn">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
@@ -201,12 +260,30 @@
     </main>
 </div>
 
+<!-- ── CONTEXT MENU (right-click on bubble) ── -->
+<div class="bubble-context-menu" id="bubbleContextMenu">
+    <button class="ctx-item" id="ctxReply" onclick="ctxReplyClick()">
+        <i class="fas fa-reply"></i> Reply
+    </button>
+    <button class="ctx-item ctx-mine-only" id="ctxEdit" onclick="ctxEditClick()">
+        <i class="fas fa-pen"></i> Edit
+    </button>
+    <button class="ctx-item ctx-mine-only ctx-danger" id="ctxUnsend" onclick="ctxUnsendClick()">
+        <i class="fas fa-trash"></i> Unsend
+    </button>
+    <div class="ctx-divider"></div>
+    <button class="ctx-item ctx-danger" id="ctxReport" onclick="ctxReportClick()">
+        <i class="fas fa-flag"></i> Report
+    </button>
+</div>
+
 {% if active_user %}
 <!-- Inject conversation variables for inbox.js -->
 <script>
-    const RECEIVER_ID     = {{ active_user.id }};
-    const CURRENT_USER_ID = {{ current_user.id }};
-    let lastMessageId     = {{ messages[-1].id if messages else 0 }};
+    const RECEIVER_ID      = {{ active_user.id }};
+    const CURRENT_USER_ID  = {{ current_user.id }};
+    const ACTIVE_DISP_NAME = {{ active_display_name | tojson }};
+    let lastMessageId      = {{ messages[-1].id if messages else 0 }};
 </script>
 {% endif %}
 

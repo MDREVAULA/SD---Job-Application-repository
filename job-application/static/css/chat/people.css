@@ -10,15 +10,15 @@ Clean, flat design inspired by LinkedIn/Facebook People
     --p-primary-hover:  #9DC88D;
     --p-primary-light:  rgba(77, 119, 78, 0.1);
     --p-danger:         #b91c1c;
- 
+
     --p-shadow-sm:  0 0 0 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
     --p-shadow:     0 0 0 1px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.07);
- 
+
     --p-radius:     8px;
     --p-radius-sm:  6px;
     --p-radius-lg:  12px;
     --p-radius-xl:  16px;
- 
+
     /* Dark mode defaults */
     --p-bg:             #1e2022;
     --p-surface:        #252829;
@@ -30,7 +30,7 @@ Clean, flat design inspired by LinkedIn/Facebook People
     --p-muted:          #9ca3af;
     --p-subtle:         #6b7280;
 }
- 
+
 [data-theme="light"] {
     --p-bg:             #f3f2ef;
     --p-surface:        #ffffff;
@@ -44,6 +44,48 @@ Clean, flat design inspired by LinkedIn/Facebook People
     --p-primary-light:  #e8f0fe;
 }
 
+/* ================================
+   SMOOTH THEME TRANSITION
+   ================================ */
+
+*,
+*::before,
+*::after {
+    transition:
+        background-color 0.3s ease,
+        border-color 0.3s ease,
+        color 0.3s ease,
+        box-shadow 0.3s ease !important;
+}
+
+/* Exclude images and cover strips — no fade needed */
+.person-avatar,
+.person-avatar-placeholder,
+.modal-avatar,
+.modal-avatar-placeholder,
+.card-cover,
+.modal-cover {
+    transition: none !important;
+}
+
+/* Preserve transform for card hover and modal open animations */
+.person-card {
+    transition:
+        box-shadow 0.18s ease,
+        transform 0.18s ease,
+        background-color 0.3s ease,
+        border-color 0.3s ease !important;
+}
+
+.profile-modal {
+    transition:
+        transform 0.2s ease,
+        background-color 0.3s ease !important;
+}
+
+.profile-modal-overlay {
+    transition: opacity 0.2s ease !important;
+}
 
 /* ── BASE ── */
 .people-page {
@@ -107,13 +149,12 @@ Clean, flat design inspired by LinkedIn/Facebook People
     border: 1.5px solid var(--p-border);
     border-radius: 999px;
     overflow: hidden;
-    transition: border-color 0.18s, box-shadow 0.18s;
     margin-bottom: 1rem;
 }
 
 .search-input-group:focus-within {
     border-color: var(--p-primary);
-    box-shadow: 0 0 0 3px rgba(10,102,194,0.10);
+    box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.10);
 }
 
 .people-search-icon {
@@ -146,7 +187,6 @@ Clean, flat design inspired by LinkedIn/Facebook People
     font-weight: 600;
     font-size: 0.85rem;
     cursor: pointer;
-    transition: background 0.15s;
     font-family: 'Inter', sans-serif;
     border-radius: 0 999px 999px 0;
     white-space: nowrap;
@@ -175,7 +215,6 @@ Clean, flat design inspired by LinkedIn/Facebook People
     font-size: 0.8rem;
     font-weight: 500;
     text-decoration: none;
-    transition: all 0.15s;
     font-family: 'Inter', sans-serif;
 }
 
@@ -236,7 +275,6 @@ Clean, flat design inspired by LinkedIn/Facebook People
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: box-shadow 0.18s, transform 0.18s;
 }
 
 .person-card:hover {
@@ -393,7 +431,6 @@ Clean, flat design inspired by LinkedIn/Facebook People
     cursor: pointer;
     text-decoration: none;
     border: 1.5px solid transparent;
-    transition: all 0.15s;
     font-family: 'Inter', sans-serif;
 }
 
@@ -461,7 +498,6 @@ Clean, flat design inspired by LinkedIn/Facebook People
     border: 1.5px solid var(--p-primary);
     background: var(--p-surface);
     color: var(--p-primary);
-    transition: all 0.15s;
     font-family: 'Inter', sans-serif;
 }
 
@@ -518,9 +554,7 @@ Clean, flat design inspired by LinkedIn/Facebook People
     font-weight: 600;
     text-decoration: none;
     font-size: 0.875rem;
-    transition: all 0.15s;
 }
-
 
 .btn-clear-search:hover {
     background: var(--p-primary);
@@ -542,7 +576,6 @@ Clean, flat design inspired by LinkedIn/Facebook People
     padding: 1.5rem;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
 }
 
 .profile-modal-overlay.open {
@@ -557,9 +590,8 @@ Clean, flat design inspired by LinkedIn/Facebook People
     max-width: 460px;
     max-height: 88vh;
     overflow-y: auto;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
     transform: translateY(12px) scale(0.98);
-    transition: transform 0.2s ease;
     position: relative;
     scrollbar-width: thin;
     scrollbar-color: #e0e0e0 transparent;
@@ -589,7 +621,7 @@ Clean, flat design inspired by LinkedIn/Facebook People
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.10);
+    background: rgba(0, 0, 0, 0.10);
     border: none;
     color: #444;
     font-size: 0.75rem;
@@ -597,10 +629,9 @@ Clean, flat design inspired by LinkedIn/Facebook People
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s;
 }
 
-.modal-close-btn:hover { background: rgba(0,0,0,0.20); }
+.modal-close-btn:hover { background: rgba(0, 0, 0, 0.20); }
 
 /* Avatar section */
 .modal-avatar-section {
@@ -662,7 +693,6 @@ Clean, flat design inspired by LinkedIn/Facebook People
     cursor: pointer;
     text-decoration: none;
     border: 1.5px solid transparent;
-    transition: all 0.15s;
     font-family: 'Inter', sans-serif;
 }
 
@@ -853,4 +883,18 @@ Clean, flat design inspired by LinkedIn/Facebook People
 
 @media (max-width: 420px) {
     .people-grid { grid-template-columns: 1fr; }
+}
+/* ── C: chat/people.css additions ── */
+
+/*
+   The btn-view-profile class most likely already exists in your people.css
+   (it was an <button> before, now it's an <a>).
+   If the styling breaks, add this:
+*/
+a.btn-view-profile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    /* inherits the rest from your existing .btn-view-profile rule */
 }

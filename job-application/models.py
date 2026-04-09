@@ -10,6 +10,8 @@ db = SQLAlchemy()
 # =========================
 class User(db.Model, UserMixin):
 
+    profile_completed = db.Column(db.Boolean, default=False)
+
     id = db.Column(db.Integer, primary_key=True)
 
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -66,6 +68,7 @@ class User(db.Model, UserMixin):
         lazy=True
     )
 
+
 # =========================
 # APPLICANT PROFILE (UPDATED)
 # =========================
@@ -94,6 +97,13 @@ class ApplicantProfile(db.Model):
     linkedin = db.Column(db.String(200))
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
+
+    # DOCUMENT UPLOADS
+    resume_file      = db.Column(db.String(200))   # PDF, max 5MB
+    portfolio_file   = db.Column(db.String(200))   # PDF/image, max 10MB
+    
+    # certificates stored as JSON list of filenames
+    certificate_files = db.Column(db.Text)          # JSON array, each max 5MB
 
     # RELATIONSHIPS
     work_experiences = db.relationship("WorkExperience", backref="profile", lazy=True, cascade="all, delete-orphan")
@@ -189,7 +199,6 @@ class Certification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-
 # =========================
 # RECRUITER PROFILE
 # =========================
@@ -208,6 +217,15 @@ class RecruiterProfile(db.Model):
     home_address = db.Column(db.String(200))
 
     phone_number = db.Column(db.String(50))
+
+    # PERSONAL HEADLINE & BIO
+    headline = db.Column(db.String(200))
+    bio      = db.Column(db.Text)
+ 
+    # SOCIAL LINKS
+    linkedin  = db.Column(db.String(200))
+    github    = db.Column(db.String(200))
+    portfolio = db.Column(db.String(200))
 
     # COMPANY INFORMATION
     company_name = db.Column(db.String(200))
@@ -249,6 +267,15 @@ class HRProfile(db.Model):
     city = db.Column(db.String(100))
     home_address = db.Column(db.String(200))
 
+    # PERSONAL HEADLINE & BIO
+    headline = db.Column(db.String(200))
+    bio = db.Column(db.Text)
+
+    # SOCIAL LINKS
+    linkedin = db.Column(db.String(200))
+    github = db.Column(db.String(200))
+    portfolio = db.Column(db.String(200))
+
 
 # =========================
 # JOB TABLE
@@ -266,6 +293,17 @@ class Job(db.Model):
     # =========================
     # JOB INFORMATION
     # =========================
+    # ── Work arrangement (e.g. "On-site, Hybrid")
+    arrangement = db.Column(db.String(200))
+
+    # ── Requirements tab fields
+    experience_level  = db.Column(db.String(100))   # Entry-level, Mid-level, Senior, etc.
+    years_exp         = db.Column(db.String(100))   # e.g. "2–4 years"
+    education         = db.Column(db.String(200))   # Bachelor's degree, etc.
+    required_skills   = db.Column(db.Text)          # comma-separated
+    preferred_skills  = db.Column(db.Text)          # comma-separated
+    languages         = db.Column(db.String(200))
+    requirements_notes = db.Column(db.Text)
     field = db.Column(db.String(100))
     job_type = db.Column(db.String(50))
     location = db.Column(db.String(200))
@@ -325,6 +363,7 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+
 # =========================
 # FOLLOW TABLE
 # =========================
@@ -349,7 +388,7 @@ class Follow(db.Model):
  
  
 # =========================
-# MESSAGE TABLE
+# MESSAGE TABLE (with edits & replies)
 # =========================
 class Message(db.Model):
  
@@ -361,11 +400,27 @@ class Message(db.Model):
     body = db.Column(db.Text, nullable=False)
  
     is_read = db.Column(db.Boolean, default=False)
+
+    # ── NEW: edit support ──
+    edited = db.Column(db.Boolean, default=False)
+
+    # ── NEW: reply support ──
+    reply_to_id = db.Column(db.Integer, db.ForeignKey("message.id"), nullable=True)
  
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
  
-    sender = db.relationship("User", foreign_keys=[sender_id], backref="sent_messages")
+    sender   = db.relationship("User", foreign_keys=[sender_id],   backref="sent_messages")
     receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
+
+    # ── NEW: self-referential relationship for reply ──
+    reply_to = db.relationship(
+        "Message",
+        foreign_keys=[reply_to_id],
+        remote_side="Message.id",
+        backref="replies"
+    )
+
+
 
 # =========================
 # HR FEEDBACK TABLE
@@ -383,6 +438,56 @@ class HRFeedback(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+# =========================
+# RECRUITER NOTIFICATION TABLE
+# =========================
+class RecruiterNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    recruiter_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    recruiter = db.relationship("User", foreign_keys=[recruiter_id], backref="notifications")
+    application = db.relationship("Application", foreign_keys=[application_id])
+
+# =========================
+# HR NOTIFICATION TABLE
+# =========================
+class HRNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    hr_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    hr = db.relationship("User", foreign_keys=[hr_id], backref="hr_notifications")
+    application = db.relationship("Application", foreign_keys=[application_id])
+
+# =========================
+# APPLICANT NOTIFICATION TABLE
+# =========================
+class ApplicantNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    applicant_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    # Types:
+    #   new_message          — someone sent you a message
+    #   new_follow           — someone followed you
+    #   job_update           — job posting was updated
+    #   application_status   — your application status changed
+    #   interview_scheduled  — interview was scheduled for you
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    applicant = db.relationship("User", foreign_keys=[applicant_id], backref="applicant_notifications")
+    application = db.relationship("Application", foreign_keys=[application_id])
 
 # =========================
 # JOB IMAGE
@@ -392,6 +497,4 @@ class JobImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
-    job = db.relationship("Job", backref="images")  
-    # =========================
-    # =========================
+    job = db.relationship("Job", backref="images")

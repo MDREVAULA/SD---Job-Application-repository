@@ -1,0 +1,36 @@
+=== Changes ===
+
+- HR/Recruiter 'Profile'
+- Recruiter 'Create HR Account'
+- HR/Recruiter 'Job List'
+
+=== Future Changes ===
+
+- Google API Username debug (uses account name instead of account username as username)
+- Light mode and dark mode for navbar, sidebar, and footer (Optional)
+- Add some yellow colors to other finished tabs
+- View profile 'Join to Connect' transition fix
+- Sidebar transition fix for 'View Job Details' and 'People' tab
+- React button for message tab
+- Opening message tab with no contacts -> redirect to find people
+- Opening message tab with contacts -> redirect to the first person in chat
+- AJAX message for real time update
+- Dark mode and light mode preference must be fixed for each user's preference
+- Upload documents must support for projects upload
+- Fix dark mode and light mode transition to other tabs (only applicable if the tab is finished)
+- Fix company logo spacing for search jobs
+- Add stared jobs for applicants
+- Fix sidebar that overlaps the navbar
+- Add more workfields
+
+LAST PARTS
+- Add privacy for informations of users
+- Add delete account
+- Add change password
+- Add notification
+- Add notification settings
+
+FOR DEMONSTRATION / DEFENSE
+- Add pre-made recruiter and hr accounts with jobs
+
+=== TO BE FOLLOWED ===

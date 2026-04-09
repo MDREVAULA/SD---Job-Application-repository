@@ -1,91 +1,205 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 
-<h2>Review Recruiter: {{ recruiter.username }}</h2>
+<div class="admin-page-wrapper">
 
-<h3>Account Info</h3>
-<p>Email: {{ recruiter.email }}</p>
-<p>Role: {{ recruiter.role }}</p>
+    <!-- PAGE HEADER -->
+    <div class="admin-page-header">
+        <div class="admin-page-header-left">
+            <div class="admin-page-icon">
+                <i class="fas fa-building-circle-check" style="font-size:18px;"></i>
+            </div>
+            <div>
+                <h1 class="admin-page-title">Review Recruiter</h1>
+                <p class="admin-page-subtitle">{{ recruiter.username }} &mdash; Pending Verification</p>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
 
-<h3>Recruiter and Company Info</h3>
+    <!-- INFO GRID -->
+    <div class="admin-review-grid">
 
-<p>Surname: {{ profile.surname }}</p>
-<p>First Name: {{ profile.first_name }}</p>
-<p>Middle Name: {{ profile.middle_name }}</p>
+        <!-- Account Info -->
+        <div class="admin-info-card">
+            <div class="admin-info-card-header">
+                <i class="fas fa-id-badge"></i>
+                <h3>Account Info</h3>
+            </div>
+            <div class="admin-info-card-body">
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Email</span>
+                    <span class="admin-info-value">{{ recruiter.email }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Role</span>
+                    <span class="admin-info-value">{{ recruiter.role }}</span>
+                </div>
+            </div>
+        </div>
 
-<p>Phone: {{ profile.phone_number }}</p>
+        <!-- Personal Info -->
+        <div class="admin-info-card">
+            <div class="admin-info-card-header">
+                <i class="fas fa-user-tie"></i>
+                <h3>Recruiter Info</h3>
+            </div>
+            <div class="admin-info-card-body">
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Surname</span>
+                    <span class="admin-info-value">{{ profile.surname or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">First Name</span>
+                    <span class="admin-info-value">{{ profile.first_name or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Middle Name</span>
+                    <span class="admin-info-value">{{ profile.middle_name or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Phone</span>
+                    <span class="admin-info-value">{{ profile.phone_number or '—' }}</span>
+                </div>
+            </div>
+        </div>
 
-<p>Company Name: {{ profile.company_name }}</p>
-<p>Industry: {{ profile.company_industry }}</p>
-<p>Description: {{ profile.company_description }}</p>
+        <!-- Company Info -->
+        <div class="admin-info-card">
+            <div class="admin-info-card-header">
+                <i class="fas fa-building"></i>
+                <h3>Company Info</h3>
+            </div>
+            <div class="admin-info-card-body">
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Company</span>
+                    <span class="admin-info-value">{{ profile.company_name or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Industry</span>
+                    <span class="admin-info-value">{{ profile.company_industry or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Email Domain</span>
+                    <span class="admin-info-value">{{ profile.company_email_domain or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Description</span>
+                    <span class="admin-info-value">{{ profile.company_description or '—' }}</span>
+                </div>
+            </div>
+        </div>
 
-<p>Address: {{ profile.company_address }}, {{ profile.city }}, {{ profile.country }}</p>
-<p>Office Address: {{ profile.office_address }}</p>
+        <!-- Address Info -->
+        <div class="admin-info-card">
+            <div class="admin-info-card-header">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Address</h3>
+            </div>
+            <div class="admin-info-card-body">
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Country</span>
+                    <span class="admin-info-value">{{ profile.country or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">City</span>
+                    <span class="admin-info-value">{{ profile.city or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Company Address</span>
+                    <span class="admin-info-value">{{ profile.company_address or '—' }}</span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Office Address</span>
+                    <span class="admin-info-value">{{ profile.office_address or '—' }}</span>
+                </div>
+            </div>
+        </div>
 
-<p>Company Email Domain: {{ profile.company_email_domain }}</p>
+        <!-- Documents -->
+        <div class="admin-info-card" style="grid-column: 1 / -1;">
+            <div class="admin-info-card-header">
+                <i class="fas fa-file-alt"></i>
+                <h3>Submitted Documents</h3>
+            </div>
+            <div class="admin-info-card-body">
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Company Logo</span>
+                    <span class="admin-info-value">
+                        {% if profile.company_logo %}
+                            <a class="btn-doc"
+                               href="{{ url_for('static', filename='uploads/recruiter_documents/' ~ profile.company_logo) }}"
+                               target="_blank">
+                                <i class="fas fa-image"></i> View Logo
+                            </a>
+                        {% else %}
+                            <span class="muted">Not uploaded</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="admin-info-row">
+                    <span class="admin-info-label">Company Proof</span>
+                    <span class="admin-info-value">
+                        {% if profile.company_proof %}
+                            <a class="btn-doc"
+                               href="{{ url_for('static', filename='uploads/recruiter_documents/' ~ profile.company_proof) }}"
+                               target="_blank">
+                                <i class="fas fa-file-pdf"></i> View Document
+                            </a>
+                        {% else %}
+                            <span class="muted">Not uploaded</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
 
-<h3>Documents</h3>
+    </div>
 
-<!-- Company Logo -->
-{% if profile.company_logo %}
-<p>
-    Logo:
-    {# ✅ FIXED: recruiter_documents/ subfolder #}
-    <a href="{{ url_for('static', filename='uploads/recruiter_documents/' ~ profile.company_logo) }}" target="_blank">
-        <button type="button">View Logo</button>
-    </a>
-</p>
-{% else %}
-<p>Logo: Not uploaded</p>
-{% endif %}
+    <!-- VERIFICATION ACTION CARD -->
+    <div class="admin-action-card">
+        <div class="admin-action-card-header">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Verification Decision</h3>
+        </div>
+        <div class="admin-action-card-body">
 
-<!-- Company Proof -->
-{% if profile.company_proof %}
-<p>
-    Proof:
-    {# ✅ FIXED: recruiter_documents/ subfolder #}
-    <a href="{{ url_for('static', filename='uploads/recruiter_documents/' ~ profile.company_proof) }}" target="_blank">
-        <button type="button">View Document</button>
-    </a>
-</p>
-{% else %}
-<p>Proof: Not uploaded</p>
-{% endif %}
+            <!-- APPROVE -->
+            <div class="action-approve">
+                <div class="action-approve-text">
+                    <h4>Approve Recruiter</h4>
+                    <p>This will verify the recruiter and allow them to post jobs on HireBon.</p>
+                </div>
+                <form method="POST" action="{{ url_for('admin.verify', user_id=recruiter.id) }}">
+                    <button type="submit" class="btn-approve">
+                        <i class="fas fa-check-circle"></i> Approve &amp; Verify
+                    </button>
+                </form>
+            </div>
 
-<hr>
+            <!-- REJECT -->
+            <div class="action-reject">
+                <h4>Reject &amp; Flag as Scammer</h4>
+                <p>Provide a detailed reason — this will be recorded and the account will be flagged.</p>
+                <form method="POST" action="{{ url_for('admin.reject', user_id=recruiter.id) }}">
+                    <textarea
+                        class="admin-textarea"
+                        name="remarks"
+                        rows="4"
+                        placeholder="Explain why this recruiter is rejected or flagged as suspicious..."></textarea>
+                    <br>
+                    <button type="submit" class="btn-reject">
+                        <i class="fas fa-ban"></i> Reject &amp; Flag as Scammer
+                    </button>
+                </form>
+            </div>
 
-<h3>Verification Decision</h3>
+        </div>
+    </div>
 
-<!-- APPROVE FORM -->
-<form method="POST" action="{{ url_for('admin.verify', user_id=recruiter.id) }}">
-    <button type="submit">
-        Approve & Verify
-    </button>
-</form>
-
-<br>
-
-<!-- REJECT FORM -->
-<form method="POST" action="{{ url_for('admin.reject', user_id=recruiter.id) }}">
-
-    <label>Reason for Rejection:</label><br>
-
-    <textarea name="remarks" rows="4" cols="50"
-        placeholder="Explain why this recruiter is rejected..."></textarea>
-
-    <br><br>
-
-    <button type="submit">
-        Reject & Flag as Scammer
-    </button>
-
-</form>
-
-<br>
-
-<a href="{{ url_for('admin.dashboard') }}">
-    <button type="button">Cancel</button>
-</a>
-
+</div>
 {% endblock %}

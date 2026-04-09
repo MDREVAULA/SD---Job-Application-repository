@@ -1,159 +1,253 @@
-# HireBon – Setup Guide
+# 💼 Welcome to HireBon – Where OPPORTUNITY Meets the Right JOB
 
-## 1. Requirements
+---
 
-### Install all dependencies:
+## Setup Guide
+A Flask-based job portal web application with Google OAuth, email verification, and role-based access (Applicant, Recruiter, HR, Admin).
+
+---
+
+## 📋 Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Install Visual Studio Code](#1-install-visual-studio-code)
+3. [Install Python](#2-install-python)
+4. [Install XAMPP](#3-install-xampp)
+5. [Clone / Download the Project](#4-clone--download-the-project)
+6. [Install Python Dependencies](#5-install-python-dependencies)
+7. [Set Up the Database](#6-set-up-the-database)
+8. [Configure Google OAuth](#7-configure-google-oauth)
+9. [Configure Gmail SMTP](#8-configure-gmail-smtp)
+10. [Create the `.env` File](#9-create-the-env-file)
+11. [Run the Application](#10-run-the-application)
+12. [Default Admin Credentials](#default-admin-credentials)
+
+---
+
+## Prerequisites
+
+Make sure you have the following before starting:
+
+- A Windows PC (this guide is written for Windows)
+- An internet connection
+- A Google account (for OAuth and Gmail SMTP)
+
+---
+
+## 1. Install Visual Studio Code
+
+1. Go to [https://code.visualstudio.com/](https://code.visualstudio.com/)
+2. Click **Download for Windows**
+3. Run the installer and follow the prompts
+4. During installation, check **"Add to PATH"** and **"Open with Code"** options
+5. Once installed, open **VS Code**
+6. Install the **Python extension**:
+   - Click the Extensions icon on the left sidebar (or press `Ctrl+Shift+X`)
+   - Search for `Python` (by Microsoft)
+   - Click **Install**
+
+---
+
+## 2. Install Python
+
+1. Go to [https://www.python.org/downloads/](https://www.python.org/downloads/)
+2. Download **Python 3.11** or later
+3. Run the installer
+4. ⚠️ **Important:** Check the box that says **"Add Python to PATH"** before clicking Install
+5. Click **Install Now**
+6. Verify installation by opening a terminal (`Ctrl+`` in VS Code) and running:
+
 ```bash
-pip install flask flask-sqlalchemy flask-login flask-mail flask-migrate authlib pymysql requests werkzeug python-dotenv
+python --version
 ```
 
-### Or using requirements.txt:
+You should see something like `Python 3.11.x`.
+
+---
+
+## 3. Install XAMPP
+
+XAMPP provides the MySQL database server the app uses.
+
+1. Go to [https://www.apachefriends.org/](https://www.apachefriends.org/)
+2. Download the **Windows** version
+3. Run the installer and follow the prompts (default settings are fine)
+4. Once installed, open **XAMPP Control Panel**
+5. Click **Start** next to **MySQL** (you don't need Apache for this project)
+6. Make sure the MySQL status turns **green**
+
+> The app connects to MySQL using the default credentials: `root` with no password. If you've changed your MySQL root password, update `SQLALCHEMY_DATABASE_URI` in `config.py` accordingly.
+
+---
+
+## 4. Clone / Download the Project
+
+**Option A — Using Git:**
+
+```bash
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
+```
+
+**Option B — Download ZIP:**
+
+1. Download the project ZIP file
+2. Extract it to a folder of your choice
+3. Open that folder in VS Code: **File → Open Folder**
+
+---
+
+## 5. Install Python Dependencies
+
+Open the integrated terminal in VS Code (`Ctrl+`` ) and run the following commands one by one:
+
+```bash
+pip install flask
+pip install flask-sqlalchemy
+pip install flask-login
+pip install flask-mail
+pip install flask-migrate
+pip install pymysql
+pip install python-dotenv
+pip install authlib
+pip install werkzeug
+pip install requests
+```
+
+Or install everything at once if a `requirements.txt` is provided:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-```
-flask
-flask-sqlalchemy
-flask-login
-flask-mail
-flask-migrate
-authlib
-pymysql
-requests
-werkzeug
-python-dotenv
-pillow
-```
+---
+
+## 6. Set Up the Database
+
+The app **automatically creates** the `job_portal` database when it runs. You don't need to create it manually.
+
+However, you can verify it in XAMPP:
+
+1. Open your browser and go to [http://localhost/phpmyadmin](http://localhost/phpmyadmin)
+2. After running the app for the first time, you should see `job_portal` listed on the left
 
 ---
 
-## 2. Database Setup
+## 7. Configure Google OAuth
 
-1. Make sure **XAMPP** is running with **MySQL** started
-2. Open **phpMyAdmin** at `http://localhost/phpmyadmin`
-3. The database `job_portal` will be created automatically when you run the app
-4. To add the new columns needed for Google login and forgot password, go to the **SQL tab** in phpMyAdmin and run:
+Google OAuth allows users to log in with their Google account.
 
-```sql
-ALTER TABLE user ADD COLUMN google_id VARCHAR(200) UNIQUE NULL;
-ALTER TABLE user ADD COLUMN reset_token VARCHAR(100) NULL;
-ALTER TABLE user ADD COLUMN reset_token_expiry DATETIME NULL;
-ALTER TABLE user MODIFY COLUMN password VARCHAR(200) NULL;
-```
-
----
-
-## 3. Environment Variables Setup
-
-1. Create a `.env` file in the project root (same folder as `app.py`)
-2. Paste the following and fill in your own values:
-
-```
-MAIL_USERNAME=your-gmail@gmail.com
-MAIL_PASSWORD=your-app-password
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
-3. Create a `.gitignore` file in the project root and paste:
-
-```
-.env
-__pycache__/
-*.pyc
-instance/
-```
-
----
-
-## 4. Gmail App Password Setup (for Forgot Password)
-
-This allows the app to automatically send password reset emails.
-
-1. Go to [myaccount.google.com](https://myaccount.google.com)
-2. Go to **Security** → enable **2-Step Verification** if not yet enabled
-3. Search **App Passwords** at the top
-4. Type any name (e.g. `Job Portal`) → click **Create**
-5. Copy the 16-character password shown
-6. Paste it as `MAIL_PASSWORD` in your `.env` file
-
----
-
-## 5. Google OAuth Setup (Sign in with Google)
-
-### Step 1 — Go to Google Cloud Console
-1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. Sign in with your Google account
-
-### Step 2 — Create a Project
-1. Click the project dropdown at the top
-2. Click **New Project**
-3. Enter any project name (e.g. `Job Portal`) → click **Create**
-
-### Step 3 — Set Up OAuth Consent Screen
-1. Go to **APIs & Services** → **OAuth consent screen**
-2. Choose **External** → click **Create**
-3. Fill in:
-   - App name: anything (e.g. `Job Portal`)
-   - User support email: your Gmail
-   - Developer contact email: your Gmail
-4. Click **Save and Continue** through the remaining steps
-5. On the last step click **Back to Dashboard**
-
-### Step 4 — Create OAuth Credentials
-1. Go to **APIs & Services** → **Credentials**
-2. Click **Create Credentials** → **OAuth 2.0 Client ID**
-3. Application type: **Web application**
-4. Name: anything (e.g. `Job Portal Web`)
-5. Under **Authorized redirect URIs** add both:
+1. Go to [https://console.cloud.google.com/](https://console.cloud.google.com/)
+2. Create a **New Project** (or select an existing one)
+3. In the left menu, go to **APIs & Services → OAuth consent screen**
+   - Choose **External**
+   - Fill in App name, support email, and developer email
+   - Click **Save and Continue** through the rest (defaults are fine for testing)
+4. Go to **APIs & Services → Credentials**
+5. Click **+ Create Credentials → OAuth 2.0 Client IDs**
+6. Set Application type to **Web application**
+7. Under **Authorized redirect URIs**, add:
    ```
-   http://localhost:5000/auth/google/callback
    http://127.0.0.1:5000/auth/google/callback
    ```
-6. Click **Create**
-7. Copy your **Client ID** and **Client Secret**
-
-### Step 5 — Add Credentials to .env
-Paste your credentials into your `.env` file:
-```
-GOOGLE_CLIENT_ID=paste-your-client-id-here
-GOOGLE_CLIENT_SECRET=paste-your-client-secret-here
-```
-
-### Step 6 — Add Test Users (Important!)
-While your app is in testing mode, only approved emails can use Google login:
-1. Go to **APIs & Services** → **OAuth consent screen**
-2. Scroll down to **Test users**
-3. Click **Add Users**
-4. Add the Gmail addresses that will test the app
-5. Click **Save**
+8. Click **Create**
+9. Copy your **Client ID** and **Client Secret** — you'll need these in the next step
 
 ---
 
-## 6. Running the App
+## 8. Configure Gmail SMTP
+
+The app sends verification emails via Gmail.
+
+1. Go to your Google Account: [https://myaccount.google.com/](https://myaccount.google.com/)
+2. Navigate to **Security**
+3. Enable **2-Step Verification** if not already on
+4. Search for **"App Passwords"** in the search bar at the top
+5. Select **Mail** as the app and **Windows Computer** as the device
+6. Click **Generate**
+7. Copy the **16-character app password** — this is your `MAIL_PASSWORD`
+
+> Use your full Gmail address (e.g. `yourname@gmail.com`) as `MAIL_USERNAME`.
+
+---
+
+## 9. Create the `.env` File
+
+In the **root folder** of your project (same level as `app.py`), create a file named `.env`:
+
+1. In VS Code, right-click the project root in the Explorer panel
+2. Click **New File** and name it `.env`
+3. Paste the following and fill in your values:
+
+```env
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=your_16_char_app_password
+
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+ADMIN_TOKEN=admintoken123
+```
+
+> ⚠️ Never share your `.env` file or push it to GitHub. Add `.env` to your `.gitignore`.
+
+---
+
+## 10. Run the Application
+
+Make sure **XAMPP MySQL is running**, then in the VS Code terminal:
 
 ```bash
 python app.py
 ```
 
-The app will be available at `http://127.0.0.1:5000`
+You should see output like:
 
-A default admin account is created automatically:
-- Username: `admin`
-- Password: `admin123`
+```
+==================================================
+Flask App URL:
+http://127.0.0.1:5000/
+
+ADMIN LOGIN URL (this session only):
+http://127.0.0.1:5000/admin/login/<token>
+==================================================
+```
+
+Open your browser and go to [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
 
 ---
 
-## 7. Troubleshooting
+## Default Admin Credentials
 
-| Error | Fix |
-|---|---|
-| `ModuleNotFoundError` | Run `pip install -r requirements.txt` |
-| `invalid_client` | Check that `GOOGLE_CLIENT_ID` in `.env` is correct |
-| `redirect_uri_mismatch` | Add both `localhost` and `127.0.0.1` URIs in Google Console |
-| `Access blocked` | Your Gmail is not added as a test user in Google Console |
-| `The message does not specify a sender` | Check that `MAIL_USERNAME` and `MAIL_PASSWORD` are set in `.env` |
-| `command 'flask' not found` | Use `python app.py` instead of `flask run` |
-| Reset password link redirects back | Check that `reset_token` and `reset_token_expiry` columns exist in DB |
-````
+On the first run, an admin account is automatically created:
+
+| Field    | Value           |
+|----------|-----------------|
+| Username | `admin`         |
+| Email    | `admin@gmail.com` |
+| Password | `admin123`      |
+
+Use the **Admin Login URL** printed in the terminal to access the admin panel.
+
+> 🔒 Change the default admin password after your first login.
+
+---
+
+## Troubleshooting
+
+**MySQL connection error**
+- Make sure XAMPP MySQL is running before starting the app
+
+**Google OAuth not working**
+- Double-check the redirect URI in Google Console matches exactly: `http://127.0.0.1:5000/auth/google/callback`
+
+**Emails not sending**
+- Make sure you used an **App Password**, not your regular Gmail password
+- Ensure 2-Step Verification is enabled on your Google account
+
+**`ModuleNotFoundError`**
+- Run `pip install <module-name>` for the missing package
+
+---
+
+*Built with Flask, SQLAlchemy, Flask-Mail, Authlib, and ❤️*

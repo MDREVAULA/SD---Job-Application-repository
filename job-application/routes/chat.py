@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile, HRProfile
+from models import ApplicantNotification, RecruiterNotification, HRNotification
 from datetime import datetime
 from sqlalchemy import or_, and_
 
@@ -33,7 +34,6 @@ def get_company_name(user):
         p = RecruiterProfile.query.filter_by(user_id=user.id).first()
         return p.company_name if p else None
     if user.role == "hr":
-        # HR was created_by a recruiter — get that recruiter's company
         if user.created_by:
             recruiter = User.query.get(user.created_by)
             if recruiter:
@@ -63,20 +63,135 @@ def build_user_card(user, current_user_id=None):
     }
 
 
+def serialize_message(m, current_user_id, active_display_name=None):
+    """
+    Serialize a Message object to a dict for JSON responses.
+    Includes reply_to fields needed by the JS appendBubble() function.
+    """
+    reply_to_body   = None
+    reply_to_author = None
+
+    if m.reply_to_id and m.reply_to:
+        reply_to_body = m.reply_to.body
+        if m.reply_to.sender_id == current_user_id:
+            reply_to_author = "You"
+        else:
+            reply_to_author = active_display_name or "Them"
+
+    return {
+        "id":              m.id,
+        "body":            m.body,
+        "sender_id":       m.sender_id,
+        "created_at":      m.created_at.strftime("%I:%M %p"),
+        "is_mine":         m.sender_id == current_user_id,
+        "edited":          m.edited,
+        "reply_to_id":     m.reply_to_id,
+        "reply_to_body":   reply_to_body,
+        "reply_to_author": reply_to_author,
+    }
+
+
+def _notify_new_message(sender, receiver, message_preview):
+    """
+    Create a new_message notification for the receiver regardless of role.
+    Only fires once per conversation (avoids spam): checks if there's already
+    an unread new_message notification from this sender.
+    """
+    preview = (message_preview[:60] + '…') if len(message_preview) > 60 else message_preview
+    msg_text = f"<strong>{sender.username}</strong> sent you a message: \"{preview}\""
+
+    if receiver.role == 'applicant':
+        # Check for recent unread notification from same sender to avoid spam
+        existing = ApplicantNotification.query.filter_by(
+            applicant_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            ApplicantNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = ApplicantNotification(
+                applicant_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+    elif receiver.role == 'recruiter':
+        existing = RecruiterNotification.query.filter_by(
+            recruiter_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            RecruiterNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = RecruiterNotification(
+                recruiter_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+    elif receiver.role == 'hr':
+        existing = HRNotification.query.filter_by(
+            hr_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            HRNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = HRNotification(
+                hr_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+
+def _notify_new_follow(follower, followed):
+    """
+    Create a new_follow notification for the followed user regardless of role.
+    """
+    msg_text = f"<strong>{follower.username}</strong> started following you."
+
+    if followed.role == 'applicant':
+        notif = ApplicantNotification(
+            applicant_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
+
+    elif followed.role == 'recruiter':
+        notif = RecruiterNotification(
+            recruiter_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
+
+    elif followed.role == 'hr':
+        notif = HRNotification(
+            hr_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
+
+
 # =========================
 # PEOPLE PAGE
-# (search + follow — guests can view but not follow)
 # =========================
 @chat_bp.route("/people")
 def people():
-    query = request.args.get("q", "").strip()
+    query       = request.args.get("q", "").strip()
     role_filter = request.args.get("role", "").strip()
 
-    # Exclude admin accounts from people search
     users_query = User.query.filter(User.role != "admin")
 
     if current_user.is_authenticated:
-        # Don't show the current user to themselves
         users_query = users_query.filter(User.id != current_user.id)
 
     if query:
@@ -90,12 +205,11 @@ def people():
     if role_filter in ["applicant", "recruiter", "hr"]:
         users_query = users_query.filter(User.role == role_filter)
 
-    # Only show verified / approved users
     users_query = users_query.filter(
         or_(
             User.verification_status == "Approved",
-            User.role == "applicant",  # applicants may be pending but still searchable
-            User.role == "hr"          # HR accounts are created by recruiters, not admin-verified
+            User.role == "applicant",
+            User.role == "hr"
         )
     )
 
@@ -132,8 +246,12 @@ def follow(target_id):
         db.session.commit()
         action = "unfollowed"
     else:
-        follow = Follow(follower_id=current_user.id, followed_id=target.id)
-        db.session.add(follow)
+        new_follow = Follow(follower_id=current_user.id, followed_id=target.id)
+        db.session.add(new_follow)
+
+        # Notify the followed user
+        _notify_new_follow(current_user, target)
+
         db.session.commit()
         action = "followed"
 
@@ -142,14 +260,12 @@ def follow(target_id):
 
 
 # =========================
-# INBOX
-# Lists all conversations (unique people the current user has messaged/received from)
+# INBOX — list all conversations
 # =========================
 @chat_bp.route("/inbox")
 @login_required
 def inbox():
-    # Get all users the current user has a conversation with
-    sent_to = db.session.query(Message.receiver_id).filter_by(sender_id=current_user.id)
+    sent_to       = db.session.query(Message.receiver_id).filter_by(sender_id=current_user.id)
     received_from = db.session.query(Message.sender_id).filter_by(receiver_id=current_user.id)
 
     contact_ids = set(
@@ -175,20 +291,18 @@ def inbox():
         ).count()
 
         conversations.append({
-            "user": user,
+            "user":         user,
             "display_name": get_display_name(user),
-            "company": get_company_name(user),
+            "company":      get_company_name(user),
             "last_message": last_msg,
             "unread_count": unread_count,
         })
 
-    # Sort by most recent message
     conversations.sort(
         key=lambda c: c["last_message"].created_at if c["last_message"] else datetime.min,
         reverse=True
     )
 
-    # Count total unread for nav badge
     total_unread = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
 
     return render_template(
@@ -208,7 +322,7 @@ def inbox():
 def conversation(other_id):
     other = User.query.get_or_404(other_id)
 
-    # Mark all messages from other → current_user as read
+    # Mark incoming messages as read
     Message.query.filter_by(
         sender_id=other_id,
         receiver_id=current_user.id,
@@ -216,7 +330,6 @@ def conversation(other_id):
     ).update({"is_read": True})
     db.session.commit()
 
-    # Fetch full conversation
     messages = Message.query.filter(
         or_(
             and_(Message.sender_id == current_user.id, Message.receiver_id == other_id),
@@ -224,14 +337,13 @@ def conversation(other_id):
         )
     ).order_by(Message.created_at.asc()).all()
 
-    # Sidebar conversations (same as inbox)
-    sent_to = db.session.query(Message.receiver_id).filter_by(sender_id=current_user.id)
+    # Build sidebar conversation list
+    sent_to       = db.session.query(Message.receiver_id).filter_by(sender_id=current_user.id)
     received_from = db.session.query(Message.sender_id).filter_by(receiver_id=current_user.id)
-    contact_ids = set(
+    contact_ids   = set(
         [r[0] for r in sent_to.all()] +
         [r[0] for r in received_from.all()]
     )
-    # Always include the current conversation partner
     contact_ids.add(other_id)
 
     conversations = []
@@ -251,9 +363,9 @@ def conversation(other_id):
         ).count()
 
         conversations.append({
-            "user": u,
+            "user":         u,
             "display_name": get_display_name(u),
-            "company": get_company_name(u),
+            "company":      get_company_name(u),
             "last_message": last_msg,
             "unread_count": unread_count,
         })
@@ -288,7 +400,8 @@ def conversation(other_id):
 @login_required
 def send_message(receiver_id):
     receiver = User.query.get_or_404(receiver_id)
-    body = request.json.get("body", "").strip()
+    data     = request.get_json()
+    body     = (data.get("body") or "").strip()
 
     if not body:
         return jsonify({"error": "Empty message"}), 400
@@ -296,36 +409,63 @@ def send_message(receiver_id):
     if len(body) > 2000:
         return jsonify({"error": "Message too long"}), 400
 
+    # ── reply support ──
+    reply_to_id = data.get("reply_to_id")
+    if reply_to_id:
+        quoted = Message.query.get(reply_to_id)
+        if not quoted or not (
+            (quoted.sender_id == current_user.id   and quoted.receiver_id == receiver_id) or
+            (quoted.sender_id == receiver_id        and quoted.receiver_id == current_user.id)
+        ):
+            reply_to_id = None
+
     msg = Message(
-        sender_id=current_user.id,
-        receiver_id=receiver.id,
-        body=body
+        sender_id   = current_user.id,
+        receiver_id = receiver.id,
+        body        = body,
+        reply_to_id = reply_to_id,
     )
     db.session.add(msg)
+
+    # Notify receiver of new message (for all roles)
+    _notify_new_message(current_user, receiver, body)
+
     db.session.commit()
 
+    # Build reply preview fields for the JS
+    reply_to_body   = None
+    reply_to_author = None
+    if reply_to_id and msg.reply_to:
+        reply_to_body   = msg.reply_to.body
+        reply_to_author = "You" if msg.reply_to.sender_id == current_user.id else get_display_name(receiver)
+
     return jsonify({
-        "id": msg.id,
-        "body": msg.body,
-        "sender_id": msg.sender_id,
-        "created_at": msg.created_at.strftime("%b %d, %Y %I:%M %p"),
-        "is_mine": True
+        "id":              msg.id,
+        "body":            msg.body,
+        "sender_id":       msg.sender_id,
+        "created_at":      msg.created_at.strftime("%I:%M %p"),
+        "is_mine":         True,
+        "edited":          False,
+        "reply_to_id":     msg.reply_to_id,
+        "reply_to_body":   reply_to_body,
+        "reply_to_author": reply_to_author,
     })
 
 
 # =========================
 # POLL FOR NEW MESSAGES  (AJAX GET)
-# Lightweight polling — checks for messages newer than a given message id
 # =========================
 @chat_bp.route("/poll/<int:other_id>")
 @login_required
 def poll_messages(other_id):
     since_id = request.args.get("since", 0, type=int)
 
+    other = User.query.get_or_404(other_id)
+
     new_messages = Message.query.filter(
         or_(
             and_(Message.sender_id == current_user.id, Message.receiver_id == other_id),
-            and_(Message.sender_id == other_id, Message.receiver_id == current_user.id)
+            and_(Message.sender_id == other_id,        Message.receiver_id == current_user.id)
         ),
         Message.id > since_id
     ).order_by(Message.created_at.asc()).all()
@@ -336,14 +476,10 @@ def poll_messages(other_id):
             m.is_read = True
     db.session.commit()
 
+    other_display = get_display_name(other)
+
     return jsonify([
-        {
-            "id": m.id,
-            "body": m.body,
-            "sender_id": m.sender_id,
-            "created_at": m.created_at.strftime("%b %d, %Y %I:%M %p"),
-            "is_mine": m.sender_id == current_user.id
-        }
+        serialize_message(m, current_user.id, other_display)
         for m in new_messages
     ])
 
@@ -356,3 +492,53 @@ def poll_messages(other_id):
 def unread_count():
     count = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
     return jsonify({"count": count})
+
+
+# =========================
+# EDIT MESSAGE  (AJAX POST)
+# =========================
+@chat_bp.route("/edit/<int:msg_id>", methods=["POST"])
+@login_required
+def edit_message(msg_id):
+    msg = Message.query.get_or_404(msg_id)
+
+    if msg.sender_id != current_user.id:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data     = request.get_json()
+    new_body = (data.get("body") or "").strip()
+
+    if not new_body:
+        return jsonify({"error": "Empty message"}), 400
+
+    if len(new_body) > 2000:
+        return jsonify({"error": "Message too long"}), 400
+
+    msg.body   = new_body
+    msg.edited = True
+    db.session.commit()
+
+    return jsonify({
+        "id":     msg.id,
+        "body":   msg.body,
+        "edited": True,
+    })
+
+
+# =========================
+# UNSEND MESSAGE  (AJAX POST)
+# =========================
+@chat_bp.route("/unsend/<int:msg_id>", methods=["POST"])
+@login_required
+def unsend_message(msg_id):
+    msg = Message.query.get_or_404(msg_id)
+
+    if msg.sender_id != current_user.id:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    Message.query.filter_by(reply_to_id=msg_id).update({"reply_to_id": None})
+
+    db.session.delete(msg)
+    db.session.commit()
+
+    return jsonify({"deleted": True, "id": msg_id})

@@ -1,0 +1,183 @@
+/* ================================================
+   UPLOAD ERROR MODAL — shared across pfp + logo
+   Matches the doc-error-overlay design exactly.
+   Add this to: static/css/components/upload_error_modal.css
+   ================================================ */
+
+.upload-error-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 10000; /* above crop modals which are 9999 */
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.upload-error-overlay.open {
+    display: flex;
+}
+
+.upload-error-modal {
+    background: var(--bg-card, #fff);
+    border-radius: 16px;
+    padding: 28px 28px 22px;
+    max-width: 400px;
+    width: calc(100% - 40px);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+    text-align: center;
+    animation: ueModalIn 0.22s ease both;
+    font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+@keyframes ueModalIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+.upload-error-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #FCEBEB;
+    border: 2px solid #F7C1C1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #EF4444;
+    margin: 0 auto 14px;
+}
+
+.upload-error-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary, #111);
+    margin: 0 0 8px;
+}
+
+.upload-error-body {
+    font-size: 0.845rem;
+    color: var(--text-secondary, #4B5563);
+    margin: 0 0 20px;
+    line-height: 1.6;
+}
+
+.upload-error-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.775rem;
+    color: var(--text-muted, #9CA3AF);
+    background: var(--bg-surface-alt, #F9FBF8);
+    border: 1px solid var(--border-color, #EAEDE8);
+    border-radius: 20px;
+    padding: 4px 12px;
+    margin-bottom: 18px;
+}
+
+.upload-error-meta i {
+    color: #9DC88D;
+    font-size: 0.7rem;
+}
+
+.upload-error-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.upload-error-btn-retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 22px;
+    background: #164A41;
+    color: #fff;
+    border: 1px solid #164A41;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.83rem;
+    cursor: pointer;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.upload-error-btn-retry:hover {
+    background: #0e3229;
+    border-color: #0e3229;
+}
+
+.upload-error-btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    background: transparent;
+    color: var(--text-muted, #6B7280);
+    border: 1px solid var(--border-color, #DDE3D8);
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.83rem;
+    cursor: pointer;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    transition: background 0.15s;
+}
+
+.upload-error-btn-cancel:hover {
+    background: var(--bg-hover, #F3F4F6);
+}
+
+/* ── Dark mode ── */
+[data-theme="dark"] .upload-error-modal {
+    background: var(--bg-card, #1e2a23);
+    border: 1px solid var(--border-color, #2d3f31);
+}
+
+[data-theme="dark"] .upload-error-icon {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.28);
+}
+
+[data-theme="dark"] .upload-error-title {
+    color: var(--text-primary, #e8f0e4);
+}
+
+[data-theme="dark"] .upload-error-body {
+    color: var(--text-secondary, #a3b8a5);
+}
+
+[data-theme="dark"] .upload-error-meta {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(157,200,141,0.15);
+    color: var(--text-muted, #6b8f6e);
+}
+
+[data-theme="dark"] .upload-error-btn-cancel {
+    border-color: var(--border-color, #2d3f31);
+    color: var(--text-muted, #6b8f6e);
+}
+
+[data-theme="dark"] .upload-error-btn-cancel:hover {
+    background: rgba(255,255,255,0.05);
+    color: #9DC88D;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+    .upload-error-modal {
+        padding: 22px 20px 18px;
+    }
+
+    .upload-error-actions {
+        flex-direction: column;
+    }
+
+    .upload-error-btn-retry,
+    .upload-error-btn-cancel {
+        width: 100%;
+        justify-content: center;
+    }
+}
