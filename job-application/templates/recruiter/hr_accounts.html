@@ -107,6 +107,7 @@
                             <i class="fas fa-search"></i>
                             <input type="text" id="hrSearch" placeholder="Search by name or email...">
                         </div>
+        
                         <div class="hra-filter-dropdown">
                             <button class="hra-filter-btn" id="filterBtn">
                                 <i class="fas fa-sort"></i>
@@ -209,8 +210,18 @@
                 </div>
                 
                 <!-- PAGINATION -->
-                <div class="hra-pagination-wrap" id="paginationWrap">
-                    <div class="hra-pagination-info" id="paginationInfo"></div>
+                 <div class="hra-pagination-wrap" id="paginationWrap">
+                    
+                    <!-- LEFT SIDE (Delete All) -->
+                     <div class="hra-pagination-left">
+                         {% if hrs|length > 0 %}
+                         <button type="button" class="hra-submit-btn" id="deleteAllHrBtn">
+                            <i class="fas fa-trash"></i> Delete All
+                         </button>
+                         {% endif %}
+                        </div>
+                        
+                        <div class="hra-pagination-info" id="paginationInfo"></div>
                     <div class="hra-pagination-controls">
                         <button class="hra-page-btn" id="prevBtn">Previous</button>
                         <div class="hra-page-numbers" id="pageNumbers"></div>
@@ -251,17 +262,24 @@
     <div class="hra-modal-content hra-modal-sm">
         <div class="hra-modal-header">
             <h3 id="confirmTitle">Confirm Action</h3>
-            <button class="hra-modal-close">&times;</button>
+            <button class="hra-modal-close" onclick="closeConfirmModal()">&times;</button>
         </div>
+
         <div class="hra-modal-body">
             <p id="confirmMessage">Are you sure you want to perform this action?</p>
-            <div class="hra-modal-buttons">
-                <button class="hra-btn-secondary" onclick="closeConfirmModal()">Cancel</button>
-                <button id="confirmActionBtn" class="hra-btn-danger">Confirm</button>
-            </div>
+
+            <!-- ✅ ADD THIS FORM -->
+            <form id="deleteForm" method="POST">
+                <div class="hra-modal-buttons">
+                    <button type="button" class="hra-btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+                    <button type="submit" class="hra-btn-danger">Confirm</button>
+                </div>
+            </form>
+
         </div>
     </div>
 </div>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/recruiter/hr_accounts.js') }}"></script>
