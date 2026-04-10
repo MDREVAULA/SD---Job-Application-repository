@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
-from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification
+from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification, HRProfile 
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -801,12 +801,20 @@ def delete_hr():
         return jsonify({'success': False, 'error': 'Access denied'}), 403
     
     hr_id = request.form.get('hr_id')
-    hr = User.query.get_or_404(hr_id)
+    if not hr_id:
+        return jsonify({'success': False, 'error': 'HR ID required'}), 400
+    
+    hr = User.query.get_or_404(int(hr_id))
     
     if hr.created_by != current_user.id or hr.role != 'hr':
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
     
-    db.session.delete(hr)
-    db.session.commit()
-    
-    return jsonify({'success': True})
+    try:
+        # RAW SQL - bypasses relationships
+        db.session.execute(db.text("DELETE FROM hr_profile WHERE user_id = :hr_id"), {"hr_id": hr.id})
+        db.session.execute(db.text("DELETE FROM user WHERE id = :hr_id"), {"hr_id": hr.id})
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'HR account deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500

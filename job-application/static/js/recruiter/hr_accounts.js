@@ -277,32 +277,34 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.delete-hr', function() {
-        var hrId   = $(this).data('id');
-        var hrName = $(this).data('name');
+    var hrId   = $(this).data('id');
+    var hrName = $(this).data('name');
 
-        showConfirmModal(
-            'Delete HR Account',
-            'Are you sure you want to delete <strong>' + hrName + '</strong>? This action cannot be undone.',
-            function() {
-                $.ajax({
-                    url: '/recruiter/delete-hr',
-                    method: 'POST',
-                    data: { hr_id: hrId },
-                    success: function(response) {
-                        if (response.success) {
-                            showNotification('HR member deleted successfully!', 'success');
-                            setTimeout(function() { location.reload(); }, 1500);
-                        } else {
-                            showNotification(response.error || 'Delete failed', 'error');
-                        }
-                    },
-                    error: function() {
-                        showNotification('An error occurred', 'error');
+    showConfirmModal(
+        'Delete HR Account',
+        'Are you sure you want to delete <strong>' + hrName + '</strong>? This action cannot be undone.',
+        function() {
+            $.ajax({
+                url: '/recruiter/delete-hr',
+                method: 'POST',
+                data: { hr_id: hrId },  // SIMPLIFIED - no CSRF
+                success: function(response) {
+                    console.log('Delete response:', response);  // DEBUG
+                    if (response.success) {
+                        showNotification('HR member deleted successfully!', 'success');
+                        setTimeout(function() { location.reload(); }, 1500);
+                    } else {
+                        showNotification(response.error || 'Delete failed', 'error');
                     }
-                });
-            }
-        );
-    });
+                },
+                error: function(xhr) {
+                    console.log('Delete error:', xhr.responseText);  // DEBUG
+                    showNotification('Delete failed: ' + xhr.status, 'error');
+                }
+            });
+        }
+    );
+});
 
     $('.hra-modal-close').on('click', function() {
         $(this).closest('.hra-modal').removeClass('show');
