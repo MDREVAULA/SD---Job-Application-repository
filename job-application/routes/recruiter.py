@@ -839,28 +839,6 @@ def clear_all_notifications():
 def delete_all_hr():
 
     if current_user.role != 'recruiter':
-<<<<<<< HEAD
-        return jsonify({'success': False, 'error': 'Access denied'}), 403
-    
-    hr_id = request.form.get('hr_id')
-    if not hr_id:
-        return jsonify({'success': False, 'error': 'HR ID required'}), 400
-    
-    hr = User.query.get_or_404(int(hr_id))
-    
-    if hr.created_by != current_user.id or hr.role != 'hr':
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
-    
-    try:
-        # RAW SQL - bypasses relationships
-        db.session.execute(db.text("DELETE FROM hr_profile WHERE user_id = :hr_id"), {"hr_id": hr.id})
-        db.session.execute(db.text("DELETE FROM user WHERE id = :hr_id"), {"hr_id": hr.id})
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'HR account deleted successfully'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'error': str(e)}), 500
-=======
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
@@ -889,4 +867,3 @@ def delete_all_hr():
         flash(f"Error deleting all HR accounts: {str(e)}", "danger")
 
     return redirect(url_for('recruiter.hr_accounts'))
->>>>>>> 436ac56847dfd9e85338069c1464317cc4ae8313
