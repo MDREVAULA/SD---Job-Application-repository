@@ -3,31 +3,118 @@
 # File: routes/profile_view.py
 # ================================================================
 
-from flask import Blueprint, render_template, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, abort, jsonify
 from flask_login import login_required, current_user
 from models import (
     db, User, ApplicantProfile, WorkExperience,
-    Education, Skill, Project, Certification, Job, Follow
+    Education, Skill, Project, Certification, Job, Follow, UserSettings
 )
 from datetime import date
+import json
 
 profile_view_bp = Blueprint('profile_view', __name__, url_prefix='/profile')
 
 
 def _get_follow_lists(user_id):
-    """Return (followers_list, following_list) as User objects for a given user_id."""
     follower_rows  = Follow.query.filter_by(followed_id=user_id).all()
     following_rows = Follow.query.filter_by(follower_id=user_id).all()
-    followers  = [User.query.get(r.follower_id)  for r in follower_rows  if User.query.get(r.follower_id)]
-    following  = [User.query.get(r.followed_id)  for r in following_rows if User.query.get(r.followed_id)]
+    followers = [User.query.get(r.follower_id) for r in follower_rows if User.query.get(r.follower_id)]
+    following = [User.query.get(r.followed_id) for r in following_rows if User.query.get(r.followed_id)]
     return followers, following
 
 
-# ── SMART REDIRECT — /profile/<user_id> → correct role view ──
+def _get_settings(user_id):
+    """Load UserSettings for the *viewed* user, with safe defaults."""
+    s = UserSettings.query.filter_by(user_id=user_id).first()
+    if not s:
+        class DefaultSettings:
+            show_name             = 'everyone'
+            show_profile          = 'everyone'
+            profile_audience_json = '["recruiter","hr","follower"]'
+            profile_audience      = ['recruiter', 'hr', 'follower']
+            show_follow_list      = 'yes'
+            show_follow_count     = 'yes'
+            who_can_message       = 'all'
+        return DefaultSettings()
+
+    try:
+        s.profile_audience = json.loads(s.profile_audience_json) if s.profile_audience_json else ['recruiter', 'hr', 'follower']
+    except Exception:
+        s.profile_audience = ['recruiter', 'hr', 'follower']
+
+    return s
+
+
+def _is_follower(viewer_id, viewed_id):
+    """True if viewer is following viewed (one-directional)."""
+    if not viewer_id:
+        return False
+    return bool(Follow.query.filter_by(follower_id=viewer_id, followed_id=viewed_id).first())
+
+
+def _is_mutual(viewer_id, viewed_id):
+    """True if viewer follows viewed AND viewed follows viewer."""
+    if not viewer_id:
+        return False
+    a = Follow.query.filter_by(follower_id=viewer_id, followed_id=viewed_id).first()
+    b = Follow.query.filter_by(follower_id=viewed_id, followed_id=viewer_id).first()
+    return bool(a and b)
+
+
+def _can_see_profile(settings, viewer_role, viewer_id, viewed_id):
+    """
+    Controls visibility of personal info AND documents.
+    'everyone'  — all visitors including guests
+    'specific'  — only roles/relationships listed in profile_audience
+    'none'      — completely private
+    """
+    if settings.show_profile == 'everyone':
+        return True
+    if settings.show_profile == 'none':
+        return False
+    if settings.show_profile == 'specific':
+        audience = settings.profile_audience
+        if viewer_role and viewer_role in audience:
+            return True
+        # 'follower' = viewer is following the viewed user (one-way is enough)
+        if 'follower' in audience and _is_follower(viewer_id, viewed_id):
+            return True
+        # keep backward-compat with old 'mutual' value in DB
+        if 'mutual' in audience and _is_mutual(viewer_id, viewed_id):
+            return True
+    return False
+
+
+def _can_see_name(settings, viewer_id, viewed_id):
+    if settings.show_name == 'everyone':
+        return True
+    if settings.show_name == 'mutual':
+        return _is_mutual(viewer_id, viewed_id)
+    return False
+
+
+def _can_see_follow_list(settings):
+    return settings.show_follow_list == 'yes'
+
+
+def _can_see_follow_count(settings):
+    return settings.show_follow_count == 'yes'
+
+
+def _can_message(settings, viewer_role, viewer_id, viewed_id):
+    if settings.who_can_message == 'all':
+        return True
+    if settings.who_can_message == 'recruiters' and viewer_role == 'recruiter':
+        return True
+    if settings.who_can_message == 'mutual' and _is_mutual(viewer_id, viewed_id):
+        return True
+    return False
+
+
+# ── SMART REDIRECT ──
 @profile_view_bp.route('/<int:user_id>')
 def view_profile(user_id):
     user = User.query.get_or_404(user_id)
-
     if current_user.is_authenticated and current_user.id == user_id:
         if user.role == 'applicant':
             return redirect(url_for('applicant.profile'))
@@ -35,7 +122,6 @@ def view_profile(user_id):
             return redirect(url_for('hr.profile'))
         elif user.role == 'recruiter':
             return redirect(url_for('recruiter.profile'))
-
     if user.role == 'applicant':
         return redirect(url_for('profile_view.view_applicant_profile', user_id=user_id))
     elif user.role == 'hr':
@@ -47,18 +133,27 @@ def view_profile(user_id):
 
 
 # ── APPLICANT PUBLIC PROFILE ──
-# No @login_required — accessible to guests
 @profile_view_bp.route('/applicant/<int:user_id>')
 def view_applicant_profile(user_id):
     viewed_user = User.query.get_or_404(user_id)
-
     if viewed_user.role != 'applicant':
         flash("This profile is not an applicant.", "warning")
         return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
-    # Redirect logged-in user viewing their own profile
     if current_user.is_authenticated and current_user.id == user_id:
         return redirect(url_for('applicant.profile'))
+
+    settings    = _get_settings(user_id)
+    viewer_id   = current_user.id   if current_user.is_authenticated else None
+    viewer_role = current_user.role if current_user.is_authenticated else None
+
+    show_profile      = _can_see_profile(settings, viewer_role, viewer_id, user_id)
+    show_name         = _can_see_name(settings, viewer_id, user_id)
+    show_follow_list  = _can_see_follow_list(settings)
+    show_follow_count = _can_see_follow_count(settings)
+    can_message       = _can_message(settings, viewer_role, viewer_id, user_id)
+
+    # Pass the raw who_can_message setting so the template can show notices
+    who_can_message   = settings.who_can_message
 
     prof = ApplicantProfile.query.filter_by(user_id=user_id).first()
 
@@ -72,8 +167,7 @@ def view_applicant_profile(user_id):
     is_following = False
     if current_user.is_authenticated:
         is_following = Follow.query.filter_by(
-            follower_id=current_user.id,
-            followed_id=user_id
+            follower_id=current_user.id, followed_id=user_id
         ).first() is not None
 
     return render_template(
@@ -86,43 +180,49 @@ def view_applicant_profile(user_id):
         projects=projects,
         certifications=certifications,
         is_following=is_following,
-        followers=followers,
-        following=following,
-        follower_count=len(followers),
-        following_count=len(following),
+        followers=followers  if show_follow_list  else [],
+        following=following  if show_follow_list  else [],
+        follower_count=len(followers)  if show_follow_count else None,
+        following_count=len(following) if show_follow_count else None,
+        show_profile=show_profile,
+        show_name=show_name,
+        show_follow_list=show_follow_list,
+        show_follow_count=show_follow_count,
+        can_message=can_message,
+        who_can_message=who_can_message,
     )
+
 
 # ── RECRUITER PUBLIC PROFILE ──
 @profile_view_bp.route('/recruiter/<int:user_id>')
 def view_recruiter_profile(user_id):
     from models import RecruiterProfile
-
     viewed_user = User.query.get_or_404(user_id)
-
     if viewed_user.role != 'recruiter':
         flash("This profile is not a recruiter.", "warning")
         return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
     if current_user.is_authenticated and current_user.id == user_id:
         return redirect(url_for('recruiter.profile'))
 
-    profile = RecruiterProfile.query.filter_by(user_id=user_id).first()
+    settings    = _get_settings(user_id)
+    viewer_id   = current_user.id   if current_user.is_authenticated else None
+    viewer_role = current_user.role if current_user.is_authenticated else None
 
-    educations = []
-    if profile:
-        educations = Education.query.filter_by(
-            profile_id=profile.id
-        ).order_by(Education.created_at.desc()).all()
+    show_profile      = _can_see_profile(settings, viewer_role, viewer_id, user_id)
+    show_name         = _can_see_name(settings, viewer_id, user_id)
+    show_follow_list  = _can_see_follow_list(settings)
+    show_follow_count = _can_see_follow_count(settings)
+    can_message       = _can_message(settings, viewer_role, viewer_id, user_id)
+    who_can_message   = settings.who_can_message
 
-    posted_jobs = Job.query.filter_by(
-        company_id=user_id
-    ).order_by(Job.id.desc()).all()
+    profile     = RecruiterProfile.query.filter_by(user_id=user_id).first()
+    educations  = Education.query.filter_by(profile_id=profile.id).order_by(Education.created_at.desc()).all() if profile else []
+    posted_jobs = Job.query.filter_by(company_id=user_id).order_by(Job.id.desc()).all()
 
     is_following = False
     if current_user.is_authenticated:
         is_following = Follow.query.filter_by(
-            follower_id=current_user.id,
-            followed_id=user_id
+            follower_id=current_user.id, followed_id=user_id
         ).first() is not None
 
     followers, following = _get_follow_lists(user_id)
@@ -134,43 +234,54 @@ def view_recruiter_profile(user_id):
         educations=educations,
         posted_jobs=posted_jobs,
         is_following=is_following,
-        followers=followers,
-        following=following,
-        follower_count=len(followers),
-        following_count=len(following),
+        followers=followers  if show_follow_list  else [],
+        following=following  if show_follow_list  else [],
+        follower_count=len(followers)  if show_follow_count else None,
+        following_count=len(following) if show_follow_count else None,
+        show_profile=show_profile,
+        show_name=show_name,
+        show_follow_list=show_follow_list,
+        show_follow_count=show_follow_count,
+        can_message=can_message,
+        who_can_message=who_can_message,
         today=date.today()
     )
+
 
 # ── HR PUBLIC PROFILE ──
 @profile_view_bp.route('/hr/<int:user_id>')
 def view_hr_profile(user_id):
     from models import RecruiterProfile, HRProfile
-
     viewed_user = User.query.get_or_404(user_id)
-
     if viewed_user.role != 'hr':
         flash("This profile is not an HR member.", "warning")
         return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
     if current_user.is_authenticated and current_user.id == user_id:
         return redirect(url_for('hr.profile'))
 
-    profile = HRProfile.query.filter_by(user_id=user_id).first()
+    settings    = _get_settings(user_id)
+    viewer_id   = current_user.id   if current_user.is_authenticated else None
+    viewer_role = current_user.role if current_user.is_authenticated else None
 
+    show_profile      = _can_see_profile(settings, viewer_role, viewer_id, user_id)
+    show_name         = _can_see_name(settings, viewer_id, user_id)
+    show_follow_list  = _can_see_follow_list(settings)
+    show_follow_count = _can_see_follow_count(settings)
+    can_message       = _can_message(settings, viewer_role, viewer_id, user_id)
+    who_can_message   = settings.who_can_message
+
+    profile           = HRProfile.query.filter_by(user_id=user_id).first()
     recruiter_profile = None
     if viewed_user.created_by:
-        recruiter_profile = RecruiterProfile.query.filter_by(
-            user_id=viewed_user.created_by
-        ).first()
-
-    followers, following = _get_follow_lists(user_id)
+        recruiter_profile = RecruiterProfile.query.filter_by(user_id=viewed_user.created_by).first()
 
     is_following = False
     if current_user.is_authenticated:
         is_following = Follow.query.filter_by(
-            follower_id=current_user.id,
-            followed_id=user_id
+            follower_id=current_user.id, followed_id=user_id
         ).first() is not None
+
+    followers, following = _get_follow_lists(user_id)
 
     return render_template(
         'hr/view_profile.html',
@@ -178,49 +289,58 @@ def view_hr_profile(user_id):
         profile=profile,
         recruiter_profile=recruiter_profile,
         is_following=is_following,
-        followers=followers,
-        following=following,
-        follower_count=len(followers),
-        following_count=len(following),
+        followers=followers  if show_follow_list  else [],
+        following=following  if show_follow_list  else [],
+        follower_count=len(followers)  if show_follow_count else None,
+        following_count=len(following) if show_follow_count else None,
+        show_profile=show_profile,
+        show_name=show_name,
+        show_follow_list=show_follow_list,
+        show_follow_count=show_follow_count,
+        can_message=can_message,
+        who_can_message=who_can_message,
     )
 
-# ── FOLLOW LIST API — returns followers/following as JSON ──
+
+# ── FOLLOW LIST API ──
 @profile_view_bp.route('/follow-list/<int:user_id>')
 def follow_list(user_id):
-    """
-    Returns followers and following for a user as JSON.
-    Used by the real-time modal update after follow/unfollow.
-    """
-    from flask import jsonify
+    settings = _get_settings(user_id)
+
+    # Return a flag so the frontend can show the private-list notice
+    list_is_private = not _can_see_follow_list(settings)
+
+    if list_is_private:
+        return jsonify({
+            'followers': [],
+            'following': [],
+            'follower_count': None,
+            'following_count': None,
+            'list_is_private': True,
+        })
 
     follower_rows  = Follow.query.filter_by(followed_id=user_id).all()
     following_rows = Follow.query.filter_by(follower_id=user_id).all()
 
     def serialize(u):
-        if not u:
-            return None
+        if not u: return None
         pic = None
         if u.profile_picture:
-            if u.profile_picture.startswith('http'):
-                pic = u.profile_picture
-            else:
-                pic = '/static/uploads/profile_pictures/' + u.profile_picture
-        return {
-            'id':       u.id,
-            'username': u.username,
-            'role':     u.role,
-            'pic':      pic,
-            'profile_url': '/profile/' + str(u.id),
-        }
+            pic = u.profile_picture if u.profile_picture.startswith('http') \
+                  else '/static/uploads/profile_pictures/' + u.profile_picture
+        return {'id': u.id, 'username': u.username, 'role': u.role,
+                'pic': pic, 'profile_url': '/profile/' + str(u.id)}
 
-    followers  = [serialize(User.query.get(r.follower_id))  for r in follower_rows]
-    following  = [serialize(User.query.get(r.followed_id))  for r in following_rows]
-    followers  = [u for u in followers  if u]
-    following  = [u for u in following  if u]
+    followers = [serialize(User.query.get(r.follower_id)) for r in follower_rows]
+    following = [serialize(User.query.get(r.followed_id)) for r in following_rows]
+    followers = [u for u in followers if u]
+    following = [u for u in following if u]
 
+    show_count = _can_see_follow_count(settings)
     return jsonify({
         'followers':       followers,
         'following':       following,
-        'follower_count':  len(followers),
-        'following_count': len(following),
+        'follower_count':  len(followers) if show_count else None,
+        'following_count': len(following) if show_count else None,
+        'list_is_private': False,
     })

@@ -38,9 +38,7 @@
 
             <div class="role-filter-tabs">
                 <a href="{{ url_for('chat.people', q=query) }}"
-                   class="role-tab {% if not role_filter %}active{% endif %}">
-                    All
-                </a>
+                   class="role-tab {% if not role_filter %}active{% endif %}">All</a>
                 <a href="{{ url_for('chat.people', q=query, role='applicant') }}"
                    class="role-tab {% if role_filter == 'applicant' %}active{% endif %}">
                     <i class="fas fa-user-tie"></i> Applicants
@@ -71,8 +69,19 @@
     {% if user_cards %}
     <div class="people-grid">
         {% for card in user_cards %}
-        <div class="person-card" data-role="{{ card.role }}" data-user-id="{{ card.id }}">
-
+ 
+        {# ── Privacy / messaging come straight from the server ── #}
+        {% set privacy      = card.show_profile %}
+        {% set msg_setting  = card.who_can_message %}
+        {% set viewer_can_msg = card.viewer_can_msg %}
+         
+        <div class="person-card"
+             data-role="{{ card.role }}"
+             data-user-id="{{ card.id }}"
+             data-msg-setting="{{ msg_setting }}"
+             data-display-name="{{ card.display_name }}"
+             data-viewer-can-msg="{{ 'true' if viewer_can_msg else 'false' }}">
+         
             <!-- COVER STRIP -->
             <div class="card-cover role-{{ card.role }}">
                 <div class="card-avatar-wrap">
@@ -88,36 +97,68 @@
                     {% endif %}
                 </div>
             </div>
-
+         
             <!-- CARD BODY -->
             <div class="card-body">
-                <h3 class="person-name">{{ card.display_name }}</h3>
+         
+                <!-- Name row with privacy badge -->
+                <div class="person-name-row">
+                    <h3 class="person-name">{{ card.display_name }}</h3>
+         
+                    {# ── Profile privacy indicator ── #}
+                    {% if privacy == 'none' %}
+                    <span class="person-privacy-badge badge-locked"
+                          title="This profile is completely private">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                    {% elif privacy == 'specific' %}
+                    <span class="person-privacy-badge badge-restricted"
+                          title="This profile is visible to a specific audience only">
+                        <i class="fas fa-user-shield"></i>
+                    </span>
+                    {% endif %}
+         
+                    {# ── Messaging restriction indicator ── #}
+                    {% if msg_setting == 'recruiters' %}
+                    <span class="person-msg-badge badge-recruiters-only"
+                          title="Only recruiters can message this person">
+                        <i class="fas fa-briefcase"></i>
+                    </span>
+                    {% elif msg_setting == 'mutual' %}
+                    <span class="person-msg-badge badge-mutuals-only"
+                          title="Only mutual followers can message this person">
+                        <i class="fas fa-user-friends"></i>
+                    </span>
+                    {% endif %}
+                </div>
+         
                 <span class="person-username">@{{ card.username }}</span>
-
+         
                 <span class="person-role-pill role-{{ card.role }}">
                     {% if card.role == 'applicant' %}Applicant
                     {% elif card.role == 'recruiter' %}Recruiter
                     {% elif card.role == 'hr' %}HR
                     {% endif %}
                 </span>
-
+         
                 {% if card.company %}
                 <div class="person-company">
                     <i class="fas fa-briefcase"></i>
                     {{ card.company }}
                 </div>
                 {% endif %}
-
+         
                 <div class="person-followers">
                     <i class="fas fa-user-friends"></i>
                     <span class="follower-count" id="fc-{{ card.id }}">{{ card.follower_count }}</span>
                     &nbsp;follower{{ 's' if card.follower_count != 1 }}
                 </div>
             </div>
-
+         
             <!-- CARD FOOTER -->
             <div class="card-footer">
                 {% if current_user.is_authenticated %}
+         
                     <button
                         class="btn-follow {% if card.is_following %}following{% endif %}"
                         id="follow-btn-{{ card.id }}"
@@ -129,25 +170,34 @@
                             <i class="fas fa-user-plus"></i> Follow
                         {% endif %}
                     </button>
-
+         
+                    {# ── Message button — shows toast if restricted ── #}
+                    {% if viewer_can_msg %}
                     <a href="{{ url_for('chat.conversation', other_id=card.id) }}"
                        class="btn-message" title="Message {{ card.display_name }}">
                         <i class="fas fa-comment"></i>
                     </a>
-
-                    {# ── VIEW PROFILE LINK — replaces the old modal eye button ── #}
+                    {% else %}
+                    <button class="btn-message btn-message-restricted"
+                            title="Messaging restricted"
+                            onclick="showMsgRestriction(this)">
+                        <i class="fas fa-comment-slash"></i>
+                    </button>
+                    {% endif %}
+         
                     <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}"
                        class="btn-view-profile"
                        title="View {{ card.display_name }}'s profile">
                         <i class="fas fa-eye"></i>
                     </a>
+         
                 {% else %}
-                <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}" class="btn-follow">
+                    <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}" class="btn-follow">
                         <i class="fas fa-sign-in-alt"></i> View Profile
                     </a>
                 {% endif %}
             </div>
-
+         
         </div>
         {% endfor %}
     </div>
@@ -159,9 +209,7 @@
         <h3>No people found</h3>
         <p>Try a different search term or remove the role filter.</p>
         {% if query %}
-            <a href="{{ url_for('chat.people') }}" class="btn-clear-search">
-                Clear search
-            </a>
+            <a href="{{ url_for('chat.people') }}" class="btn-clear-search">Clear search</a>
         {% endif %}
     </div>
     {% endif %}
@@ -169,11 +217,19 @@
 </div><!-- .people-page-inner -->
 </div><!-- .people-page -->
 
-{# ── PROFILE MODAL REMOVED — replaced by full page view ── #}
-
-<script>
-{# Follow toggle still works without the modal #}
-</script>
+<!-- ── MESSAGE RESTRICTION TOAST ── -->
+<div class="msg-restriction-toast" id="msgRestrictionToast">
+    <div class="msg-toast-inner">
+        <i class="fas fa-comment-slash msg-toast-icon"></i>
+        <div class="msg-toast-body">
+            <p class="msg-toast-title" id="msgToastTitle"></p>
+            <p class="msg-toast-text" id="msgToastText"></p>
+        </div>
+        <button class="msg-toast-close" onclick="closeMsgToast()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
 
 <script src="{{ url_for('static', filename='js/chat/people.js') }}"></script>
 {% endblock %}

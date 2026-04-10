@@ -16,12 +16,8 @@
 document.querySelectorAll('.settings-nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const target = btn.dataset.section;
-
-    // Update active button
     document.querySelectorAll('.settings-nav-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
-    // Show matching section
     document.querySelectorAll('.settings-section').forEach(sec => sec.classList.remove('active'));
     const section = document.getElementById('section-' + target);
     if (section) section.classList.add('active');
@@ -32,35 +28,28 @@ document.querySelectorAll('.settings-nav-btn').forEach(btn => {
 /* ════════════════════════════════════
    2. SETTINGS SEARCH BAR
 ════════════════════════════════════ */
-const settingsSearchInput  = document.getElementById('settingsSearch');
+const settingsSearchInput   = document.getElementById('settingsSearch');
 const searchResultsDropdown = document.getElementById('searchResults');
 
-// Build a searchable index from all cards
 function buildSearchIndex() {
   const index = [];
   document.querySelectorAll('.settings-card[data-searchable]').forEach(card => {
-    const keywords = card.dataset.searchable || '';
-    const heading  = card.querySelector('h4')?.textContent || '';
-    const desc     = card.querySelector('.card-desc')?.textContent || '';
-
-    // Find which section this card lives in
-    const section = card.closest('.settings-section');
-    const sectionId = section ? section.id.replace('section-', '') : '';
-
-    // Find matching nav label
-    const navBtn = document.querySelector(`.settings-nav-btn[data-section="${sectionId}"]`);
+    const keywords    = card.dataset.searchable || '';
+    const heading     = card.querySelector('h4')?.textContent || '';
+    const desc        = card.querySelector('.card-desc')?.textContent || '';
+    const section     = card.closest('.settings-section');
+    const sectionId   = section ? section.id.replace('section-', '') : '';
+    const navBtn      = document.querySelector(`.settings-nav-btn[data-section="${sectionId}"]`);
     const sectionLabel = navBtn ? navBtn.textContent.trim() : sectionId;
-
     index.push({ keywords, heading, desc, sectionId, sectionLabel, card });
   });
 
-  // Also index individual toggle rows inside notification cards
   document.querySelectorAll('.toggle-row[data-searchable]').forEach(row => {
-    const keywords = row.dataset.searchable || '';
-    const heading  = row.querySelector('strong')?.textContent || '';
-    const section  = row.closest('.settings-section');
-    const sectionId = section ? section.id.replace('section-', '') : '';
-    const navBtn = document.querySelector(`.settings-nav-btn[data-section="${sectionId}"]`);
+    const keywords    = row.dataset.searchable || '';
+    const heading     = row.querySelector('strong')?.textContent || '';
+    const section     = row.closest('.settings-section');
+    const sectionId   = section ? section.id.replace('section-', '') : '';
+    const navBtn      = document.querySelector(`.settings-nav-btn[data-section="${sectionId}"]`);
     const sectionLabel = navBtn ? navBtn.textContent.trim() : sectionId;
     index.push({ keywords, heading, desc: '', sectionId, sectionLabel, card: row.closest('.settings-card') });
   });
@@ -104,15 +93,12 @@ settingsSearchInput.addEventListener('input', function () {
         </div>`)
       .join('');
 
-    // Click to navigate
     searchResultsDropdown.querySelectorAll('.search-result-item[data-section]').forEach(item => {
       item.addEventListener('click', () => {
         const sec = item.dataset.section;
         document.querySelector(`.settings-nav-btn[data-section="${sec}"]`)?.click();
         settingsSearchInput.value = '';
         searchResultsDropdown.classList.remove('show');
-
-        // Scroll card into view after short delay
         setTimeout(() => {
           const match = searchIndex.find(r => r.sectionId === sec && r.heading === item.querySelector('strong').textContent);
           match?.card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -124,7 +110,6 @@ settingsSearchInput.addEventListener('input', function () {
   searchResultsDropdown.classList.add('show');
 });
 
-// Close dropdown when clicking outside
 document.addEventListener('click', e => {
   if (!e.target.closest('.settings-search-wrap')) {
     searchResultsDropdown.classList.remove('show');
@@ -136,36 +121,33 @@ document.addEventListener('click', e => {
    3. PRIVACY — CONDITIONAL LOGIC
 ════════════════════════════════════ */
 
-// Documents audience sub-options
-document.querySelectorAll('input[name="show_docs"]').forEach(radio => {
+// Profile audience sub-options — show when "specific" is selected
+document.querySelectorAll('input[name="show_profile"]').forEach(radio => {
   radio.addEventListener('change', function () {
-    const subOptions = document.getElementById('docsSubOptions');
-    if (subOptions) {
-      subOptions.style.display = this.value === 'custom' ? 'flex' : 'none';
-    }
+    const sub = document.getElementById('profileAudienceOptions');
+    if (sub) sub.style.display = this.value === 'specific' ? 'flex' : 'none';
   });
 });
 
 // Follow count auto-disable when follow list is hidden
-const followListRadios = document.querySelectorAll('input[name="show_follow_list"]');
-const followCountOptions = document.getElementById('followCountOptions');
-const followCountBadge  = document.getElementById('followCountBadge');
+const followListRadios       = document.querySelectorAll('input[name="show_follow_list"]');
+const followCountOptions     = document.getElementById('followCountOptions');
+const followCountBadge       = document.getElementById('followCountBadge');
 const followCountDisabledMsg = document.getElementById('followCountDisabledMsg');
 
 function syncFollowCountState() {
-  const selectedValue = document.querySelector('input[name="show_follow_list"]:checked')?.value;
-  const isHidden = selectedValue !== 'yes';
+  const selected = document.querySelector('input[name="show_follow_list"]:checked')?.value;
+  const isHidden = selected !== 'yes';
 
   if (followCountOptions) {
     followCountOptions.classList.toggle('follow-count-disabled', isHidden);
     followCountOptions.querySelectorAll('input').forEach(i => i.disabled = isHidden);
   }
-  if (followCountBadge) followCountBadge.style.display = isHidden ? 'flex' : 'none';
-  if (followCountDisabledMsg) followCountDisabledMsg.style.display = isHidden ? 'flex' : 'none';
+  if (followCountBadge)       followCountBadge.style.display       = isHidden ? 'flex'  : 'none';
+  if (followCountDisabledMsg) followCountDisabledMsg.style.display = isHidden ? 'flex'  : 'none';
 }
 
 followListRadios.forEach(r => r.addEventListener('change', syncFollowCountState));
-// Run on page load
 syncFollowCountState();
 
 
@@ -176,9 +158,9 @@ async function saveSettings(section) {
   const payload = { section };
 
   if (section === 'privacy') {
-    payload.show_name       = document.querySelector('input[name="show_name"]:checked')?.value;
-    payload.show_docs       = document.querySelector('input[name="show_docs"]:checked')?.value;
-    payload.docs_audience   = [...document.querySelectorAll('input[name="docs_audience"]:checked')].map(i => i.value);
+    payload.show_name        = document.querySelector('input[name="show_name"]:checked')?.value;
+    payload.show_profile     = document.querySelector('input[name="show_profile"]:checked')?.value;
+    payload.profile_audience = [...document.querySelectorAll('input[name="profile_audience"]:checked')].map(i => i.value);
     payload.show_follow_list  = document.querySelector('input[name="show_follow_list"]:checked')?.value;
     payload.show_follow_count = document.querySelector('input[name="show_follow_count"]:checked')?.value;
     payload.who_can_message   = document.querySelector('input[name="who_can_message"]:checked')?.value;
@@ -200,7 +182,6 @@ async function saveSettings(section) {
     payload.current_password = document.getElementById('currentPass')?.value;
     payload.new_password     = document.getElementById('newPass')?.value;
     payload.confirm_password = document.getElementById('confirmPass')?.value;
-
     if (!payload.current_password || !payload.new_password) {
       showToast('Please fill in all password fields.', 'error');
       return;
@@ -217,18 +198,17 @@ async function saveSettings(section) {
   }
 
   try {
-    const res = await fetch('/settings/save', {
-      method: 'POST',
+    const res  = await fetch('/settings/save', {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body:    JSON.stringify(payload)
     });
-
     const data = await res.json();
 
     if (data.success) {
       showToast('✓ Settings saved successfully!');
-      // Show inline save status for privacy/notifications
-      const statusEl = document.getElementById(section + 'SaveStatus') || document.getElementById('privacySaveStatus');
+      const statusEl = document.getElementById(section + 'SaveStatus')
+                    || document.getElementById('privacySaveStatus');
       if (statusEl) {
         statusEl.textContent = '✓ Saved';
         statusEl.classList.add('visible');
@@ -251,11 +231,10 @@ function setTheme(theme) {
   document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.theme-btn[onclick*="${theme}"]`)?.classList.add('active');
   showToast(`Theme set to ${theme}`);
-  // Persist
   fetch('/settings/save', {
-    method: 'POST',
+    method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ section: 'appearance', theme })
+    body:    JSON.stringify({ section: 'appearance', theme })
   });
 }
 
@@ -297,43 +276,32 @@ function closeHelp() {
   helpModal.style.display = 'none';
 }
 
-// Close on overlay click
 helpModal?.addEventListener('click', e => {
   if (e.target === helpModal) closeHelp();
 });
 
-// FAQ category toggle
 function toggleFaqCat(btn) {
-  const body = btn.nextElementSibling;
+  const body   = btn.nextElementSibling;
   const isOpen = body.classList.contains('open');
-
-  // Close all
   document.querySelectorAll('.faq-cat-body').forEach(b => b.classList.remove('open'));
   document.querySelectorAll('.faq-cat-btn').forEach(b => b.classList.remove('open'));
-
-  // Open clicked if it was closed
   if (!isOpen) {
     body.classList.add('open');
     btn.classList.add('open');
   }
 }
 
-// FAQ item toggle
 function toggleFaq(btn) {
   const answer = btn.nextElementSibling;
   const isOpen = answer.classList.contains('open');
-
-  // Close all in this category
   btn.closest('.faq-cat-body').querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
   btn.closest('.faq-cat-body').querySelectorAll('.faq-q').forEach(q => q.classList.remove('open'));
-
   if (!isOpen) {
     answer.classList.add('open');
     btn.classList.add('open');
   }
 }
 
-// Help search filter
 function filterHelp(query) {
   query = query.trim().toLowerCase();
   document.querySelectorAll('.faq-category').forEach(cat => {
@@ -348,8 +316,8 @@ function filterHelp(query) {
    8. SUPPORT CHAT MODAL
 ════════════════════════════════════ */
 const supportChatModal = document.getElementById('supportChatModal');
-const chatMessages = document.getElementById('chatMessages');
-const chatInput    = document.getElementById('chatInput');
+const chatMessages     = document.getElementById('chatMessages');
+const chatInput        = document.getElementById('chatInput');
 
 function openSupportChat() {
   closeHelp();
@@ -368,12 +336,8 @@ supportChatModal?.addEventListener('click', e => {
 function sendChatMsg() {
   const text = chatInput?.value?.trim();
   if (!text) return;
-
-  // Add user message
   appendChatMsg(text, 'user');
   chatInput.value = '';
-
-  // Simulate support response
   setTimeout(() => {
     appendChatMsg("Thanks for reaching out! Our support team will get back to you shortly. In the meantime, you can browse our Help Center articles.", 'support');
   }, 900);
@@ -403,11 +367,9 @@ let toastTimer;
 function showToast(message, type = 'success') {
   const toast = document.getElementById('toastNotif');
   if (!toast) return;
-
   toast.textContent = message;
   toast.style.background = type === 'error' ? '#dc2626' : '#1e293b';
   toast.classList.add('show');
-
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
 }

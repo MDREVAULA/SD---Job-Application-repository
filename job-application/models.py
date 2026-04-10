@@ -509,20 +509,21 @@ class UserSettings(db.Model):
  
     id      = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
- 
+
     # ── Privacy ──────────────────────────────────────────────
-    # 'yes' = everyone | 'mutual' = mutual followers only
-    show_name         = db.Column(db.String(20), default='mutual')
- 
-    # 'yes' = everyone | 'custom' = docs_audience_json list
-    show_docs         = db.Column(db.String(20), default='custom')
-    # JSON list: e.g. '["recruiter","hr","mutual"]'
-    docs_audience_json = db.Column(db.Text, default='["recruiter","hr"]')
- 
-    # 'yes' = everyone | 'self' = only me
+    show_name         = db.Column(db.String(20), default='everyone')
+
+    # 'everyone' | 'specific' | 'none'
+    # Controls BOTH personal info AND documents together
+    show_profile      = db.Column(db.String(20), default='everyone')
+    # JSON list used when show_profile == 'specific'
+    # Applicant options: 'recruiter', 'hr', 'mutual'
+    # HR/Recruiter options: 'mutual'
+    profile_audience_json = db.Column(db.Text, default='["recruiter","hr","mutual"]')
+
     show_follow_list  = db.Column(db.String(10), default='yes')
     show_follow_count = db.Column(db.String(10), default='yes')
- 
+
     # 'all' | 'recruiters' | 'mutual'
     who_can_message   = db.Column(db.String(20), default='all')
  

@@ -75,223 +75,275 @@
   <!-- ===== MAIN PANEL ===== -->
   <main class="settings-main">
 
-    <!-- ══════════════════════════════════
-         SECTION: PRIVACY
-    ══════════════════════════════════ -->
-    <section class="settings-section active" id="section-privacy">
-      <div class="section-header">
-        <i class="fas fa-lock"></i>
+  <!-- ══════════════════════════════════
+      SECTION: PRIVACY
+  ══════════════════════════════════ -->
+  <section class="settings-section active" id="section-privacy">
+    <div class="section-header">
+      <i class="fas fa-lock"></i>
+      <div>
+        <h3>Privacy</h3>
+        <p>Control who can see your information and how you appear to others.</p>
+      </div>
+    </div>
+
+    <!-- ── NAME VISIBILITY ── -->
+    <div class="settings-card" data-searchable="show name privacy visibility everyone mutual">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-user-tag"></i></div>
         <div>
-          <h3>Privacy</h3>
-          <p>Control who can see your information and how you appear to others.</p>
+          <h4>Show name to others</h4>
+          <p class="card-desc">Choose who can see your full name on the platform.</p>
         </div>
       </div>
-
-      <!-- Name Visibility -->
-      <div class="settings-card" data-searchable="show name privacy visibility">
-        <div class="settings-card-header">
-          <div class="card-icon-wrap"><i class="fas fa-user-tag"></i></div>
-          <div>
-            <h4>Show name to others</h4>
-            <p class="card-desc">Choose who can see your full name on the platform.</p>
-          </div>
-        </div>
-        <div class="settings-card-body">
-          <div class="radio-group">
-            <label class="radio-option">
-              <input type="radio" name="show_name" value="yes" {% if settings.show_name == 'yes' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Everyone</strong>
-                <small>All users can see your full name</small>
-              </span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="show_name" value="mutual" {% if settings.show_name == 'mutual' or not settings.show_name %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Mutual followers only</strong>
-                <small>Only people you follow who also follow you back</small>
-              </span>
-            </label>
-          </div>
+      <div class="settings-card-body">
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="show_name" value="everyone"
+              {% if settings.show_name == 'everyone' or not settings.show_name %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Everyone</strong>
+              <small>All users can see your full name</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="show_name" value="mutual"
+              {% if settings.show_name == 'mutual' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Mutual followers only</strong>
+              <small>Only people you follow who also follow you back</small>
+            </span>
+          </label>
         </div>
       </div>
+    </div>
 
-      <!-- Documents / Resume Visibility -->
-      <div class="settings-card" data-searchable="documents resume portfolio certifications files privacy">
-        <div class="settings-card-header">
-          <div class="card-icon-wrap"><i class="fas fa-file-alt"></i></div>
-          <div>
-            <h4>Documents, Resume &amp; Portfolio visibility</h4>
-            <p class="card-desc">Manage who can access your uploaded files and credentials.</p>
-          </div>
+    {% if current_user.is_authenticated and current_user.role == "applicant" %}
+    <!-- ── PROFILE & DOCUMENTS VISIBILITY ── -->
+    <div class="settings-card" data-searchable="profile documents resume portfolio certifications visibility private public everyone specific recruiters hr mutual followers none">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-shield-halved"></i></div>
+        <div>
+          <h4>Profile &amp; Documents Visibility</h4>
+          <p class="card-desc">
+            Controls who can see your personal information, experience, education,
+            skills, certifications, and uploaded documents (resume, portfolio,
+            certificates) — all at once.
+          </p>
         </div>
-        <div class="settings-card-body">
-          <div class="radio-group">
-            <label class="radio-option">
-              <input type="radio" name="show_docs" value="yes" {% if settings.show_docs == 'yes' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Everyone</strong>
-                <small>Any user on the platform can view your documents</small>
-              </span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="show_docs" value="custom" {% if settings.show_docs != 'yes' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Specific audiences only</strong>
-                <small>Choose exactly who can see your files</small>
-              </span>
-            </label>
-          </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="radio-group">
 
-          <!-- Sub-options shown when "custom" is selected -->
-          <div class="sub-options" id="docsSubOptions" {% if settings.show_docs == 'yes' %}style="display:none"{% endif %}>
-            <p class="sub-options-label"><i class="fas fa-check-square"></i> Allow access to:</p>
+          <!-- Everyone -->
+          <label class="radio-option">
+            <input type="radio" name="show_profile" value="everyone"
+              {% if settings.show_profile == 'everyone' or not settings.show_profile %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Everyone</strong>
+              <small>Anyone, including guests, can view your full profile and documents</small>
+            </span>
+          </label>
+
+          <!-- Specific audience -->
+          <label class="radio-option">
+            <input type="radio" name="show_profile" value="specific"
+              {% if settings.show_profile == 'specific' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Specific audience only</strong>
+              <small>Choose exactly who can see your profile and documents</small>
+            </span>
+          </label>
+
+          <!-- Sub-checkboxes — shown only when "specific" is selected -->
+          <div id="profileAudienceOptions"
+              style="display: {% if settings.show_profile == 'specific' %}flex{% else %}none{% endif %};
+                      flex-direction: column;
+                      gap: 10px;
+                      margin: 4px 0 10px 32px;
+                      padding: 14px 18px;
+                      background: var(--bg-surface-alt, #F9FBF8);
+                      border: 1px solid var(--border-color, #EAEDE8);
+                      border-radius: 10px;">
+
+            {% if current_user.role == 'applicant' %}
             <label class="checkbox-option">
-              <input type="checkbox" name="docs_audience" value="recruiter" {% if 'recruiter' in (settings.docs_audience or []) %}checked{% endif %}>
+              <input type="checkbox" name="profile_audience" value="recruiter"
+                {% if 'recruiter' in (settings.profile_audience or []) %}checked{% endif %}>
               <span class="checkbox-custom"></span>
-              <span>Recruiters</span>
+              <span>
+                <i class="fas fa-user-tie" style="width:16px; color:#4D774E; margin-right:6px;"></i>
+                <strong>Recruiters</strong>
+                <small style="display:block; margin-left:22px; color:var(--text-muted);">Verified recruiter accounts</small>
+              </span>
             </label>
             <label class="checkbox-option">
-              <input type="checkbox" name="docs_audience" value="hr" {% if 'hr' in (settings.docs_audience or []) %}checked{% endif %}>
+              <input type="checkbox" name="profile_audience" value="follower"
+                {% if 'follower' in (settings.profile_audience or []) or 'mutual' in (settings.profile_audience or []) %}checked{% endif %}>
               <span class="checkbox-custom"></span>
-              <span>HR Personnel</span>
+              <span>
+                <i class="fas fa-user-check" style="width:16px; color:#4D774E; margin-right:6px;"></i>
+                <strong>Followers</strong>
+                <small style="display:block; margin-left:22px; color:var(--text-muted);">Anyone who follows you can view your profile</small>
+              </span>
             </label>
+
             <label class="checkbox-option">
-              <input type="checkbox" name="docs_audience" value="mutual" {% if 'mutual' in (settings.docs_audience or []) %}checked{% endif %}>
+              <input type="checkbox" name="profile_audience" value="follower"
+                {% if 'follower' in (settings.profile_audience or []) or 'mutual' in (settings.profile_audience or []) %}checked{% endif %}>
               <span class="checkbox-custom"></span>
-              <span>Mutual followers (people you follow back)</span>
+              <span>
+                <i class="fas fa-user-check" style="width:16px; color:#4D774E; margin-right:6px;"></i>
+                <strong>Followers</strong>
+                <small style="display:block; margin-left:22px; color:var(--text-muted);">Anyone who follows you can view your profile</small>
+              </span>
             </label>
-          </div>
-        </div>
-      </div>
 
-      <!-- Follow list visibility -->
-      <div class="settings-card" data-searchable="follow followers following people privacy hide">
-        <div class="settings-card-header">
-          <div class="card-icon-wrap"><i class="fas fa-users"></i></div>
-          <div>
-            <h4>Show people you follow / followers</h4>
-            <p class="card-desc">Control whether others can browse your follow lists.</p>
           </div>
-        </div>
-        <div class="settings-card-body">
-          <div class="radio-group">
-            <label class="radio-option">
-              <input type="radio" name="show_follow_list" value="yes"
-                {% if settings.show_follow_list == 'yes' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Everyone</strong>
-                <small>Anyone can see who you follow and who follows you</small>
-              </span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="show_follow_list" value="self"
-                {% if settings.show_follow_list != 'yes' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Only me</strong>
-                <small>Hidden from everyone — only visible to you</small>
-              </span>
-            </label>
-          </div>
-        </div>
-      </div>
 
-      <!-- Follower count visibility -->
-      <div class="settings-card" id="cardFollowCount" data-searchable="followers count number following hide privacy">
-        <div class="settings-card-header">
-          <div class="card-icon-wrap"><i class="fas fa-sort-numeric-up"></i></div>
-          <div>
-            <h4>Show follower &amp; following count</h4>
-            <p class="card-desc">Display the number of people following you and you follow.</p>
-          </div>
-          <div class="card-badge" id="followCountBadge" style="display:none">
-            <i class="fas fa-ban"></i> Auto-disabled
-          </div>
-        </div>
-        <div class="settings-card-body">
-          <div id="followCountDisabledMsg" class="info-banner" style="display:none">
-            <i class="fas fa-info-circle"></i>
-            This setting is automatically disabled because your follow list is hidden.
-          </div>
-          <div class="radio-group" id="followCountOptions">
-            <label class="radio-option">
-              <input type="radio" name="show_follow_count" value="yes"
-                {% if settings.show_follow_count == 'yes' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Show counts</strong>
-                <small>Display follower and following numbers publicly</small>
-              </span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="show_follow_count" value="self"
-                {% if settings.show_follow_count != 'yes' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Only me</strong>
-                <small>Hide counts from others — only you can see them</small>
-              </span>
-            </label>
-          </div>
-        </div>
-      </div>
+          <!-- No one -->
+          <label class="radio-option">
+            <input type="radio" name="show_profile" value="none"
+              {% if settings.show_profile == 'none' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>No one</strong>
+              <small>Your profile and documents are completely private — only you can see them</small>
+            </span>
+          </label>
 
-      <!-- Messaging permissions -->
-      <div class="settings-card" data-searchable="message chat who can message inbox privacy">
-        <div class="settings-card-header">
-          <div class="card-icon-wrap"><i class="fas fa-comment-dots"></i></div>
-          <div>
-            <h4>Who can message you?</h4>
-            <p class="card-desc">Manage who is allowed to send you direct messages.</p>
-          </div>
-        </div>
-        <div class="settings-card-body">
-          <div class="radio-group">
-            <label class="radio-option">
-              <input type="radio" name="who_can_message" value="all"
-                {% if settings.who_can_message == 'all' or not settings.who_can_message %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Everyone</strong>
-                <small>Any registered user can message you</small>
-              </span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="who_can_message" value="recruiters"
-                {% if settings.who_can_message == 'recruiters' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Recruiters only</strong>
-                <small>Only verified recruiters can send you messages</small>
-              </span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="who_can_message" value="mutual"
-                {% if settings.who_can_message == 'mutual' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label">
-                <strong>Mutual followers only</strong>
-                <small>Only people you follow who follow you back</small>
-              </span>
-            </label>
-          </div>
         </div>
       </div>
+    </div>
+    {% endif %}
 
-      <!-- Save button -->
-      <div class="settings-actions">
-        <button class="btn-save" id="savePrivacyBtn" onclick="saveSettings('privacy')">
-          <i class="fas fa-save"></i> Save Privacy Settings
-        </button>
-        <span class="save-status" id="privacySaveStatus"></span>
+    <!-- ── FOLLOW LIST VISIBILITY ── -->
+    <div class="settings-card" data-searchable="follow followers following people privacy hide list">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-users"></i></div>
+        <div>
+          <h4>Show people you follow / followers</h4>
+          <p class="card-desc">Control whether others can browse your follow lists.</p>
+        </div>
       </div>
-    </section>
+      <div class="settings-card-body">
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="show_follow_list" value="yes"
+              {% if settings.show_follow_list == 'yes' or not settings.show_follow_list %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Everyone</strong>
+              <small>Anyone can see who you follow and who follows you</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="show_follow_list" value="self"
+              {% if settings.show_follow_list == 'self' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Only me</strong>
+              <small>Hidden from everyone — only visible to you</small>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FOLLOWER COUNT VISIBILITY ── OPTIONAL
+    <div class="settings-card" id="cardFollowCount" data-searchable="followers count number following hide privacy">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-sort-numeric-up"></i></div>
+        <div>
+          <h4>Show follower &amp; following count</h4>
+          <p class="card-desc">Display the number of people following you and you follow.</p>
+        </div>
+        <div class="card-badge" id="followCountBadge" style="display:none">
+          <i class="fas fa-ban"></i> Auto-disabled
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div id="followCountDisabledMsg" class="info-banner" style="display:none">
+          <i class="fas fa-info-circle"></i>
+          This setting is automatically disabled because your follow list is hidden.
+        </div>
+        <div class="radio-group" id="followCountOptions">
+          <label class="radio-option">
+            <input type="radio" name="show_follow_count" value="yes"
+              {% if settings.show_follow_count == 'yes' or not settings.show_follow_count %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Show counts</strong>
+              <small>Display follower and following numbers publicly</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="show_follow_count" value="self"
+              {% if settings.show_follow_count == 'self' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Only me</strong>
+              <small>Hide counts from others — only you can see them</small>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- ── MESSAGING PERMISSIONS ── -->
+    <div class="settings-card" data-searchable="message chat who can message inbox privacy">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-comment-dots"></i></div>
+        <div>
+          <h4>Who can message you?</h4>
+          <p class="card-desc">Manage who is allowed to send you direct messages.</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="who_can_message" value="all"
+              {% if settings.who_can_message == 'all' or not settings.who_can_message %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Everyone</strong>
+              <small>Any registered user can message you</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="who_can_message" value="recruiters"
+              {% if settings.who_can_message == 'recruiters' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Recruiters only</strong>
+              <small>Only verified recruiters can send you messages</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="who_can_message" value="mutual"
+              {% if settings.who_can_message == 'mutual' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Mutual followers only</strong>
+              <small>Only people you follow who follow you back</small>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <div class="settings-actions">
+      <button class="btn-save" id="savePrivacyBtn" onclick="saveSettings('privacy')">
+        <i class="fas fa-save"></i> Save Privacy Settings
+      </button>
+      <span class="save-status" id="privacySaveStatus"></span>
+    </div>
+  </section>
 
     <!-- ══════════════════════════════════
          SECTION: ACCOUNT

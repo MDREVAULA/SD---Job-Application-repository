@@ -46,10 +46,12 @@
                                 <i class="fas fa-user-plus"></i> Follow
                             {% endif %}
                         </button>
+                        {% if can_message %}
                         <a href="{{ url_for('chat.conversation', other_id=viewed_user.id) }}"
                            class="pview-action-btn pview-action-btn-outline">
                             <i class="fas fa-paper-plane"></i> Message
                         </a>
+                        {% endif %}
                     {% else %}
                         <!-- Guest — prompt to log in -->
                         <a href="{{ url_for('auth.login') }}"
@@ -63,29 +65,33 @@
             <!-- Name / meta -->
             <div class="pview-header-info">
                 <h1>
-                    {% if profile and profile.first_name %}
+                    {% if show_name and profile and profile.first_name %}
                         {{ profile.first_name }}
                         {% if profile.middle_name %} {{ profile.middle_name[0] }}.{% endif %}
                         {{ profile.last_name }}
                     {% else %}
                         {{ viewed_user.username }}
                     {% endif %}
-                    <span class="pview-role-pill role-hr">HR</span>
+                    <span class="pview-role-pill role-applicant">HR</span>
                 </h1>
-
+                
                 <div class="pview-username-row">
                     <p class="pview-username">@{{ viewed_user.username }}</p>
+                    {% if show_follow_count or show_follow_list %}
                     <div class="pview-follow-counts">
-                        <button class="pview-follow-count-btn" onclick="openFollowModal('followers')">
+                        {% if show_follow_count %}
+                        <button class="pview-follow-count-btn" onclick="{% if show_follow_list %}openFollowModal('followers'){% endif %}">
                             <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
                             <span class="pview-follow-count-lbl">Followers</span>
                         </button>
                         <span class="pview-follow-count-sep"></span>
-                        <button class="pview-follow-count-btn" onclick="openFollowModal('following')">
+                        <button class="pview-follow-count-btn" onclick="{% if show_follow_list %}openFollowModal('following'){% endif %}">
                             <span class="pview-follow-count-val" id="net-following">{{ following_count }}</span>
                             <span class="pview-follow-count-lbl">Following</span>
                         </button>
+                        {% endif %}
                     </div>
+                    {% endif %}
                 </div>
 
                 <div class="pview-header-meta">
@@ -101,15 +107,9 @@
                 </div>
 
                 <p class="pview-headline">
+                    Human Resource at <strong>{{ recruiter_profile.company_name }}</strong>
                     {% if profile and profile.headline %}
                         {{ profile.headline }}
-                    {% endif %}
-                    {% if recruiter_profile and recruiter_profile.company_name %}
-                        {% if profile and profile.headline %} · {% endif %}
-                        HR at <strong>{{ recruiter_profile.company_name }}</strong>
-                        {% if recruiter_profile.company_industry %} · {{ recruiter_profile.company_industry }}{% endif %}
-                    {% elif not profile or not profile.headline %}
-                        Human Resources
                     {% endif %}
                 </p>
 

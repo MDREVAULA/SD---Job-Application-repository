@@ -5,7 +5,7 @@ Settings routes for Applicant, HR, and Recruiter roles.
 
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
-from models import db, UserSettings   # see note below about model additions
+from models import db, UserSettings
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
 
@@ -31,27 +31,26 @@ def settings_page():
         flash('Access denied.', 'error')
         return redirect(url_for('auth.login'))
 
-    # Load or create settings row for this user
     user_settings = UserSettings.query.filter_by(user_id=current_user.id).first()
     if not user_settings:
         user_settings = UserSettings(user_id=current_user.id)
         db.session.add(user_settings)
         db.session.commit()
 
-    # Convert stored JSON list to Python list (docs_audience)
-    if user_settings.docs_audience_json:
+    # Parse profile_audience JSON → Python list
+    if user_settings.profile_audience_json:
         try:
-            user_settings.docs_audience = json.loads(user_settings.docs_audience_json)
+            user_settings.profile_audience = json.loads(user_settings.profile_audience_json)
         except Exception:
-            user_settings.docs_audience = []
+            user_settings.profile_audience = []
     else:
-        user_settings.docs_audience = []
+        user_settings.profile_audience = []
 
     return render_template('settings.html', settings=user_settings)
 
 
 # ─────────────────────────────────────────────────────────────
-#  POST /settings/save  — save any settings section as JSON
+#  POST /settings/save
 # ─────────────────────────────────────────────────────────────
 @settings_bp.route('/save', methods=['POST'])
 @login_required
@@ -71,10 +70,10 @@ def save_settings():
     if section == 'privacy':
         if 'show_name' in data:
             user_settings.show_name = data['show_name']
-        if 'show_docs' in data:
-            user_settings.show_docs = data['show_docs']
-        if 'docs_audience' in data:
-            user_settings.docs_audience_json = json.dumps(data['docs_audience'])
+        if 'show_profile' in data:
+            user_settings.show_profile = data['show_profile']
+        if 'profile_audience' in data:
+            user_settings.profile_audience_json = json.dumps(data['profile_audience'])
         if 'show_follow_list' in data:
             user_settings.show_follow_list = data['show_follow_list']
         if 'show_follow_count' in data:
@@ -94,7 +93,6 @@ def save_settings():
         new_email = data.get('new_email', '').strip()
         if not new_email:
             return jsonify({'success': False, 'message': 'Email cannot be empty.'}), 400
-        # Check uniqueness
         from models import User
         existing = User.query.filter_by(email=new_email).first()
         if existing and existing.id != current_user.id:
@@ -104,9 +102,9 @@ def save_settings():
 
     # ── Password ─────────────────────────────────────────────
     elif section == 'password':
-        current_pass  = data.get('current_password', '')
-        new_pass      = data.get('new_password', '')
-        confirm_pass  = data.get('confirm_password', '')
+        current_pass = data.get('current_password', '')
+        new_pass     = data.get('new_password', '')
+        confirm_pass = data.get('confirm_password', '')
 
         if not check_password_hash(current_user.password, current_pass):
             return jsonify({'success': False, 'message': 'Current password is incorrect.'}), 400
@@ -161,11 +159,9 @@ def deactivate_account():
 
 
 # ─────────────────────────────────────────────────────────────
-#  POST /settings/logout-all   (stub — expand with session mgmt)
+#  POST /settings/logout-all
 # ─────────────────────────────────────────────────────────────
 @settings_bp.route('/logout-all', methods=['POST'])
 @login_required
 def logout_all_devices():
-    # If you use server-side sessions (e.g. Flask-Session) you can
-    # iterate and invalidate them here. For now we return success.
     return jsonify({'success': True})
