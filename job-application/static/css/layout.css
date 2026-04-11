@@ -598,6 +598,74 @@ body {
     color: var(--brand-green);
 }
 
+/* ============================================================
+   SIDEBAR THEME TOGGLE  (guests / logged-out users only)
+   Append this block to the bottom of layout.css
+   ============================================================ */
+
+.sidebar-theme-item {
+    margin: 8px 0;
+    padding: 0 4px;
+}
+
+.sidebar-theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+}
+
+.sidebar-theme-label {
+    font-size: 14px;
+    color: #ccc;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.sidebar-theme-label i {
+    font-size: 15px;
+    color: var(--brand-green);
+    width: 18px;
+    text-align: center;
+}
+
+.sidebar-theme-btns {
+    display: flex;
+    gap: 4px;
+}
+
+.sidebar-theme-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: #aaa;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.sidebar-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.sidebar-theme-btn.active {
+    background: rgba(157, 200, 141, 0.18);
+    border-color: rgba(157, 200, 141, 0.45);
+    color: var(--brand-green);
+}
+
 /* Logout Item */
 .logout-item {
     margin-top: 20px;

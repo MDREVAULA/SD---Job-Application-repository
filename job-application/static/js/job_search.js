@@ -31,9 +31,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const visible = allItems.filter(item => item.style.display !== 'none').length;
         if (jobsCountEl) jobsCountEl.textContent = visible;
 
-        // Show/hide empty state
+        // Only show "no matching" state when there ARE jobs but none match the current filter.
+        // If there are no jobs at all, the server-rendered plain message is already shown.
         if (searchEmptyState) {
-            searchEmptyState.style.display = visible === 0 ? 'block' : 'none';
+            searchEmptyState.style.display = (allItems.length > 0 && visible === 0) ? 'block' : 'none';
         }
     }
 

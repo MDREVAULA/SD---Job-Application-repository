@@ -70,7 +70,7 @@ class User(db.Model, UserMixin):
 
 
 # =========================
-# APPLICANT PROFILE (UPDATED)
+# APPLICANT PROFILE
 # =========================
 class ApplicantProfile(db.Model):
 
@@ -91,7 +91,6 @@ class ApplicantProfile(db.Model):
     city = db.Column(db.String(100))
     home_address = db.Column(db.String(200))
 
-    # NEW FIELDS
     headline = db.Column(db.String(200))
     bio = db.Column(db.Text)
     linkedin = db.Column(db.String(200))
@@ -99,27 +98,42 @@ class ApplicantProfile(db.Model):
     portfolio = db.Column(db.String(200))
 
     # DOCUMENT UPLOADS
-    resume_file      = db.Column(db.String(200))   # PDF, max 5MB
-    portfolio_file   = db.Column(db.String(200))   # PDF/image, max 10MB
-    
-    # certificates stored as JSON list of filenames
-    certificate_files = db.Column(db.Text)          # JSON array, each max 5MB
+    resume_file      = db.Column(db.String(200))
+    portfolio_file   = db.Column(db.String(200))
+    certificate_files = db.Column(db.Text)  # JSON array
 
     # RELATIONSHIPS
-    work_experiences = db.relationship("WorkExperience", backref="profile", lazy=True, cascade="all, delete-orphan")
-    educations = db.relationship("Education", backref="profile", lazy=True, cascade="all, delete-orphan")
-    skills = db.relationship("Skill", backref="profile", lazy=True, cascade="all, delete-orphan")
-    projects = db.relationship("Project", backref="profile", lazy=True, cascade="all, delete-orphan")
-    certifications = db.relationship("Certification", backref="profile", lazy=True, cascade="all, delete-orphan")
+    work_experiences = db.relationship(
+        "WorkExperience", backref="applicant_profile",
+        lazy=True, cascade="all, delete-orphan"
+    )
+    educations = db.relationship(
+        "ApplicantEducation", backref="applicant_profile",
+        lazy=True, cascade="all, delete-orphan"
+    )
+    skills = db.relationship(
+        "Skill", backref="applicant_profile",
+        lazy=True, cascade="all, delete-orphan"
+    )
+    projects = db.relationship(
+        "Project", backref="applicant_profile",
+        lazy=True, cascade="all, delete-orphan"
+    )
+    certifications = db.relationship(
+        "Certification", backref="applicant_profile",
+        lazy=True, cascade="all, delete-orphan"
+    )
 
 
 # =========================
-# WORK EXPERIENCE
+# WORK EXPERIENCE  (applicant only)
 # =========================
 class WorkExperience(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+    profile_id = db.Column(
+        db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False
+    )
 
     job_title = db.Column(db.String(200))
     company = db.Column(db.String(200))
@@ -133,12 +147,47 @@ class WorkExperience(db.Model):
 
 
 # =========================
-# EDUCATION
+# APPLICANT EDUCATION  (applicant-only)
 # =========================
-class Education(db.Model):
+class ApplicantEducation(db.Model):
+    """Education entries that belong exclusively to an ApplicantProfile."""
+
+    __tablename__ = "applicant_education"
 
     id = db.Column(db.Integer, primary_key=True)
-    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+    profile_id = db.Column(
+        db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False
+    )
+
+    school = db.Column(db.String(200))
+    degree = db.Column(db.String(200))
+    field_of_study = db.Column(db.String(200))
+    start_date = db.Column(db.String(50))
+    end_date = db.Column(db.String(50))
+    is_current = db.Column(db.Boolean, default=False)
+    description = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# ── Keep the old name as an alias so existing import statements
+#    (e.g. `from models import Education`) still work without changes
+#    in profile_view.py / applicant.py.
+Education = ApplicantEducation
+
+
+# =========================
+# RECRUITER EDUCATION  (recruiter-only)
+# =========================
+class RecruiterEducation(db.Model):
+    """Education entries that belong exclusively to a RecruiterProfile."""
+
+    __tablename__ = "recruiter_education"
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(
+        db.Integer, db.ForeignKey("recruiter_profile.id"), nullable=False
+    )
 
     school = db.Column(db.String(200))
     degree = db.Column(db.String(200))
@@ -152,12 +201,14 @@ class Education(db.Model):
 
 
 # =========================
-# SKILL
+# SKILL  (applicant only)
 # =========================
 class Skill(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+    profile_id = db.Column(
+        db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False
+    )
 
     name = db.Column(db.String(100))
     level = db.Column(db.String(50))  # Beginner, Intermediate, Advanced, Expert
@@ -166,12 +217,14 @@ class Skill(db.Model):
 
 
 # =========================
-# PROJECT
+# PROJECT  (applicant only)
 # =========================
 class Project(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+    profile_id = db.Column(
+        db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False
+    )
 
     title = db.Column(db.String(200))
     description = db.Column(db.Text)
@@ -183,12 +236,14 @@ class Project(db.Model):
 
 
 # =========================
-# CERTIFICATION
+# CERTIFICATION  (applicant only)
 # =========================
 class Certification(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    profile_id = db.Column(db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False)
+    profile_id = db.Column(
+        db.Integer, db.ForeignKey("applicant_profile.id"), nullable=False
+    )
 
     name = db.Column(db.String(200))
     issuer = db.Column(db.String(200))
@@ -218,16 +273,13 @@ class RecruiterProfile(db.Model):
 
     phone_number = db.Column(db.String(50))
 
-    # PERSONAL HEADLINE & BIO
     headline = db.Column(db.String(200))
     bio      = db.Column(db.Text)
- 
-    # SOCIAL LINKS
+
     linkedin  = db.Column(db.String(200))
     github    = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
-    # COMPANY INFORMATION
     company_name = db.Column(db.String(200))
     company_industry = db.Column(db.String(200))
     company_description = db.Column(db.Text)
@@ -240,9 +292,14 @@ class RecruiterProfile(db.Model):
 
     company_email_domain = db.Column(db.String(100))
 
-    # FILES
     company_logo = db.Column(db.String(200))
     company_proof = db.Column(db.String(200))
+
+    # RELATIONSHIP — recruiter-specific education entries
+    educations = db.relationship(
+        "RecruiterEducation", backref="recruiter_profile",
+        lazy=True, cascade="all, delete-orphan"
+    )
 
 
 # =========================
@@ -267,11 +324,9 @@ class HRProfile(db.Model):
     city = db.Column(db.String(100))
     home_address = db.Column(db.String(200))
 
-    # PERSONAL HEADLINE & BIO
     headline = db.Column(db.String(200))
     bio = db.Column(db.Text)
 
-    # SOCIAL LINKS
     linkedin = db.Column(db.String(200))
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
@@ -287,21 +342,15 @@ class Job(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
 
-    # Recruiter who posted job
     company_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
-    # =========================
-    # JOB INFORMATION
-    # =========================
-    # ── Work arrangement (e.g. "On-site, Hybrid")
     arrangement = db.Column(db.String(200))
 
-    # ── Requirements tab fields
-    experience_level  = db.Column(db.String(100))   # Entry-level, Mid-level, Senior, etc.
-    years_exp         = db.Column(db.String(100))   # e.g. "2–4 years"
-    education         = db.Column(db.String(200))   # Bachelor's degree, etc.
-    required_skills   = db.Column(db.Text)          # comma-separated
-    preferred_skills  = db.Column(db.Text)          # comma-separated
+    experience_level  = db.Column(db.String(100))
+    years_exp         = db.Column(db.String(100))
+    education         = db.Column(db.String(200))
+    required_skills   = db.Column(db.Text)
+    preferred_skills  = db.Column(db.Text)
     languages         = db.Column(db.String(200))
     requirements_notes = db.Column(db.Text)
     field = db.Column(db.String(100))
@@ -309,15 +358,10 @@ class Job(db.Model):
     location = db.Column(db.String(200))
     salary = db.Column(db.String(100))
 
-    # JOB MEDIA
     poster = db.Column(db.String(200))
 
-    # JOB EXPIRATION
     expiration_date = db.Column(db.Date)
 
-    # =========================
-    # RELATIONSHIPS
-    # =========================
     applications = db.relationship(
         "Application",
         backref="job",
@@ -336,15 +380,9 @@ class Application(db.Model):
     applicant_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"))
 
-    # =========================
-    # APPLICANT SUBMISSION
-    # =========================
     resume = db.Column(db.String(200))
     cover_letter = db.Column(db.Text)
 
-    # =========================
-    # RECRUITER / HR REVIEW
-    # =========================
     status = db.Column(db.String(50), default="Pending")
 
     recruiter_remarks = db.Column(db.Text)
@@ -353,9 +391,6 @@ class Application(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # =========================
-    # RELATIONSHIPS
-    # =========================
     hr_feedbacks = db.relationship(
         "HRFeedback",
         backref="application",
@@ -368,51 +403,44 @@ class Application(db.Model):
 # FOLLOW TABLE
 # =========================
 class Follow(db.Model):
- 
+
     id = db.Column(db.Integer, primary_key=True)
- 
-    # Who is following
+
     follower_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    # Who is being followed
     followed_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
- 
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
- 
-    # Ensure a user can't follow the same person twice
+
     __table_args__ = (
         db.UniqueConstraint("follower_id", "followed_id", name="unique_follow"),
     )
- 
+
     follower = db.relationship("User", foreign_keys=[follower_id], backref="following")
     followed = db.relationship("User", foreign_keys=[followed_id], backref="followers")
- 
- 
+
+
 # =========================
-# MESSAGE TABLE (with edits & replies)
+# MESSAGE TABLE
 # =========================
 class Message(db.Model):
- 
+
     id = db.Column(db.Integer, primary_key=True)
- 
+
     sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
- 
-    body = db.Column(db.Text, nullable=False)
- 
-    is_read = db.Column(db.Boolean, default=False)
 
-    # ── NEW: edit support ──
+    body = db.Column(db.Text, nullable=False)
+
+    is_read = db.Column(db.Boolean, default=False)
     edited = db.Column(db.Boolean, default=False)
 
-    # ── NEW: reply support ──
     reply_to_id = db.Column(db.Integer, db.ForeignKey("message.id"), nullable=True)
- 
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
- 
+
     sender   = db.relationship("User", foreign_keys=[sender_id],   backref="sent_messages")
     receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
 
-    # ── NEW: self-referential relationship for reply ──
     reply_to = db.relationship(
         "Message",
         foreign_keys=[reply_to_id],
@@ -421,10 +449,8 @@ class Message(db.Model):
     )
 
 
-
 # =========================
 # HR FEEDBACK TABLE
-# (one row per HR per application)
 # =========================
 class HRFeedback(db.Model):
 
@@ -437,6 +463,7 @@ class HRFeedback(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 # =========================
 # RECRUITER NOTIFICATION TABLE
@@ -453,6 +480,7 @@ class RecruiterNotification(db.Model):
     recruiter = db.relationship("User", foreign_keys=[recruiter_id], backref="notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
 
+
 # =========================
 # HR NOTIFICATION TABLE
 # =========================
@@ -468,6 +496,7 @@ class HRNotification(db.Model):
     hr = db.relationship("User", foreign_keys=[hr_id], backref="hr_notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
 
+
 # =========================
 # APPLICANT NOTIFICATION TABLE
 # =========================
@@ -475,12 +504,6 @@ class ApplicantNotification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     applicant_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     type = db.Column(db.String(50), nullable=False)
-    # Types:
-    #   new_message          — someone sent you a message
-    #   new_follow           — someone followed you
-    #   job_update           — job posting was updated
-    #   application_status   — your application status changed
-    #   interview_scheduled  — interview was scheduled for you
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
@@ -488,6 +511,7 @@ class ApplicantNotification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     applicant = db.relationship("User", foreign_keys=[applicant_id], backref="applicant_notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
+
 
 # =========================
 # JOB IMAGE
@@ -499,55 +523,39 @@ class JobImage(db.Model):
     image_path = db.Column(db.String(200))
     job = db.relationship("Job", backref="images")
 
+
 # =========================
 # SETTINGS TAB
 # =========================
-
 class UserSettings(db.Model):
-    """Stores per-user settings (privacy, notifications, appearance, etc.)"""
     __tablename__ = 'user_settings'
- 
+
     id      = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
 
-    # ── Privacy ──────────────────────────────────────────────
     show_name         = db.Column(db.String(20), default='everyone')
-
-    # 'everyone' | 'specific' | 'none'
-    # Controls BOTH personal info AND documents together
     show_profile      = db.Column(db.String(20), default='everyone')
-    # JSON list used when show_profile == 'specific'
-    # Applicant options: 'recruiter', 'hr', 'mutual'
-    # HR/Recruiter options: 'mutual'
     profile_audience_json = db.Column(db.Text, default='["recruiter","hr","mutual"]')
 
     show_follow_list  = db.Column(db.String(10), default='yes')
     show_follow_count = db.Column(db.String(10), default='yes')
 
-    # 'all' | 'recruiters' | 'mutual'
     who_can_message   = db.Column(db.String(20), default='all')
- 
-    # ── Notifications ─────────────────────────────────────────
+
     notif_app_status  = db.Column(db.Boolean, default=True)
     notif_messages    = db.Column(db.Boolean, default=True)
     notif_followers   = db.Column(db.Boolean, default=True)
     notif_jobs        = db.Column(db.Boolean, default=False)
- 
-    # ── Appearance ────────────────────────────────────────────
-    # 'light' | 'dark' | 'system'
+
     theme             = db.Column(db.String(10), default='light')
-    # 'comfortable' | 'compact'
     density           = db.Column(db.String(15), default='comfortable')
- 
-    # ── Language ─────────────────────────────────────────────
+
     language          = db.Column(db.String(10), default='en')
     timezone          = db.Column(db.String(50), default='Asia/Manila')
- 
-    # ── Two-factor (security section) ────────────────────────
+
     two_factor        = db.Column(db.Boolean, default=False)
- 
-    # Relationship back to user
+
     user = db.relationship('User', backref=db.backref('settings', uselist=False))
- 
+
     def __repr__(self):
         return f'<UserSettings user_id={self.user_id}>'

@@ -4,6 +4,37 @@
 <meta charset="UTF-8">
 <title>HireBon</title>
 
+{#
+  ── THEME FLASH PREVENTION ──────────────────────────────────
+  This <meta> tag exposes the server-side theme to the inline
+  script below BEFORE any CSS or content is painted.
+  It must come before the theme script.
+#}
+{% if current_user.is_authenticated and current_user.settings %}
+  <meta name="user-theme" content="{{ current_user.settings.theme or 'dark' }}">
+{% else %}
+  <meta name="user-theme" content="">
+{% endif %}
+
+<!--
+  Read the theme synchronously — no defer, no async —
+  so data-theme is set on <html> before the browser paints
+  a single pixel. This eliminates the flash-of-dark-theme.
+-->
+<script>
+(function () {
+    var meta  = document.querySelector('meta[name="user-theme"]');
+    var theme;
+    if (meta && meta.content && meta.content !== '') {
+        theme = meta.content;          // logged-in: use DB value
+    } else {
+        try { theme = localStorage.getItem('guestTheme') || 'dark'; }
+        catch (e) { theme = 'dark'; }  // guest: use localStorage
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+
 <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
@@ -14,34 +45,29 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/components/upload_error_modal.css') }}">
 
-{% block extra_css %}{% endblock %}   <!-- ADD THIS -->
+{% block extra_css %}{% endblock %}
 
 <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/hr_temporary.js') }}" defer></script>
-
-<style>
-    .theme-toggle-btn {
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-        width: 38px;
-        height: 38px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-    .theme-toggle-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: scale(1.05);
-    }
-    </style>
 </head>
 
-<body {% if current_user.is_authenticated %}class="{% if current_user.role == 'recruiter' %}is-recruiter{% elif current_user.role == 'hr' %}is-hr{% elif current_user.role == 'applicant' %}is-applicant{% endif %}"{% endif %}>
+{#
+  Pass the saved DB theme to JS via a data attribute.
+  For logged-in users with settings, use their saved theme.
+  For guests / users without settings, fall back to empty string
+  so JS uses localStorage.
+#}
+{% set saved_theme = '' %}
+{% if current_user.is_authenticated and current_user.settings %}
+  {% set saved_theme = current_user.settings.theme or 'dark' %}
+{% endif %}
+
+<body
+  data-user-theme="{{ saved_theme }}"
+  {% if current_user.is_authenticated %}
+  class="{% if current_user.role == 'recruiter' %}is-recruiter{% elif current_user.role == 'hr' %}is-hr{% elif current_user.role == 'applicant' %}is-applicant{% endif %}"
+  {% endif %}
+>
 
     <!-- TOP NAVBAR -->
 <header class="navbar">
@@ -85,11 +111,6 @@
             </div>
         </div>
         {% endif %}
-
-        <!-- THEME TOGGLE -->
-        <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle light/dark mode">
-            <i class="fas fa-moon" id="themeIcon"></i>
-        </button>
 
         {% if current_user.is_authenticated %}
             <div class="user-info">
@@ -326,7 +347,6 @@
 
         <div class="sidebar-section-label-role">Applicant</div>
 
-        <!-- 1. My Profile -->
         <li>
             <a href="{{ url_for('applicant.profile') }}"
                class="sidebar-link {% if request.endpoint == 'applicant.profile' %}active{% endif %}">
@@ -335,7 +355,6 @@
             </a>
         </li>
 
-        <!-- 2. Notifications (between My Profile and Dashboard) -->
         <li>
             <a href="{{ url_for('applicant.notification_history') }}"
                class="sidebar-link {% if request.endpoint == 'applicant.notification_history' %}active{% endif %}">
@@ -344,7 +363,6 @@
             </a>
         </li>
 
-        <!-- 3. Dashboard -->
         <li>
             <a href="{{ url_for('applicant.dashboard') }}"
                class="sidebar-link {% if request.endpoint == 'applicant.dashboard' %}active{% endif %}">
@@ -388,6 +406,25 @@
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
+        </li>
+        {% endif %}
+
+        <!-- ─── THEME TOGGLE — guests only ─────────────────── -->
+        {% if not current_user.is_authenticated %}
+        <li class="sidebar-theme-item">
+            <div class="sidebar-theme-toggle">
+                <span class="sidebar-theme-label">
+                    <i class="fas fa-adjust"></i> Theme
+                </span>
+                <div class="sidebar-theme-btns">
+                    <button class="sidebar-theme-btn" id="sidebarThemeLight" onclick="guestSetTheme('light')" title="Light mode">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button class="sidebar-theme-btn" id="sidebarThemeDark" onclick="guestSetTheme('dark')" title="Dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
         </li>
         {% endif %}
 
@@ -504,7 +541,6 @@ setInterval(updateUnreadBadge, 10000);
 {% if current_user.is_authenticated and current_user.role in ['recruiter', 'hr', 'applicant'] %}
 <script>
 (function () {
-    // ── Resolve the correct API endpoints based on role ──
     {% if current_user.role == 'recruiter' %}
     const NOTIF_API      = '/recruiter/notifications';
     const MARK_READ_API  = '/recruiter/notifications/mark-read';
@@ -532,7 +568,6 @@ setInterval(updateUnreadBadge, 10000);
     let lastUnread = 0;
     let knownIds   = new Set();
 
-    // ── Icon map for all notification types ──
     const ICONS = {
         new_application:    { cls: 'type-new_application',   icon: 'fa-file-alt' },
         interview_scheduled:{ cls: 'type-interview_scheduled',icon: 'fa-calendar-check' },
@@ -546,11 +581,8 @@ setInterval(updateUnreadBadge, 10000);
         return ICONS[type] || { cls: 'type-new_application', icon: 'fa-bell' };
     }
 
-    // ── Resolve redirect URL for each notification type ──
     function getNotifUrl(n) {
-        if (n.type === 'new_message') {
-            return '/chat/inbox';
-        }
+        if (n.type === 'new_message') return '/chat/inbox';
         if (n.type === 'new_follow') {
             if (ROLE === 'recruiter') return '/recruiter/profile';
             if (ROLE === 'hr')        return '/hr/profile';
@@ -563,19 +595,13 @@ setInterval(updateUnreadBadge, 10000);
         if ((n.type === 'application_status' || n.type === 'interview_scheduled') && n.application_id) {
             return '/applicant/dashboard';
         }
-        if (n.type === 'job_update' && n.job_id) {
-            return '/jobs/' + n.job_id;
-        }
+        if (n.type === 'job_update' && n.job_id) return '/jobs/' + n.job_id;
         return '#';
     }
 
     function renderNotifs(notifs) {
         if (!notifs.length) {
-            list.innerHTML = `
-                <div class="notif-empty">
-                    <i class="fas fa-bell-slash"></i>
-                    <p>No notifications yet</p>
-                </div>`;
+            list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
             return;
         }
         list.innerHTML = notifs.map(n => {
@@ -584,9 +610,7 @@ setInterval(updateUnreadBadge, 10000);
             return `
             <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
                  onclick="window.location.href='${url}'" style="cursor:pointer;">
-                <div class="notif-icon ${t.cls}">
-                    <i class="fas ${t.icon}"></i>
-                </div>
+                <div class="notif-icon ${t.cls}"><i class="fas ${t.icon}"></i></div>
                 <div class="notif-body">
                     <p class="notif-msg">${n.message}</p>
                     <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
@@ -599,27 +623,22 @@ setInterval(updateUnreadBadge, 10000);
         if (document.querySelectorAll('.notif-toast').length >= 3) return;
         const t = typeInfo(n.type);
         const titleMap = {
-            new_application:    'New Application',
-            interview_scheduled:'Interview Scheduled',
-            new_message:        'New Message',
-            new_follow:         'New Follower',
-            job_update:         'Job Update',
-            application_status: 'Application Update',
+            new_application:'New Application', interview_scheduled:'Interview Scheduled',
+            new_message:'New Message', new_follow:'New Follower',
+            job_update:'Job Update', application_status:'Application Update',
         };
-        const title = titleMap[n.type] || 'Notification';
         const url   = getNotifUrl(n);
         const toast = document.createElement('div');
         toast.className = `notif-toast type-${n.type}`;
         toast.innerHTML = `
             <div class="notif-toast-icon"><i class="fas ${t.icon}"></i></div>
             <div class="notif-toast-body">
-                <div class="notif-toast-title">${title}</div>
+                <div class="notif-toast-title">${titleMap[n.type] || 'Notification'}</div>
                 <div class="notif-toast-msg">${n.message}</div>
             </div>
             <button class="notif-toast-close" onclick="event.stopPropagation();this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>`;
-        // Clicking the toast body navigates to the relevant page
         toast.addEventListener('click', function (e) {
             if (e.target.closest('.notif-toast-close')) return;
             if (url !== '#') window.location.href = url;
@@ -644,8 +663,6 @@ setInterval(updateUnreadBadge, 10000);
                     badge.style.display = 'none';
                     btn.classList.remove('has-unread');
                 }
-
-                // Toast new notifications
                 if (data.notifications) {
                     data.notifications.forEach(n => {
                         if (!knownIds.has(n.id)) {
@@ -653,16 +670,13 @@ setInterval(updateUnreadBadge, 10000);
                             if (!n.is_read && lastUnread !== null) showToast(n);
                         }
                     });
-                    if (panel.classList.contains('open')) {
-                        renderNotifs(data.notifications);
-                    }
+                    if (panel.classList.contains('open')) renderNotifs(data.notifications);
                 }
                 lastUnread = count;
             })
             .catch(() => {});
     }
 
-    // Initial fetch (no toasts on first load)
     fetch(NOTIF_API)
         .then(r => r.json())
         .then(data => {
@@ -680,15 +694,11 @@ setInterval(updateUnreadBadge, 10000);
 
     setInterval(fetchNotifs, 15000);
 
-    // Toggle panel
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = panel.classList.toggle('open');
         if (isOpen) {
-            fetch(NOTIF_API)
-                .then(r => r.json())
-                .then(data => renderNotifs(data.notifications || []))
-                .catch(() => {});
+            fetch(NOTIF_API).then(r => r.json()).then(data => renderNotifs(data.notifications || [])).catch(() => {});
         }
     });
 
@@ -698,7 +708,6 @@ setInterval(updateUnreadBadge, 10000);
         }
     });
 
-    // Mark all read
     markBtn.addEventListener('click', () => {
         fetch(MARK_READ_API, { method: 'POST' })
             .then(() => {
@@ -709,7 +718,6 @@ setInterval(updateUnreadBadge, 10000);
             }).catch(() => {});
     });
 
-    // Clear all
     clearBtn.addEventListener('click', () => {
         fetch(CLEAR_API, { method: 'POST' })
             .then(() => {
@@ -717,11 +725,7 @@ setInterval(updateUnreadBadge, 10000);
                 btn.classList.remove('has-unread');
                 lastUnread = 0;
                 knownIds.clear();
-                list.innerHTML = `
-                    <div class="notif-empty">
-                        <i class="fas fa-bell-slash"></i>
-                        <p>No notifications yet</p>
-                    </div>`;
+                list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
             }).catch(() => {});
     });
 })();
@@ -730,7 +734,6 @@ setInterval(updateUnreadBadge, 10000);
 
 {% include 'components/upload_error_modal.html' %}
 <script src="{{ url_for('static', filename='js/components/upload_error_modal.js') }}" defer></script>
-{% block extra_js %}{% endblock %}  
-</body>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

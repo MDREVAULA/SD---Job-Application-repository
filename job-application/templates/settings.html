@@ -63,11 +63,11 @@
             <i class="fas fa-shield-alt"></i> Security
           </button>
         </li>
-        <li>
+        <!-- <li>
           <button class="settings-nav-btn" data-section="language">
             <i class="fas fa-globe"></i> Language &amp; Region
           </button>
-        </li>
+        </li> -->
       </ul>
     </nav>
   </aside>
@@ -495,33 +495,6 @@
             <button class="theme-btn {% if settings.theme == 'dark' %}active{% endif %}" onclick="setTheme('dark')">
               <i class="fas fa-moon"></i> Dark
             </button>
-            <button class="theme-btn {% if settings.theme == 'system' %}active{% endif %}" onclick="setTheme('system')">
-              <i class="fas fa-desktop"></i> System
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="settings-card" data-searchable="compact density layout view appearance">
-        <div class="settings-card-header">
-          <div class="card-icon-wrap"><i class="fas fa-compress-alt"></i></div>
-          <div>
-            <h4>Display Density</h4>
-            <p class="card-desc">Adjust how compact or spacious the interface appears.</p>
-          </div>
-        </div>
-        <div class="settings-card-body">
-          <div class="radio-group horizontal">
-            <label class="radio-option">
-              <input type="radio" name="density" value="comfortable" {% if settings.density != 'compact' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label"><strong>Comfortable</strong></span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="density" value="compact" {% if settings.density == 'compact' %}checked{% endif %}>
-              <span class="radio-custom"></span>
-              <span class="radio-label"><strong>Compact</strong></span>
-            </label>
           </div>
         </div>
       </div>
@@ -606,7 +579,7 @@
 
     <!-- ══════════════════════════════════
          SECTION: LANGUAGE & REGION
-    ══════════════════════════════════ -->
+    ══════════════════════════════════ 
     <section class="settings-section" id="section-language">
       <div class="section-header">
         <i class="fas fa-globe"></i>
@@ -650,7 +623,7 @@
       </div>
     </section>
 
-  </main><!-- /settings-main -->
+  </main><!-- /settings-main
 </div><!-- /settings-wrapper -->
 
 
