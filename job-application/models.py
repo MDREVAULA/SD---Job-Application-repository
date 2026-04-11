@@ -37,8 +37,12 @@ class User(db.Model, UserMixin):
     # Forgot password
     reset_token = db.Column(db.String(100), nullable=True)
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
-
+    
     profile_picture = db.Column(db.String(200), nullable=True)
+    
+    # Soft delete
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
 
     # =========================
     # RELATIONSHIPS

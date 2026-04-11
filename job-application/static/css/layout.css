@@ -1372,3 +1372,26 @@ body:not(.is-recruiter):not(.is-hr) .notif-wrapper,
 body:not(.is-recruiter):not(.is-hr) .notif-toast {
     display: none !important;
 }
+.undo-snackbar {
+    position: fixed;
+    bottom: 30px;
+   left: 50%;
+transform: translateX(-50%);
+    background: #4D774E;
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 9999;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
+
+.undo-btn {
+    background: none;
+    border: none;
+    color: #fac674;
+    font-weight: bold;
+    cursor: pointer;
+}

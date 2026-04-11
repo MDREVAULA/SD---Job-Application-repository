@@ -11,6 +11,8 @@ import secrets
 import string
 import os
 import uuid
+from datetime import datetime
+from flask import session
 
 
 def generate_temp_password(length=10):
@@ -430,16 +432,19 @@ def hr_accounts():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
+    temp_password = session.pop('temp_password', None)
+
     hrs = User.query.filter_by(
         created_by=current_user.id,
-        role="hr"
+        role="hr",
+        is_deleted=False
     ).all()
 
     return render_template(
         "recruiter/hr_accounts.html",
-        hrs=hrs
+        hrs=hrs,
+        temp_password=temp_password
     )
-
 
 # ===============================
 # CREATE HR ACCOUNT
@@ -479,18 +484,11 @@ def create_hr():
     db.session.add(new_hr)
     db.session.commit()
 
-    hrs = User.query.filter_by(
-        created_by=current_user.id,
-        role="hr"
-    ).all()
+    session['temp_password'] = temp_password
+    return redirect(url_for('recruiter.hr_accounts'))
 
-    return render_template(
-        "recruiter/hr_accounts.html",
-        hrs=hrs,
-        temp_password=temp_password
-    )
 # ===============================
-# DELETE HR ACCOUNT
+# DELETE HR ACCOUNT (SOFT DELETE)
 # ===============================
 @recruiter_bp.route('/delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
@@ -503,7 +501,8 @@ def delete_hr(hr_id):
     hr = User.query.filter_by(
         id=hr_id,
         role='hr',
-        created_by=current_user.id
+        created_by=current_user.id,
+        is_deleted=False
     ).first()
 
     if not hr:
@@ -511,22 +510,59 @@ def delete_hr(hr_id):
         return redirect(url_for('recruiter.hr_accounts'))
 
     try:
-        # ✅ delete related HR profile FIRST (fixes your error)
-        if hr.hr_profile:
-            db.session.delete(hr.hr_profile)
-
-        # ✅ delete feedbacks if any
-        HRFeedback.query.filter_by(hr_id=hr.id).delete()
-
-        # ✅ finally delete user
-        db.session.delete(hr)
+        hr.is_deleted = True
+        hr.deleted_at = datetime.utcnow()
         db.session.commit()
 
-        flash("HR account deleted successfully!", "success")
+        flash(
+            f'HR "{hr.username}" deleted.',
+            "undo"
+        )
+        session['last_deleted_hr_id'] = hr.id
 
     except Exception as e:
         db.session.rollback()
         flash(f"Error deleting HR account: {str(e)}", "danger")
+
+    return redirect(url_for('recruiter.hr_accounts'))
+# ===============================
+# UNDO DELETE HR ACCOUNT
+# ===============================
+@recruiter_bp.route('/undo-delete-hr', methods=['POST'])
+@login_required
+def undo_delete_hr():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    hr_id = session.get('last_deleted_hr_id')
+
+    if not hr_id:
+        flash("Nothing to undo.", "danger")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    hr = User.query.filter_by(
+        id=hr_id,
+        role='hr',
+        created_by=current_user.id,
+        is_deleted=True
+    ).first()
+
+    if not hr:
+        flash("Nothing to restore.", "danger")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    try:
+        hr.is_deleted = False
+        hr.deleted_at = None
+        db.session.commit()
+        session.pop('last_deleted_hr_id', None)
+        flash(f'HR "{hr.username}" restored successfully!', "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error restoring HR: {str(e)}", "danger")
 
     return redirect(url_for('recruiter.hr_accounts'))
 
@@ -844,7 +880,8 @@ def delete_all_hr():
 
     hrs = User.query.filter_by(
         created_by=current_user.id,
-        role='hr'
+        role='hr',
+        is_deleted=False
     ).all()
 
     if not hrs:
@@ -852,18 +889,104 @@ def delete_all_hr():
         return redirect(url_for('recruiter.hr_accounts'))
 
     try:
-        for hr in hrs:
-            if hr.hr_profile:
-                db.session.delete(hr.hr_profile)
+        deleted_ids = []
 
-            HRFeedback.query.filter_by(hr_id=hr.id).delete()
-            db.session.delete(hr)
+        for hr in hrs:
+            hr.is_deleted = True
+            hr.deleted_at = datetime.utcnow()
+            deleted_ids.append(hr.id)
 
         db.session.commit()
-        flash("All HR accounts deleted successfully!", "success")
+
+        session['last_deleted_hr_ids'] = deleted_ids
+        flash(f'{len(deleted_ids)} HR account(s) deleted.', "undo_all")
 
     except Exception as e:
         db.session.rollback()
         flash(f"Error deleting all HR accounts: {str(e)}", "danger")
 
     return redirect(url_for('recruiter.hr_accounts'))
+
+@recruiter_bp.route('/undo-delete-all-hr', methods=['POST'])
+@login_required
+def undo_delete_all_hr():
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    hr_ids = session.get('last_deleted_hr_ids')
+
+    if not hr_ids:
+        flash("Nothing to undo.", "danger")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    hrs = User.query.filter(
+        User.id.in_(hr_ids),
+        User.created_by == current_user.id,
+        User.role == 'hr',
+        User.is_deleted == True
+    ).all()
+
+    if not hrs:
+        flash("Nothing to restore.", "danger")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    try:
+        for hr in hrs:
+            hr.is_deleted = False
+            hr.deleted_at = None
+
+        db.session.commit()
+        session.pop('last_deleted_hr_ids', None)
+        flash(f'{len(hrs)} HR account(s) restored!', "success")
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error restoring HR accounts: {str(e)}", "danger")
+
+    return redirect(url_for('recruiter.hr_accounts'))
+# ===============================
+# VIEW HR PROFILE
+# ===============================
+
+@recruiter_bp.route('/hr-profile/<int:hr_id>')
+@login_required
+def view_hr_profile(hr_id):
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    from models import HRProfile, RecruiterProfile, Follow
+
+    hr_user = User.query.filter_by(
+        id=hr_id,
+        role='hr',
+        created_by=current_user.id
+    ).first()
+
+    if not hr_user:
+        flash("HR account not found.", "danger")
+        return redirect(url_for('recruiter.hr_accounts'))
+
+    hr_profile = HRProfile.query.filter_by(user_id=hr_user.id).first()
+    recruiter_profile = RecruiterProfile.query.filter_by(user_id=current_user.id).first()
+
+    follower_rows  = Follow.query.filter_by(followed_id=hr_user.id).all()
+    following_rows = Follow.query.filter_by(follower_id=hr_user.id).all()
+    followers = [User.query.get(r.follower_id) for r in follower_rows]
+    following = [User.query.get(r.followed_id) for r in following_rows]
+    followers = [u for u in followers if u]
+    following = [u for u in following if u]
+
+    return render_template(
+        "recruiter/view_hr_profile.html",
+        hr_user=hr_user,
+        hr_profile=hr_profile,
+        recruiter_profile=recruiter_profile,
+        follower_count=len(followers),
+        following_count=len(following),
+        followers=followers,
+        following=following
+    )   

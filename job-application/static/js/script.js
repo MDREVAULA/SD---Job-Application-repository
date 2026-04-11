@@ -329,3 +329,14 @@ document.addEventListener("DOMContentLoaded", function () {
 function closeConfirmModal() {
     document.getElementById("confirmModal").style.display = "none";
 }
+document.addEventListener("DOMContentLoaded", function () {
+    const snackbar = document.getElementById("undoSnackbar");
+
+    if (snackbar) {
+        setTimeout(() => {
+            snackbar.style.opacity = "0";
+            snackbar.style.transition = "0.5s ease";
+            setTimeout(() => snackbar.remove(), 400);
+        }, 5000);
+    }
+});

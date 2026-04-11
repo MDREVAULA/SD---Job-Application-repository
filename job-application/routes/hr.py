@@ -42,14 +42,15 @@ def profile():
     following = [u for u in following if u]
 
     return render_template(
-        "hr/profile.html",
-        profile=hr_profile,
-        recruiter_profile=recruiter_profile,
-        follower_count=len(followers),
-        following_count=len(following),
-        followers=followers,
-        following=following,
-    )
+    "hr/profile.html",
+    hr_user=current_user,
+    profile=hr_profile,
+    recruiter_profile=recruiter_profile,
+    follower_count=len(followers),
+    following_count=len(following),
+    followers=followers,
+    following=following,
+)
 
 
 # ===============================

@@ -1,0 +1,241 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/profile.css') }}">
+
+<div class="prof-wrapper">
+
+    <div class="prof-header">
+        <div class="prof-cover-strip"></div>
+
+        <div class="prof-header-inner">
+            <div class="prof-header-top-row">
+
+                <div class="prof-avatar-wrap">
+                    {% if hr_user.profile_picture %}
+                        {% if hr_user.profile_picture.startswith('http') %}
+                            <img src="{{ hr_user.profile_picture }}" class="prof-avatar-img" alt="Profile photo">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr_user.profile_picture) }}" class="prof-avatar-img" alt="Profile photo">
+                        {% endif %}
+                    {% else %}
+                        <div class="prof-avatar-default">{{ hr_user.username[0] | upper }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="prof-header-actions">
+                    <a href="{{ url_for('recruiter.hr_accounts') }}" class="prof-action-btn prof-action-btn-outline">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+
+            <div class="prof-header-info">
+                <h1>
+                    {% if hr_profile and hr_profile.first_name %}
+                        {{ hr_profile.first_name }} {{ hr_profile.last_name if hr_profile.last_name else '' }}
+                    {% else %}
+                        {{ hr_user.username }}
+                    {% endif %}
+                </h1>
+
+                <div class="pview-username-row">
+                    <p class="pview-username">@{{ hr_user.username }}</p>
+                    <div class="pview-follow-counts">
+                        <button class="pview-follow-count-btn" type="button">
+                            <span class="pview-follow-count-val">{{ follower_count }}</span>
+                            <span class="pview-follow-count-lbl">Followers</span>
+                        </button>
+                        <span class="pview-follow-count-sep"></span>
+                        <button class="pview-follow-count-btn" type="button">
+                            <span class="pview-follow-count-val">{{ following_count }}</span>
+                            <span class="pview-follow-count-lbl">Following</span>
+                        </button>
+                    </div>
+                </div>
+
+                <p class="prof-headline">
+                    {% if hr_profile and hr_profile.headline %}
+                        {{ hr_profile.headline }}
+                    {% elif recruiter_profile and recruiter_profile.company_name %}
+                        HR at <strong>{{ recruiter_profile.company_name }}</strong>
+                    {% else %}
+                        Human Resources
+                    {% endif %}
+                </p>
+
+                <div class="prof-header-meta">
+                    {% if hr_profile and hr_profile.city %}
+                        <span><i class="fas fa-map-marker-alt"></i>{{ hr_profile.city }}{% if hr_profile.country %}, {{ hr_profile.country }}{% endif %}</span>
+                    {% endif %}
+                    {% if hr_profile and hr_profile.phone_number %}
+                        <span><i class="fas fa-phone"></i>{{ hr_profile.phone_number }}</span>
+                    {% endif %}
+                    <span><i class="fas fa-envelope"></i>{{ hr_user.email }}</span>
+                </div>
+
+                <div class="prof-social-links">
+                    {% if hr_profile and hr_profile.linkedin %}
+                        <a href="{{ hr_profile.linkedin }}" target="_blank" class="prof-social-btn">
+                            <i class="fab fa-linkedin"></i> LinkedIn
+                        </a>
+                    {% endif %}
+                    {% if hr_profile and hr_profile.github %}
+                        <a href="{{ hr_profile.github }}" target="_blank" class="prof-social-btn">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                    {% endif %}
+                    {% if hr_profile and hr_profile.portfolio %}
+                        <a href="{{ hr_profile.portfolio }}" target="_blank" class="prof-social-btn">
+                            <i class="fas fa-globe"></i> Portfolio
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="prof-body">
+        <div class="prof-main">
+
+            <div class="prof-card">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-id-card"></i> Personal Information</div>
+                </div>
+
+                <div class="prof-view">
+                    <div class="prof-info-grid">
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">First Name</span>
+                            <span class="prof-info-value">{{ hr_profile.first_name if hr_profile and hr_profile.first_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Last Name</span>
+                            <span class="prof-info-value">{{ hr_profile.last_name if hr_profile and hr_profile.last_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Middle Name</span>
+                            <span class="prof-info-value">{{ hr_profile.middle_name if hr_profile and hr_profile.middle_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Date of Birth</span>
+                            <span class="prof-info-value">{{ hr_profile.date_of_birth.strftime('%B %d, %Y') if hr_profile and hr_profile.date_of_birth else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Gender</span>
+                            <span class="prof-info-value">{{ hr_profile.gender if hr_profile and hr_profile.gender else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Phone</span>
+                            <span class="prof-info-value">{{ hr_profile.phone_number if hr_profile and hr_profile.phone_number else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Home Address</span>
+                            <span class="prof-info-value">{{ hr_profile.home_address if hr_profile and hr_profile.home_address else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">About / Bio</span>
+                            <span class="prof-info-value prof-bio-text">{{ hr_profile.bio if hr_profile and hr_profile.bio else '—' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prof-card">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-building"></i> Company Information</div>
+                </div>
+
+                <div class="prof-view prof-company-readonly">
+                    {% if recruiter_profile %}
+                    <div class="prof-info-grid">
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Company Name</span>
+                            <span class="prof-info-value">{{ recruiter_profile.company_name if recruiter_profile.company_name else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Industry</span>
+                            <span class="prof-info-value">{{ recruiter_profile.company_industry if recruiter_profile.company_industry else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">Country</span>
+                            <span class="prof-info-value">{{ recruiter_profile.country if recruiter_profile.country else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item">
+                            <span class="prof-info-label">City</span>
+                            <span class="prof-info-value">{{ recruiter_profile.city if recruiter_profile.city else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Office / Company Address</span>
+                            <span class="prof-info-value">{{ recruiter_profile.company_address if recruiter_profile.company_address else '—' }}</span>
+                        </div>
+                        <div class="prof-info-item prof-info-full">
+                            <span class="prof-info-label">Company Email Domain</span>
+                            <span class="prof-info-value">{{ recruiter_profile.company_email_domain if recruiter_profile.company_email_domain else '—' }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="prof-empty-section">
+                        <i class="fas fa-building"></i>
+                        <p>No company information available.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="prof-side">
+            <div class="prof-card">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-link"></i> Links</div>
+                </div>
+
+                <div class="prof-side-list">
+                    <div class="prof-side-item">
+                        <i class="fas fa-envelope"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">Email</span>
+                            {{ hr_user.email }}
+                        </div>
+                    </div>
+
+                    {% if hr_profile and hr_profile.linkedin %}
+                    <div class="prof-side-item">
+                        <i class="fab fa-linkedin"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">LinkedIn</span>
+                            <a href="{{ hr_profile.linkedin }}" target="_blank" class="prof-link">View Profile</a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hr_profile and hr_profile.github %}
+                    <div class="prof-side-item">
+                        <i class="fab fa-github"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">GitHub</span>
+                            <a href="{{ hr_profile.github }}" target="_blank" class="prof-link">View Profile</a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hr_profile and hr_profile.portfolio %}
+                    <div class="prof-side-item">
+                        <i class="fas fa-globe"></i>
+                        <div class="prof-side-item-text">
+                            <span class="prof-side-item-label">Portfolio</span>
+                            <a href="{{ hr_profile.portfolio }}" target="_blank" class="prof-link">Visit Site</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

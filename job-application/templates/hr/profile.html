@@ -21,14 +21,14 @@
 
                 <!-- Profile Avatar -->
                 <div class="prof-avatar-wrap" onclick="document.getElementById('pfpFileInput').click()" title="Change photo">
-                    {% if current_user.profile_picture %}
-                        {% if current_user.profile_picture.startswith('http') %}
-                            <img src="{{ current_user.profile_picture }}" class="prof-avatar-img" alt="Profile photo">
+                    {% if hr_user.profile_picture %}
+                        {% if hr_user.profile_picture.startswith('http') %}
+                            <img src="{{ hr_user.profile_picture }}" class="prof-avatar-img" alt="Profile photo">
                         {% else %}
-                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" class="prof-avatar-img" alt="Profile photo">
+                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr_user.profile_picture) }}" class="prof-avatar-img" alt="Profile photo">
                         {% endif %}
                     {% else %}
-                        <div class="prof-avatar-default">{{ current_user.username[0] | upper }}</div>
+                        <div class="prof-avatar-default">{{ hr_user.username[0] | upper }}</div>
                     {% endif %}
                     <div class="prof-avatar-overlay"><i class="fas fa-camera"></i></div>
                 </div>
@@ -47,11 +47,11 @@
                     {% if profile and profile.first_name %}
                         {{ profile.first_name }} {{ profile.last_name }}
                     {% else %}
-                        {{ current_user.username }}
+                        {{ hr_user.username }}
                     {% endif %}
                 </h1>
                 <div class="pview-username-row">
-                    <p class="pview-username">@{{ current_user.username }}</p>
+                    <p class="pview-username">@{{ hr_user.username }}</p>
                     <div class="pview-follow-counts">
                         <button class="pview-follow-count-btn" onclick="openFollowModal('followers')">
                             <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
@@ -81,7 +81,7 @@
                     {% if profile and profile.phone_number %}
                     <span><i class="fas fa-phone"></i>{{ profile.phone_number }}</span>
                     {% endif %}
-                    <span><i class="fas fa-envelope"></i>{{ current_user.email }}</span>
+                    <span><i class="fas fa-envelope"></i>{{ hr_user.email }}</span>
                     {% if recruiter_profile and recruiter_profile.company_address %}
                     <span><i class="fas fa-building"></i>{{ recruiter_profile.company_address }}</span>
                     {% endif %}
@@ -574,6 +574,6 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/hr/profile.js') }}"></script>
-<script>window.PROFILE_USER_ID = {{ current_user.id }};</script>
+<script>window.PROFILE_USER_ID = {{ hr_user.id }};</script>
 <script src="{{ url_for('static', filename='js/follow_modal.js') }}"></script>
 {% endblock %}
