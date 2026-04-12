@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user, login_user
 from werkzeug.security import check_password_hash
 from models import AdminNotification, db, User, ApplicantProfile
+from routes.auth import send_verification_email
 from flask import jsonify
 from datetime import datetime
 
@@ -163,10 +164,6 @@ def verify(user_id):
         flash("Invalid user role for verification!", "danger")
         return redirect(url_for('admin.dashboard'))
 
-    user.verification_status = "Approved"
-    user.verification_remarks = None
-    user.is_verified = True
-    db.session.commit()
 
     user.verification_status = "Approved"
     user.verification_remarks = None
@@ -213,10 +210,6 @@ def reject(user_id):
     user.is_verified = False
     db.session.commit()
 
-    user.verification_status = "Rejected"
-    user.verification_remarks = remarks
-    user.is_verified = False
-    db.session.commit()
 
     from routes.auth import send_verification_email
     push_admin_notif(
