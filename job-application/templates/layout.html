@@ -41,7 +41,7 @@
     </style>
 </head>
 
-<body {% if current_user.is_authenticated %}class="{% if current_user.role == 'recruiter' %}is-recruiter{% elif current_user.role == 'hr' %}is-hr{% elif current_user.role == 'applicant' %}is-applicant{% endif %}"{% endif %}>
+<body {% if current_user.is_authenticated %}class="{% if current_user.role == 'recruiter' %}is-recruiter{% elif current_user.role == 'hr' %}is-hr{% elif current_user.role == 'applicant' %}is-applicant{% elif current_user.role == 'admin' %}is-admin{% endif %}"{% endif %}>
 
     <!-- TOP NAVBAR -->
 <header class="navbar">
@@ -400,10 +400,6 @@
 
         <div class="sidebar-section-label-role">Admin</div>
 
-        {% if current_user.is_authenticated and current_user.role == "admin" %}
-
-        <div class="sidebar-section-label-role">Admin</div>
-
         <!--Notification History -->
         <li>
             <a href="{{ url_for('admin.admin_notification_history') }}"
@@ -424,16 +420,6 @@
 
         {% endif %}
 
-
-        <li>
-            <a href="{{ url_for('admin.dashboard') }}"
-               class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
-                <i class="fas fa-shield-alt"></i>
-                <span>Dashboard</span>
-            </a>
-        </li>
-
-        {% endif %}
 
         <!-- LOGOUT -->
         {% if current_user.is_authenticated %}

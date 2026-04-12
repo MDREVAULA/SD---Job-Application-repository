@@ -1425,7 +1425,7 @@ body.is-applicant .notif-wrapper {
 .notif-toast.application_status .notif-toast-icon { color: var(--brand-accent); }
 
 /* ── Safety rule update: show bell for applicants too ── */
-body:not(.is-recruiter):not(.is-hr):not(.is-applicant) .notif-wrapper,
-body:not(.is-recruiter):not(.is-hr):not(.is-applicant) .notif-toast {
+body:not(.is-recruiter):not(.is-hr):not(.is-applicant):not(.is-admin) .notif-wrapper,
+body:not(.is-recruiter):not(.is-hr):not(.is-applicant):not(.is-admin) .notif-toast {
     display: none !important;
 }
