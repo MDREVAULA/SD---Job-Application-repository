@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from flask_mail import Message
 from authlib.integrations.flask_client import OAuth
 
+
 from models import db, User, RecruiterProfile, Job, ApplicantProfile
 
 import os
@@ -447,6 +448,13 @@ def register():
 
         db.session.add(user)
         db.session.commit()
+
+        from routes.admin import push_admin_notif
+        push_admin_notif(
+            'account_request',
+            f'New {user.role} account request from <strong>{user.username}</strong>',
+            user_id=user.id
+        )
 
         # =========================
         # APPLICANT PROFILE

@@ -498,6 +498,42 @@ class ApplicantNotification(db.Model):
     application = db.relationship("Application", foreign_keys=[application_id])
 
 # =========================
+# ADMIN NOTIFICATION TABLE
+# =========================
+
+class AdminNotification(db.Model):
+    __tablename__ = 'admin_notifications'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    type       = db.Column(db.String(50), nullable=False)
+    # Types: 'new_message', 'account_request', 'account_approved', 'account_rejected'
+    message    = db.Column(db.Text, nullable=False)
+    is_read    = db.Column(db.Boolean, default=False)
+    user_id    = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        from datetime import timezone
+        now = datetime.utcnow()
+        diff = now - self.created_at
+        if diff.seconds < 60:
+            time_str = "just now"
+        elif diff.seconds < 3600:
+            time_str = f"{diff.seconds // 60}m ago"
+        elif diff.days == 0:
+            time_str = f"{diff.seconds // 3600}h ago"
+        else:
+            time_str = self.created_at.strftime("%b %d, %Y")
+        return {
+            'id':         self.id,
+            'type':       self.type,
+            'message':    self.message,
+            'is_read':    self.is_read,
+            'user_id':    self.user_id,
+            'created_at': time_str,
+        }
+
+# =========================
 # JOB IMAGE
 # =========================
 class JobImage(db.Model):

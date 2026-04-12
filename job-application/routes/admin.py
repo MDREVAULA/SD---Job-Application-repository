@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_required, current_user, login_user
 from werkzeug.security import check_password_hash
-from models import db, User, ApplicantProfile
+from models import AdminNotification, db, User, ApplicantProfile
 from routes.auth import send_verification_email
+from flask import jsonify
 from datetime import datetime
 
 admin_bp = Blueprint('admin', __name__, url_prefix="/admin")
@@ -199,10 +200,18 @@ def verify(user_id):
         flash("Only recruiter accounts require verification!", "danger")
         return redirect(url_for('admin.dashboard'))
 
+
     user.verification_status = "Approved"
     user.verification_remarks = None
     user.is_verified = True
     db.session.commit()
+
+   
+    push_admin_notif(
+        'account_approved',
+        f'{user.role.capitalize()} account <strong>{user.username}</strong> was approved',
+        user_id=user.id
+    )
 
     send_verification_email(user)
 
@@ -237,6 +246,14 @@ def reject(user_id):
     user.verification_remarks = remarks
     user.is_verified = False
     db.session.commit()
+
+
+    from routes.auth import send_verification_email
+    push_admin_notif(
+        'account_rejected',
+        f'{user.role.capitalize()} account <strong>{user.username}</strong> was rejected',
+        user_id=user.id
+    )
 
     flash(f"{user.username} has been rejected.", "warning")
     return redirect(url_for('admin.dashboard'))
@@ -346,3 +363,92 @@ def restore(user_id):
 
     flash(f"{user.username} has been restored to pending verification.", "success")
     return redirect(url_for('admin.scammers'))
+
+# ==============================
+# Restore Rejected Applicant
+# ==============================
+@admin_bp.route('/restore-applicant/<int:user_id>', methods=['POST'])
+@login_required
+def restore_applicant(user_id):
+
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    user = db.session.get(User, user_id)
+
+    if not user or user.role != "applicant":
+        flash("Applicant not found!", "danger")
+        return redirect(url_for('admin.rejected_applicants'))
+
+    user.verification_status = "Pending"
+    user.verification_remarks = None
+    user.is_verified = False
+    db.session.commit()
+
+    flash(f"{user.username} has been restored to pending verification.", "success")
+    return redirect(url_for('admin.rejected_applicants'))
+
+
+# ── Helper: create an admin notification (call this from other routes) ──
+def push_admin_notif(notif_type, message, user_id=None):
+    """
+    notif_type options:
+      'new_message'      – new chat message sent on the platform
+      'account_request'  – new user registration awaiting approval
+      'account_approved' – admin approved a user
+      'account_rejected' – admin rejected a user
+    """
+    notif = AdminNotification(type=notif_type, message=message, user_id=user_id)
+    db.session.add(notif)
+    db.session.commit()
+
+
+# ── API: Get all admin notifications ──
+@admin_bp.route('/notifications')
+@login_required
+def admin_notifications():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Forbidden'}), 403
+    notifs = AdminNotification.query.order_by(
+        AdminNotification.created_at.desc()
+    ).limit(60).all()
+    unread = AdminNotification.query.filter_by(is_read=False).count()
+    return jsonify({
+        'notifications': [n.to_dict() for n in notifs],
+        'unread_count':  unread,
+    })
+
+
+# ── API: Mark all as read ──
+@admin_bp.route('/notifications/mark-read', methods=['POST'])
+@login_required
+def admin_notifications_mark_read():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Forbidden'}), 403
+    AdminNotification.query.filter_by(is_read=False).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+# ── API: Clear all ──
+@admin_bp.route('/notifications/clear-all', methods=['POST'])
+@login_required
+def admin_notifications_clear():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Forbidden'}), 403
+    AdminNotification.query.delete()
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+# ── Page: Notification History ──
+@admin_bp.route('/notification-history')
+@login_required
+def admin_notification_history():
+    if current_user.role != 'admin':
+        return redirect(url_for('admin.dashboard'))
+    notifs = AdminNotification.query.order_by(
+        AdminNotification.created_at.desc()
+    ).all()
+    return render_template('admin/notification_history.html', notifications=notifs)
