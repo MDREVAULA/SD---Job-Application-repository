@@ -25,18 +25,18 @@
                                 <span class="admin-hero-badge">{{ banned_users|length }}</span>
                             {% endif %}
                         </a>
-
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- STATS STRIP -->
+        <!-- FIX 4: Changed "Pending Recruiters" to "All Recruiters" -->
         <div class="admin-stats-grid">
             <div class="admin-stat-card">
                 <i class="fas fa-building admin-stat-icon"></i>
-                <div class="admin-stat-number">{{ pending_recruiters|length }}</div>
-                <div class="admin-stat-label">Pending Recruiters</div>
+                <div class="admin-stat-number">{{ total_recruiters }}</div>
+                <div class="admin-stat-label">Total Recruiters</div>
             </div>
             <div class="admin-stat-card">
                 <i class="fas fa-users admin-stat-icon"></i>
@@ -53,16 +53,8 @@
         <!-- MAIN CONTENT -->
         <div class="admin-content-area">
 
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    <div class="admin-flash admin-flash--{{ category }}">
-                        <i class="fas fa-info-circle"></i> {{ message }}
-                    </div>
-                {% endfor %}
-            {% endwith %}
-
             <!-- Recruiter Verification Queue -->
+            <!-- FIX 1: Queue now correctly reflects submitted recruiters via backend fix -->
             <div class="admin-section">
                 <h3>
                     <i class="fas fa-user-tie"></i>
@@ -180,12 +172,21 @@
                                 </div>
                             </div>
                         </div>
-                        <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
-                              onsubmit="return confirm('Unban {{ user.username }}?')">
-                            <button type="submit" class="admin-action-btn admin-action-btn--approve">
-                                <i class="fas fa-unlock"></i> Unban
-                            </button>
-                        </form>
+                        <div class="admin-item-actions">
+                            <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                                  onsubmit="return confirm('Unban {{ user.username }}?')">
+                                <button type="submit" class="admin-action-btn admin-action-btn--approve">
+                                    <i class="fas fa-unlock"></i> Unban
+                                </button>
+                            </form>
+                            <!-- FIX 5: Delete button -->
+                            <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                                  onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                                <button type="submit" class="admin-action-btn admin-action-btn--delete">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>

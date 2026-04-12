@@ -1113,3 +1113,30 @@
         justify-content: center;
     }
 }
+
+/* ================================================================
+    Delete button variant for banned users
+   ================================================================ */
+
+.admin-action-btn--delete {
+    background: rgba(220, 38, 38, 0.1);
+    color: #b82020;
+    border: 1.5px solid rgba(220, 38, 38, 0.25);
+}
+
+.admin-action-btn--delete:hover {
+    background: #dc2626;
+    color: white;
+    border-color: #dc2626;
+    transform: translateY(-1px);
+}
+
+[data-theme="dark"] .admin-action-btn--delete {
+    color: #f87171;
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+[data-theme="dark"] .admin-action-btn--delete:hover {
+    background: #dc2626;
+    color: white;
+}

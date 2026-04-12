@@ -102,7 +102,26 @@ def profile():
         profile_complete=profile_complete,
     )
 
-
+# ================================================================
+# Applicant Profile Completion Gate
+# ================================================================
+# Applicants no longer need verification to use the platform,
+# BUT they must complete their profile before applying for jobs.
+# ================================================================
+ 
+def is_applicant_profile_complete(user):
+    """Returns True if the applicant has filled in the minimum required profile fields."""
+    profile = ApplicantProfile.query.filter_by(user_id=user.id).first()
+    if not profile:
+        return False
+    return all([
+        profile.first_name,
+        profile.last_name,
+        profile.phone_number,
+        profile.country,
+        profile.city,
+    ])
+ 
 # ===============================
 # UPDATE PERSONAL INFO
 # ===============================
@@ -511,9 +530,8 @@ def apply_job(job_id):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    # Gate: profile must be complete to apply
-    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
-    if not is_profile_complete(prof):
+    # Block application if profile is incomplete
+    if not is_applicant_profile_complete(current_user):
         flash("Please complete your profile before applying for jobs.", "warning")
         return redirect(url_for('applicant.profile'))
 

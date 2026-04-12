@@ -55,7 +55,7 @@
                 {% if banned_users %}
                     <div class="admin-results-header">
                         <div class="admin-results-count">
-                            <span>{{ banned_users|length }}</span> user{{ 's' if banned_users|length != 1 }} banned
+                            <span>{{ banned_users|length }}</span> banned account{{ 's' if banned_users|length != 1 }}
                         </div>
                     </div>
 
@@ -78,9 +78,10 @@
                                     <p class="admin-user-name">{{ user.username }}</p>
                                     <p class="admin-user-email">{{ user.email }}</p>
                                     {% if user.ban_reason %}
-                                    <p class="admin-user-reason">
-                                        <i class="fas fa-comment-alt"></i> {{ user.ban_reason }}
-                                    </p>
+                                    <p class="admin-user-reason"><i class="fas fa-comment-alt"></i> {{ user.ban_reason }}</p>
+                                    {% endif %}
+                                    {% if user.banned_at %}
+                                    <p class="admin-user-reason"><i class="fas fa-clock"></i> Banned on {{ user.banned_at.strftime('%b %d, %Y') }}</p>
                                     {% endif %}
                                     <div class="admin-user-meta">
                                         <span class="admin-meta-tag">
@@ -89,27 +90,31 @@
                                         <span class="admin-meta-tag admin-meta-tag--banned">
                                             <i class="fas fa-ban"></i> Banned
                                         </span>
-                                        {% if user.banned_at %}
-                                        <span class="admin-meta-tag">
-                                            <i class="fas fa-calendar"></i> {{ user.banned_at.strftime('%b %d, %Y') }}
-                                        </span>
-                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
-                            <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
-                                  onsubmit="return confirm('Unban {{ user.username }}?')">
-                                <button type="submit" class="admin-action-btn admin-action-btn--approve">
-                                    <i class="fas fa-unlock"></i> Unban
-                                </button>
-                            </form>
+                            <!-- FIX 5: Unban + Delete buttons -->
+                            <div class="admin-item-actions">
+                                <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                                      onsubmit="return confirm('Unban {{ user.username }}?')">
+                                    <button type="submit" class="admin-action-btn admin-action-btn--approve">
+                                        <i class="fas fa-unlock"></i> Unban
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                                      onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                                    <button type="submit" class="admin-action-btn admin-action-btn--delete">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
                         </li>
                         {% endfor %}
                     </ul>
                 {% else %}
                     <div class="admin-empty-state">
                         <i class="fas fa-check-circle"></i>
-                        <p>No banned users at this time</p>
+                        <p>No banned users</p>
                     </div>
                 {% endif %}
             </div>

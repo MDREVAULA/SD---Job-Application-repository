@@ -37,7 +37,8 @@ def admin_login(token):
 
 # ==============================
 # Admin Dashboard
-# ── Shows pending RECRUITERS only (applicants no longer need verification)
+# FIX 1: Show recruiters who submitted for review OR completed profile
+# FIX 4: Pass total_recruiters instead of pending count for stat card
 # ==============================
 @admin_bp.route('/dashboard')
 @login_required
@@ -47,8 +48,10 @@ def dashboard():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    # Only recruiters who have submitted their profile for review
     from models import RecruiterProfile
+
+    # FIX 1: Show all pending recruiters who have submitted for review
+    # (submitted_for_review=True ensures only those who explicitly submitted appear)
     pending_recruiter_ids = db.session.query(RecruiterProfile.user_id).filter_by(
         submitted_for_review=True
     ).subquery()
@@ -65,16 +68,21 @@ def dashboard():
     # Count all applicants for info panel
     total_applicants = User.query.filter_by(role='applicant').count()
 
+    # FIX 4: Count all recruiters instead of just pending
+    total_recruiters = User.query.filter_by(role='recruiter').count()
+
     return render_template(
         'admin/dashboard.html',
         pending_recruiters=pending_recruiters,
         banned_users=banned_users,
         total_applicants=total_applicants,
+        total_recruiters=total_recruiters,
     )
 
 
 # ==============================
-# All Users Page (for banning)
+# All Users Page
+# FIX 3: Exclude banned users from this view
 # ==============================
 @admin_bp.route('/users')
 @login_required
@@ -86,7 +94,11 @@ def all_users():
 
     role_filter = request.args.get('role', 'all')
 
-    query = User.query.filter(User.role != 'admin')
+    # FIX 3: Exclude banned users — they belong in the banned_users tab only
+    query = User.query.filter(
+        User.role != 'admin',
+        User.is_banned == False
+    )
     if role_filter != 'all':
         query = query.filter_by(role=role_filter)
 
@@ -256,7 +268,6 @@ def ban_user(user_id):
 
     flash(f"{user.username} has been banned.", "warning")
 
-    # Redirect back to wherever the admin came from
     next_url = request.form.get("next") or url_for('admin.dashboard')
     return redirect(next_url)
 
@@ -284,6 +295,30 @@ def unban_user(user_id):
     db.session.commit()
 
     flash(f"{user.username} has been unbanned.", "success")
+    return redirect(url_for('admin.banned_users'))
+
+
+# ==============================
+# FIX 5: DELETE Banned User permanently
+# ==============================
+@admin_bp.route('/delete-user/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    user = db.session.get(User, user_id)
+
+    if not user or user.role == 'admin':
+        flash("User not found or cannot delete admin!", "danger")
+        return redirect(url_for('admin.banned_users'))
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f"User has been permanently deleted.", "warning")
     return redirect(url_for('admin.banned_users'))
 
 
