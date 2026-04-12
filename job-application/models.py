@@ -505,9 +505,7 @@ class JobImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
-<<<<<<< HEAD
     job = db.relationship("Job", backref="images")
-=======
     job = db.relationship("Job", backref="images")
 
 # =========================
@@ -562,4 +560,3 @@ class UserSettings(db.Model):
  
     def __repr__(self):
         return f'<UserSettings user_id={self.user_id}>'
->>>>>>> ded4f60d2fb9f57fb5ec45fc7daf4c8f7687ee95
