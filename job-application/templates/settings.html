@@ -1,0 +1,811 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-wrapper">
+
+  <!-- ===== SIDEBAR NAV ===== -->
+  <aside class="settings-sidebar">
+    <h2 class="settings-title">
+      <i class="fas fa-sliders-h"></i> Settings
+    </h2>
+
+    <!-- Search bar -->
+    <div class="settings-search-wrap">
+      <i class="fas fa-search settings-search-icon"></i>
+      <input
+        type="text"
+        id="settingsSearch"
+        class="settings-search"
+        placeholder="Search settings…"
+        autocomplete="off"
+      />
+      <div id="searchResults" class="search-results-dropdown"></div>
+    </div>
+
+    <!-- Help Center shortcut -->
+    <button class="help-shortcut-btn" id="openHelpBtn">
+      <i class="fas fa-life-ring"></i>
+      <span>Help Center</span>
+      <i class="fas fa-chevron-right help-arrow"></i>
+    </button>
+
+    <!-- Nav items -->
+    <nav class="settings-nav">
+      <ul>
+        <li>
+          <button class="settings-nav-btn active" data-section="privacy">
+            <i class="fas fa-lock"></i> Privacy
+          </button>
+        </li>
+        <li>
+          <button class="settings-nav-btn" data-section="account">
+            <i class="fas fa-user-circle"></i> Account
+          </button>
+        </li>
+        <li>
+          <button class="settings-nav-btn" data-section="notifications">
+            <i class="fas fa-bell"></i> Notifications
+          </button>
+        </li>
+        <li>
+          <button class="settings-nav-btn" data-section="appearance">
+            <i class="fas fa-paint-brush"></i> Appearance
+          </button>
+        </li>
+        <li>
+          <button class="settings-nav-btn" data-section="security">
+            <i class="fas fa-shield-alt"></i> Security
+          </button>
+        </li>
+        <li>
+          <button class="settings-nav-btn" data-section="language">
+            <i class="fas fa-globe"></i> Language &amp; Region
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN PANEL ===== -->
+  <main class="settings-main">
+
+  <!-- ══════════════════════════════════
+      SECTION: PRIVACY
+  ══════════════════════════════════ -->
+  <section class="settings-section active" id="section-privacy">
+    <div class="section-header">
+      <i class="fas fa-lock"></i>
+      <div>
+        <h3>Privacy</h3>
+        <p>Control who can see your information and how you appear to others.</p>
+      </div>
+    </div>
+
+    <!-- ── NAME VISIBILITY ── -->
+    <div class="settings-card" data-searchable="show name privacy visibility everyone mutual">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-user-tag"></i></div>
+        <div>
+          <h4>Show name to others</h4>
+          <p class="card-desc">Choose who can see your full name on the platform.</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="show_name" value="everyone"
+              {% if settings.show_name == 'everyone' or not settings.show_name %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Everyone</strong>
+              <small>All users can see your full name</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="show_name" value="mutual"
+              {% if settings.show_name == 'mutual' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Mutual followers only</strong>
+              <small>Only people you follow who also follow you back</small>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    {% if current_user.is_authenticated and current_user.role == "applicant" %}
+    <!-- ── PROFILE & DOCUMENTS VISIBILITY ── -->
+    <div class="settings-card" data-searchable="profile documents resume portfolio certifications visibility private public everyone specific recruiters hr mutual followers none">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-shield-halved"></i></div>
+        <div>
+          <h4>Profile &amp; Documents Visibility</h4>
+          <p class="card-desc">
+            Controls who can see your personal information, experience, education,
+            skills, certifications, and uploaded documents (resume, portfolio,
+            certificates) — all at once.
+          </p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="radio-group">
+
+          <!-- Everyone -->
+          <label class="radio-option">
+            <input type="radio" name="show_profile" value="everyone"
+              {% if settings.show_profile == 'everyone' or not settings.show_profile %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Everyone</strong>
+              <small>Anyone, including guests, can view your full profile and documents</small>
+            </span>
+          </label>
+
+          <!-- Specific audience -->
+          <label class="radio-option">
+            <input type="radio" name="show_profile" value="specific"
+              {% if settings.show_profile == 'specific' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Specific audience only</strong>
+              <small>Choose exactly who can see your profile and documents</small>
+            </span>
+          </label>
+
+          <!-- Sub-checkboxes — shown only when "specific" is selected -->
+          <div id="profileAudienceOptions"
+              style="display: {% if settings.show_profile == 'specific' %}flex{% else %}none{% endif %};
+                      flex-direction: column;
+                      gap: 10px;
+                      margin: 4px 0 10px 32px;
+                      padding: 14px 18px;
+                      background: var(--bg-surface-alt, #F9FBF8);
+                      border: 1px solid var(--border-color, #EAEDE8);
+                      border-radius: 10px;">
+
+            {% if current_user.role == 'applicant' %}
+            <label class="checkbox-option">
+              <input type="checkbox" name="profile_audience" value="recruiter"
+                {% if 'recruiter' in (settings.profile_audience or []) %}checked{% endif %}>
+              <span class="checkbox-custom"></span>
+              <span>
+                <i class="fas fa-user-tie" style="width:16px; color:#4D774E; margin-right:6px;"></i>
+                <strong>Recruiters</strong>
+                <small style="display:block; margin-left:22px; color:var(--text-muted);">Verified recruiter accounts</small>
+              </span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="profile_audience" value="follower"
+                {% if 'follower' in (settings.profile_audience or []) or 'mutual' in (settings.profile_audience or []) %}checked{% endif %}>
+              <span class="checkbox-custom"></span>
+              <span>
+                <i class="fas fa-user-check" style="width:16px; color:#4D774E; margin-right:6px;"></i>
+                <strong>Followers</strong>
+                <small style="display:block; margin-left:22px; color:var(--text-muted);">Anyone who follows you can view your profile</small>
+              </span>
+            </label>
+            {% endif %}
+
+            <label class="checkbox-option">
+              <input type="checkbox" name="profile_audience" value="follower"
+                {% if 'follower' in (settings.profile_audience or []) or 'mutual' in (settings.profile_audience or []) %}checked{% endif %}>
+              <span class="checkbox-custom"></span>
+              <span>
+                <i class="fas fa-user-check" style="width:16px; color:#4D774E; margin-right:6px;"></i>
+                <strong>Followers</strong>
+                <small style="display:block; margin-left:22px; color:var(--text-muted);">Anyone who follows you can view your profile</small>
+              </span>
+            </label>
+
+          </div>
+
+          <!-- No one -->
+          <label class="radio-option">
+            <input type="radio" name="show_profile" value="none"
+              {% if settings.show_profile == 'none' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>No one</strong>
+              <small>Your profile and documents are completely private — only you can see them</small>
+            </span>
+          </label>
+
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ── FOLLOW LIST VISIBILITY ── -->
+    <div class="settings-card" data-searchable="follow followers following people privacy hide list">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-users"></i></div>
+        <div>
+          <h4>Show people you follow / followers</h4>
+          <p class="card-desc">Control whether others can browse your follow lists.</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="show_follow_list" value="yes"
+              {% if settings.show_follow_list == 'yes' or not settings.show_follow_list %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Everyone</strong>
+              <small>Anyone can see who you follow and who follows you</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="show_follow_list" value="self"
+              {% if settings.show_follow_list == 'self' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Only me</strong>
+              <small>Hidden from everyone — only visible to you</small>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FOLLOWER COUNT VISIBILITY ── OPTIONAL
+    <div class="settings-card" id="cardFollowCount" data-searchable="followers count number following hide privacy">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-sort-numeric-up"></i></div>
+        <div>
+          <h4>Show follower &amp; following count</h4>
+          <p class="card-desc">Display the number of people following you and you follow.</p>
+        </div>
+        <div class="card-badge" id="followCountBadge" style="display:none">
+          <i class="fas fa-ban"></i> Auto-disabled
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div id="followCountDisabledMsg" class="info-banner" style="display:none">
+          <i class="fas fa-info-circle"></i>
+          This setting is automatically disabled because your follow list is hidden.
+        </div>
+        <div class="radio-group" id="followCountOptions">
+          <label class="radio-option">
+            <input type="radio" name="show_follow_count" value="yes"
+              {% if settings.show_follow_count == 'yes' or not settings.show_follow_count %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Show counts</strong>
+              <small>Display follower and following numbers publicly</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="show_follow_count" value="self"
+              {% if settings.show_follow_count == 'self' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Only me</strong>
+              <small>Hide counts from others — only you can see them</small>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- ── MESSAGING PERMISSIONS ── -->
+    <div class="settings-card" data-searchable="message chat who can message inbox privacy">
+      <div class="settings-card-header">
+        <div class="card-icon-wrap"><i class="fas fa-comment-dots"></i></div>
+        <div>
+          <h4>Who can message you?</h4>
+          <p class="card-desc">Manage who is allowed to send you direct messages.</p>
+        </div>
+      </div>
+      <div class="settings-card-body">
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="who_can_message" value="all"
+              {% if settings.who_can_message == 'all' or not settings.who_can_message %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Everyone</strong>
+              <small>Any registered user can message you</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="who_can_message" value="recruiters"
+              {% if settings.who_can_message == 'recruiters' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Recruiters only</strong>
+              <small>Only verified recruiters can send you messages</small>
+            </span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="who_can_message" value="mutual"
+              {% if settings.who_can_message == 'mutual' %}checked{% endif %}>
+            <span class="radio-custom"></span>
+            <span class="radio-label">
+              <strong>Mutual followers only</strong>
+              <small>Only people you follow who follow you back</small>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <div class="settings-actions">
+      <button class="btn-save" id="savePrivacyBtn" onclick="saveSettings('privacy')">
+        <i class="fas fa-save"></i> Save Privacy Settings
+      </button>
+      <span class="save-status" id="privacySaveStatus"></span>
+    </div>
+  </section>
+
+    <!-- ══════════════════════════════════
+         SECTION: ACCOUNT
+    ══════════════════════════════════ -->
+    <section class="settings-section" id="section-account">
+      <div class="section-header">
+        <i class="fas fa-user-circle"></i>
+        <div>
+          <h3>Account</h3>
+          <p>Manage your account details, email, and personal information.</p>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="email username account change update">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap"><i class="fas fa-envelope"></i></div>
+          <div>
+            <h4>Email Address</h4>
+            <p class="card-desc">Update the email associated with your account.</p>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          <div class="input-field-group">
+            <label>Current email</label>
+            <input type="email" value="{{ current_user.email }}" disabled class="settings-input disabled-input">
+          </div>
+          <div class="input-field-group">
+            <label>New email</label>
+            <input type="email" id="newEmail" placeholder="Enter new email…" class="settings-input">
+          </div>
+          <button class="btn-secondary" onclick="saveSettings('email')">Update Email</button>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="deactivate delete account remove">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap danger-icon"><i class="fas fa-user-times"></i></div>
+          <div>
+            <h4>Deactivate Account</h4>
+            <p class="card-desc">Temporarily disable your account. You can reactivate at any time.</p>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          <button class="btn-danger-outline" onclick="confirmDeactivate()">
+            <i class="fas fa-power-off"></i> Deactivate My Account
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════
+         SECTION: NOTIFICATIONS
+    ══════════════════════════════════ -->
+    <section class="settings-section" id="section-notifications">
+      <div class="section-header">
+        <i class="fas fa-bell"></i>
+        <div>
+          <h3>Notifications</h3>
+          <p>Choose what you want to be notified about.</p>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="email notifications alerts job application">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap"><i class="fas fa-mail-bulk"></i></div>
+          <div>
+            <h4>Email Notifications</h4>
+            <p class="card-desc">Manage which updates you receive via email.</p>
+          </div>
+        </div>
+        <div class="settings-card-body notif-toggles">
+          <div class="toggle-row" data-searchable="application status update">
+            <div>
+              <strong>Application status updates</strong>
+              <small>Get notified when your application status changes</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="notif_app_status" {% if settings.notif_app_status %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row" data-searchable="new message notification">
+            <div>
+              <strong>New messages</strong>
+              <small>Email alerts when you receive a new message</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="notif_messages" {% if settings.notif_messages %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row" data-searchable="new follower notification">
+            <div>
+              <strong>New followers</strong>
+              <small>Know when someone starts following you</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="notif_followers" {% if settings.notif_followers %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="toggle-row" data-searchable="job recommendation notification">
+            <div>
+              <strong>Job recommendations</strong>
+              <small>Receive personalized job suggestions weekly</small>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" name="notif_jobs" {% if settings.notif_jobs %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn-save" onclick="saveSettings('notifications')">
+          <i class="fas fa-save"></i> Save Notification Settings
+        </button>
+        <span class="save-status" id="notifSaveStatus"></span>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════
+         SECTION: APPEARANCE
+    ══════════════════════════════════ -->
+    <section class="settings-section" id="section-appearance">
+      <div class="section-header">
+        <i class="fas fa-paint-brush"></i>
+        <div>
+          <h3>Appearance</h3>
+          <p>Customize how the platform looks for you.</p>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="theme dark light mode appearance">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap"><i class="fas fa-adjust"></i></div>
+          <div>
+            <h4>Theme</h4>
+            <p class="card-desc">Switch between light and dark interface modes.</p>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          <div class="theme-picker">
+            <button class="theme-btn {% if settings.theme == 'light' or not settings.theme %}active{% endif %}" onclick="setTheme('light')">
+              <i class="fas fa-sun"></i> Light
+            </button>
+            <button class="theme-btn {% if settings.theme == 'dark' %}active{% endif %}" onclick="setTheme('dark')">
+              <i class="fas fa-moon"></i> Dark
+            </button>
+            <button class="theme-btn {% if settings.theme == 'system' %}active{% endif %}" onclick="setTheme('system')">
+              <i class="fas fa-desktop"></i> System
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="compact density layout view appearance">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap"><i class="fas fa-compress-alt"></i></div>
+          <div>
+            <h4>Display Density</h4>
+            <p class="card-desc">Adjust how compact or spacious the interface appears.</p>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          <div class="radio-group horizontal">
+            <label class="radio-option">
+              <input type="radio" name="density" value="comfortable" {% if settings.density != 'compact' %}checked{% endif %}>
+              <span class="radio-custom"></span>
+              <span class="radio-label"><strong>Comfortable</strong></span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="density" value="compact" {% if settings.density == 'compact' %}checked{% endif %}>
+              <span class="radio-custom"></span>
+              <span class="radio-label"><strong>Compact</strong></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════
+         SECTION: SECURITY
+    ══════════════════════════════════ -->
+    <section class="settings-section" id="section-security">
+      <div class="section-header">
+        <i class="fas fa-shield-alt"></i>
+        <div>
+          <h3>Security</h3>
+          <p>Keep your account safe with strong security settings.</p>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="change password security">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap"><i class="fas fa-key"></i></div>
+          <div>
+            <h4>Change Password</h4>
+            <p class="card-desc">Update your password regularly to keep your account secure.</p>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          <div class="input-field-group">
+            <label>Current password</label>
+            <input type="password" id="currentPass" placeholder="••••••••" class="settings-input">
+          </div>
+          <div class="input-field-group">
+            <label>New password</label>
+            <input type="password" id="newPass" placeholder="••••••••" class="settings-input">
+          </div>
+          <div class="input-field-group">
+            <label>Confirm new password</label>
+            <input type="password" id="confirmPass" placeholder="••••••••" class="settings-input">
+          </div>
+          <button class="btn-save" onclick="saveSettings('password')">
+            <i class="fas fa-lock"></i> Update Password
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="two factor authentication 2fa security login">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap"><i class="fas fa-mobile-alt"></i></div>
+          <div>
+            <h4>Two-Factor Authentication</h4>
+            <p class="card-desc">Add an extra layer of security to your account.</p>
+          </div>
+          <label class="toggle-switch ml-auto">
+            <input type="checkbox" name="two_factor" {% if settings.two_factor %}checked{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="active sessions login devices security">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap"><i class="fas fa-laptop"></i></div>
+          <div>
+            <h4>Active Sessions</h4>
+            <p class="card-desc">View and manage devices where you're logged in.</p>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          <div class="session-item">
+            <i class="fas fa-desktop"></i>
+            <div>
+              <strong>Current device</strong>
+              <small>Last active: just now</small>
+            </div>
+            <span class="session-badge current">Current</span>
+          </div>
+          <button class="btn-danger-outline mt-2" onclick="confirmLogoutAll()">
+            <i class="fas fa-sign-out-alt"></i> Log out all other devices
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════
+         SECTION: LANGUAGE & REGION
+    ══════════════════════════════════ -->
+    <section class="settings-section" id="section-language">
+      <div class="section-header">
+        <i class="fas fa-globe"></i>
+        <div>
+          <h3>Language &amp; Region</h3>
+          <p>Set your preferred language and regional formats.</p>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="language region timezone date format locale">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap"><i class="fas fa-language"></i></div>
+          <div>
+            <h4>Display Language</h4>
+            <p class="card-desc">Choose the language the interface is displayed in.</p>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          <div class="input-field-group">
+            <label>Language</label>
+            <select class="settings-select" name="language">
+              <option value="en" {% if settings.language == 'en' or not settings.language %}selected{% endif %}>English</option>
+              <option value="fil" {% if settings.language == 'fil' %}selected{% endif %}>Filipino</option>
+              <option value="es" {% if settings.language == 'es' %}selected{% endif %}>Español</option>
+              <option value="zh" {% if settings.language == 'zh' %}selected{% endif %}>中文</option>
+              <option value="ja" {% if settings.language == 'ja' %}selected{% endif %}>日本語</option>
+            </select>
+          </div>
+          <div class="input-field-group">
+            <label>Timezone</label>
+            <select class="settings-select" name="timezone">
+              <option value="Asia/Manila" {% if settings.timezone == 'Asia/Manila' or not settings.timezone %}selected{% endif %}>Asia/Manila (GMT+8)</option>
+              <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+              <option value="America/New_York" {% if settings.timezone == 'America/New_York' %}selected{% endif %}>America/New_York (GMT-5)</option>
+            </select>
+          </div>
+          <button class="btn-save" onclick="saveSettings('language')">
+            <i class="fas fa-save"></i> Save Language Settings
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /settings-main -->
+</div><!-- /settings-wrapper -->
+
+
+<!-- ════════════════════════════════════════
+     HELP CENTER MODAL
+════════════════════════════════════════ -->
+<div id="helpModal" class="modal-overlay" style="display:none">
+  <div class="modal-box help-modal-box">
+
+    <!-- Chat with support — always at top -->
+    <div class="support-chat-banner">
+      <div class="support-chat-info">
+        <div class="support-avatar"><i class="fas fa-headset"></i></div>
+        <div>
+          <strong>Chat with Customer Support</strong>
+          <small>Usually responds within a few minutes</small>
+        </div>
+      </div>
+      <button class="btn-chat-support" onclick="openSupportChat()">
+        <i class="fas fa-comments"></i> Start Chat
+      </button>
+    </div>
+
+    <!-- Help center header -->
+    <div class="help-modal-header">
+      <div>
+        <h3><i class="fas fa-life-ring"></i> Help Center</h3>
+        <p>Browse common topics or search for answers below.</p>
+      </div>
+      <button class="modal-close-btn" onclick="closeHelp()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Help search -->
+    <div class="help-search-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" id="helpSearch" placeholder="Search help articles…" oninput="filterHelp(this.value)">
+    </div>
+
+    <!-- FAQ accordion -->
+    <div class="help-faq" id="helpFaq">
+      <div class="faq-category" data-keywords="account registration login sign up password">
+        <button class="faq-cat-btn" onclick="toggleFaqCat(this)">
+          <span><i class="fas fa-user-plus"></i> Account &amp; Registration</span>
+          <i class="fas fa-chevron-down faq-arrow"></i>
+        </button>
+        <div class="faq-cat-body">
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">How do I create an account?</button>
+            <div class="faq-a">Visit the registration page and fill in your details. You can sign up as an applicant or recruiter. Google sign-in is also available.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">I forgot my password. How do I reset it?</button>
+            <div class="faq-a">Click "Forgot Password" on the login page and enter your email. You'll receive a link to reset your password within a few minutes.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">Why was my account rejected?</button>
+            <div class="faq-a">Accounts may be rejected if submitted documents are incomplete or don't meet verification requirements. Check your email for details and resubmit.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-category" data-keywords="privacy settings documents follow message visibility">
+        <button class="faq-cat-btn" onclick="toggleFaqCat(this)">
+          <span><i class="fas fa-lock"></i> Privacy &amp; Settings</span>
+          <i class="fas fa-chevron-down faq-arrow"></i>
+        </button>
+        <div class="faq-cat-body">
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">How do I hide my documents from others?</button>
+            <div class="faq-a">Go to Settings → Privacy → Documents, Resume &amp; Portfolio visibility, and select "Specific audiences only." You can then choose who can view your files.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">Can I stop someone from messaging me?</button>
+            <div class="faq-a">Yes. Under Settings → Privacy → Who can message you, select "Mutual followers only" or "Recruiters only" to restrict messages.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-category" data-keywords="job apply application status track recruiter">
+        <button class="faq-cat-btn" onclick="toggleFaqCat(this)">
+          <span><i class="fas fa-briefcase"></i> Jobs &amp; Applications</span>
+          <i class="fas fa-chevron-down faq-arrow"></i>
+        </button>
+        <div class="faq-cat-body">
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">How do I apply for a job?</button>
+            <div class="faq-a">Browse available jobs on the job board, click a listing to view details, and click "Apply Now." Make sure your profile is complete for the best results.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">How can I track my application status?</button>
+            <div class="faq-a">Go to your Dashboard. Your current application statuses are listed under "My Applications." You'll also receive email notifications when your status changes.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-category" data-keywords="profile picture resume upload documents portfolio">
+        <button class="faq-cat-btn" onclick="toggleFaqCat(this)">
+          <span><i class="fas fa-id-card"></i> Profile &amp; Documents</span>
+          <i class="fas fa-chevron-down faq-arrow"></i>
+        </button>
+        <div class="faq-cat-body">
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">What file types can I upload for my resume?</button>
+            <div class="faq-a">We accept PDF and DOCX files for resumes and documents. Maximum file size is 5MB per file.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">How do I update my profile picture?</button>
+            <div class="faq-a">Go to your Profile page and click on your current photo. You'll be able to upload and crop a new image.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact info footer -->
+    <div class="help-footer">
+      <p>Still need help? <a href="mailto:support@jobapp.ph">support@jobapp.ph</a></p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SUPPORT CHAT MODAL
+════════════════════════════════════════ -->
+<div id="supportChatModal" class="modal-overlay" style="display:none">
+  <div class="modal-box chat-modal-box">
+    <div class="chat-modal-header">
+      <div class="support-avatar"><i class="fas fa-headset"></i></div>
+      <div>
+        <strong>Customer Support</strong>
+        <small class="online-dot">● Online</small>
+      </div>
+      <button class="modal-close-btn" onclick="closeSupportChat()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chat-modal-body" id="chatMessages">
+      <div class="chat-msg support-msg">
+        <span>Hi there! 👋 How can we help you today?</span>
+        <time>just now</time>
+      </div>
+    </div>
+    <div class="chat-modal-input">
+      <input type="text" id="chatInput" placeholder="Type your message…" onkeydown="if(event.key==='Enter') sendChatMsg()">
+      <button onclick="sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     TOAST NOTIFICATION
+════════════════════════════════════════ -->
+<div id="toastNotif" class="toast-notif"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

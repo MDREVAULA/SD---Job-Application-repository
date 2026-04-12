@@ -10,9 +10,7 @@
 
     <!-- ── HEADER CARD ── -->
     <div class="pview-header">
-        <div class="pview-cover-strip">
-        <!-- Green Cover Photo -->
-        </div>
+        <div class="pview-cover-strip"></div>
         <div class="pview-header-inner">
             <div class="pview-header-top-row">
 
@@ -26,15 +24,12 @@
                                  class="pview-avatar-img" alt="Profile photo">
                         {% endif %}
                     {% else %}
-                        <div class="pview-avatar-default">
-                            {{ viewed_user.username[0] | upper }}
-                        </div>
+                        <div class="pview-avatar-default">{{ viewed_user.username[0] | upper }}</div>
                     {% endif %}
                 </div>
 
                 <!-- Action buttons -->
                 <div class="pview-header-actions">
-                    <!-- Verification badge -->
                     <div class="pview-verification-badge
                         {% if viewed_user.verification_status == 'Approved' %}badge-verified
                         {% elif viewed_user.verification_status == 'Pending' %}badge-pending
@@ -49,7 +44,6 @@
                     </div>
 
                     {% if current_user.is_authenticated %}
-                        <!-- Follow button — AJAX toggle -->
                         <button
                             class="pview-action-btn {% if is_following %}pview-action-btn-outline{% else %}pview-action-btn-primary{% endif %}"
                             id="pview-follow-btn"
@@ -61,13 +55,19 @@
                             {% endif %}
                         </button>
 
-                        <!-- Message button -->
+                        {# ── Message button — show notice if messaging is restricted ── #}
+                        {% if can_message %}
                         <a href="{{ url_for('chat.conversation', other_id=viewed_user.id) }}"
                            class="pview-action-btn pview-action-btn-outline">
                             <i class="fas fa-paper-plane"></i> Message
                         </a>
+                        {% else %}
+                        <button class="pview-action-btn pview-action-btn-outline pview-msg-restricted"
+                                onclick="showPviewMsgNotice()">
+                            <i class="fas fa-comment-slash"></i> Message
+                        </button>
+                        {% endif %}
                     {% else %}
-                        <!-- Guest — prompt to log in -->
                         <a href="{{ url_for('auth.login') }}"
                            class="pview-action-btn pview-action-btn-primary">
                             <i class="fas fa-user-plus"></i> Join to Connect
@@ -79,7 +79,7 @@
             <!-- Name / headline / meta -->
             <div class="pview-header-info">
                 <h1>
-                    {% if profile and profile.first_name %}
+                    {% if show_name and profile and profile.first_name %}
                         {{ profile.first_name }}
                         {% if profile.middle_name %} {{ profile.middle_name[0] }}.{% endif %}
                         {{ profile.last_name }}
@@ -91,27 +91,34 @@
 
                 <div class="pview-username-row">
                     <p class="pview-username">@{{ viewed_user.username }}</p>
+                    {% if show_follow_count or show_follow_list %}
                     <div class="pview-follow-counts">
-                        <button class="pview-follow-count-btn" onclick="openFollowModal('followers')">
+                        {% if show_follow_count %}
+                        <button class="pview-follow-count-btn"
+                                onclick="{% if show_follow_list %}openFollowModal('followers'){% else %}openPrivateListNotice(){% endif %}">
                             <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
                             <span class="pview-follow-count-lbl">Followers</span>
                         </button>
                         <span class="pview-follow-count-sep"></span>
-                        <button class="pview-follow-count-btn" onclick="openFollowModal('following')">
+                        <button class="pview-follow-count-btn"
+                                onclick="{% if show_follow_list %}openFollowModal('following'){% else %}openPrivateListNotice(){% endif %}">
                             <span class="pview-follow-count-val" id="net-following">{{ following_count }}</span>
                             <span class="pview-follow-count-lbl">Following</span>
                         </button>
+                        {% endif %}
                     </div>
+                    {% endif %}
                 </div>
 
                 <p class="pview-headline">
-                    {% if profile and profile.headline %}
+                    {% if show_profile and profile and profile.headline %}
                         {{ profile.headline }}
                     {% else %}
                         Applicant
                     {% endif %}
                 </p>
 
+                {% if show_profile %}
                 <div class="pview-header-meta">
                     {% if profile and profile.city %}
                     <span><i class="fas fa-map-marker-alt"></i>
@@ -123,8 +130,6 @@
                     {% endif %}
                     <span><i class="fas fa-envelope"></i>{{ viewed_user.email }}</span>
                 </div>
-
-                <!-- Social links -->
                 <div class="pview-social-links">
                     {% if profile and profile.linkedin %}
                     <a href="{{ profile.linkedin }}" target="_blank" class="pview-social-btn">
@@ -142,17 +147,42 @@
                     </a>
                     {% endif %}
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- ── TWO-COLUMN BODY ── -->
+    <!-- ══ PRIVATE PROFILE NOTICE ══ -->
+    {% if not show_profile %}
+    <div class="pview-private-notice">
+        <div class="pview-private-icon-wrap"><i class="fas fa-lock"></i></div>
+        <h3 class="pview-private-title">This profile is private</h3>
+        <p class="pview-private-text">
+            <strong>{{ viewed_user.username }}</strong> has chosen to limit who can view their profile.
+        </p>
+        {% if not current_user.is_authenticated %}
+        <p class="pview-private-sub">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}" class="pview-private-link">Log in</a>
+            to see if you have access, or
+            <a href="{{ url_for('auth.register') }}" class="pview-private-link">create an account</a>
+            to connect.
+        </p>
+        {% else %}
+        <p class="pview-private-sub">
+            Follow this user — their profile may become visible to followers.
+        </p>
+        {% endif %}
+    </div>
+
+    {% else %}
+
+    <!-- ══ TWO-COLUMN BODY ══ -->
     <div class="pview-body">
 
         <!-- ══ MAIN COLUMN ══ -->
         <div class="pview-main">
 
-            <!-- ── ABOUT / BIO ── -->
             {% if profile and profile.bio %}
             <div class="pview-card" style="animation-delay:0.05s">
                 <div class="pview-card-header">
@@ -164,17 +194,14 @@
             </div>
             {% endif %}
 
-            <!-- ── WORK EXPERIENCE ── -->
+            <!-- EXPERIENCE -->
             <div class="pview-card" style="animation-delay:0.08s">
                 <div class="pview-card-header">
                     <div class="pview-card-title">
                         <i class="fas fa-briefcase"></i> Experience
-                        {% if experiences %}
-                        <span class="pview-section-count">{{ experiences | length }}</span>
-                        {% endif %}
+                        {% if experiences %}<span class="pview-section-count">{{ experiences | length }}</span>{% endif %}
                     </div>
                 </div>
-
                 {% if experiences %}
                 <div class="pview-items-list">
                     {% for exp in experiences %}
@@ -182,41 +209,29 @@
                         <div class="pview-item-icon"><i class="fas fa-briefcase"></i></div>
                         <div class="pview-item-body">
                             <div class="pview-item-title">{{ exp.job_title }}</div>
-                            <div class="pview-item-subtitle">
-                                {{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}
-                            </div>
+                            <div class="pview-item-subtitle">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</div>
                             <div class="pview-item-date">
                                 {{ exp.start_date if exp.start_date else '' }}
-                                {% if exp.is_current %} – Present
-                                {% elif exp.end_date %} – {{ exp.end_date }}
-                                {% endif %}
+                                {% if exp.is_current %} – Present{% elif exp.end_date %} – {{ exp.end_date }}{% endif %}
                             </div>
-                            {% if exp.description %}
-                            <div class="pview-item-desc">{{ exp.description }}</div>
-                            {% endif %}
+                            {% if exp.description %}<div class="pview-item-desc">{{ exp.description }}</div>{% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="pview-empty-section">
-                    <i class="fas fa-briefcase"></i>
-                    <p>No work experience added yet.</p>
-                </div>
+                <div class="pview-empty-section"><i class="fas fa-briefcase"></i><p>No work experience added yet.</p></div>
                 {% endif %}
             </div>
 
-            <!-- ── EDUCATION ── -->
+            <!-- EDUCATION -->
             <div class="pview-card" style="animation-delay:0.11s">
                 <div class="pview-card-header">
                     <div class="pview-card-title">
                         <i class="fas fa-graduation-cap"></i> Education
-                        {% if educations %}
-                        <span class="pview-section-count">{{ educations | length }}</span>
-                        {% endif %}
+                        {% if educations %}<span class="pview-section-count">{{ educations | length }}</span>{% endif %}
                     </div>
                 </div>
-
                 {% if educations %}
                 <div class="pview-items-list">
                     {% for edu in educations %}
@@ -224,42 +239,29 @@
                         <div class="pview-item-icon"><i class="fas fa-graduation-cap"></i></div>
                         <div class="pview-item-body">
                             <div class="pview-item-title">{{ edu.school }}</div>
-                            <div class="pview-item-subtitle">
-                                {{ edu.degree if edu.degree else '' }}
-                                {% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}
-                            </div>
+                            <div class="pview-item-subtitle">{{ edu.degree if edu.degree else '' }}{% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}</div>
                             <div class="pview-item-date">
                                 {{ edu.start_date if edu.start_date else '' }}
-                                {% if edu.is_current %} – Present
-                                {% elif edu.end_date %} – {{ edu.end_date }}
-                                {% endif %}
+                                {% if edu.is_current %} – Present{% elif edu.end_date %} – {{ edu.end_date }}{% endif %}
                             </div>
-                            {% if edu.description %}
-                            <div class="pview-item-desc">{{ edu.description }}</div>
-                            {% endif %}
+                            {% if edu.description %}<div class="pview-item-desc">{{ edu.description }}</div>{% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="pview-empty-section">
-                    <i class="fas fa-graduation-cap"></i>
-                    <p>No education added yet.</p>
-                </div>
+                <div class="pview-empty-section"><i class="fas fa-graduation-cap"></i><p>No education added yet.</p></div>
                 {% endif %}
             </div>
 
-            <!-- ── PROJECTS ── -->
+            <!-- PROJECTS -->
             <div class="pview-card" style="animation-delay:0.14s">
                 <div class="pview-card-header">
                     <div class="pview-card-title">
                         <i class="fas fa-laptop-code"></i> Projects
-                        {% if projects %}
-                        <span class="pview-section-count">{{ projects | length }}</span>
-                        {% endif %}
+                        {% if projects %}<span class="pview-section-count">{{ projects | length }}</span>{% endif %}
                     </div>
                 </div>
-
                 {% if projects %}
                 <div class="pview-items-list">
                     {% for proj in projects %}
@@ -268,42 +270,27 @@
                         <div class="pview-item-body">
                             <div class="pview-item-title">
                                 {{ proj.title }}
-                                {% if proj.url %}
-                                <a href="{{ proj.url }}" target="_blank" class="pview-item-link">
-                                    <i class="fas fa-up-right-from-square"></i> View
-                                </a>
-                                {% endif %}
+                                {% if proj.url %}<a href="{{ proj.url }}" target="_blank" class="pview-item-link"><i class="fas fa-up-right-from-square"></i> View</a>{% endif %}
                             </div>
-                            <div class="pview-item-date">
-                                {{ proj.start_date if proj.start_date else '' }}
-                                {% if proj.end_date %} – {{ proj.end_date }}{% endif %}
-                            </div>
-                            {% if proj.description %}
-                            <div class="pview-item-desc">{{ proj.description }}</div>
-                            {% endif %}
+                            <div class="pview-item-date">{{ proj.start_date if proj.start_date else '' }}{% if proj.end_date %} – {{ proj.end_date }}{% endif %}</div>
+                            {% if proj.description %}<div class="pview-item-desc">{{ proj.description }}</div>{% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="pview-empty-section">
-                    <i class="fas fa-laptop-code"></i>
-                    <p>No projects added yet.</p>
-                </div>
+                <div class="pview-empty-section"><i class="fas fa-laptop-code"></i><p>No projects added yet.</p></div>
                 {% endif %}
             </div>
 
-            <!-- ── CERTIFICATIONS ── -->
+            <!-- CERTIFICATIONS -->
             <div class="pview-card" style="animation-delay:0.17s">
                 <div class="pview-card-header">
                     <div class="pview-card-title">
                         <i class="fas fa-certificate"></i> Certifications
-                        {% if certifications %}
-                        <span class="pview-section-count">{{ certifications | length }}</span>
-                        {% endif %}
+                        {% if certifications %}<span class="pview-section-count">{{ certifications | length }}</span>{% endif %}
                     </div>
                 </div>
-
                 {% if certifications %}
                 <div class="pview-items-list">
                     {% for cert in certifications %}
@@ -312,11 +299,7 @@
                         <div class="pview-item-body">
                             <div class="pview-item-title">
                                 {{ cert.name }}
-                                {% if cert.credential_url %}
-                                <a href="{{ cert.credential_url }}" target="_blank" class="pview-item-link">
-                                    <i class="fas fa-up-right-from-square"></i> Verify
-                                </a>
-                                {% endif %}
+                                {% if cert.credential_url %}<a href="{{ cert.credential_url }}" target="_blank" class="pview-item-link"><i class="fas fa-up-right-from-square"></i> Verify</a>{% endif %}
                             </div>
                             <div class="pview-item-subtitle">{{ cert.issuer if cert.issuer else '' }}</div>
                             <div class="pview-item-date">
@@ -328,47 +311,72 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="pview-empty-section">
-                    <i class="fas fa-certificate"></i>
-                    <p>No certifications added yet.</p>
-                </div>
+                <div class="pview-empty-section"><i class="fas fa-certificate"></i><p>No certifications added yet.</p></div>
                 {% endif %}
             </div>
 
+            <!-- DOCUMENTS -->
+            {% set cert_files = (profile.certificate_files | from_json) if (profile and profile.certificate_files) else [] %}
+            {% if (profile and profile.resume_file) or (profile and profile.portfolio_file) or cert_files %}
+            <div class="pview-card" style="animation-delay:0.20s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-folder-open"></i> Documents</div>
+                </div>
+                <div class="pview-items-list">
+                    {% if profile and profile.resume_file %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas fa-file-pdf"></i></div>
+                        <div class="pview-item-body"><div class="pview-item-title">Resume</div><div class="pview-item-subtitle">PDF Document</div></div>
+                        <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.resume_file) }}" target="_blank" class="pview-doc-btn"><i class="fas fa-eye"></i> View</a>
+                    </div>
+                    {% endif %}
+                    {% if profile and profile.portfolio_file %}
+                    {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas {% if pext == 'pdf' %}fa-file-pdf{% else %}fa-file-image{% endif %}"></i></div>
+                        <div class="pview-item-body"><div class="pview-item-title">Portfolio</div><div class="pview-item-subtitle">{{ pext | upper }} Document</div></div>
+                        <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.portfolio_file) }}" target="_blank" class="pview-doc-btn"><i class="fas fa-eye"></i> View</a>
+                    </div>
+                    {% endif %}
+                    {% for cf in cert_files %}
+                    {% set ext = cf.rsplit('.', 1)[-1].lower() %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas {% if ext == 'pdf' %}fa-file-pdf{% else %}fa-file-image{% endif %}"></i></div>
+                        <div class="pview-item-body"><div class="pview-item-title">Certificate</div><div class="pview-item-subtitle">{{ ext | upper }} · Award / Certification</div></div>
+                        <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + cf) }}" target="_blank" class="pview-doc-btn"><i class="fas fa-eye"></i> View</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
         </div><!-- /.pview-main -->
 
-        <!-- ══ SIDEBAR COLUMN ══ -->
+        <!-- ══ SIDEBAR ══ -->
         <div class="pview-side">
 
-            <!-- ── SKILLS ── -->
+            <!-- SKILLS -->
             <div class="pview-card" style="animation-delay:0.06s">
                 <div class="pview-card-header">
                     <div class="pview-card-title">
                         <i class="fas fa-screwdriver-wrench"></i> Skills
-                        {% if skills %}
-                        <span class="pview-section-count">{{ skills | length }}</span>
-                        {% endif %}
+                        {% if skills %}<span class="pview-section-count">{{ skills | length }}</span>{% endif %}
                     </div>
                 </div>
-
                 {% if skills %}
                 <div class="pview-skills-grid">
                     {% for skill in skills %}
                     <span class="pview-skill-chip skill-{{ skill.level | lower }}">
-                        {{ skill.name }}
-                        <span class="pview-skill-level">{{ skill.level }}</span>
+                        {{ skill.name }}<span class="pview-skill-level">{{ skill.level }}</span>
                     </span>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="pview-empty-section">
-                    <i class="fas fa-screwdriver-wrench"></i>
-                    <p>No skills added yet.</p>
-                </div>
+                <div class="pview-empty-section"><i class="fas fa-screwdriver-wrench"></i><p>No skills added yet.</p></div>
                 {% endif %}
             </div>
 
-            <!-- ── STATS ── -->
+            <!-- STATS -->
             <div class="pview-card" style="animation-delay:0.09s">
                 <div class="pview-card-header">
                     <div class="pview-card-title"><i class="fas fa-chart-simple"></i> Stats</div>
@@ -389,7 +397,7 @@
                 </div>
             </div>
 
-            <!-- ── CONTACT / LINKS ── -->
+            <!-- CONTACT / LINKS -->
             <div class="pview-card" style="animation-delay:0.12s">
                 <div class="pview-card-header">
                     <div class="pview-card-title"><i class="fas fa-link"></i> Contact & Links</div>
@@ -398,68 +406,50 @@
                     <div class="pview-side-item">
                         <i class="fas fa-envelope"></i>
                         <div class="pview-side-item-text">
-                            <span class="pview-side-item-label">Email</span>
-                            {{ viewed_user.email }}
+                            <span class="pview-side-item-label">Email</span>{{ viewed_user.email }}
                         </div>
                     </div>
                     {% if profile and profile.phone_number %}
                     <div class="pview-side-item">
                         <i class="fas fa-phone"></i>
-                        <div class="pview-side-item-text">
-                            <span class="pview-side-item-label">Phone</span>
-                            {{ profile.phone_number }}
-                        </div>
+                        <div class="pview-side-item-text"><span class="pview-side-item-label">Phone</span>{{ profile.phone_number }}</div>
                     </div>
                     {% endif %}
                     {% if profile and profile.city %}
                     <div class="pview-side-item">
                         <i class="fas fa-map-marker-alt"></i>
-                        <div class="pview-side-item-text">
-                            <span class="pview-side-item-label">Location</span>
-                            {{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}
-                        </div>
+                        <div class="pview-side-item-text"><span class="pview-side-item-label">Location</span>{{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}</div>
                     </div>
                     {% endif %}
                     {% if profile and profile.linkedin %}
                     <div class="pview-side-item">
                         <i class="fab fa-linkedin"></i>
-                        <div class="pview-side-item-text">
-                            <span class="pview-side-item-label">LinkedIn</span>
-                            <a href="{{ profile.linkedin }}" target="_blank" class="pview-link">View Profile</a>
-                        </div>
+                        <div class="pview-side-item-text"><span class="pview-side-item-label">LinkedIn</span><a href="{{ profile.linkedin }}" target="_blank" class="pview-link">View Profile</a></div>
                     </div>
                     {% endif %}
                     {% if profile and profile.github %}
                     <div class="pview-side-item">
                         <i class="fab fa-github"></i>
-                        <div class="pview-side-item-text">
-                            <span class="pview-side-item-label">GitHub</span>
-                            <a href="{{ profile.github }}" target="_blank" class="pview-link">View Profile</a>
-                        </div>
+                        <div class="pview-side-item-text"><span class="pview-side-item-label">GitHub</span><a href="{{ profile.github }}" target="_blank" class="pview-link">View Profile</a></div>
                     </div>
                     {% endif %}
                     {% if profile and profile.portfolio %}
                     <div class="pview-side-item">
                         <i class="fas fa-globe"></i>
-                        <div class="pview-side-item-text">
-                            <span class="pview-side-item-label">Portfolio</span>
-                            <a href="{{ profile.portfolio }}" target="_blank" class="pview-link">Visit Site</a>
-                        </div>
+                        <div class="pview-side-item-text"><span class="pview-side-item-label">Portfolio</span><a href="{{ profile.portfolio }}" target="_blank" class="pview-link">Visit Site</a></div>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- ── GUEST CTA (only shown to non-logged-in visitors) ── -->
+            <!-- GUEST CTA -->
             {% if not current_user.is_authenticated %}
             <div class="pview-card pview-cta-card" style="animation-delay:0.15s">
                 <div class="pview-cta-inner">
                     <i class="fas fa-user pview-cta-icon"></i>
                     <p class="pview-cta-title">Join to Connect</p>
                     <p class="pview-cta-text">Sign up to follow this applicant, send messages, and build your network.</p>
-                    <a href="{{ url_for('auth.register') }}" class="pview-cta-btn">
-                        <i class="fas fa-user-plus"></i> Create Account
-                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="pview-cta-btn"><i class="fas fa-user-plus"></i> Create Account</a>
                     <a href="{{ url_for('auth.login') }}" class="pview-cta-link">Already have an account? Log in</a>
                 </div>
             </div>
@@ -468,6 +458,36 @@
         </div><!-- /.pview-side -->
 
     </div><!-- /.pview-body -->
+    {% endif %}<!-- end show_profile -->
+
+</div><!-- /.pview-wrapper -->
+
+<!-- ══ PRIVATE FOLLOW LIST NOTICE MODAL ══ -->
+<div class="pview-modal-backdrop" id="privateListBackdrop" onclick="closePrivateListNotice()" style="display:none;"></div>
+<div class="pview-notice-modal" id="privateListModal" style="display:none;">
+    <div class="pview-notice-icon"><i class="fas fa-eye-slash"></i></div>
+    <h4 class="pview-notice-title">Follow list is private</h4>
+    <p class="pview-notice-text">
+        <strong>{{ viewed_user.username }}</strong> has chosen to keep their followers and following list private.
+    </p>
+    <button class="pview-notice-close-btn" onclick="closePrivateListNotice()">Got it</button>
+</div>
+
+<!-- ══ MESSAGE RESTRICTION NOTICE MODAL ══ -->
+<div class="pview-modal-backdrop" id="msgRestrictBackdrop" onclick="closePviewMsgNotice()" style="display:none;"></div>
+<div class="pview-notice-modal" id="msgRestrictModal" style="display:none;">
+    <div class="pview-notice-icon pview-notice-icon-msg"><i class="fas fa-comment-slash"></i></div>
+    <h4 class="pview-notice-title">Messaging restricted</h4>
+    <p class="pview-notice-text" id="pviewMsgNoticeText">
+        {% if who_can_message == 'recruiters' %}
+            <strong>{{ viewed_user.username }}</strong> only accepts messages from recruiters.
+        {% elif who_can_message == 'mutual' %}
+            <strong>{{ viewed_user.username }}</strong> only accepts messages from mutual followers. Follow them and wait for them to follow back to start a conversation.
+        {% else %}
+            You don't have permission to message this user.
+        {% endif %}
+    </p>
+    <button class="pview-notice-close-btn" onclick="closePviewMsgNotice()">Got it</button>
 </div>
 
 <!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
@@ -484,22 +504,15 @@
         </div>
         <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
     </div>
-
-    <!-- Followers list -->
     <div class="follow-modal-list" id="list-followers">
         {% if followers %}
             {% for u in followers %}
             <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
                 <div class="follow-modal-avatar">
                     {% if u.profile_picture %}
-                        {% if u.profile_picture.startswith('http') %}
-                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
-                        {% endif %}
-                    {% else %}
-                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
-                    {% endif %}
+                        {% if u.profile_picture.startswith('http') %}<img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}<img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">{% endif %}
+                    {% else %}<div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>{% endif %}
                 </div>
                 <div class="follow-modal-info">
                     <span class="follow-modal-name">{{ u.username }}</span>
@@ -509,28 +522,18 @@
             </a>
             {% endfor %}
         {% else %}
-            <div class="follow-modal-empty">
-                <i class="fas fa-user-friends"></i>
-                <p>No followers yet.</p>
-            </div>
+            <div class="follow-modal-empty"><i class="fas fa-user-friends"></i><p>No followers yet.</p></div>
         {% endif %}
     </div>
-
-    <!-- Following list -->
     <div class="follow-modal-list" id="list-following" style="display:none;">
         {% if following %}
             {% for u in following %}
             <a href="{{ url_for('profile_view.view_profile', user_id=u.id) }}" class="follow-modal-item">
                 <div class="follow-modal-avatar">
                     {% if u.profile_picture %}
-                        {% if u.profile_picture.startswith('http') %}
-                            <img src="{{ u.profile_picture }}" alt="{{ u.username }}">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">
-                        {% endif %}
-                    {% else %}
-                        <div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>
-                    {% endif %}
+                        {% if u.profile_picture.startswith('http') %}<img src="{{ u.profile_picture }}" alt="{{ u.username }}">
+                        {% else %}<img src="{{ url_for('static', filename='uploads/profile_pictures/' + u.profile_picture) }}" alt="{{ u.username }}">{% endif %}
+                    {% else %}<div class="follow-modal-avatar-default">{{ u.username[0] | upper }}</div>{% endif %}
                 </div>
                 <div class="follow-modal-info">
                     <span class="follow-modal-name">{{ u.username }}</span>
@@ -540,49 +543,59 @@
             </a>
             {% endfor %}
         {% else %}
-            <div class="follow-modal-empty">
-                <i class="fas fa-user-plus"></i>
-                <p>Not following anyone yet.</p>
-            </div>
+            <div class="follow-modal-empty"><i class="fas fa-user-plus"></i><p>Not following anyone yet.</p></div>
         {% endif %}
     </div>
 </div>
 
 <script>
-// ── The user ID whose profile we are viewing ──
-const PROFILE_USER_ID = {{ viewed_user.id }};
+const PROFILE_USER_ID    = {{ viewed_user.id }};
+const SHOW_FOLLOW_LIST   = {{ 'true' if show_follow_list else 'false' }};
 
-// ─────────────────────────────────────────────
-// Fetch live follower/following list as JSON
-// and re-render both modal tabs.
-// ─────────────────────────────────────────────
+// ── Private list notice ──
+function openPrivateListNotice() {
+    document.getElementById('privateListBackdrop').style.display = 'block';
+    document.getElementById('privateListModal').style.display    = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closePrivateListNotice() {
+    document.getElementById('privateListBackdrop').style.display = 'none';
+    document.getElementById('privateListModal').style.display    = 'none';
+    document.body.style.overflow = '';
+}
+
+// ── Message restriction notice ──
+function showPviewMsgNotice() {
+    document.getElementById('msgRestrictBackdrop').style.display = 'block';
+    document.getElementById('msgRestrictModal').style.display    = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closePviewMsgNotice() {
+    document.getElementById('msgRestrictBackdrop').style.display = 'none';
+    document.getElementById('msgRestrictModal').style.display    = 'none';
+    document.body.style.overflow = '';
+}
+
+// ── Follow list refresh ──
 function refreshFollowLists(callback) {
     fetch('/profile/follow-list/' + PROFILE_USER_ID)
         .then(r => r.json())
         .then(data => {
-            renderList('list-followers', data.followers, 'No followers yet.',     'fa-user-friends');
+            if (data.list_is_private) return; // don't overwrite anything
+            renderList('list-followers', data.followers, 'No followers yet.', 'fa-user-friends');
             renderList('list-following', data.following, 'Not following anyone yet.', 'fa-user-plus');
-
-            // Update all count badges
-            document.querySelectorAll('#net-followers, #tab-count-followers').forEach(el => {
-                el.textContent = data.follower_count;
-            });
-            document.querySelectorAll('#net-following, #tab-count-following').forEach(el => {
-                el.textContent = data.following_count;
-            });
-
+            document.querySelectorAll('#net-followers, #tab-count-followers').forEach(el => el.textContent = data.follower_count);
+            document.querySelectorAll('#net-following, #tab-count-following').forEach(el => el.textContent = data.following_count);
             if (callback) callback(data);
         })
         .catch(err => console.error('Follow list fetch failed:', err));
 }
 
-// Build HTML for one user row
 function buildUserRow(u) {
     const avatarHtml = u.pic
         ? `<img src="${u.pic}" alt="${u.username}">`
         : `<div class="follow-modal-avatar-default">${u.username[0].toUpperCase()}</div>`;
-    return `
-    <a href="${u.profile_url}" class="follow-modal-item">
+    return `<a href="${u.profile_url}" class="follow-modal-item">
         <div class="follow-modal-avatar">${avatarHtml}</div>
         <div class="follow-modal-info">
             <span class="follow-modal-name">${u.username}</span>
@@ -600,14 +613,9 @@ function renderList(listId, users, emptyMsg, emptyIcon) {
         : users.map(buildUserRow).join('');
 }
 
-// ─────────────────────────────────────────────
-// Follow / Unfollow toggle
-// ─────────────────────────────────────────────
+// ── Follow toggle ──
 function pviewToggleFollow(userId, btn) {
-    fetch('/chat/follow/' + userId, {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
+    fetch('/chat/follow/' + userId, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     .then(r => r.json())
     .then(data => {
         if (data.action === 'followed') {
@@ -619,14 +627,12 @@ function pviewToggleFollow(userId, btn) {
             btn.classList.remove('pview-action-btn-outline');
             btn.classList.add('pview-action-btn-primary');
         }
-        refreshFollowLists();
+        if (SHOW_FOLLOW_LIST) refreshFollowLists();
     })
     .catch(err => console.error('Follow toggle failed:', err));
 }
 
-// ─────────────────────────────────────────────
-// Modal controls
-// ─────────────────────────────────────────────
+// ── Follow modal ──
 let activeTab = 'followers';
 
 function openFollowModal(tab) {
@@ -634,12 +640,10 @@ function openFollowModal(tab) {
     document.getElementById('followModal').classList.add('open');
     document.getElementById('followModalBackdrop').classList.add('open');
     document.body.style.overflow = 'hidden';
-
     ['list-followers', 'list-following'].forEach(id => {
         document.getElementById(id).innerHTML =
             '<div class="follow-modal-empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>';
     });
-
     refreshFollowLists(() => switchTab(activeTab));
 }
 
@@ -657,7 +661,13 @@ function switchTab(tab) {
     document.getElementById('tab-following').classList.toggle('active', tab === 'following');
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFollowModal(); });
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeFollowModal();
+        closePrivateListNotice();
+        closePviewMsgNotice();
+    }
+});
 </script>
 
 {% endblock %}

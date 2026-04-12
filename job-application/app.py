@@ -6,10 +6,12 @@ from flask_mail import Mail
 from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash
 from datetime import datetime
+from flask_migrate import Migrate
 import os
 import pymysql
 import secrets
 import logging
+import json
 
 # CREATE DATABASE IF NOT EXISTS
 connection = pymysql.connect(
@@ -42,6 +44,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 
 # Initialize Database
 db.init_app(app)
+migrate = Migrate(app, db)
 
 # Initialize Mail
 mail = Mail(app)
@@ -92,6 +95,7 @@ from routes.hr import hr_bp
 from routes.admin import admin_bp
 from routes.chat import chat_bp
 from routes.profile_view import profile_view_bp
+from routes.settings import settings_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(applicant_bp)
@@ -100,6 +104,15 @@ app.register_blueprint(hr_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(profile_view_bp)
+app.register_blueprint(settings_bp)
+
+
+@app.template_filter('from_json')
+def from_json_filter(value):
+    try:
+        return json.loads(value) if value else []
+    except:
+        return []
 
 # Run App
 if __name__ == "__main__":

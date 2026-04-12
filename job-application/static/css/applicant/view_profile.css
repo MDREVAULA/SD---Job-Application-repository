@@ -502,6 +502,41 @@
     line-height: 1.65;
 }
 
+/* ── Document view button ── */
+.pview-doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid #D4ECC8;
+    background: #F0F7EC;
+    color: #4D774E;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.pview-doc-btn:hover {
+    background: #164A41;
+    border-color: #164A41;
+    color: #fff;
+}
+
+[data-theme="dark"] .pview-doc-btn {
+    background: rgba(77,119,78,0.12);
+    border-color: rgba(77,119,78,0.25);
+    color: #9DC88D;
+}
+
+[data-theme="dark"] .pview-doc-btn:hover {
+    background: #4D774E;
+    border-color: #4D774E;
+    color: #fff;
+}
+
 /* Empty state */
 .pview-empty-section {
     text-align: center;
@@ -706,6 +741,85 @@
 .pview-cta-link:hover { text-decoration: underline; }
 
 /* ══════════════════════════════════════════
+   PRIVATE PROFILE NOTICE (no card, centered)
+══════════════════════════════════════════ */
+
+.pview-private-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 64px 24px 80px;
+    animation: pviewFadeUp 0.35s ease both;
+    animation-delay: 0.1s;
+}
+
+.pview-private-icon-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--bg-card, #fff);
+    border: 1.5px solid var(--border-color, #EAEDE8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.pview-private-icon-wrap i {
+    font-size: 1.6rem;
+    color: #9DC88D;
+}
+
+.pview-private-title {
+    margin: 0 0 10px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary, #111);
+    letter-spacing: -0.2px;
+}
+
+.pview-private-text {
+    margin: 0 0 10px;
+    font-size: 0.9rem;
+    color: var(--text-secondary, #4B5563);
+    line-height: 1.6;
+    max-width: 380px;
+}
+
+.pview-private-text strong {
+    color: var(--text-primary, #111);
+    font-weight: 600;
+}
+
+.pview-private-sub {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted, #9CA3AF);
+    line-height: 1.6;
+    max-width: 360px;
+}
+
+.pview-private-link {
+    color: #4D774E;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.pview-private-link:hover {
+    text-decoration: underline;
+}
+
+/* Dark mode */
+[data-theme="dark"] .pview-private-icon-wrap {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ══════════════════════════════════════════
    DARK MODE
 ══════════════════════════════════════════ */
 
@@ -763,6 +877,13 @@
 [data-theme="dark"] .pview-follow-count-val { color: var(--text-primary); }
 [data-theme="dark"] .pview-follow-count-lbl { color: var(--text-muted); }
 [data-theme="dark"] .pview-follow-count-sep { background: var(--border-color); }
+
+[data-theme="dark"] .pview-private-icon-wrap i { color: #9DC88D; }
+[data-theme="dark"] .pview-private-title       { color: var(--text-primary); }
+[data-theme="dark"] .pview-private-text        { color: var(--text-secondary); }
+[data-theme="dark"] .pview-private-text strong { color: var(--text-primary); }
+[data-theme="dark"] .pview-private-sub         { color: var(--text-muted); }
+[data-theme="dark"] .pview-private-link        { color: #9DC88D; }
 
 /* ══════════════════════════════════════════
    NETWORK GRID (followers / following buttons)
@@ -979,6 +1100,309 @@
 .follow-modal-empty i { font-size: 2rem; margin-bottom: 10px; display: block; color: #D4ECC8; }
 .follow-modal-empty p { margin: 0; font-size: 0.85rem; }
 
+/* ============================================================
+   ADDITIONS FOR static/css/chat/people.css
+   Paste at the bottom of that file.
+   ============================================================ */
+
+/* ── Person name row (holds name + badges) ── */
+.person-name-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin: 0 0 0.1rem;
+}
+
+/* Override person-name margin since it's now inside a flex row */
+.person-name-row .person-name {
+    margin: 0;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Privacy badge (lock / shield) ── */
+.person-privacy-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.6rem;
+    flex-shrink: 0;
+    cursor: default;
+}
+
+.person-privacy-badge.badge-locked {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.person-privacy-badge.badge-restricted {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* ── Message restriction badge ── */
+.person-msg-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.58rem;
+    flex-shrink: 0;
+    cursor: default;
+}
+
+.person-msg-badge.badge-recruiters-only {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.person-msg-badge.badge-mutuals-only {
+    background: rgba(77, 119, 78, 0.12);
+    color: #4D774E;
+    border: 1px solid rgba(77, 119, 78, 0.25);
+}
+
+/* ── Restricted message button ── */
+.btn-message-restricted {
+    cursor: pointer;
+    opacity: 0.6;
+    font-family: inherit;
+}
+
+.btn-message-restricted:hover {
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.08) !important;
+    opacity: 1;
+}
+
+/* ── Message restriction toast ── */
+.msg-restriction-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--p-surface);
+    border: 1px solid var(--p-border);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    padding: 0;
+    z-index: 9999;
+    max-width: 360px;
+    width: calc(100vw - 2rem);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.msg-restriction-toast.show {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(-50%) translateY(0);
+}
+
+.msg-toast-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding: 1rem 1rem 1rem 1.125rem;
+}
+
+.msg-toast-icon {
+    font-size: 1.1rem;
+    color: #ef4444;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.msg-toast-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.msg-toast-title {
+    margin: 0 0 0.2rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--p-text);
+}
+
+.msg-toast-text {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--p-muted);
+    line-height: 1.5;
+}
+
+.msg-toast-close {
+    background: none;
+    border: none;
+    color: var(--p-subtle);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.2rem;
+    flex-shrink: 0;
+    margin-top: -0.1rem;
+    border-radius: 50%;
+    transition: color 0.15s, background 0.15s;
+}
+
+.msg-toast-close:hover {
+    color: var(--p-text);
+    background: var(--p-border);
+}
+
+
+/* ============================================================
+   ADDITIONS FOR static/css/applicant/view_profile.css
+   Paste at the bottom of that file.
+   ============================================================ */
+
+/* ── Private profile notice ── */
+.pview-private-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 64px 24px 80px;
+    animation: pviewFadeUp 0.35s ease both;
+    animation-delay: 0.1s;
+}
+
+.pview-private-icon-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--bg-card, #fff);
+    border: 1.5px solid var(--border-color, #EAEDE8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.pview-private-icon-wrap i { font-size: 1.6rem; color: #9DC88D; }
+.pview-private-title { margin: 0 0 10px; font-size: 1.2rem; font-weight: 700; color: var(--text-primary, #111); letter-spacing: -0.2px; }
+.pview-private-text  { margin: 0 0 10px; font-size: 0.9rem; color: var(--text-secondary, #4B5563); line-height: 1.6; max-width: 380px; }
+.pview-private-text strong { color: var(--text-primary, #111); font-weight: 600; }
+.pview-private-sub   { margin: 0; font-size: 0.82rem; color: var(--text-muted, #9CA3AF); line-height: 1.6; max-width: 360px; }
+.pview-private-link  { color: #4D774E; font-weight: 600; text-decoration: none; }
+.pview-private-link:hover { text-decoration: underline; }
+
+[data-theme="dark"] .pview-private-icon-wrap { background: var(--bg-card); border-color: var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+[data-theme="dark"] .pview-private-icon-wrap i { color: #9DC88D; }
+[data-theme="dark"] .pview-private-title { color: var(--text-primary); }
+[data-theme="dark"] .pview-private-text  { color: var(--text-secondary); }
+[data-theme="dark"] .pview-private-text strong { color: var(--text-primary); }
+[data-theme="dark"] .pview-private-sub   { color: var(--text-muted); }
+[data-theme="dark"] .pview-private-link  { color: #9DC88D; }
+
+/* ── Restricted message button in view_profile ── */
+.pview-msg-restricted {
+    opacity: 0.65;
+    cursor: pointer;
+}
+
+.pview-msg-restricted:hover {
+    opacity: 1;
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+}
+
+/* ── Small modal for private list / message restriction notices ── */
+.pview-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+}
+
+.pview-notice-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border-color, #EAEDE8);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    z-index: 1001;
+    padding: 2rem 1.75rem 1.75rem;
+    max-width: 340px;
+    width: calc(100vw - 2rem);
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    animation: pviewFadeUp 0.2s ease both;
+}
+
+.pview-notice-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1.5px solid rgba(239, 68, 68, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #ef4444;
+    margin-bottom: 0.25rem;
+}
+
+.pview-notice-icon.pview-notice-icon-msg {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.pview-notice-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary, #111);
+}
+
+.pview-notice-text {
+    margin: 0;
+    font-size: 0.855rem;
+    color: var(--text-secondary, #4B5563);
+    line-height: 1.6;
+}
+
+.pview-notice-text strong { color: var(--text-primary, #111); font-weight: 600; }
+
+.pview-notice-close-btn {
+    margin-top: 0.5rem;
+    padding: 0.55rem 1.5rem;
+    background: #164A41;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+
+.pview-notice-close-btn:hover { background: #0e3229; }
+
 /* Dark mode — modal */
 [data-theme="dark"] .follow-modal { background: var(--bg-card); }
 [data-theme="dark"] .follow-modal-header { border-color: var(--border-color); }
@@ -992,6 +1416,10 @@
 [data-theme="dark"] .follow-modal-name { color: var(--text-primary); }
 [data-theme="dark"] .follow-modal-role { color: var(--text-muted); }
 [data-theme="dark"] .follow-modal-empty i { color: rgba(157,200,141,0.2); }
+[data-theme="dark"] .pview-notice-modal { background: var(--bg-card); border-color: var(--border-color); }
+[data-theme="dark"] .pview-notice-title { color: var(--text-primary); }
+[data-theme="dark"] .pview-notice-text  { color: var(--text-secondary); }
+[data-theme="dark"] .pview-notice-text strong { color: var(--text-primary); }
 
 /* ══════════════════════════════════════════
    RESPONSIVE

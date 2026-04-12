@@ -1,0 +1,29 @@
+{#
+    Upload Error Modal — shared popup for profile picture + company logo upload errors.
+    Include this ONCE in templates/layout.html, just before </body>.
+
+    Usage: {% include 'components/upload_error_modal.html' %}
+#}
+<div class="upload-error-overlay" id="uploadErrorOverlay">
+    <div class="upload-error-modal">
+        <div class="upload-error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="upload-error-title" id="uploadErrorTitle">Invalid File</div>
+        <p class="upload-error-body" id="uploadErrorBody">
+            This file cannot be uploaded.
+        </p>
+        <div class="upload-error-meta" id="uploadErrorMeta">
+            <i class="fas fa-info-circle"></i>
+            <span id="uploadErrorMetaText"></span>
+        </div>
+        <div class="upload-error-actions">
+            <button class="upload-error-btn-retry" id="uploadErrorRetryBtn" onclick="closeUploadError()">
+                <i class="fas fa-redo"></i> Choose Another File
+            </button>
+            <button class="upload-error-btn-cancel" onclick="closeUploadError()">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>

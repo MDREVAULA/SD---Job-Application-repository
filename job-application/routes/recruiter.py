@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import jsonify
 from flask_login import login_required, current_user
-from models import db, Job, User, Application, JobImage, HRFeedback
+from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification, ApplicantNotification
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -445,6 +446,16 @@ def post_job():
     salary = request.form.get('salary')
     expiration_date = request.form.get('expiration_date')
 
+    # ── Requirements tab fields ──
+    arrangement        = request.form.get('arrangement')
+    experience_level   = request.form.get('experience_level')
+    years_exp          = request.form.get('years_exp')
+    education          = request.form.get('education')
+    required_skills    = request.form.get('required_skills')
+    preferred_skills   = request.form.get('preferred_skills')
+    languages          = request.form.get('languages')
+    requirements_notes = request.form.get('requirements_notes')
+
     expiration = None
     if expiration_date:
         expiration = datetime.strptime(expiration_date, "%Y-%m-%d").date()
@@ -457,7 +468,16 @@ def post_job():
         job_type=job_type,
         location=location,
         salary=salary,
-        expiration_date=expiration
+        expiration_date=expiration,
+        # ── newly saved fields ──
+        arrangement=arrangement,
+        experience_level=experience_level,
+        years_exp=years_exp,
+        education=education,
+        required_skills=required_skills,
+        preferred_skills=preferred_skills,
+        languages=languages,
+        requirements_notes=requirements_notes,
     )
 
     db.session.add(job)
@@ -625,9 +645,8 @@ def view_job_applications(job_id):
         applications=applications
     )
 
-
 # ===============================
-# RECRUITER UPDATE APPLICATION STATUS
+# RECRUITER UPDATE APPLICATION STATUS  
 # ===============================
 @recruiter_bp.route('/update-application-status/<int:app_id>', methods=['POST'])
 @login_required
@@ -658,12 +677,36 @@ def update_application_status(app_id):
 
     db.session.commit()
 
+    applicant_user = User.query.get(application.applicant_id)
+    job_for_notif = Job.query.get(application.job_id)
+
+    if new_status:
+        # Recruiter's own log
+        notif = RecruiterNotification(
+            recruiter_id=current_user.id,
+            type='new_application',
+            message=f"Application status for <strong>{applicant_user.username}</strong> on <strong>{job_for_notif.title}</strong> updated to <strong>{new_status.capitalize()}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(notif)
+
+        # Notify the applicant their status changed
+        app_notif = ApplicantNotification(
+            applicant_id=application.applicant_id,
+            type='application_status',
+            message=f"Your application for <strong>{job_for_notif.title}</strong> has been updated to <strong>{new_status.capitalize()}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(app_notif)
+        db.session.commit()
+
     flash("Application status updated!", "success")
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
 
-
 # ===============================
-# RECRUITER SCHEDULE INTERVIEW
+# RECRUITER SCHEDULE INTERVIEW  
 # ===============================
 @recruiter_bp.route('/schedule-interview/<int:app_id>', methods=['POST'])
 @login_required
@@ -671,30 +714,54 @@ def schedule_interview(app_id):
     banned = check_banned()
     if banned:
         return banned
-
+ 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
-
+ 
     application = Application.query.get_or_404(app_id)
     job = Job.query.get_or_404(application.job_id)
-
+ 
     if job.company_id != current_user.id:
         flash("Unauthorized action!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
-
+ 
     interview_date_str = request.form.get('interview_date')
-
+ 
     if interview_date_str:
         application.interview_date = datetime.strptime(interview_date_str, "%Y-%m-%dT%H:%M")
         application.status = 'interview'
         db.session.commit()
+ 
+        applicant = User.query.get(application.applicant_id)
+        job_ref = Job.query.get(application.job_id)
+ 
+        # Recruiter's own log
+        notif = RecruiterNotification(
+            recruiter_id=current_user.id,
+            type='interview_scheduled',
+            message=f"Interview scheduled for <strong>{applicant.username}</strong> applying for <strong>{job_ref.title}</strong> on {application.interview_date.strftime('%b %d, %Y at %I:%M %p')}.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(notif)
+ 
+        # Notify the applicant
+        app_notif = ApplicantNotification(
+            applicant_id=application.applicant_id,
+            type='interview_scheduled',
+            message=f"An interview has been scheduled for your application to <strong>{job_ref.title}</strong> on <strong>{application.interview_date.strftime('%b %d, %Y at %I:%M %p')}</strong>.",
+            application_id=application.id,
+            job_id=application.job_id
+        )
+        db.session.add(app_notif)
+        db.session.commit()
+ 
         flash("Interview scheduled successfully!", "success")
     else:
         flash("Please provide a valid date and time.", "danger")
-
+ 
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
-
 
 # ===============================
 # EDIT JOB
@@ -718,12 +785,22 @@ def edit_job(job_id):
 
     if request.method == "POST":
 
-        job.title = request.form.get('title')
+        job.title       = request.form.get('title')
         job.description = request.form.get('description')
-        job.field = request.form.get('field')
-        job.job_type = request.form.get('job_type')
-        job.location = request.form.get('location')
-        job.salary = request.form.get('salary')
+        job.field       = request.form.get('field')
+        job.job_type    = request.form.get('job_type')
+        job.location    = request.form.get('location')
+        job.salary      = request.form.get('salary')
+        job.arrangement = request.form.get('arrangement')
+
+        # Requirements tab
+        job.experience_level   = request.form.get('experience_level')
+        job.years_exp          = request.form.get('years_exp')
+        job.education          = request.form.get('education')
+        job.required_skills    = request.form.get('required_skills')
+        job.preferred_skills   = request.form.get('preferred_skills')
+        job.languages          = request.form.get('languages')
+        job.requirements_notes = request.form.get('requirements_notes')
 
         expiration_date = request.form.get('expiration_date')
         if expiration_date:
@@ -760,17 +837,16 @@ def delete_job_image(image_id):
     banned = check_banned()
     if banned:
         return banned
+    from flask import jsonify
 
     if current_user.role != 'recruiter':
-        flash("Access denied!", "danger")
-        return redirect(url_for('auth.index'))
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
 
     image = JobImage.query.get_or_404(image_id)
     job = Job.query.get_or_404(image.job_id)
 
     if job.company_id != current_user.id:
-        flash("Unauthorized action!", "danger")
-        return redirect(url_for('recruiter.job_posting'))
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
 
     file_path = os.path.join(
         current_app.root_path, "static", "uploads", "job_posters", image.image_path
@@ -783,6 +859,7 @@ def delete_job_image(image_id):
 
     flash("Image deleted.", "success")
     return redirect(url_for('recruiter.edit_job', job_id=job.id))
+    return jsonify({'success': True})
 
 
 # ===============================
@@ -818,3 +895,273 @@ def delete_job(job_id):
 
     flash("Job deleted successfully!", "success")
     return redirect(url_for('recruiter.my_job_list'))
+
+    return redirect(url_for('recruiter.my_job_list'))
+
+# ================================================================
+# PUBLIC PROFILE ROUTES
+# File: routes/profile_view.py
+# ================================================================
+
+from flask import Blueprint, render_template, redirect, url_for, flash, abort
+from flask_login import login_required, current_user
+from models import (
+    db, User, ApplicantProfile, WorkExperience,
+    Education, Skill, Project, Certification, Job, Follow
+)
+from datetime import date
+
+profile_view_bp = Blueprint('profile_view', __name__, url_prefix='/profile')
+
+
+# ── SMART REDIRECT — /profile/<user_id> → correct role view ──
+@profile_view_bp.route('/<int:user_id>')
+def view_profile(user_id):
+    """
+    Smart redirect: detects the user's role and sends the viewer
+    to the correct public profile page.
+    Also prevents logged-in users from viewing their own profile through
+    this route (redirects them to their editable profile instead).
+    """
+    user = User.query.get_or_404(user_id)
+
+    # Redirect self to their own editable profile (only if logged in)
+    if current_user.is_authenticated and current_user.id == user_id:
+        if user.role == 'applicant':
+            return redirect(url_for('applicant.profile'))
+        elif user.role == 'hr':
+            return redirect(url_for('hr.profile'))
+        elif user.role == 'recruiter':
+            return redirect(url_for('recruiter.profile'))
+
+    # Route to the correct public view
+    if user.role == 'applicant':
+        return redirect(url_for('profile_view.view_applicant_profile', user_id=user_id))
+    elif user.role == 'hr':
+        return redirect(url_for('profile_view.view_hr_profile', user_id=user_id))
+    elif user.role == 'recruiter':
+        return redirect(url_for('profile_view.view_recruiter_profile', user_id=user_id))
+    else:
+        abort(404)
+
+
+# ── APPLICANT PUBLIC PROFILE ──
+@profile_view_bp.route('/applicant/<int:user_id>')
+@login_required
+def view_applicant_profile(user_id):
+    """
+    Public read-only view of an applicant's profile.
+    Accessible by any logged-in user (recruiter, hr, other applicants).
+    """
+    viewed_user = User.query.get_or_404(user_id)
+
+    if viewed_user.role != 'applicant':
+        flash("This profile is not an applicant.", "warning")
+        return redirect(url_for('profile_view.view_profile', user_id=user_id))
+
+    # Redirect self to own editable profile
+    if current_user.id == user_id:
+        return redirect(url_for('applicant.profile'))
+
+    prof = ApplicantProfile.query.filter_by(user_id=user_id).first()
+
+    experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
+    educations     = Education.query.filter_by(profile_id=prof.id).order_by(Education.created_at.desc()).all() if prof else []
+    skills         = Skill.query.filter_by(profile_id=prof.id).all() if prof else []
+    projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all() if prof else []
+    certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all() if prof else []
+
+    return render_template(
+        'applicant/view_profile.html',
+        viewed_user=viewed_user,
+        profile=prof,
+        experiences=experiences,
+        educations=educations,
+        skills=skills,
+        projects=projects,
+        certifications=certifications
+    )
+
+
+# ── HR PUBLIC PROFILE ──
+# routes/profile_view.py — fix view_hr_profile
+@profile_view_bp.route('/hr/<int:user_id>')
+@login_required
+def view_hr_profile(user_id):
+    viewed_user = User.query.get_or_404(user_id)
+
+    if viewed_user.role != 'hr':
+        flash("This profile is not an HR member.", "warning")
+        return redirect(url_for('profile_view.view_profile', user_id=user_id))
+
+    if current_user.id == user_id:
+        return redirect(url_for('hr.profile'))
+
+    followers, following = _get_follow_lists(user_id)  # add this
+
+    is_following = False
+    if current_user.is_authenticated:
+        is_following = Follow.query.filter_by(
+            follower_id=current_user.id,
+            followed_id=user_id
+        ).first() is not None
+
+    return render_template(
+        'hr/view_profile.html',
+        viewed_user=viewed_user,
+        is_following=is_following,       # add these
+        followers=followers,
+        following=following,
+        follower_count=len(followers),
+        following_count=len(following),
+    )
+
+
+# ── RECRUITER PUBLIC PROFILE ──
+# NOTE: No @login_required — guests can view recruiter profiles
+@profile_view_bp.route('/recruiter/<int:user_id>')
+def view_recruiter_profile(user_id):
+    """
+    Public read-only view of a recruiter's profile.
+    Accessible by guests AND logged-in users.
+    Guests can see everything but Follow/Message buttons redirect to login.
+    """
+    from models import RecruiterProfile
+
+    viewed_user = User.query.get_or_404(user_id)
+
+    if viewed_user.role != 'recruiter':
+        flash("This profile is not a recruiter.", "warning")
+        return redirect(url_for('profile_view.view_profile', user_id=user_id))
+
+    # Redirect self (logged-in recruiter) to own editable profile
+    if current_user.is_authenticated and current_user.id == user_id:
+        return redirect(url_for('recruiter.profile'))
+
+    # Fetch recruiter profile details
+    profile = RecruiterProfile.query.filter_by(user_id=user_id).first()
+
+    # Fetch education entries
+    educations = []
+    if profile:
+        educations = Education.query.filter_by(
+            profile_id=profile.id
+        ).order_by(Education.created_at.desc()).all()
+
+    # Fetch active job postings (all jobs, template decides expired vs active)
+    posted_jobs = Job.query.filter_by(
+        company_id=user_id
+    ).order_by(Job.id.desc()).all()
+
+    # Check if the current user is following this recruiter
+    is_following = False
+    if current_user.is_authenticated:
+        is_following = Follow.query.filter_by(
+            follower_id=current_user.id,
+            followed_id=user_id
+        ).first() is not None
+
+    # Follower count
+    follower_count = Follow.query.filter_by(followed_id=user_id).count()
+
+    return render_template(
+        'recruiter/view_profile.html',
+        viewed_user=viewed_user,
+        profile=profile,
+        educations=educations,
+        posted_jobs=posted_jobs,
+        is_following=is_following,
+        follower_count=follower_count,
+        today=date.today()
+    )
+
+# ===============================
+# RECRUITER NOTIFICATION HISTORY PAGE
+# ===============================
+@recruiter_bp.route('/notification-history')
+@login_required
+def notification_history():
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+    notifs = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).order_by(RecruiterNotification.created_at.desc()).all()
+    # Mark all as read when page is opened
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return render_template('recruiter/notification_history.html', notifications=notifs)
+
+# ===============================
+# CLEAR ALL RECRUITER NOTIFICATIONS
+# ===============================
+@recruiter_bp.route('/clear-all-notifications', methods=['POST'])
+@login_required
+def clear_all_notifications():
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).delete()
+
+    db.session.commit()
+
+    flash("All notifications cleared.", "success")
+    return redirect(url_for('recruiter.notification_history'))
+
+# ===============================
+# RECRUITER NOTIFICATIONS API
+# ===============================
+
+
+@recruiter_bp.route('/notifications')
+@login_required
+def get_notifications():
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'forbidden'}), 403
+    notifs = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).order_by(RecruiterNotification.created_at.desc()).limit(50).all()
+    unread_count = RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).count()
+    return jsonify({
+        'unread_count': unread_count,
+        'notifications': [
+            {
+                'id': n.id,
+                'type': n.type,
+                'message': n.message,
+                'is_read': n.is_read,
+                'created_at': n.created_at.strftime('%b %d, %Y at %I:%M %p'),
+                'job_id': n.job_id
+            }
+            for n in notifs
+        ]
+    })
+
+@recruiter_bp.route('/notifications/mark-read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'forbidden'}), 403
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'ok': True})
+
+@recruiter_bp.route('/notifications/clear-all', methods=['POST'])
+@login_required
+def clear_all_notifications_api():
+    if current_user.role != 'recruiter':
+        return jsonify({'error': 'forbidden'}), 403
+    RecruiterNotification.query.filter_by(
+        recruiter_id=current_user.id
+    ).delete()
+    db.session.commit()
+    return jsonify({'ok': True})

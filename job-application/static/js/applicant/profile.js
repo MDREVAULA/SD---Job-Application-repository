@@ -83,3 +83,157 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 80 * index);
     });
 });
+
+/* ============================================================
+   DOCUMENTS TAB — switching, validation, drag-drop, error popup
+   ============================================================ */
+
+// ── Tab switching ──────────────────────────────────────────
+function switchDocTab(tab, btn) {
+    // Hide all panels
+    document.querySelectorAll('.doc-tab-panel').forEach(p => p.style.display = 'none');
+    // Deactivate all tab buttons
+    document.querySelectorAll('.doc-tab').forEach(b => b.classList.remove('active'));
+    // Show target panel
+    const panel = document.getElementById('doctab-' + tab);
+    if (panel) panel.style.display = '';
+    // Activate clicked button
+    if (btn) btn.classList.add('active');
+}
+
+// ── Error popup helpers ────────────────────────────────────
+let _retryInputId  = null;   // which file input to re-trigger
+let _retryAccept   = null;   // accepted extensions list
+let _retryMaxMB    = null;   // size cap in MB
+let _retryFormId   = null;   // form to submit after re-pick
+
+function showDocError(message, inputId, allowedExts, maxMB, formId) {
+    _retryInputId = inputId;
+    _retryAccept  = allowedExts;
+    _retryMaxMB   = maxMB;
+    _retryFormId  = formId;
+
+    document.getElementById('doc-error-message').textContent = message;
+    document.getElementById('doc-error-overlay').classList.add('open');
+}
+
+function closeDocError() {
+    document.getElementById('doc-error-overlay').classList.remove('open');
+    _retryInputId = _retryAccept = _retryMaxMB = _retryFormId = null;
+}
+
+function retryDocUpload() {
+    closeDocError();
+    if (!_retryInputId) return;
+    // Re-bind a fresh onchange on the visible input, then click
+    const input = document.getElementById(_retryInputId);
+    if (!input) return;
+    const exts   = _retryAccept;
+    const maxMB  = _retryMaxMB;
+    const formId = _retryFormId;
+    input.value  = '';   // clear so same file triggers change
+    input.onchange = () => validateAndSubmit(input, exts, maxMB, formId);
+    input.click();
+}
+
+// ── Core validator ─────────────────────────────────────────
+// inputEl    — the <input type="file"> that fired
+// allowedExt — e.g. ['pdf'] or ['pdf','jpg','jpeg','png']
+// maxMB      — numeric cap
+// formId     — id of the hidden <form> to submit on success
+function validateAndSubmit(inputEl, allowedExt, maxMB, formId) {
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    const sizeMB = file.size / (1024 * 1024);
+
+    // Determine the matching hidden input id from the form
+    const hiddenInputId = formId.replace('form-', 'hidden-');
+
+    // Wrong type?
+    if (!allowedExt.includes(ext)) {
+        const allowed = allowedExt.map(e => e.toUpperCase()).join(', ');
+        showDocError(
+            `"${file.name}" is not a supported file type. Please upload a ${allowed} file.`,
+            inputEl.id, allowedExt, maxMB, formId
+        );
+        inputEl.value = '';
+        return;
+    }
+
+    // Too big?
+    if (sizeMB > maxMB) {
+        showDocError(
+            `"${file.name}" is ${sizeMB.toFixed(1)} MB, which exceeds the ${maxMB} MB limit. Please choose a smaller file.`,
+            inputEl.id, allowedExt, maxMB, formId
+        );
+        inputEl.value = '';
+        return;
+    }
+
+    // All good — copy to hidden input and submit
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    if (hiddenInput) hiddenInput.files = dt.files;
+
+    document.getElementById(formId).submit();
+}
+
+// ── Drag & drop handler ────────────────────────────────────
+// Called from ondrop on the drop zone div
+function handleDrop(event, hiddenFieldName, allowedExt, maxMB) {
+    event.preventDefault();
+    event.currentTarget.classList.remove('drag-over');
+
+    const file = event.dataTransfer && event.dataTransfer.files[0];
+    if (!file) return;
+
+    // Find the form whose hidden input has the matching name
+    const forms = document.querySelectorAll('.doc-tab-panel:not([style*="none"]) form');
+    let targetForm = null;
+    let targetHidden = null;
+    let visibleInput = null;
+
+    forms.forEach(f => {
+        const inp = f.querySelector('input[type="file"]');
+        if (inp && inp.name === hiddenFieldName) {
+            targetForm   = f;
+            targetHidden = inp;
+        }
+    });
+
+    // Also grab the visible input (for error retry)
+    const panel = event.currentTarget.closest('.doc-tab-panel');
+    if (panel) visibleInput = panel.querySelector('input[type="file"]:not([style*="none"])');
+
+    if (!targetForm || !targetHidden) return;
+
+    const ext    = file.name.split('.').pop().toLowerCase();
+    const sizeMB = file.size / (1024 * 1024);
+
+    if (!allowedExt.includes(ext)) {
+        const allowed = allowedExt.map(e => e.toUpperCase()).join(', ');
+        showDocError(
+            `"${file.name}" is not a supported file type. Please upload a ${allowed} file.`,
+            visibleInput ? visibleInput.id : null,
+            allowedExt, maxMB, targetForm.id
+        );
+        return;
+    }
+
+    if (sizeMB > maxMB) {
+        showDocError(
+            `"${file.name}" is ${sizeMB.toFixed(1)} MB, which exceeds the ${maxMB} MB limit. Please choose a smaller file.`,
+            visibleInput ? visibleInput.id : null,
+            allowedExt, maxMB, targetForm.id
+        );
+        return;
+    }
+
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    targetHidden.files = dt.files;
+    targetForm.submit();
+}

@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile, HRProfile
+from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile, HRProfile, UserSettings
+from models import ApplicantNotification, RecruiterNotification, HRNotification
 from datetime import datetime
 from sqlalchemy import or_, and_
+import json
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
 
@@ -41,24 +43,101 @@ def get_company_name(user):
     return None
 
 
-def build_user_card(user, current_user_id=None):
-    """Return a dict with everything needed to render a user card."""
+def get_user_settings(user_id):
+    """
+    Return UserSettings for a user with safe defaults if none exist.
+    Returns a plain dict so the template/card can access fields easily.
+    """
+    s = UserSettings.query.filter_by(user_id=user_id).first()
+    if not s:
+        return {
+            "show_name":       "everyone",
+            "show_profile":    "everyone",
+            "who_can_message": "all",
+            "show_follow_list": "yes",
+            "show_follow_count": "yes",
+            "profile_audience": ["recruiter", "hr", "follower"],
+        }
+
+    try:
+        audience = json.loads(s.profile_audience_json) if s.profile_audience_json else ["recruiter", "hr", "follower"]
+    except Exception:
+        audience = ["recruiter", "hr", "follower"]
+
+    return {
+        "show_name":        s.show_name        or "everyone",
+        "show_profile":     s.show_profile     or "everyone",
+        "who_can_message":  s.who_can_message  or "all",
+        "show_follow_list": s.show_follow_list or "yes",
+        "show_follow_count": s.show_follow_count or "yes",
+        "profile_audience": audience,
+    }
+
+
+def is_mutual_follow(user_a_id, user_b_id):
+    """True if both users follow each other."""
+    if not user_a_id or not user_b_id:
+        return False
+    a_follows_b = Follow.query.filter_by(follower_id=user_a_id, followed_id=user_b_id).first()
+    b_follows_a = Follow.query.filter_by(follower_id=user_b_id, followed_id=user_a_id).first()
+    return bool(a_follows_b and b_follows_a)
+
+
+def build_user_card(user, current_user_id=None, current_user_role=None, following_ids=None):
+    """
+    Return a dict with everything needed to render a user card,
+    including privacy and messaging settings from UserSettings.
+    """
     company = get_company_name(user)
-    is_following = False
-    if current_user_id:
+
+    # ── Follow state ──
+    is_following = user.id in following_ids if following_ids is not None else False
+    if following_ids is None and current_user_id:
         is_following = Follow.query.filter_by(
             follower_id=current_user_id, followed_id=user.id
         ).first() is not None
 
+    follower_count = Follow.query.filter_by(followed_id=user.id).count()
+
+    # ── Mutual follow ──
+    mutual = is_mutual_follow(current_user_id, user.id) if current_user_id else False
+
+    # ── Privacy settings ──
+    settings = get_user_settings(user.id)
+    show_profile    = settings["show_profile"]
+    who_can_message = settings["who_can_message"]
+    show_name       = settings["show_name"]
+
+    # ── Display name — respect show_name == 'mutual' ──
+    full_name = get_display_name(user)
+    if show_name == "mutual" and not mutual:
+        display_name = user.username   # hide real name if not mutual
+    else:
+        display_name = full_name
+
+    # ── Can the current viewer message this user? ──
+    viewer_can_msg = True
+    if who_can_message == "recruiters":
+        if not (current_user_id and current_user_role == "recruiter"):
+            viewer_can_msg = False
+    elif who_can_message == "mutual":
+        if not mutual:
+            viewer_can_msg = False
+
     return {
-        "id": user.id,
-        "username": user.username,
-        "display_name": get_display_name(user),
-        "role": user.role,
-        "company": company,
+        "id":              user.id,
+        "username":        user.username,
+        "display_name":    display_name,
+        "role":            user.role,
+        "company":         company,
         "profile_picture": user.profile_picture,
-        "is_following": is_following,
-        "follower_count": Follow.query.filter_by(followed_id=user.id).count(),
+        "is_following":    is_following,
+        "is_mutual":       mutual,
+        "follower_count":  follower_count,
+        # ── privacy fields (used by template badges) ──
+        "show_profile":    show_profile,
+        "who_can_message": who_can_message,
+        "viewer_can_msg":  viewer_can_msg,
     }
 
 
@@ -72,7 +151,6 @@ def serialize_message(m, current_user_id, active_display_name=None):
 
     if m.reply_to_id and m.reply_to:
         reply_to_body = m.reply_to.body
-        # Determine author label: "You" if the quoted message was sent by current user
         if m.reply_to.sender_id == current_user_id:
             reply_to_author = "You"
         else:
@@ -89,6 +167,95 @@ def serialize_message(m, current_user_id, active_display_name=None):
         "reply_to_body":   reply_to_body,
         "reply_to_author": reply_to_author,
     }
+
+
+def _notify_new_message(sender, receiver, message_preview):
+    """
+    Create a new_message notification for the receiver regardless of role.
+    Only fires once per conversation (avoids spam): checks if there's already
+    an unread new_message notification from this sender.
+    """
+    preview = (message_preview[:60] + '…') if len(message_preview) > 60 else message_preview
+    msg_text = f"<strong>{sender.username}</strong> sent you a message: \"{preview}\""
+
+    if receiver.role == 'applicant':
+        existing = ApplicantNotification.query.filter_by(
+            applicant_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            ApplicantNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = ApplicantNotification(
+                applicant_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+    elif receiver.role == 'recruiter':
+        existing = RecruiterNotification.query.filter_by(
+            recruiter_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            RecruiterNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = RecruiterNotification(
+                recruiter_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+    elif receiver.role == 'hr':
+        existing = HRNotification.query.filter_by(
+            hr_id=receiver.id,
+            type='new_message',
+            is_read=False
+        ).filter(
+            HRNotification.message.like(f"%{sender.username}%")
+        ).first()
+        if not existing:
+            notif = HRNotification(
+                hr_id=receiver.id,
+                type='new_message',
+                message=msg_text
+            )
+            db.session.add(notif)
+
+
+def _notify_new_follow(follower, followed):
+    """
+    Create a new_follow notification for the followed user regardless of role.
+    """
+    msg_text = f"<strong>{follower.username}</strong> started following you."
+
+    if followed.role == 'applicant':
+        notif = ApplicantNotification(
+            applicant_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
+
+    elif followed.role == 'recruiter':
+        notif = RecruiterNotification(
+            recruiter_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
+
+    elif followed.role == 'hr':
+        notif = HRNotification(
+            hr_id=followed.id,
+            type='new_follow',
+            message=msg_text
+        )
+        db.session.add(notif)
 
 
 # =========================
@@ -125,8 +292,20 @@ def people():
 
     users = users_query.order_by(User.username).all()
 
-    current_id = current_user.id if current_user.is_authenticated else None
-    user_cards = [build_user_card(u, current_id) for u in users]
+    # Pre-fetch all follow relationships for the current viewer in one query
+    # to avoid N+1 queries inside build_user_card
+    current_id   = current_user.id   if current_user.is_authenticated else None
+    current_role = current_user.role if current_user.is_authenticated else None
+
+    following_ids = set()
+    if current_id:
+        rows = Follow.query.filter_by(follower_id=current_id).all()
+        following_ids = {r.followed_id for r in rows}
+
+    user_cards = [
+        build_user_card(u, current_id, current_role, following_ids)
+        for u in users
+    ]
 
     return render_template(
         "chat/people.html",
@@ -158,6 +337,10 @@ def follow(target_id):
     else:
         new_follow = Follow(follower_id=current_user.id, followed_id=target.id)
         db.session.add(new_follow)
+
+        # Notify the followed user
+        _notify_new_follow(current_user, target)
+
         db.session.commit()
         action = "followed"
 
@@ -301,7 +484,6 @@ def conversation(other_id):
 
 # =========================
 # SEND MESSAGE  (AJAX POST)
-# Now accepts optional reply_to_id from the request body
 # =========================
 @chat_bp.route("/send/<int:receiver_id>", methods=["POST"])
 @login_required
@@ -319,13 +501,12 @@ def send_message(receiver_id):
     # ── reply support ──
     reply_to_id = data.get("reply_to_id")
     if reply_to_id:
-        # Validate the quoted message actually belongs to this conversation
         quoted = Message.query.get(reply_to_id)
         if not quoted or not (
             (quoted.sender_id == current_user.id   and quoted.receiver_id == receiver_id) or
             (quoted.sender_id == receiver_id        and quoted.receiver_id == current_user.id)
         ):
-            reply_to_id = None   # silently ignore invalid reply targets
+            reply_to_id = None
 
     msg = Message(
         sender_id   = current_user.id,
@@ -334,6 +515,10 @@ def send_message(receiver_id):
         reply_to_id = reply_to_id,
     )
     db.session.add(msg)
+
+    # Notify receiver of new message (for all roles)
+    _notify_new_message(current_user, receiver, body)
+
     db.session.commit()
 
     # Build reply preview fields for the JS
@@ -400,7 +585,6 @@ def unread_count():
 
 # =========================
 # EDIT MESSAGE  (AJAX POST)
-# URL: /chat/edit/<msg_id>   ← no extra /chat/ prefix, blueprint handles it
 # =========================
 @chat_bp.route("/edit/<int:msg_id>", methods=["POST"])
 @login_required
@@ -432,7 +616,6 @@ def edit_message(msg_id):
 
 # =========================
 # UNSEND MESSAGE  (AJAX POST)
-# URL: /chat/unsend/<msg_id>
 # =========================
 @chat_bp.route("/unsend/<int:msg_id>", methods=["POST"])
 @login_required
@@ -442,8 +625,6 @@ def unsend_message(msg_id):
     if msg.sender_id != current_user.id:
         return jsonify({"error": "Unauthorized"}), 403
 
-    # Clear reply_to_id on any messages that quoted this one
-    # so child bubbles don't crash (reply_to becomes None gracefully)
     Message.query.filter_by(reply_to_id=msg_id).update({"reply_to_id": None})
 
     db.session.delete(msg)

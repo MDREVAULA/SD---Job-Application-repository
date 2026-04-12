@@ -1020,3 +1020,412 @@ body {
     background: #3a3a3a;
     color: white;
 }
+
+/* ================================
+   RECRUITER AND HR NOTIFICATION BELL
+   ================================ */
+.notif-wrapper {
+    position: relative;
+}
+
+.notif-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.notif-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.notif-btn.has-unread {
+    animation: bellRing 1s ease 0s 2;
+}
+
+@keyframes bellRing {
+    0%   { transform: rotate(0); }
+    15%  { transform: rotate(15deg); }
+    30%  { transform: rotate(-13deg); }
+    45%  { transform: rotate(10deg); }
+    60%  { transform: rotate(-8deg); }
+    75%  { transform: rotate(5deg); }
+    90%  { transform: rotate(-3deg); }
+    100% { transform: rotate(0); }
+}
+
+.notif-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #e53935;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    line-height: 1;
+    border: 2px solid var(--navbar-bg);
+    pointer-events: none;
+}
+
+/* Panel */
+.notif-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 340px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px var(--shadow-color);
+    z-index: 2000;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    max-height: 460px;
+}
+
+.notif-panel.open {
+    display: flex;
+}
+
+.notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-surface-alt);
+    flex-shrink: 0;
+}
+
+.notif-panel-header i {
+    color: var(--brand-green);
+    margin-right: 7px;
+}
+
+.notif-header-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.notif-mark-all-btn,
+.notif-clear-btn {
+    background: rgba(255,255,255,0.07);
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.notif-mark-all-btn:hover {
+    background: rgba(157, 200, 141, 0.15);
+    color: var(--brand-green);
+}
+
+.notif-clear-btn:hover {
+    background: rgba(255, 107, 107, 0.15);
+    color: #ff6b6b;
+}
+
+/* List */
+.notif-list {
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(76, 175, 80, 0.3) transparent;
+}
+
+.notif-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.notif-list::-webkit-scrollbar-thumb {
+    background: rgba(76, 175, 80, 0.3);
+    border-radius: 4px;
+}
+
+/* Empty state */
+.notif-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    gap: 10px;
+}
+
+.notif-empty i {
+    font-size: 32px;
+    opacity: 0.4;
+}
+
+.notif-empty p {
+    margin: 0;
+    font-size: 13px;
+}
+
+/* Individual item */
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background 0.2s ease;
+    position: relative;
+}
+
+.notif-item:last-child {
+    border-bottom: none;
+}
+
+.notif-item:hover {
+    background: var(--bg-hover);
+}
+
+.notif-item.unread {
+    background: rgba(157, 200, 141, 0.06);
+}
+
+.notif-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--brand-green);
+    border-radius: 0 3px 3px 0;
+}
+
+.notif-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.notif-icon.type-new_application {
+    background: rgba(157, 200, 141, 0.18);
+    color: var(--brand-green);
+}
+
+.notif-icon.type-interview_scheduled {
+    background: rgba(241, 178, 74, 0.18);
+    color: var(--brand-accent);
+}
+
+.notif-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-msg {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 4px 0;
+    word-break: break-word;
+}
+
+.notif-msg strong {
+    color: var(--text-primary);
+}
+
+.notif-time {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Popup toast */
+.notif-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--brand-green);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: 0 6px 24px var(--shadow-color);
+    z-index: 3000;
+    max-width: 340px;
+    animation: toastSlideIn 0.35s ease forwards;
+    cursor: pointer;
+}
+
+.notif-toast.type-interview_scheduled {
+    border-left-color: var(--brand-accent);
+}
+
+.notif-toast-icon {
+    font-size: 20px;
+    color: var(--brand-green);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.notif-toast.type-interview_scheduled .notif-toast-icon {
+    color: var(--brand-accent);
+}
+
+.notif-toast-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-toast-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.notif-toast-msg {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.notif-toast-msg strong {
+    color: var(--text-primary);
+}
+
+.notif-toast-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: color 0.2s;
+}
+
+.notif-toast-close:hover {
+    color: var(--text-primary);
+}
+
+@keyframes toastSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastSlideOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(20px); }
+}
+
+@media (max-width: 480px) {
+    .notif-panel {
+        width: calc(100vw - 20px);
+        right: -60px;
+    }
+    .notif-toast {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        max-width: none;
+    }
+}
+
+body.is-applicant .notif-wrapper {
+    display: flex;   /* ensure it shows for applicants */
+}
+
+/* ── New notification icon type colours ── */
+
+/* New Message */
+.notif-icon.type-new_message,
+.notif-history-icon.type-new_message {
+    background: rgba(100, 181, 246, 0.18);
+    color: #64b5f6;
+}
+
+/* New Follow */
+.notif-icon.type-new_follow,
+.notif-history-icon.type-new_follow {
+    background: rgba(186, 104, 200, 0.18);
+    color: #ba68c8;
+}
+
+/* Job Update */
+.notif-icon.type-job_update,
+.notif-history-icon.type-job_update {
+    background: rgba(157, 200, 141, 0.18);
+    color: var(--brand-green);
+}
+
+/* Application Status */
+.notif-icon.type-application_status,
+.notif-history-icon.type-application_status {
+    background: rgba(241, 178, 74, 0.18);
+    color: var(--brand-accent);
+}
+
+/* Interview Scheduled — already defined, but keep for history page */
+.notif-history-icon.type-interview_scheduled {
+    background: rgba(241, 178, 74, 0.15);
+    color: var(--brand-accent);
+}
+
+/* New Application — already defined, keep for history page */
+.notif-history-icon.type-new_application {
+    background: rgba(157, 200, 141, 0.15);
+    color: var(--brand-green);
+}
+
+/* ── Toast border colour for new types ── */
+.notif-toast.new_message  { border-left-color: #64b5f6; }
+.notif-toast.new_follow   { border-left-color: #ba68c8; }
+.notif-toast.job_update   { border-left-color: var(--brand-green); }
+.notif-toast.application_status { border-left-color: var(--brand-accent); }
+
+.notif-toast.new_message  .notif-toast-icon { color: #64b5f6; }
+.notif-toast.new_follow   .notif-toast-icon { color: #ba68c8; }
+.notif-toast.job_update   .notif-toast-icon { color: var(--brand-green); }
+.notif-toast.application_status .notif-toast-icon { color: var(--brand-accent); }
+
+/* ── Safety rule update: show bell for applicants too ── */
+body:not(.is-recruiter):not(.is-hr):not(.is-applicant) .notif-wrapper,
+body:not(.is-recruiter):not(.is-hr):not(.is-applicant) .notif-toast {
+    display: none !important;
+}

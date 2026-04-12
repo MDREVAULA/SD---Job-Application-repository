@@ -103,6 +103,13 @@ class ApplicantProfile(db.Model):
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
+    # DOCUMENT UPLOADS
+    resume_file      = db.Column(db.String(200))   # PDF, max 5MB
+    portfolio_file   = db.Column(db.String(200))   # PDF/image, max 10MB
+    
+    # certificates stored as JSON list of filenames
+    certificate_files = db.Column(db.Text)          # JSON array, each max 5MB
+
     # RELATIONSHIPS
     work_experiences = db.relationship("WorkExperience", backref="profile", lazy=True, cascade="all, delete-orphan")
     educations = db.relationship("Education", backref="profile", lazy=True, cascade="all, delete-orphan")
@@ -294,6 +301,17 @@ class Job(db.Model):
     # =========================
     # JOB INFORMATION
     # =========================
+    # ── Work arrangement (e.g. "On-site, Hybrid")
+    arrangement = db.Column(db.String(200))
+
+    # ── Requirements tab fields
+    experience_level  = db.Column(db.String(100))   # Entry-level, Mid-level, Senior, etc.
+    years_exp         = db.Column(db.String(100))   # e.g. "2–4 years"
+    education         = db.Column(db.String(200))   # Bachelor's degree, etc.
+    required_skills   = db.Column(db.Text)          # comma-separated
+    preferred_skills  = db.Column(db.Text)          # comma-separated
+    languages         = db.Column(db.String(200))
+    requirements_notes = db.Column(db.Text)
     field = db.Column(db.String(100))
     job_type = db.Column(db.String(50))
     location = db.Column(db.String(200))
@@ -411,6 +429,7 @@ class Message(db.Model):
     )
 
 
+
 # =========================
 # HR FEEDBACK TABLE
 # (one row per HR per application)
@@ -427,6 +446,56 @@ class HRFeedback(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+# =========================
+# RECRUITER NOTIFICATION TABLE
+# =========================
+class RecruiterNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    recruiter_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    recruiter = db.relationship("User", foreign_keys=[recruiter_id], backref="notifications")
+    application = db.relationship("Application", foreign_keys=[application_id])
+
+# =========================
+# HR NOTIFICATION TABLE
+# =========================
+class HRNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    hr_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    hr = db.relationship("User", foreign_keys=[hr_id], backref="hr_notifications")
+    application = db.relationship("Application", foreign_keys=[application_id])
+
+# =========================
+# APPLICANT NOTIFICATION TABLE
+# =========================
+class ApplicantNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    applicant_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type = db.Column(db.String(50), nullable=False)
+    # Types:
+    #   new_message          — someone sent you a message
+    #   new_follow           — someone followed you
+    #   job_update           — job posting was updated
+    #   application_status   — your application status changed
+    #   interview_scheduled  — interview was scheduled for you
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    applicant = db.relationship("User", foreign_keys=[applicant_id], backref="applicant_notifications")
+    application = db.relationship("Application", foreign_keys=[application_id])
 
 # =========================
 # JOB IMAGE
@@ -436,4 +505,61 @@ class JobImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
+<<<<<<< HEAD
     job = db.relationship("Job", backref="images")
+=======
+    job = db.relationship("Job", backref="images")
+
+# =========================
+# SETTINGS TAB
+# =========================
+
+class UserSettings(db.Model):
+    """Stores per-user settings (privacy, notifications, appearance, etc.)"""
+    __tablename__ = 'user_settings'
+ 
+    id      = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
+
+    # ── Privacy ──────────────────────────────────────────────
+    show_name         = db.Column(db.String(20), default='everyone')
+
+    # 'everyone' | 'specific' | 'none'
+    # Controls BOTH personal info AND documents together
+    show_profile      = db.Column(db.String(20), default='everyone')
+    # JSON list used when show_profile == 'specific'
+    # Applicant options: 'recruiter', 'hr', 'mutual'
+    # HR/Recruiter options: 'mutual'
+    profile_audience_json = db.Column(db.Text, default='["recruiter","hr","mutual"]')
+
+    show_follow_list  = db.Column(db.String(10), default='yes')
+    show_follow_count = db.Column(db.String(10), default='yes')
+
+    # 'all' | 'recruiters' | 'mutual'
+    who_can_message   = db.Column(db.String(20), default='all')
+ 
+    # ── Notifications ─────────────────────────────────────────
+    notif_app_status  = db.Column(db.Boolean, default=True)
+    notif_messages    = db.Column(db.Boolean, default=True)
+    notif_followers   = db.Column(db.Boolean, default=True)
+    notif_jobs        = db.Column(db.Boolean, default=False)
+ 
+    # ── Appearance ────────────────────────────────────────────
+    # 'light' | 'dark' | 'system'
+    theme             = db.Column(db.String(10), default='light')
+    # 'comfortable' | 'compact'
+    density           = db.Column(db.String(15), default='comfortable')
+ 
+    # ── Language ─────────────────────────────────────────────
+    language          = db.Column(db.String(10), default='en')
+    timezone          = db.Column(db.String(50), default='Asia/Manila')
+ 
+    # ── Two-factor (security section) ────────────────────────
+    two_factor        = db.Column(db.Boolean, default=False)
+ 
+    # Relationship back to user
+    user = db.relationship('User', backref=db.backref('settings', uselist=False))
+ 
+    def __repr__(self):
+        return f'<UserSettings user_id={self.user_id}>'
+>>>>>>> ded4f60d2fb9f57fb5ec45fc7daf4c8f7687ee95
