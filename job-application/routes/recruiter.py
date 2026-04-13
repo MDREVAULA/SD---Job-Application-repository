@@ -1272,8 +1272,6 @@ def view_recruiter_profile(user_id):
         follower_count=follower_count,
         today=date.today()
     )
-=======
->>>>>>> sam-merge-2
 
 # ===============================
 # NOTIFICATION HISTORY PAGE
@@ -1362,4 +1360,3 @@ def clear_all_notifications_api():
     RecruiterNotification.query.filter_by(recruiter_id=current_user.id).delete()
     db.session.commit()
     return jsonify({'ok': True})
->>>>>>> sam-merge-2
