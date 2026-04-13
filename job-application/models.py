@@ -454,6 +454,22 @@ class Message(db.Model):
     )
 
 
+class MessageReaction(db.Model):
+    __tablename__ = "message_reaction"
+
+    id         = db.Column(db.Integer, primary_key=True)
+    message_id = db.Column(db.Integer, db.ForeignKey("message.id", ondelete="CASCADE"), nullable=False)
+    user_id    = db.Column(db.Integer, db.ForeignKey("user.id"),    nullable=False)
+    reaction   = db.Column(db.String(20), nullable=False)  # like | heart | haha | wow | sad | angry
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint("message_id", "user_id", name="unique_message_reaction"),
+    )
+
+    message = db.relationship("Message", backref=db.backref("reactions", cascade="all, delete-orphan"))
+    user    = db.relationship("User", backref="message_reactions")
+    
 # =========================
 # HR FEEDBACK TABLE
 # =========================

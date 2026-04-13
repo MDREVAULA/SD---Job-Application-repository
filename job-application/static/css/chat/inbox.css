@@ -906,6 +906,139 @@
 .ctx-item.ctx-danger i { color: var(--chat-danger); }
 .ctx-item.ctx-danger:hover { background: rgba(239,68,68,0.08); }
 
+/* ============================================================
+   REACTIONS — append these to inbox.css
+   ============================================================ */
+
+/* ── Floating reaction picker (fixed, created by JS) ── */
+.bubble-reaction-picker {
+    position: fixed;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    background: var(--chat-surface);
+    border: 1px solid var(--chat-border);
+    border-radius: 999px;
+    padding: 6px 10px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+}
+
+.bubble-reaction-picker.open {
+    display: flex;
+}
+
+.rp-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border-radius: 50%;
+    width: 40px;
+    padding: 4px 0;
+    transition: transform 0.12s, background 0.12s;
+    position: relative;
+}
+
+.rp-btn:hover {
+    transform: scale(1.35) translateY(-4px);
+    background: rgba(77,119,78,0.1);
+}
+
+.rp-btn.active {
+    background: rgba(77,119,78,0.15);
+}
+
+.rp-btn.active .rp-emoji {
+    filter: drop-shadow(0 0 3px rgba(77,119,78,0.6));
+}
+
+.rp-emoji {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.rp-label {
+    font-size: 9px;
+    color: var(--chat-muted);
+    white-space: nowrap;
+    font-family: inherit;
+    opacity: 0;
+    transition: opacity 0.1s;
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.rp-btn:hover .rp-label {
+    opacity: 1;
+}
+
+/* ── Reaction bar (chips under the bubble) ── */
+.reaction-bar-wrap {
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.mine .reaction-bar-wrap {
+    justify-content: flex-end;
+}
+
+.theirs .reaction-bar-wrap {
+    justify-content: flex-start;
+}
+
+.reaction-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.reaction-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--chat-surface);
+    border: 1px solid var(--chat-border);
+    border-radius: 999px;
+    padding: 2px 8px 2px 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    font-family: inherit;
+    color: var(--chat-text);
+}
+
+.reaction-chip:hover {
+    background: rgba(77,119,78,0.12);
+    border-color: #4D774E;
+    transform: scale(1.08);
+}
+
+.reaction-chip.mine {
+    border-color: #4D774E;
+    background: rgba(77,119,78,0.12);
+}
+
+.chip-cnt {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--chat-muted);
+    min-width: 10px;
+    text-align: center;
+}
+
+.reaction-chip.mine .chip-cnt {
+    color: #4D774E;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
     .inbox-layout { flex-direction: column; height: auto; }

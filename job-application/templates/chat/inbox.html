@@ -136,45 +136,47 @@
                         {% set ns.prev_date = msg_date %}
                     {% endif %}
 
-                    <div class="message-bubble {% if msg.sender_id == current_user.id %}mine{% else %}theirs{% endif %}"
-                         data-msg-id="{{ msg.id }}"
-                         data-is-mine="{{ 'true' if msg.sender_id == current_user.id else 'false' }}">
-
-                        {# ── HOVER ACTION TOOLBAR ── #}
-                        <div class="bubble-actions">
-                            {# React button (placeholder) #}
-                            <button class="bubble-action-btn" title="React"
-                                    onclick="bubbleReact(this)">
-                                <i class="far fa-smile"></i>
-                            </button>
-                            {# Reply button #}
-                            <button class="bubble-action-btn" title="Reply"
-                                    onclick="bubbleReplyBtn(this)">
-                                <i class="fas fa-reply"></i>
-                            </button>
-                            {# More (three dots) — opens the context menu #}
-                            <button class="bubble-action-btn bubble-action-more" title="More"
-                                    onclick="bubbleMoreBtn(event, this)">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </button>
-                        </div>
-
-                        {# ── REPLY QUOTE (if this message is a reply) ── #}
-                        {% if msg.reply_to %}
-                        <div class="reply-quote">
-                            <span class="reply-quote-author">
-                                {{ 'You' if msg.reply_to.sender_id == current_user.id else active_display_name }}
-                            </span>
-                            <span class="reply-quote-text">{{ msg.reply_to.body[:80] }}{{ '…' if msg.reply_to.body|length > 80 }}</span>
-                        </div>
-                        {% endif %}
-
-                        <div class="bubble-text">{{ msg.body }}</div>
-                        <div class="bubble-time">
-                            {{ msg.created_at.strftime('%I:%M %p') }}
-                            {% if msg.edited %}<span class="edited-label"> · edited</span>{% endif %}
-                        </div>
+                <div class="message-bubble {% if msg.sender_id == current_user.id %}mine{% else %}theirs{% endif %}"
+                    data-msg-id="{{ msg.id }}"
+                    data-is-mine="{{ 'true' if msg.sender_id == current_user.id else 'false' }}"
+                    data-reaction-counts="{{ msg.reactions | groupby('reaction') | map(attribute='list') | map('length') | list | tojson if msg.reactions else '{}' }}"
+                    data-my-reaction="{{ msg.reactions | selectattr('user_id', 'equalto', current_user.id) | map(attribute='reaction') | first | default('') }}">
+                
+                    {# ── HOVER ACTION TOOLBAR ── #}
+                    <div class="bubble-actions">
+                        <button class="bubble-action-btn bubble-action-react" title="React"
+                                onclick="bubbleReact(event, this)">
+                            <i class="far fa-smile"></i>
+                        </button>
+                        <button class="bubble-action-btn" title="Reply"
+                                onclick="bubbleReplyBtn(this)">
+                            <i class="fas fa-reply"></i>
+                        </button>
+                        <button class="bubble-action-btn bubble-action-more" title="More"
+                                onclick="bubbleMoreBtn(event, this)">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
                     </div>
+                
+                    {# ── REPLY QUOTE ── #}
+                    {% if msg.reply_to %}
+                    <div class="reply-quote">
+                        <span class="reply-quote-author">
+                            {{ 'You' if msg.reply_to.sender_id == current_user.id else active_display_name }}
+                        </span>
+                        <span class="reply-quote-text">{{ msg.reply_to.body[:80] }}{{ '…' if msg.reply_to.body|length > 80 }}</span>
+                    </div>
+                    {% endif %}
+                
+                    <div class="bubble-text">{{ msg.body }}</div>
+                    <div class="bubble-time">
+                        {{ msg.created_at.strftime('%I:%M %p') }}
+                        {% if msg.edited %}<span class="edited-label"> · edited</span>{% endif %}
+                    </div>
+                
+                    {# ── REACTION BAR (rendered by JS on DOMContentLoaded) ── #}
+                    <div class="reaction-bar-wrap"></div>
+                </div>
                 {% endfor %}
             {% else %}
                 <div class="thread-empty">

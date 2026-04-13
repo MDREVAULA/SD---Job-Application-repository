@@ -4,6 +4,7 @@ from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile
 from models import ApplicantNotification, RecruiterNotification, HRNotification
 from datetime import datetime
 from sqlalchemy import or_, and_
+from models import MessageReaction 
 import json
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
@@ -631,3 +632,84 @@ def unsend_message(msg_id):
     db.session.commit()
 
     return jsonify({"deleted": True, "id": msg_id})
+
+# =========================
+# REACT MESSAGE
+# =========================
+
+VALID_REACTIONS = {"like", "heart", "haha", "wow", "sad", "angry"}
+
+@chat_bp.route("/react/<int:msg_id>", methods=["POST"])
+@login_required
+def react_message(msg_id):
+    msg = Message.query.get_or_404(msg_id)
+
+    # Verify the message belongs to the current conversation
+    if not (
+        (msg.sender_id == current_user.id) or
+        (msg.receiver_id == current_user.id)
+    ):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data     = request.get_json()
+    reaction = (data.get("reaction") or "").strip().lower()
+
+    if reaction not in VALID_REACTIONS:
+        return jsonify({"error": "Invalid reaction"}), 400
+
+    existing = MessageReaction.query.filter_by(
+        message_id=msg_id, user_id=current_user.id
+    ).first()
+
+    if existing:
+        if existing.reaction == reaction:
+            # Toggle off — remove reaction
+            db.session.delete(existing)
+            db.session.commit()
+            action = "removed"
+        else:
+            # Change reaction
+            existing.reaction = reaction
+            db.session.commit()
+            action = "changed"
+    else:
+        new_r = MessageReaction(
+            message_id=msg_id,
+            user_id=current_user.id,
+            reaction=reaction
+        )
+        db.session.add(new_r)
+        db.session.commit()
+        action = "added"
+
+    # Return aggregated counts for this message
+    all_reactions = MessageReaction.query.filter_by(message_id=msg_id).all()
+    counts = {}
+    for r in all_reactions:
+        counts[r.reaction] = counts.get(r.reaction, 0) + 1
+
+    my_reaction = None
+    my = MessageReaction.query.filter_by(
+        message_id=msg_id, user_id=current_user.id
+    ).first()
+    if my:
+        my_reaction = my.reaction
+
+    return jsonify({
+        "action":      action,
+        "msg_id":      msg_id,
+        "counts":      counts,
+        "my_reaction": my_reaction,
+    })
+
+    msg_ids = [m.id for m in messages]
+    all_rxns = MessageReaction.query.filter(
+        MessageReaction.message_id.in_(msg_ids)
+    ).all() if msg_ids else []
+    
+    reaction_map = {}
+    for r in all_rxns:
+        entry = reaction_map.setdefault(r.message_id, {"counts": {}, "mine": ""})
+        entry["counts"][r.reaction] = entry["counts"].get(r.reaction, 0) + 1
+        if r.user_id == current_user.id:
+            entry["mine"] = r.reaction
