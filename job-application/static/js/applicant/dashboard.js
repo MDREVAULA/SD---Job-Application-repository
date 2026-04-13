@@ -1,37 +1,37 @@
 /* ============================================================
    APPLICANT DASHBOARD — Application Status JS
+   Mirrors recruiter/applicants_filtering.js logic.
    Features: collapsible cards, filter by status,
              search by job title/company, sort
    ============================================================ */
 
-let appDashCurrentSort   = 'date-desc';
-let appDashCurrentStatus = 'all';
+let currentSort   = 'date-desc';
+let currentStatus = 'all';
 
 // ── Card collapse / expand ──────────────────────────────────
 
-function appDashToggleCard(headerEl) {
-    const card = headerEl.closest('.appdash-card');
-    const body = card.querySelector('.appdash-card-body');
-    const icon = headerEl.querySelector('.appdash-toggle-icon i');
+function toggleCard(headerEl) {
+    const card = headerEl.closest('.app-card');
+    const body = card.querySelector('.app-card-body');
     const isOpen = card.classList.contains('card-open');
 
     if (isOpen) {
+        // Collapse
         body.style.maxHeight = body.scrollHeight + 'px';
         requestAnimationFrame(() => {
             body.style.maxHeight = '0';
             body.style.opacity   = '0';
         });
         card.classList.remove('card-open');
-        icon.style.transform = 'rotate(0deg)';
     } else {
+        // Expand
         body.style.maxHeight = body.scrollHeight + 'px';
         body.style.opacity   = '1';
         card.classList.add('card-open');
-        icon.style.transform = 'rotate(180deg)';
 
         body.addEventListener('transitionend', function onEnd() {
             if (card.classList.contains('card-open')) {
-                body.style.maxHeight = 'none';
+                body.style.maxHeight = 'none'; // allow dynamic content
             }
             body.removeEventListener('transitionend', onEnd);
         });
@@ -40,52 +40,52 @@ function appDashToggleCard(headerEl) {
 
 // ── Status filter tabs ──────────────────────────────────────
 
-function appDashFilter(status) {
-    appDashCurrentStatus = status;
-    document.querySelectorAll('.appdash-filter-tab').forEach(tab => {
+function filterByStatus(status) {
+    currentStatus = status;
+    document.querySelectorAll('.filter-tab').forEach(tab => {
         tab.classList.toggle('active', tab.getAttribute('data-status') === status);
     });
-    appDashApplyFilters();
+    applyFilters();
 }
 
 // ── Search clear ────────────────────────────────────────────
 
-function appDashClearSearch() {
-    const input = document.getElementById('appDashSearch');
+function clearSearch() {
+    const input = document.getElementById('applicantSearch');
     if (input) input.value = '';
-    const clearBtn = document.getElementById('appDashSearchClear');
+    const clearBtn = document.getElementById('searchClear');
     if (clearBtn) clearBtn.style.display = 'none';
-    appDashApplyFilters();
+    applyFilters();
 }
 
 // ── Sort ────────────────────────────────────────────────────
 
-function appDashSetSort(sortKey) {
-    appDashCurrentSort = sortKey;
-    document.querySelectorAll('.appdash-sort-btn').forEach(btn => {
+function setSort(sortKey) {
+    currentSort = sortKey;
+    document.querySelectorAll('.sort-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-sort') === sortKey);
     });
-    appDashApplyFilters();
+    applyFilters();
 }
 
 // ── Core: filter + sort + render ───────────────────────────
 
-function appDashApplyFilters() {
-    const searchInput = document.getElementById('appDashSearch');
+function applyFilters() {
+    const searchInput = document.getElementById('applicantSearch');
     const searchVal   = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-    const clearBtn = document.getElementById('appDashSearchClear');
+    // Toggle clear button
+    const clearBtn = document.getElementById('searchClear');
     if (clearBtn) clearBtn.style.display = searchVal ? 'flex' : 'none';
 
-    const container = document.getElementById('appDashContainer');
+    const container = document.getElementById('applicationsContainer');
     if (!container) return;
 
     // Remove previous no-results block
-    const existing = container.querySelector('.appdash-no-results');
+    const existing = container.querySelector('.no-results-state');
     if (existing) existing.remove();
 
-    const cards = Array.from(document.querySelectorAll('.appdash-card'));
-
+    const cards = Array.from(document.querySelectorAll('.app-card'));
     let visibleCards = [];
 
     cards.forEach(card => {
@@ -93,7 +93,7 @@ function appDashApplyFilters() {
         const cardName    = (card.getAttribute('data-name')    || '').toLowerCase();
         const cardCompany = (card.getAttribute('data-company') || '').toLowerCase();
 
-        const statusMatch = appDashCurrentStatus === 'all' || cardStatus === appDashCurrentStatus;
+        const statusMatch = currentStatus === 'all' || cardStatus === currentStatus;
         const searchMatch = !searchVal || cardName.includes(searchVal) || cardCompany.includes(searchVal);
 
         if (statusMatch && searchMatch) {
@@ -104,24 +104,25 @@ function appDashApplyFilters() {
         }
     });
 
-    // Sort
+    // Sort visible cards
     visibleCards.sort((a, b) => {
-        if (appDashCurrentSort === 'date-desc') {
+        if (currentSort === 'date-desc') {
             return (b.getAttribute('data-date') || '0').localeCompare(a.getAttribute('data-date') || '0');
-        } else if (appDashCurrentSort === 'date-asc') {
+        } else if (currentSort === 'date-asc') {
             return (a.getAttribute('data-date') || '0').localeCompare(b.getAttribute('data-date') || '0');
-        } else if (appDashCurrentSort === 'name-asc') {
+        } else if (currentSort === 'name-asc') {
             return (a.getAttribute('data-name') || '').localeCompare(b.getAttribute('data-name') || '');
-        } else if (appDashCurrentSort === 'name-desc') {
+        } else if (currentSort === 'name-desc') {
             return (b.getAttribute('data-name') || '').localeCompare(a.getAttribute('data-name') || '');
         }
         return 0;
     });
 
+    // Re-append in sorted order
     visibleCards.forEach(card => container.appendChild(card));
 
-    // Results count
-    const resultsEl = document.getElementById('appDashResultsCount');
+    // Results count label
+    const resultsEl = document.getElementById('resultsCount');
     if (resultsEl) {
         if (searchVal) {
             resultsEl.textContent = visibleCards.length === 0
@@ -132,18 +133,18 @@ function appDashApplyFilters() {
         }
     }
 
-    // Empty state
+    // Empty state message
     if (visibleCards.length === 0) {
         const messages = {
-            all:       { icon: 'fa-search',        title: 'No Matching Applications',   msg: 'No applications match your search.' },
-            pending:   { icon: 'fa-clock',          title: 'No Pending Applications',    msg: 'You have no applications with pending status.' },
-            interview: { icon: 'fa-calendar-check', title: 'No Interview Applications',  msg: 'You have no applications scheduled for interview.' },
-            accepted:  { icon: 'fa-check-circle',   title: 'No Accepted Applications',   msg: 'You have no accepted applications yet.' },
-            rejected:  { icon: 'fa-times-circle',   title: 'No Rejected Applications',   msg: 'You have no rejected applications.' }
+            all:       { icon: 'fa-search',        title: 'No Matching Applications',  msg: 'No applications match your search.' },
+            pending:   { icon: 'fa-clock',          title: 'No Pending Applications',   msg: 'You have no applications with pending status.' },
+            interview: { icon: 'fa-calendar-check', title: 'No Interview Scheduled',    msg: 'You have no applications scheduled for interview.' },
+            accepted:  { icon: 'fa-check-circle',   title: 'No Accepted Applications',  msg: 'You have no accepted applications yet.' },
+            rejected:  { icon: 'fa-times-circle',   title: 'No Rejected Applications',  msg: 'You have no rejected applications.' }
         };
-        const m = messages[appDashCurrentStatus] || messages.all;
+        const m = messages[currentStatus] || messages.all;
         const emptyEl = document.createElement('div');
-        emptyEl.className = 'appdash-no-results';
+        emptyEl.className = 'no-results-state';
         emptyEl.innerHTML = `
             <i class="fas ${m.icon}"></i>
             <h3>${m.title}</h3>
@@ -155,8 +156,8 @@ function appDashApplyFilters() {
 
 // ── Tab counts ──────────────────────────────────────────────
 
-function appDashCountTabs() {
-    const cards = document.querySelectorAll('.appdash-card');
+function countApplications() {
+    const cards = document.querySelectorAll('.app-card');
     const counts = { pending: 0, interview: 0, accepted: 0, rejected: 0 };
 
     cards.forEach(card => {
@@ -174,11 +175,11 @@ function appDashCountTabs() {
 // ── Init ────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', function () {
-    appDashCountTabs();
+    countApplications();
 
-    // Init all cards: collapsed + stagger entrance animation
-    document.querySelectorAll('.appdash-card').forEach((card, index) => {
-        const body = card.querySelector('.appdash-card-body');
+    // Initialise all cards: collapsed + staggered entrance animation
+    document.querySelectorAll('.app-card').forEach((card, index) => {
+        const body = card.querySelector('.app-card-body');
         if (body) {
             body.style.maxHeight  = '0';
             body.style.opacity    = '0';
@@ -186,16 +187,16 @@ document.addEventListener('DOMContentLoaded', function () {
             body.style.transition = 'max-height 0.35s ease, opacity 0.25s ease';
         }
 
-        // Entrance stagger
+        // Staggered entrance
         card.style.opacity   = '0';
-        card.style.transform = 'translateY(16px)';
+        card.style.transform = 'translateY(20px)';
         setTimeout(() => {
-            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease';
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease, box-shadow 0.2s, border-color 0.2s';
             card.style.opacity    = '1';
             card.style.transform  = 'translateY(0)';
-        }, 60 * index);
+        }, 80 * index);
     });
 
-    // Initial filter apply
-    appDashApplyFilters();
+    // Run initial filter pass
+    applyFilters();
 });
