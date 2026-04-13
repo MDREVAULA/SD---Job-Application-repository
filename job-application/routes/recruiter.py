@@ -426,6 +426,7 @@ def my_job_list():
 
 # ===============================
 # HR ACCOUNTS PAGE
+# ── Only shows non-deleted HR accounts ──
 # ===============================
 @recruiter_bp.route('/hr-accounts')
 @login_required
@@ -437,7 +438,8 @@ def hr_accounts():
 
     hrs = User.query.filter_by(
         created_by=current_user.id,
-        role="hr"
+        role="hr",
+        is_deleted=False           # ← hide soft-deleted accounts
     ).all()
 
     return render_template(
@@ -486,7 +488,8 @@ def create_hr():
 
     hrs = User.query.filter_by(
         created_by=current_user.id,
-        role="hr"
+        role="hr",
+        is_deleted=False
     ).all()
 
     return render_template(
@@ -496,8 +499,241 @@ def create_hr():
     )
 
 
+# ================================================================
+# SOFT-DELETE HR ACCOUNT  (supports undo within 8 seconds)
+# ── Marks is_deleted=True and records when. The JS countdown
+#    either calls /undo-delete-hr or /commit-delete-hr after 8s.
+# ================================================================
+@recruiter_bp.route('/soft-delete-hr/<int:hr_id>', methods=['POST'])
+@login_required
+def soft_delete_hr(hr_id):
+    """
+    Stage 1 of undo-delete: mark the HR account as soft-deleted.
+    The row is hidden from the UI immediately but NOT yet purged.
+    The frontend starts an 8-second countdown; if the recruiter
+    clicks Undo the account is restored, otherwise commit is called.
+    """
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    hr = User.query.filter_by(
+        id=hr_id,
+        role='hr',
+        created_by=current_user.id,
+        is_deleted=False
+    ).first()
+
+    if not hr:
+        return jsonify({'success': False, 'error': 'HR account not found'}), 404
+
+    hr.is_deleted = True
+    hr.deleted_at = datetime.utcnow()
+    hr.deleted_by = current_user.id
+    db.session.commit()
+
+    return jsonify({'success': True, 'hr_id': hr_id})
+
+
+# ================================================================
+# SOFT-DELETE ALL HR ACCOUNTS  (supports undo within 8 seconds)
+# ================================================================
+@recruiter_bp.route('/soft-delete-all-hr', methods=['POST'])
+@login_required
+def soft_delete_all_hr():
+    """
+    Stage 1 of undo-delete-all: marks ALL of this recruiter's
+    non-deleted HR accounts as soft-deleted.
+    Returns the list of affected IDs so the frontend can pass them
+    back on undo or commit.
+    """
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    hrs = User.query.filter_by(
+        created_by=current_user.id,
+        role='hr',
+        is_deleted=False
+    ).all()
+
+    if not hrs:
+        return jsonify({'success': True, 'deleted_ids': []})
+
+    now = datetime.utcnow()
+    deleted_ids = []
+    for hr in hrs:
+        hr.is_deleted = True
+        hr.deleted_at = now
+        hr.deleted_by = current_user.id
+        deleted_ids.append(hr.id)
+
+    db.session.commit()
+    return jsonify({'success': True, 'deleted_ids': deleted_ids})
+
+
+# ================================================================
+# UNDO DELETE — restore one soft-deleted HR account
+# ================================================================
+@recruiter_bp.route('/undo-delete-hr/<int:hr_id>', methods=['POST'])
+@login_required
+def undo_delete_hr(hr_id):
+    """Restore a single soft-deleted HR account (undo action)."""
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    hr = User.query.filter_by(
+        id=hr_id,
+        role='hr',
+        created_by=current_user.id,
+        is_deleted=True
+    ).first()
+
+    if not hr:
+        return jsonify({'success': False, 'error': 'HR account not found or already committed'}), 404
+
+    hr.is_deleted = False
+    hr.deleted_at = None
+    hr.deleted_by = None
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+# ================================================================
+# UNDO DELETE ALL — restore multiple soft-deleted HR accounts
+# ================================================================
+@recruiter_bp.route('/undo-delete-all-hr', methods=['POST'])
+@login_required
+def undo_delete_all_hr():
+    """Restore a list of soft-deleted HR account IDs (undo-all action)."""
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    data = request.get_json(silent=True) or {}
+    ids  = data.get('ids', [])
+
+    if not ids:
+        return jsonify({'success': False, 'error': 'No IDs provided'}), 400
+
+    restored = 0
+    for hr_id in ids:
+        hr = User.query.filter_by(
+            id=hr_id,
+            role='hr',
+            created_by=current_user.id,
+            is_deleted=True
+        ).first()
+        if hr:
+            hr.is_deleted = False
+            hr.deleted_at = None
+            hr.deleted_by = None
+            restored += 1
+
+    db.session.commit()
+    return jsonify({'success': True, 'restored': restored})
+
+
+# ================================================================
+# COMMIT DELETE — permanently remove one soft-deleted HR account
+# Called automatically by the JS countdown when undo is NOT clicked
+# ================================================================
+@recruiter_bp.route('/commit-delete-hr/<int:hr_id>', methods=['POST'])
+@login_required
+def commit_delete_hr(hr_id):
+    """
+    Stage 2 of undo-delete: actually purge the HR account from the
+    database after the undo window has expired.
+    """
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    hr = User.query.filter_by(
+        id=hr_id,
+        role='hr',
+        created_by=current_user.id,
+        is_deleted=True              # must have been soft-deleted first
+    ).first()
+
+    if not hr:
+        # Already restored (undo was used) or never existed — that's fine
+        return jsonify({'success': True, 'skipped': True})
+
+    try:
+        from sqlalchemy import text
+        db.session.execute(
+            text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
+            {"hr_id": hr.id}
+        )
+        db.session.flush()
+
+        if hr.hr_profile:
+            db.session.delete(hr.hr_profile)
+            db.session.flush()
+
+        db.session.delete(hr)
+        db.session.commit()
+        return jsonify({'success': True})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ================================================================
+# COMMIT DELETE ALL — permanently remove multiple soft-deleted HRs
+# ================================================================
+@recruiter_bp.route('/commit-delete-all-hr', methods=['POST'])
+@login_required
+def commit_delete_all_hr():
+    """
+    Stage 2 of undo-delete-all: purge all HR accounts whose IDs
+    are passed in the JSON body (and are still soft-deleted).
+    """
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    data = request.get_json(silent=True) or {}
+    ids  = data.get('ids', [])
+
+    if not ids:
+        return jsonify({'success': True, 'message': 'Nothing to commit'})
+
+    try:
+        from sqlalchemy import text
+
+        for hr_id in ids:
+            hr = User.query.filter_by(
+                id=hr_id,
+                role='hr',
+                created_by=current_user.id,
+                is_deleted=True
+            ).first()
+
+            if not hr:
+                continue  # already restored by undo — skip silently
+
+            db.session.execute(
+                text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
+                {"hr_id": hr_id}
+            )
+            db.session.flush()
+
+            if hr.hr_profile:
+                db.session.delete(hr.hr_profile)
+                db.session.flush()
+
+            db.session.delete(hr)
+            db.session.flush()
+
+        db.session.commit()
+        return jsonify({'success': True})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ===============================
-# DELETE HR ACCOUNT
+# DELETE HR ACCOUNT  (legacy — kept for backwards-compat)
 # ===============================
 @recruiter_bp.route('/delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
@@ -516,8 +752,6 @@ def delete_hr(hr_id):
         return jsonify({'success': False, 'error': 'HR account not found'}), 404
 
     try:
-        # Step 1: Nullify applicant references to this HR's feedbacks
-        # to avoid FK constraint issues before bulk-deleting
         from sqlalchemy import text
         db.session.execute(
             text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
@@ -525,12 +759,10 @@ def delete_hr(hr_id):
         )
         db.session.flush()
 
-        # Step 2: Delete HR profile if exists
         if hr.hr_profile:
             db.session.delete(hr.hr_profile)
             db.session.flush()
 
-        # Step 3: Delete the user — cascade handles applications etc.
         db.session.delete(hr)
         db.session.commit()
 
@@ -542,7 +774,7 @@ def delete_hr(hr_id):
 
 
 # ===============================
-# DELETE ALL HR ACCOUNTS
+# DELETE ALL HR ACCOUNTS  (legacy — kept for backwards-compat)
 # ===============================
 @recruiter_bp.route('/delete-all-hr', methods=['POST'])
 @login_required
@@ -564,8 +796,6 @@ def delete_all_hr():
 
         hr_ids = [hr.id for hr in hrs]
 
-        # Step 1: Delete all feedbacks for these HR users via raw SQL
-        # to avoid SQLAlchemy session conflicts with ORM-tracked objects
         for hr_id in hr_ids:
             db.session.execute(
                 text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
@@ -573,8 +803,6 @@ def delete_all_hr():
             )
         db.session.flush()
 
-        # Step 2: Delete HR profiles and users one by one with flush
-        # so SQLAlchemy session stays consistent after each removal
         for hr in hrs:
             if hr.hr_profile:
                 db.session.delete(hr.hr_profile)
@@ -941,180 +1169,3 @@ def clear_all_notifications_api():
     RecruiterNotification.query.filter_by(recruiter_id=current_user.id).delete()
     db.session.commit()
     return jsonify({'ok': True})
-
-# ================================================================
-# PUBLIC PROFILE ROUTES
-# File: routes/profile_view.py
-# ================================================================
-
-from flask import Blueprint, render_template, redirect, url_for, flash, abort
-from flask_login import login_required, current_user
-from models import (
-    db, User, ApplicantProfile, WorkExperience,
-    Education, Skill, Project, Certification, Job, Follow
-)
-from datetime import date
-
-profile_view_bp = Blueprint('profile_view', __name__, url_prefix='/profile')
-
-
-# ── SMART REDIRECT — /profile/<user_id> → correct role view ──
-@profile_view_bp.route('/<int:user_id>')
-def view_profile(user_id):
-    """
-    Smart redirect: detects the user's role and sends the viewer
-    to the correct public profile page.
-    Also prevents logged-in users from viewing their own profile through
-    this route (redirects them to their editable profile instead).
-    """
-    user = User.query.get_or_404(user_id)
-
-    # Redirect self to their own editable profile (only if logged in)
-    if current_user.is_authenticated and current_user.id == user_id:
-        if user.role == 'applicant':
-            return redirect(url_for('applicant.profile'))
-        elif user.role == 'hr':
-            return redirect(url_for('hr.profile'))
-        elif user.role == 'recruiter':
-            return redirect(url_for('recruiter.profile'))
-
-    # Route to the correct public view
-    if user.role == 'applicant':
-        return redirect(url_for('profile_view.view_applicant_profile', user_id=user_id))
-    elif user.role == 'hr':
-        return redirect(url_for('profile_view.view_hr_profile', user_id=user_id))
-    elif user.role == 'recruiter':
-        return redirect(url_for('profile_view.view_recruiter_profile', user_id=user_id))
-    else:
-        abort(404)
-
-
-# ── APPLICANT PUBLIC PROFILE ──
-@profile_view_bp.route('/applicant/<int:user_id>')
-@login_required
-def view_applicant_profile(user_id):
-    """
-    Public read-only view of an applicant's profile.
-    Accessible by any logged-in user (recruiter, hr, other applicants).
-    """
-    viewed_user = User.query.get_or_404(user_id)
-
-    if viewed_user.role != 'applicant':
-        flash("This profile is not an applicant.", "warning")
-        return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
-    # Redirect self to own editable profile
-    if current_user.id == user_id:
-        return redirect(url_for('applicant.profile'))
-
-    prof = ApplicantProfile.query.filter_by(user_id=user_id).first()
-
-    experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
-    educations     = Education.query.filter_by(profile_id=prof.id).order_by(Education.created_at.desc()).all() if prof else []
-    skills         = Skill.query.filter_by(profile_id=prof.id).all() if prof else []
-    projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all() if prof else []
-    certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all() if prof else []
-
-    return render_template(
-        'applicant/view_profile.html',
-        viewed_user=viewed_user,
-        profile=prof,
-        experiences=experiences,
-        educations=educations,
-        skills=skills,
-        projects=projects,
-        certifications=certifications
-    )
-
-
-# ── HR PUBLIC PROFILE ──
-# routes/profile_view.py — fix view_hr_profile
-@profile_view_bp.route('/hr/<int:user_id>')
-@login_required
-def view_hr_profile(user_id):
-    viewed_user = User.query.get_or_404(user_id)
-
-    if viewed_user.role != 'hr':
-        flash("This profile is not an HR member.", "warning")
-        return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
-    if current_user.id == user_id:
-        return redirect(url_for('hr.profile'))
-
-    followers, following = _get_follow_lists(user_id)  # add this
-
-    is_following = False
-    if current_user.is_authenticated:
-        is_following = Follow.query.filter_by(
-            follower_id=current_user.id,
-            followed_id=user_id
-        ).first() is not None
-
-    return render_template(
-        'hr/view_profile.html',
-        viewed_user=viewed_user,
-        is_following=is_following,       # add these
-        followers=followers,
-        following=following,
-        follower_count=len(followers),
-        following_count=len(following),
-    )
-
-
-# ── RECRUITER PUBLIC PROFILE ──
-# NOTE: No @login_required — guests can view recruiter profiles
-@profile_view_bp.route('/recruiter/<int:user_id>')
-def view_recruiter_profile(user_id):
-    """
-    Public read-only view of a recruiter's profile.
-    Accessible by guests AND logged-in users.
-    Guests can see everything but Follow/Message buttons redirect to login.
-    """
-    from models import RecruiterProfile
-
-    viewed_user = User.query.get_or_404(user_id)
-
-    if viewed_user.role != 'recruiter':
-        flash("This profile is not a recruiter.", "warning")
-        return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
-    # Redirect self (logged-in recruiter) to own editable profile
-    if current_user.is_authenticated and current_user.id == user_id:
-        return redirect(url_for('recruiter.profile'))
-
-    # Fetch recruiter profile details
-    profile = RecruiterProfile.query.filter_by(user_id=user_id).first()
-
-    # Fetch education entries
-    educations = []
-    if profile:
-        educations = Education.query.filter_by(
-            profile_id=profile.id
-        ).order_by(Education.created_at.desc()).all()
-
-    # Fetch active job postings (all jobs, template decides expired vs active)
-    posted_jobs = Job.query.filter_by(
-        company_id=user_id
-    ).order_by(Job.id.desc()).all()
-
-    # Check if the current user is following this recruiter
-    is_following = False
-    if current_user.is_authenticated:
-        is_following = Follow.query.filter_by(
-            follower_id=current_user.id,
-            followed_id=user_id
-        ).first() is not None
-
-    # Follower count
-    follower_count = Follow.query.filter_by(followed_id=user_id).count()
-
-    return render_template(
-        'recruiter/view_profile.html',
-        viewed_user=viewed_user,
-        profile=profile,
-        educations=educations,
-        posted_jobs=posted_jobs,
-        is_following=is_following,
-        follower_count=follower_count,
-        today=date.today()
-    )

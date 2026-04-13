@@ -40,6 +40,11 @@ class User(db.Model, UserMixin):
 
     profile_picture = db.Column(db.String(200), nullable=True)
 
+    # ── Soft-delete support (for undo on HR accounts) ──────────
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    deleted_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+
     # =========================
     # RELATIONSHIPS
     # =========================

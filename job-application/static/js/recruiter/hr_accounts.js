@@ -1,5 +1,5 @@
 // ========================================
-// HR ACCOUNTS PAGE WITH PAGINATION
+// HR ACCOUNTS PAGE WITH PAGINATION + UNDO DELETE
 // ========================================
 
 var currentPage = 1;
@@ -9,6 +9,13 @@ var currentFilteredRows = [];
 
 // Tracks where the current visible window starts
 var windowStart = 1;
+
+// ── Undo timers: keyed by hr_id (or 'all') ──
+// Each entry: { timerId, commitTimerId, seconds }
+var undoTimers = {};
+
+// Duration (ms) the undo toast stays alive before committing
+var UNDO_DURATION = 8000;
 
 $(document).ready(function() {
 
@@ -20,7 +27,9 @@ $(document).ready(function() {
     }
     storeAllRows();
 
+    // ─────────────────────────────────────────────
     // Filter dropdown
+    // ─────────────────────────────────────────────
     $('#filterBtn').on('click', function(e) {
         e.stopPropagation();
         $('#filterMenu').toggleClass('show');
@@ -81,6 +90,9 @@ $(document).ready(function() {
         applyFiltersAndPagination();
     });
 
+    // ─────────────────────────────────────────────
+    // Pagination helpers
+    // ─────────────────────────────────────────────
     function applyFiltersAndPagination() {
         var searchTerm = $('#hrSearch').val().toLowerCase();
         var activeTabFilter = $('.hra-filter-tab.active').data('filter');
@@ -155,10 +167,8 @@ $(document).ready(function() {
         });
 
         $('#paginationInfo').hide();
-
         $('#prevBtn').prop('disabled', currentPage === 1);
         $('#nextBtn').prop('disabled', currentPage === totalPages);
-
         renderPageNumbers(totalPages);
 
         if (totalRows === 0) {
@@ -231,8 +241,7 @@ $(document).ready(function() {
     });
 
     // ─────────────────────────────────────────────
-    // FIX 3: View HR → redirect to profile page
-    //         instead of opening a modal
+    // View HR → redirect to profile page
     // ─────────────────────────────────────────────
     $(document).on('click', '.view-hr', function() {
         var hrId = $(this).data('id');
@@ -240,59 +249,155 @@ $(document).ready(function() {
     });
 
     // ─────────────────────────────────────────────
-    // Delete single HR — AJAX to /delete-hr/<id>
+    // Delete single HR — soft-delete with undo toast
     // ─────────────────────────────────────────────
     $(document).on('click', '.delete-hr', function() {
         var hrId   = $(this).data('id');
         var hrName = $(this).data('name');
+        var $row   = $(this).closest('tr');
 
-        showConfirmModal(
-            'Delete HR Account',
-            'Are you sure you want to delete <strong>' + hrName + '</strong>? This action cannot be undone.',
-            function() {
-                $.ajax({
-                    url: '/recruiter/delete-hr/' + hrId,
-                    method: 'POST',
-                    success: function(response) {
-                        if (response.success) {
-                            showNotification('HR member deleted successfully!', 'success');
-                            setTimeout(function() { location.reload(); }, 1500);
-                        } else {
-                            showNotification(response.error || 'Delete failed', 'error');
-                        }
+        // Cancel any existing undo for this same HR (shouldn't happen but safety)
+        cancelUndoTimer(hrId);
+
+        $.ajax({
+            url: '/recruiter/soft-delete-hr/' + hrId,
+            method: 'POST',
+            success: function(response) {
+                if (!response.success) {
+                    showNotification(response.error || 'Delete failed', 'error');
+                    return;
+                }
+
+                // Visually remove the row immediately
+                $row.addClass('hra-row-fading');
+                setTimeout(function() {
+                    // Remove from allRowsArray so pagination ignores it
+                    var idx = allRowsArray.indexOf($row);
+                    if (idx > -1) allRowsArray.splice(idx, 1);
+                    $row.remove();
+                    applyFiltersAndPagination();
+                    updateHeaderStats();
+                }, 300);
+
+                // Show undo toast, then commit after UNDO_DURATION
+                showUndoToast(
+                    hrId,
+                    '<i class="fas fa-user-slash"></i> <strong>' + hrName + '</strong> deleted.',
+                    // On undo:
+                    function() {
+                        $.ajax({
+                            url: '/recruiter/undo-delete-hr/' + hrId,
+                            method: 'POST',
+                            success: function(res) {
+                                if (res.success) {
+                                    // Reload page to bring the row back cleanly
+                                    location.reload();
+                                } else {
+                                    showNotification('Undo failed: ' + (res.error || ''), 'error');
+                                }
+                            },
+                            error: function() {
+                                showNotification('Undo request failed.', 'error');
+                            }
+                        });
                     },
-                    error: function(xhr) {
-                        showNotification('Delete failed: ' + xhr.status, 'error');
+                    // On commit (undo window expired):
+                    function() {
+                        $.ajax({
+                            url: '/recruiter/commit-delete-hr/' + hrId,
+                            method: 'POST',
+                            error: function() {
+                                // Silent — user didn't undo so just proceed
+                            }
+                        });
                     }
-                });
+                );
+            },
+            error: function(xhr) {
+                showNotification('Delete failed: ' + xhr.status, 'error');
             }
-        );
+        });
     });
 
     // ─────────────────────────────────────────────
-    // FIX 2: Delete All HR — wired up and working
+    // Delete All HR — soft-delete with undo toast
     // ─────────────────────────────────────────────
     $(document).on('click', '#deleteAllHrBtn', function() {
-        showConfirmModal(
-            'Delete All HR Accounts',
-            'Are you sure you want to delete <strong>all HR accounts</strong>? This action cannot be undone.',
-            function() {
-                $.ajax({
-                    url: '/recruiter/delete-all-hr',
-                    method: 'POST',
-                    success: function() {
-                        showNotification('All HR accounts deleted!', 'success');
-                        setTimeout(function() { location.reload(); }, 1500);
+        // Dismiss any existing undo toasts first so the user
+        // doesn't get confused with stale per-account toasts
+        dismissAllUndoToasts();
+
+        $.ajax({
+            url: '/recruiter/soft-delete-all-hr',
+            method: 'POST',
+            success: function(response) {
+                if (!response.success) {
+                    showNotification(response.error || 'Delete all failed', 'error');
+                    return;
+                }
+
+                var deletedIds = response.deleted_ids || [];
+                var count      = deletedIds.length;
+
+                if (count === 0) {
+                    showNotification('No HR accounts to delete.', 'error');
+                    return;
+                }
+
+                // Visually clear the table
+                $('#hrTableBody tr').addClass('hra-row-fading');
+                setTimeout(function() {
+                    allRowsArray = [];
+                    $('#hrTableBody').empty();
+                    applyFiltersAndPagination();
+                    updateHeaderStats();
+                }, 300);
+
+                showUndoToast(
+                    'all',
+                    '<i class="fas fa-users-slash"></i> All <strong>' + count + '</strong> HR account(s) deleted.',
+                    // On undo:
+                    function() {
+                        $.ajax({
+                            url: '/recruiter/undo-delete-all-hr',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ ids: deletedIds }),
+                            success: function(res) {
+                                if (res.success) {
+                                    location.reload();
+                                } else {
+                                    showNotification('Undo failed: ' + (res.error || ''), 'error');
+                                }
+                            },
+                            error: function() {
+                                showNotification('Undo request failed.', 'error');
+                            }
+                        });
                     },
-                    error: function(xhr) {
-                        showNotification('Delete all failed: ' + xhr.status, 'error');
+                    // On commit:
+                    function() {
+                        $.ajax({
+                            url: '/recruiter/commit-delete-all-hr',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ ids: deletedIds }),
+                            error: function() {
+                                // Silent
+                            }
+                        });
                     }
-                });
+                );
+            },
+            error: function(xhr) {
+                showNotification('Delete all failed: ' + xhr.status, 'error');
             }
-        );
+        });
     });
 
+    // ─────────────────────────────────────────────
     // Close modals via X button
+    // ─────────────────────────────────────────────
     $('.hra-modal-close').on('click', function() {
         $(this).closest('.hra-modal').removeClass('show');
     });
@@ -306,7 +411,94 @@ $(document).ready(function() {
     applyFiltersAndPagination();
 });
 
-// ── Helpers ──────────────────────────────────────────────
+// ================================================================
+//  UNDO TOAST SYSTEM
+// ================================================================
+
+/**
+ * Show an undo toast with a live countdown bar.
+ * @param {string|number} key      - Unique key (hr_id or 'all')
+ * @param {string}        html     - Inner HTML for the message
+ * @param {Function}      onUndo   - Called if user clicks Undo
+ * @param {Function}      onCommit - Called when the window expires
+ */
+function showUndoToast(key, html, onUndo, onCommit) {
+    // Remove any existing toast for this key
+    cancelUndoTimer(key);
+    $('#undoToast-' + key).remove();
+
+    var $toast = $(
+        '<div class="hra-undo-toast" id="undoToast-' + key + '">' +
+            '<div class="hra-undo-message">' + html + '</div>' +
+            '<button class="hra-undo-btn" id="undoBtn-' + key + '">' +
+                '<i class="fas fa-rotate-left"></i> Undo' +
+            '</button>' +
+            '<button class="hra-undo-dismiss" id="undoDismiss-' + key + '" title="Dismiss">' +
+                '<i class="fas fa-times"></i>' +
+            '</button>' +
+            '<div class="hra-undo-bar" id="undoBar-' + key + '"></div>' +
+        '</div>'
+    );
+
+    $('body').append($toast);
+    // Trigger CSS animation on the next frame
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            $toast.addClass('show');
+            // Start the shrinking progress bar
+            $('#undoBar-' + key).css('transition-duration', UNDO_DURATION + 'ms');
+            $('#undoBar-' + key).addClass('shrink');
+        });
+    });
+
+    // ── Undo button ──
+    $('#undoBtn-' + key).on('click', function() {
+        cancelUndoTimer(key);
+        $toast.removeClass('show');
+        setTimeout(function() { $toast.remove(); }, 350);
+        onUndo();
+    });
+
+    // ── Dismiss (×) button ── fires commit immediately
+    $('#undoDismiss-' + key).on('click', function() {
+        cancelUndoTimer(key);
+        $toast.removeClass('show');
+        setTimeout(function() { $toast.remove(); }, 350);
+        onCommit();
+    });
+
+    // ── Auto-commit after UNDO_DURATION ──
+    var commitTimerId = setTimeout(function() {
+        $toast.removeClass('show');
+        setTimeout(function() { $toast.remove(); }, 350);
+        onCommit();
+        delete undoTimers[key];
+    }, UNDO_DURATION);
+
+    undoTimers[key] = { commitTimerId: commitTimerId };
+}
+
+/** Cancel the pending commit timer for a key (used on undo click). */
+function cancelUndoTimer(key) {
+    if (undoTimers[key]) {
+        clearTimeout(undoTimers[key].commitTimerId);
+        delete undoTimers[key];
+    }
+}
+
+/** Remove every visible undo toast and cancel their timers. */
+function dismissAllUndoToasts() {
+    Object.keys(undoTimers).forEach(function(key) {
+        cancelUndoTimer(key);
+        var $t = $('#undoToast-' + key);
+        $t.removeClass('show');
+        setTimeout(function() { $t.remove(); }, 350);
+    });
+}
+
+// ================================================================
+//  Helpers shared with inline HTML
+// ================================================================
 
 function copyPassword() {
     var passwordInput = document.getElementById('tempPassword');
@@ -323,8 +515,6 @@ function copyPassword() {
     });
 }
 
-// FIX 4: Fully remove the password banner from the DOM
-//         so it can't block clicks on the delete buttons below
 function closePasswordBox() {
     var box = document.getElementById('tempPasswordBox');
     if (box) {
@@ -358,4 +548,28 @@ function showNotification(message, type) {
         notification.removeClass('show');
         setTimeout(function() { notification.remove(); }, 300);
     }, 3000);
+}
+
+/** Re-compute the three stat cards in the header without a page reload. */
+function updateHeaderStats() {
+    var total   = allRowsArray.length;
+    var active  = 0;
+    var pending = 0;
+    allRowsArray.forEach(function($row) {
+        if ($row.data('status') === 'active')  active++;
+        if ($row.data('status') === 'pending') pending++;
+    });
+
+    // Update stat cards (values are the first .hra-stat-value inside each .hra-stat-card)
+    var $cards = $('.hra-stat-value');
+    if ($cards.length >= 3) {
+        $cards.eq(0).text(total);
+        $cards.eq(1).text(active);
+        $cards.eq(2).text(pending);
+    }
+
+    // Update tab labels
+    $('.hra-filter-tab[data-filter="all"]').text('All (' + total + ')');
+    $('.hra-filter-tab[data-filter="active"]').text('Active (' + active + ')');
+    $('.hra-filter-tab[data-filter="pending"]').text('Pending (' + pending + ')');
 }

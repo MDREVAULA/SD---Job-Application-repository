@@ -13,7 +13,7 @@
 .hra-team-card {
     display: flex;
     flex-direction: column;
-    min-height: 580px;   /* matches ~left column height at rest */
+    min-height: 580px;
 }
 
 .hra-team-card .hra-card-body {
@@ -21,8 +21,6 @@
     display: flex;
     flex-direction: column;
 }
-
-
 
 .hra-header {
   background: var(--bg-card);
@@ -445,6 +443,13 @@
   padding-right: 24px !important;
 }
 
+/* Row fade-out animation triggered before removal */
+.hra-row-fading {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
 .hra-member-info {
   display: flex;
   align-items: center;
@@ -823,42 +828,6 @@
   color: var(--text-primary);
 }
 
-.hra-timeline {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.hra-timeline-item {
-  display: flex;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.hra-timeline-item:last-child {
-  border-bottom: none;
-}
-
-.hra-timeline-time {
-  font-size: 11px;
-  color: var(--text-muted);
-  min-width: 80px;
-}
-
-.hra-timeline-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.hra-timeline-content i {
-  color: var(--brand-green);
-  width: 16px;
-  font-size: 12px;
-}
-
 /* ============================================================
    BUTTONS
    ============================================================ */
@@ -1129,7 +1098,7 @@
 }
 
 .hra-page-num {
-  width: 38px;        
+  width: 38px;
   height: 34px;
   display: flex;
   align-items: center;
@@ -1137,7 +1106,7 @@
   background: var(--bg-surface-alt);
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  font-size: 12px;      
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
@@ -1160,7 +1129,6 @@
   color: white;
 }
 
-/* "…" variant — same box, muted color to hint there's more */
 .hra-page-num.has-more {
   color: var(--text-muted);
   letter-spacing: -0.5px;
@@ -1172,10 +1140,130 @@
   color: var(--brand-green);
 }
 
-@media (max-width: 768px) {
-  .hra-pagination-wrap {
-    justify-content: center;
-  }
+/* ============================================================
+   UNDO DELETE TOAST
+   ============================================================ */
+
+/* Container — slides in from bottom-right */
+.hra-undo-toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  min-width: 320px;
+  max-width: 440px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--brand-danger);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px var(--shadow-color);
+  padding: 14px 16px 6px 18px;
+  z-index: 1200;
+
+  /* Hidden state */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+
+  /* Stack multiple toasts */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.hra-undo-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Message text */
+.hra-undo-message {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-width: 0;
+}
+
+.hra-undo-message i {
+  color: var(--brand-danger);
+  margin-right: 6px;
+}
+
+/* Undo action button */
+.hra-undo-btn {
+  height: 32px;
+  padding: 0 16px;
+  background: var(--brand-green-dark);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: background 0.18s ease, transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.hra-undo-btn:hover {
+  background: var(--brand-green);
+  transform: translateY(-1px);
+}
+
+.hra-undo-btn:active {
+  transform: scale(0.97);
+}
+
+/* Dismiss (×) button */
+.hra-undo-dismiss {
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.18s;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.hra-undo-dismiss:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Progress bar — shrinks from 100% → 0 over UNDO_DURATION ms */
+.hra-undo-bar {
+  width: 100%;
+  height: 3px;
+  background: var(--brand-danger);
+  border-radius: 2px;
+  margin-top: 6px;
+  transform-origin: left;
+  /* Initial state: full width */
+  transform: scaleX(1);
+}
+
+.hra-undo-bar.shrink {
+  transform: scaleX(0);
+  /* transition-duration is set inline by JS (UNDO_DURATION ms) */
+  transition-property: transform;
+  transition-timing-function: linear;
+}
+
+/* Multiple toasts stack upward */
+.hra-undo-toast + .hra-undo-toast {
+  bottom: calc(28px + 1 * (80px + 8px));
 }
 
 /* ============================================================
@@ -1253,6 +1341,14 @@
 
   .hra-pagination-wrap {
     justify-content: center;
+  }
+
+  .hra-undo-toast {
+    bottom: 14px;
+    right: 14px;
+    left: 14px;
+    min-width: unset;
+    max-width: unset;
   }
 }
 
