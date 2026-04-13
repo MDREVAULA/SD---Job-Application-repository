@@ -10,13 +10,13 @@ db = SQLAlchemy()
 # =========================
 class User(db.Model, UserMixin):
 
-    profile_completed = db.Column(db.Boolean, default=False)
-
     id = db.Column(db.Integer, primary_key=True)
 
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=True)  # nullable for Google users
+
+    profile_complete = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
 
     role = db.Column(db.String(50), nullable=False)
 

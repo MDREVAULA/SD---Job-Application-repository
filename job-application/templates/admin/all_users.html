@@ -2,163 +2,110 @@
 {% block title %}All Users — Admin{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 
-<div class="admin-dashboard-wrapper">
-    <div class="admin-dashboard-container">
+<div class="admin-page-wrapper">
 
-        <!-- HEADER HERO -->
-        <div class="admin-dashboard-header">
-            <div class="admin-dashboard-header-inner">
-                <div class="admin-dashboard-header-top">
-                    <div>
-                        <h2><i class="fas fa-users"></i> All Users</h2>
-                        <p class="admin-dashboard-subtitle">Browse and manage every account on the platform</p>
-                    </div>
-                    <div class="admin-header-actions">
-                        <a href="{{ url_for('admin.dashboard') }}" class="admin-hero-btn admin-hero-btn--outline">
-                            <i class="fas fa-arrow-left"></i> Dashboard
-                        </a>
-                    </div>
-                </div>
+    <!-- PAGE HEADER -->
+    <div class="admin-page-header">
+        <div class="admin-page-header-left">
+            <div class="admin-page-icon">
+                <i class="fas fa-users" style="font-size:18px;"></i>
+            </div>
+            <div>
+                <h1 class="admin-page-title">All Users <span style="font-size:1rem; font-weight:700; background:rgba(220,38,38,0.1); color:#f87171; border:1px solid rgba(220,38,38,0.25); border-radius:20px; padding:2px 12px; margin-left:6px;">{{ banned_users|length }}</span></h1>
+                <p class="admin-page-subtitle">Browse and manage every account on the platform</p>
             </div>
         </div>
-
-        <!-- STATS STRIP -->
-        <div class="admin-stats-grid">
-            <div class="admin-stat-card">
-                <i class="fas fa-users admin-stat-icon"></i>
-                <div class="admin-stat-number">{{ users|length }}</div>
-                <div class="admin-stat-label">Users Shown</div>
-            </div>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="admin-content-area">
-
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    <div class="admin-flash admin-flash--{{ category }}">
-                        <i class="fas fa-info-circle"></i> {{ message }}
-                    </div>
-                {% endfor %}
-            {% endwith %}
-
-            <div class="admin-section">
-                <h3>
-                    <i class="fas fa-filter"></i>
-                    Filter by Role
-                </h3>
-
-                <!-- Role Filter Tabs -->
-                <div class="admin-filter-tabs">
-                    <a href="{{ url_for('admin.all_users', role='all') }}"
-                       class="admin-filter-tab {% if role_filter == 'all' %}active{% endif %}">
-                        All
-                    </a>
-                    <a href="{{ url_for('admin.all_users', role='applicant') }}"
-                       class="admin-filter-tab {% if role_filter == 'applicant' %}active{% endif %}">
-                        Applicants
-                    </a>
-                    <a href="{{ url_for('admin.all_users', role='recruiter') }}"
-                       class="admin-filter-tab {% if role_filter == 'recruiter' %}active{% endif %}">
-                        Recruiters
-                    </a>
-                    <a href="{{ url_for('admin.all_users', role='hr') }}"
-                       class="admin-filter-tab {% if role_filter == 'hr' %}active{% endif %}">
-                        HR
-                    </a>
-                </div>
-
-                {% if users %}
-                    <div class="admin-results-header">
-                        <div class="admin-results-count">
-                            <span>{{ users|length }}</span> user{{ 's' if users|length != 1 }} found
-                        </div>
-                    </div>
-
-                    <ul class="admin-list">
-                        {% for user in users %}
-                        <li class="admin-list-item {% if user.is_banned %}admin-list-item--banned{% endif %}">
-                            <div class="admin-user-info">
-                                <div class="admin-user-avatar {% if user.is_banned %}admin-user-avatar--banned{% endif %}">
-                                    {% if user.profile_picture %}
-                                        {% if user.profile_picture.startswith('http') %}
-                                            <img src="{{ user.profile_picture }}" alt="">
-                                        {% else %}
-                                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture) }}" alt="">
-                                        {% endif %}
-                                    {% else %}
-                                        {{ user.username[0]|upper }}
-                                    {% endif %}
-                                </div>
-                                <div class="admin-user-details">
-                                    <p class="admin-user-name">{{ user.username }}</p>
-                                    <p class="admin-user-email">{{ user.email }}</p>
-                                    <div class="admin-user-meta">
-                                        <span class="admin-meta-tag admin-meta-tag--role-{{ user.role }}">
-                                            <i class="fas fa-user"></i> {{ user.role|capitalize }}
-                                        </span>
-                                        {% if user.is_banned %}
-                                            <span class="admin-meta-tag admin-meta-tag--banned">
-                                                <i class="fas fa-ban"></i> Banned
-                                            </span>
-                                        {% elif user.role == 'recruiter' %}
-                                            {% if user.is_verified %}
-                                                <span class="admin-meta-tag admin-meta-tag--verified">
-                                                    <i class="fas fa-check-circle"></i> Verified
-                                                </span>
-                                            {% elif user.verification_status == 'Rejected' %}
-                                                <span class="admin-meta-tag admin-meta-tag--rejected">
-                                                    <i class="fas fa-times-circle"></i> Rejected
-                                                </span>
-                                            {% else %}
-                                                <span class="admin-meta-tag admin-meta-tag--pending">
-                                                    <i class="fas fa-clock"></i> Pending
-                                                </span>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="admin-meta-tag admin-meta-tag--active">
-                                                <i class="fas fa-circle"></i> Active
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="admin-item-actions">
-                                <a href="{{ url_for('profile_view.view_profile', user_id=user.id) }}"
-                                   class="admin-review-btn" target="_blank">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                                {% if user.is_banned %}
-                                    <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
-                                          onsubmit="return confirm('Unban {{ user.username }}?')">
-                                        <input type="hidden" name="next" value="{{ request.url }}">
-                                        <button type="submit" class="admin-action-btn admin-action-btn--approve">
-                                            <i class="fas fa-unlock"></i> Unban
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <button type="button" class="admin-action-btn admin-action-btn--reject"
-                                            onclick="openBanModal({{ user.id }}, '{{ user.username }}')">
-                                        <i class="fas fa-ban"></i> Ban
-                                    </button>
-                                {% endif %}
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="admin-empty-state">
-                        <i class="fas fa-users-slash"></i>
-                        <p>No users found for this filter</p>
-                    </div>
-                {% endif %}
-            </div>
-
-        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
+
+    <!-- FILTER TABS -->
+    <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <a href="{{ url_for('admin.all_users', role='all') }}"
+           class="btn-restore {% if role_filter == 'all' %}btn-restore--active{% endif %}"
+           style="text-decoration:none;">All</a>
+        <a href="{{ url_for('admin.all_users', role='applicant') }}"
+           class="btn-restore {% if role_filter == 'applicant' %}btn-restore--active{% endif %}"
+           style="text-decoration:none;">Applicants</a>
+        <a href="{{ url_for('admin.all_users', role='recruiter') }}"
+           class="btn-restore {% if role_filter == 'recruiter' %}btn-restore--active{% endif %}"
+           style="text-decoration:none;">Recruiters</a>
+        <a href="{{ url_for('admin.all_users', role='hr') }}"
+           class="btn-restore {% if role_filter == 'hr' %}btn-restore--active{% endif %}"
+           style="text-decoration:none;">HR</a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="admin-table-card">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role | capitalize }}</td>
+                    <td>
+                        {% if user.is_banned %}
+                            <span class="badge badge-rejected"><i class="fas fa-ban"></i> Banned</span>
+                        {% elif user.role == 'recruiter' %}
+                            {% if user.is_verified %}
+                                <span class="badge badge-approved"><i class="fas fa-check-circle"></i> Verified</span>
+                            {% elif user.verification_status == 'Rejected' %}
+                                <span class="badge badge-rejected"><i class="fas fa-times-circle"></i> Rejected</span>
+                            {% else %}
+                                <span class="badge" style="background:rgba(241,178,74,0.12);color:#a07020;border:1px solid rgba(241,178,74,0.25);">
+                                    <i class="fas fa-clock"></i> Pending
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge badge-approved"><i class="fas fa-circle"></i> Active</span>
+                        {% endif %}
+                    </td>
+                    <td style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <a href="{{ url_for('profile_view.view_profile', user_id=user.id) }}"
+                           class="btn-restore" target="_blank" style="text-decoration:none;">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        {% if user.is_banned %}
+                            <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                                  onsubmit="return confirm('Unban {{ user.username }}?')">
+                                <input type="hidden" name="next" value="{{ request.url }}">
+                                <button type="submit" class="btn-restore">
+                                    <i class="fas fa-unlock"></i> Unban
+                                </button>
+                            </form>
+                        {% else %}
+                            <button type="button" class="btn-ban"
+                                    onclick="openBanModal({{ user.id }}, '{{ user.username }}')">
+                                <i class="fas fa-ban"></i> Ban
+                            </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="empty-row">
+                    <td colspan="5">
+                        <i class="fas fa-users-slash"></i>
+                        No users found for this filter.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
 </div>
 
 <!-- Ban Modal -->
@@ -181,15 +128,13 @@
                     <label class="admin-modal-label">
                         <i class="fas fa-comment-alt"></i> Reason (shown to user)
                     </label>
-                    <textarea name="ban_reason" class="admin-modal-textarea"
+                    <textarea name="ban_reason" class="admin-textarea"
                               placeholder="e.g. Suspicious activity, spam, policy violation..."
                               rows="3"></textarea>
                 </div>
                 <div class="admin-modal-footer">
-                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeBanModal()">
-                        Cancel
-                    </button>
-                    <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
+                    <button type="button" class="admin-back-btn" onclick="closeBanModal()">Cancel</button>
+                    <button type="submit" class="btn-ban" style="padding:10px 22px;">
                         <i class="fas fa-ban"></i> Confirm Ban
                     </button>
                 </div>

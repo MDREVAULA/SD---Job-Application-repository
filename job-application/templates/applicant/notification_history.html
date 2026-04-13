@@ -34,6 +34,9 @@
         {% if n.type == 'new_message' %}
             {% set icon_cls = 'type-new_message' %}
             {% set icon     = 'fa-comment-dots' %}
+        {% elif n.type == 'profile_complete' %}
+            {% set icon_cls = 'type-profile_complete' %}
+            {% set icon     = 'fa-circle-check' %}
         {% elif n.type == 'new_follow' %}
             {% set icon_cls = 'type-new_follow' %}
             {% set icon     = 'fa-user-plus' %}

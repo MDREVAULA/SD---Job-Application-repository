@@ -2,125 +2,85 @@
 {% block title %}Banned Users — Admin{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 
-<div class="admin-dashboard-wrapper">
-    <div class="admin-dashboard-container">
+<div class="admin-page-wrapper">
 
-        <!-- HEADER HERO -->
-        <div class="admin-dashboard-header">
-            <div class="admin-dashboard-header-inner">
-                <div class="admin-dashboard-header-top">
-                    <div>
-                        <h2><i class="fas fa-ban"></i> Banned Users</h2>
-                        <p class="admin-dashboard-subtitle">View and manage all banned accounts</p>
-                    </div>
-                    <div class="admin-header-actions">
-                        <a href="{{ url_for('admin.dashboard') }}" class="admin-hero-btn admin-hero-btn--outline">
-                            <i class="fas fa-arrow-left"></i> Dashboard
-                        </a>
-                    </div>
-                </div>
+    <!-- PAGE HEADER -->
+    <div class="admin-page-header">
+        <div class="admin-page-header-left">
+            <div class="admin-page-icon danger">
+                <i class="fas fa-ban" style="font-size:18px;"></i>
+            </div>
+            <div>
+                <h1 class="admin-page-title">Banned Users <span style="font-size:1rem; font-weight:700; background:rgba(77,119,78,0.12); color:#4D774E; border:1px solid rgba(77,119,78,0.25); border-radius:20px; padding:2px 12px; margin-left:6px;">{{ users|length }}</span></h1>
+                <p class="admin-page-subtitle">View and manage all banned accounts</p>
             </div>
         </div>
-
-        <!-- STATS STRIP -->
-        <div class="admin-stats-grid">
-            <div class="admin-stat-card">
-                <i class="fas fa-ban admin-stat-icon admin-stat-icon--danger"></i>
-                <div class="admin-stat-number">{{ banned_users|length }}</div>
-                <div class="admin-stat-label">Banned Users</div>
-            </div>
-        </div>
-
-        <!-- MAIN CONTENT -->
-        <div class="admin-content-area">
-
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}
-                    <div class="admin-flash admin-flash--{{ category }}">
-                        <i class="fas fa-info-circle"></i> {{ message }}
-                    </div>
-                {% endfor %}
-            {% endwith %}
-
-            <div class="admin-section">
-                <h3>
-                    <i class="fas fa-ban"></i>
-                    Banned Accounts
-                    <span class="admin-section-badge admin-section-badge--danger">{{ banned_users|length }}</span>
-                </h3>
-
-                {% if banned_users %}
-                    <div class="admin-results-header">
-                        <div class="admin-results-count">
-                            <span>{{ banned_users|length }}</span> banned account{{ 's' if banned_users|length != 1 }}
-                        </div>
-                    </div>
-
-                    <ul class="admin-list">
-                        {% for user in banned_users %}
-                        <li class="admin-list-item admin-list-item--banned">
-                            <div class="admin-user-info">
-                                <div class="admin-user-avatar admin-user-avatar--banned">
-                                    {% if user.profile_picture %}
-                                        {% if user.profile_picture.startswith('http') %}
-                                            <img src="{{ user.profile_picture }}" alt="">
-                                        {% else %}
-                                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture) }}" alt="">
-                                        {% endif %}
-                                    {% else %}
-                                        {{ user.username[0]|upper }}
-                                    {% endif %}
-                                </div>
-                                <div class="admin-user-details">
-                                    <p class="admin-user-name">{{ user.username }}</p>
-                                    <p class="admin-user-email">{{ user.email }}</p>
-                                    {% if user.ban_reason %}
-                                    <p class="admin-user-reason"><i class="fas fa-comment-alt"></i> {{ user.ban_reason }}</p>
-                                    {% endif %}
-                                    {% if user.banned_at %}
-                                    <p class="admin-user-reason"><i class="fas fa-clock"></i> Banned on {{ user.banned_at.strftime('%b %d, %Y') }}</p>
-                                    {% endif %}
-                                    <div class="admin-user-meta">
-                                        <span class="admin-meta-tag">
-                                            <i class="fas fa-user"></i> {{ user.role|capitalize }}
-                                        </span>
-                                        <span class="admin-meta-tag admin-meta-tag--banned">
-                                            <i class="fas fa-ban"></i> Banned
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- FIX 5: Unban + Delete buttons -->
-                            <div class="admin-item-actions">
-                                <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
-                                      onsubmit="return confirm('Unban {{ user.username }}?')">
-                                    <button type="submit" class="admin-action-btn admin-action-btn--approve">
-                                        <i class="fas fa-unlock"></i> Unban
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
-                                      onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
-                                    <button type="submit" class="admin-action-btn admin-action-btn--delete">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </form>
-                            </div>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="admin-empty-state">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No banned users</p>
-                    </div>
-                {% endif %}
-            </div>
-
-        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
-</div>
 
+    <!-- TABLE -->
+    <div class="admin-table-card">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Ban Reason</th>
+                    <th>Banned On</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in banned_users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role | capitalize }}</td>
+                    <td>
+                        {% if user.ban_reason %}
+                            <span class="remarks-text">{{ user.ban_reason }}</span>
+                        {% else %}
+                            <span class="remarks-none">No reason given</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.banned_at %}
+                            <span class="remarks-text">{{ user.banned_at.strftime('%b %d, %Y') }}</span>
+                        {% else %}
+                            <span class="remarks-none">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                              onsubmit="return confirm('Unban {{ user.username }}?')">
+                            <button type="submit" class="btn-restore">
+                                <i class="fas fa-unlock"></i> Unban
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                              onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                            <button type="submit" class="btn-ban">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="empty-row">
+                    <td colspan="6">
+                        <i class="fas fa-check-circle" style="color:#9DC88D;"></i>
+                        No banned users found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
 {% endblock %}

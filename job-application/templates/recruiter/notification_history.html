@@ -26,11 +26,13 @@
     {% else %}
     <div class="notif-history-list">
         {% for n in notifications %}
-        <a href="{% if n.job_id %}/recruiter/job-applications/{{ n.job_id }}{% else %}#{% endif %}"
-           class="notif-history-item {% if not n.is_read %}unread{% endif %}">
+        <a href="{% if n.type == 'account_verified' %}{{ url_for('recruiter.profile') }}{% elif n.job_id %}/recruiter/job-applications/{{ n.job_id }}{% else %}#{% endif %}"
+        class="notif-history-item {% if not n.is_read %}unread{% endif %}">
             <div class="notif-history-icon type-{{ n.type }}">
                 {% if n.type == 'interview_scheduled' %}
                     <i class="fas fa-calendar-check"></i>
+                {% elif n.type == 'account_verified' %}
+                    <i class="fas fa-circle-check"></i>
                 {% else %}
                     <i class="fas fa-file-alt"></i>
                 {% endif %}

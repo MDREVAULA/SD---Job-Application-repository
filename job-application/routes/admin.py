@@ -188,7 +188,7 @@ def verify(user_id):
 
     if current_user.role != 'admin':
         flash("Access denied!", "danger")
-        return redirect(url_for('auth.index'))
+        return redirect(url_for('admin.dashboard'))
 
     user = db.session.get(User, user_id)
 
@@ -200,13 +200,20 @@ def verify(user_id):
         flash("Only recruiter accounts require verification!", "danger")
         return redirect(url_for('admin.dashboard'))
 
-
     user.verification_status = "Approved"
     user.verification_remarks = None
     user.is_verified = True
+
+    # ── Notify the recruiter ──
+    from models import RecruiterNotification
+    notif = RecruiterNotification(
+        recruiter_id=user.id,
+        type='account_verified',
+        message='🎉 Your recruiter account has been <strong>verified and approved</strong> by the admin. You can now post jobs and manage HR accounts.',
+    )
+    db.session.add(notif)
     db.session.commit()
 
-   
     push_admin_notif(
         'account_approved',
         f'{user.role.capitalize()} account <strong>{user.username}</strong> was approved',

@@ -28,7 +28,7 @@ def check_banned():
 
 # ===============================
 # HELPER — profile completion check
-# Minimum required: first_name, last_name, phone_number, city, country
+# Minimum required: first_name, last_name, phone_number, city, country, home_address
 # ===============================
 def is_profile_complete(prof):
     if not prof:
@@ -39,6 +39,7 @@ def is_profile_complete(prof):
         prof.phone_number,
         prof.city,
         prof.country,
+        prof.home_address,
     ])
 
 
@@ -52,6 +53,43 @@ def get_or_create_profile():
         db.session.add(profile)
         db.session.commit()
     return profile
+
+
+# ================================================================
+# BEFORE REQUEST GATE
+# ================================================================
+@applicant_bp.before_request
+def gate_applicant_features():
+    if not current_user.is_authenticated:
+        return
+
+    if current_user.role != 'applicant':
+        return
+
+    # Already complete — full access
+    if getattr(current_user, 'profile_complete', False):
+        return
+
+    # Profile incomplete — only allow profile-related endpoints
+    ALLOWED = {
+        'applicant.profile',
+        'applicant.update_personal',
+        'applicant.update_social',
+        'applicant.upload_profile_picture',
+        'applicant.add_experience',     'applicant.delete_experience',
+        'applicant.add_education',      'applicant.delete_education',
+        'applicant.add_project',        'applicant.delete_project',
+        'applicant.add_skill',          'applicant.delete_skill',
+        'applicant.add_certification',  'applicant.delete_certification',
+        'applicant.upload_resume',      'applicant.delete_resume',
+        'applicant.upload_portfolio',   'applicant.delete_portfolio',
+        'applicant.upload_certificate', 'applicant.delete_certificate',
+        'auth.logout',
+    }
+
+    if request.endpoint not in ALLOWED:
+        flash("Please complete your profile first to access this feature.", "info")
+        return redirect(url_for('applicant.profile'))
 
 
 # ===============================
@@ -104,26 +142,7 @@ def profile():
         profile_complete=profile_complete,
     )
 
-# ================================================================
-# Applicant Profile Completion Gate
-# ================================================================
-# Applicants no longer need verification to use the platform,
-# BUT they must complete their profile before applying for jobs.
-# ================================================================
- 
-def is_applicant_profile_complete(user):
-    """Returns True if the applicant has filled in the minimum required profile fields."""
-    profile = ApplicantProfile.query.filter_by(user_id=user.id).first()
-    if not profile:
-        return False
-    return all([
-        profile.first_name,
-        profile.last_name,
-        profile.phone_number,
-        profile.country,
-        profile.city,
-    ])
- 
+
 # ===============================
 # UPDATE PERSONAL INFO
 # ===============================
@@ -158,8 +177,19 @@ def update_personal():
         except:
             pass
 
-    # Sync profile_completed flag on User
-    current_user.profile_completed = is_profile_complete(prof)
+    # ── Flip profile_complete and notify — only fires once ──
+    was_complete = getattr(current_user, 'profile_complete', False)
+
+    if not was_complete and is_profile_complete(prof):
+        current_user.profile_complete = True
+
+        notif = ApplicantNotification(
+            applicant_id=current_user.id,
+            type='profile_complete',
+            message='🎉 Your profile is now <strong>complete</strong>! You can now browse and apply for jobs on the platform.',
+        )
+        db.session.add(notif)
+
     db.session.commit()
 
     flash("Personal information updated!", "success")
@@ -473,7 +503,6 @@ def upload_profile_picture():
 
 # ===============================
 # APPLICANT DASHBOARD
-# ── Gated: profile must be complete to apply for jobs
 # ===============================
 @applicant_bp.route('/dashboard')
 @login_required
@@ -519,7 +548,6 @@ def job_details(job_id):
 
 # ===============================
 # APPLY FOR JOB
-# ── Requires profile completion (not admin verification)
 # ===============================
 @applicant_bp.route('/apply/<int:job_id>', methods=["GET", "POST"])
 @login_required
@@ -532,8 +560,7 @@ def apply_job(job_id):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    # Block application if profile is incomplete
-    if not is_applicant_profile_complete(current_user):
+    if not getattr(current_user, 'profile_complete', False):
         flash("Please complete your profile before applying for jobs.", "warning")
         return redirect(url_for('applicant.profile'))
 
@@ -599,7 +626,7 @@ def apply_job(job_id):
             )
             db.session.add(hr_notif)
 
-        # Notify applicant: job application submitted
+        # Notify applicant
         app_notif = ApplicantNotification(
             applicant_id=current_user.id,
             type='job_update',
@@ -615,6 +642,8 @@ def apply_job(job_id):
         return redirect(url_for('applicant.dashboard'))
 
     return render_template("applicant/apply_job.html", job=job)
+
+
 # ===============================
 # UPLOAD RESUME
 # ===============================
@@ -850,10 +879,10 @@ def mark_notifications_read():
     db.session.commit()
     return jsonify({'ok': True})
 
+
 # ===============================
 # CLEAR ALL NOTIFICATIONS
 # ===============================
-
 @applicant_bp.route('/notifications/clear-all', methods=['POST'])
 @login_required
 def clear_all_notifications():
@@ -868,13 +897,12 @@ def clear_all_notifications():
     ).delete()
     db.session.commit()
 
-    # JSON request (bell dropdown AJAX)
     if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({'ok': True})
 
-    # Form POST (from notification history page)
     flash("All notifications cleared.", "success")
     return redirect(url_for('applicant.notification_history'))
+
 
 # ===============================
 # APPLICANT NOTIFICATION HISTORY PAGE
@@ -888,7 +916,6 @@ def notification_history():
     notifs = ApplicantNotification.query.filter_by(
         applicant_id=current_user.id
     ).order_by(ApplicantNotification.created_at.desc()).all()
-    # Mark all as read when page is opened
     ApplicantNotification.query.filter_by(
         applicant_id=current_user.id, is_read=False
     ).update({'is_read': True})

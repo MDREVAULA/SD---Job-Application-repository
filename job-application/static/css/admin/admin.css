@@ -769,3 +769,33 @@
     padding: 0 4px;
     line-height: 1;
 }
+
+.btn-ban {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    white-space: nowrap;
+}
+
+.btn-ban:hover {
+    background: rgba(220, 38, 38, 0.22);
+    border-color: #f87171;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.btn-restore--active {
+    background: rgba(157, 200, 141, 0.22);
+    border-color: #9DC88D;
+    color: #fff;
+}

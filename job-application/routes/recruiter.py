@@ -48,7 +48,6 @@ def is_recruiter_profile_complete(profile):
         profile.company_industry,
         profile.country,
         profile.city,
-        profile.company_proof,
     ])
 
 
@@ -122,33 +121,42 @@ def submit_for_review():
     banned = check_banned()
     if banned:
         return banned
-
+ 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
-
+ 
     from models import RecruiterProfile
     profile = current_user.recruiter_profile
-
+ 
     if not is_recruiter_profile_complete(profile):
         flash("Please complete all required profile fields before submitting for review.", "warning")
         return redirect(url_for('recruiter.profile'))
-
+ 
     if current_user.is_verified:
         flash("Your account is already verified.", "info")
         return redirect(url_for('recruiter.profile'))
-
+ 
     if profile.submitted_for_review and current_user.verification_status == "Pending":
         flash("Your account is already pending review.", "info")
         return redirect(url_for('recruiter.profile'))
-
+ 
+    # Mark as submitted
     profile.submitted_for_review = True
     current_user.verification_status = "Pending"
+ 
+    # ── Notify admin so the profile appears in the dashboard ──
+    from routes.admin import push_admin_notif
+    push_admin_notif(
+        'account_request',
+        f'Recruiter <strong>{current_user.username}</strong> has submitted their profile for verification.',
+        user_id=current_user.id
+    )
+ 
     db.session.commit()
-
+ 
     flash("Your profile has been submitted for admin review. You'll be notified once verified.", "success")
     return redirect(url_for('recruiter.profile'))
-
 
 # ===============================
 # UPLOAD PROFILE PICTURE
@@ -263,23 +271,23 @@ def update_profile():
     banned = check_banned()
     if banned:
         return banned
-
+ 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
-
+ 
     from models import RecruiterProfile
     section = request.form.get('section')
     profile = current_user.recruiter_profile
-
+ 
     if not profile:
         profile = RecruiterProfile(user_id=current_user.id)
         db.session.add(profile)
-
+ 
     if section == 'personal':
         profile.first_name   = request.form.get('first_name', '').strip()
         profile.middle_name  = request.form.get('middle_name', '').strip()
-        profile.surname      = request.form.get('surname', '').strip()
+        profile.surname      = request.form.get('surname', '').strip()  # form field is 'last_name'
         profile.gender       = request.form.get('gender', '').strip()
         profile.phone_number = request.form.get('phone_number', '').strip()
         profile.home_address = request.form.get('home_address', '').strip()
@@ -291,7 +299,7 @@ def update_profile():
                 profile.date_of_birth = datetime.strptime(dob_str, "%Y-%m-%d").date()
             except ValueError:
                 pass
-
+ 
     elif section == 'company':
         profile.company_name         = request.form.get('company_name', '').strip()
         profile.company_industry     = request.form.get('industry', '').strip()
@@ -300,7 +308,7 @@ def update_profile():
         profile.company_address      = request.form.get('company_address', '').strip()
         profile.company_email_domain = request.form.get('company_website', '').strip()
         profile.company_description  = request.form.get('company_description', '').strip()
-
+ 
     elif section == 'account':
         new_username = request.form.get('username', '').strip()
         if new_username and new_username != current_user.username:
@@ -309,13 +317,18 @@ def update_profile():
                 flash("That username is already taken.", "danger")
                 return redirect(url_for('recruiter.profile'))
             current_user.username = new_username
-
-    # Sync profile_completed flag
-    current_user.profile_completed = is_recruiter_profile_complete(profile)
+ 
+    db.session.flush()  # write profile fields before checking completeness
+ 
+    # ── Re-fetch user row directly so SQLAlchemy tracks the change ──
+    user_row = db.session.get(User, current_user.id)
+    if not getattr(user_row, 'profile_complete', False):
+        if is_recruiter_profile_complete(profile):
+            user_row.profile_complete = True
+ 
     db.session.commit()
     flash("Profile updated successfully!", "success")
     return redirect(url_for('recruiter.profile'))
-
 
 # ===============================
 # UPDATE SOCIAL LINKS
