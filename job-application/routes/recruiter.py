@@ -1089,7 +1089,6 @@ def delete_job(job_id):
     flash("Job deleted successfully!", "success")
     return redirect(url_for('recruiter.my_job_list'))
 
-<<<<<<< HEAD
 @recruiter_bp.route('/setup-profile', methods=['GET', 'POST'])
 @login_required
 def setup_profile():
@@ -1310,8 +1309,7 @@ def clear_all_notifications():
 
     flash("All notifications cleared.", "success")
     return redirect(url_for('recruiter.notification_history'))
-<<<<<<< HEAD
-=======
+
 
 
 # ===============================
