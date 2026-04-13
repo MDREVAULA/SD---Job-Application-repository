@@ -196,6 +196,8 @@
     .rp-grid { grid-template-columns: 1fr; }
     .rp-actions-grid { grid-template-columns: 1fr; }
     .rp-company-row { flex-direction: column; }
+}
+
 .prof-wrapper *,
 .prof-wrapper *::before,
 .prof-wrapper *::after {
