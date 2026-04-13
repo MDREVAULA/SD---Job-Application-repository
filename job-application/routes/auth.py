@@ -156,7 +156,7 @@ def login():
 
         # Recruiter pending
         if user.role == "recruiter" and user.verification_status == "Pending":
-            flash("Your recruiter account is pending admin verification.", "login_warning")
+            flash("Your recruiter account is pending admin verification.", "login_error")
             return redirect(url_for("auth.login"))
 
         login_user(user)
@@ -253,7 +253,7 @@ def google_callback():
 
     # Block pending recruiters
     if user.role == "recruiter" and user.verification_status == "Pending":
-        flash("Your recruiter account is pending admin verification.", "login_warning")
+        flash("Your recruiter account is pending admin verification.", "login_error")
         return redirect(url_for("auth.login"))
 
     # =====================================================
@@ -569,7 +569,7 @@ def forgot_password():
 
         if user and user.google_id and not user.password:
             # Google user — tell them to use Google
-            flash("This email is linked to a Google account. Please use 'Sign in with Google' instead.", "login_warning")
+            flash("This email is linked to a Google account. Please use 'Sign in with Google' instead.", "login_error")
             return redirect(url_for("auth.login"))
 
         if user and user.password:

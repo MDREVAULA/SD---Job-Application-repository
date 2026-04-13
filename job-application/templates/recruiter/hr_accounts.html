@@ -3,190 +3,271 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/hr_accounts.css') }}">
 
-<div class="hr-accounts-wrapper">
-
-    <!-- HEADER SECTION -->
-    <div class="hr-accounts-header">
-        <div class="header-content">
-            <div class="header-icon">
+<div class="hra-container" style="max-width: 1600px; margin: 0 auto; padding: 24px 32px 80px; width: 100%; box-sizing: border-box;">
+    <!-- Header Section -->
+    <div class="hra-header">
+        <div class="hra-header-left">
+            <div class="hra-header-icon">
                 <i class="fas fa-users-cog"></i>
             </div>
             <div>
-                <h1>HR Account Management</h1>
-                <p>Create and manage HR team members for your organization</p>
+                <h1 class="hra-title">HR Team Management</h1>
+                <p class="hra-subtitle">Manage your human resources team members and their permissions</p>
             </div>
         </div>
-        <div class="header-stats">
-            <div class="stat-card">
-                <i class="fas fa-user-shield"></i>
-                <div>
-                    <h3>{{ hrs | length }}</h3>
-                    <p>HR Members</p>
+        <div class="hra-header-stats">
+            <div class="hra-stat-card">
+                <div class="hra-stat-icon"><i class="fas fa-user-shield"></i></div>
+                <div class="hra-stat-info">
+                    <div class="hra-stat-value">{{ hrs|length }}</div>
+                    <div class="hra-stat-label">Total HR</div>
+                </div>
+            </div>
+            <div class="hra-stat-card">
+                <div class="hra-stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="hra-stat-info">
+                    <div class="hra-stat-value">{{ hrs|selectattr('must_change_password', 'equalto', false)|list|length }}</div>
+                    <div class="hra-stat-label">Active</div>
+                </div>
+            </div>
+            <div class="hra-stat-card">
+                <div class="hra-stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="hra-stat-info">
+                    <div class="hra-stat-value">{{ hrs|selectattr('must_change_password', 'equalto', true)|list|length }}</div>
+                    <div class="hra-stat-label">Pending</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SUCCESS MESSAGE WITH TEMP PASSWORD (STAYS UNTIL PAGE REFRESH) -->
-    {% if temp_password %}
-    <div class="temp-password-box" id="tempPasswordBox">
-        <div class="success-header">
-            <div class="success-icon">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <div>
-                <h3>HR Account Created Successfully!</h3>
-                <p>Share the temporary password below with the new HR member. This will stay visible until you refresh or leave this page.</p>
-            </div>
-            <button class="close-password-box" onclick="closePasswordBox()" title="Dismiss">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="password-section">
-            <label>
-                <i class="fas fa-key"></i> Temporary Password
-            </label>
-            <div class="password-container">
-                <input 
-                    type="text" 
-                    id="tempPassword" 
-                    value="{{ temp_password }}" 
-                    readonly
-                    class="password-input"
-                >
-                <button onclick="copyPassword()" class="btn-copy">
-                    <i class="fas fa-copy"></i> Copy
-                </button>
-            </div>
-        </div>
-
-        <div class="password-note">
-            <i class="fas fa-info-circle"></i>
-            <span>The HR user must change this password upon first login for security. <strong>Save this password now - it won't be shown again!</strong></span>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- TWO COLUMN LAYOUT -->
-    <div class="hr-accounts-grid">
-
-        <!-- LEFT COLUMN: CREATE FORM -->
-        <div class="create-hr-card">
-            <div class="card-header">
-                <h3>
+    <!-- Main Content Grid -->
+    <div class="hra-grid">
+        <!-- Left Column -->
+        <div class="hra-left-col">
+            <!-- Create HR Form -->
+            <div class="hra-card">
+                <div class="hra-card-header">
                     <i class="fas fa-user-plus"></i>
-                    Create New HR Account
-                </h3>
-                <p>Add a new HR team member to help manage applications</p>
+                    <h2>Create New HR Account</h2>
+                </div>
+                <div class="hra-card-body">
+                    <form method="POST" action="{{ url_for('recruiter.create_hr') }}" class="hra-form" id="createHrForm">
+                        <div class="hra-form-group">
+                            <label><i class="fas fa-user"></i> Username <span class="required">*</span></label>
+                            <input type="text" name="username" placeholder="e.g., Jane Smith" required>
+                        </div>
+                        <div class="hra-form-group">
+                            <label><i class="fas fa-envelope"></i> Email Address <span class="required">*</span></label>
+                            <input type="email" name="email" placeholder="hr@company.com" required>
+                        </div>
+                        <button type="submit" class="hra-submit-btn">
+                            <i class="fas fa-plus-circle"></i> Create HR Account
+                        </button>
+                    </form>
+                    <div class="hra-form-note">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>A secure temporary password will be automatically generated and sent to the HR member's email.</span>
+                    </div>
+                </div>
             </div>
 
-            <form method="POST" action="{{ url_for('recruiter.create_hr') }}" class="hr-form">
-                
-                <div class="form-group">
-                    <label for="hr-name">
-                        <i class="fas fa-user"></i> Full Name
-                    </label>
-                    <input 
-                        type="text" 
-                        id="hr-name"
-                        name="username" 
-                        placeholder="Enter full name" 
-                        required
-                        class="form-input"
-                    >
+            <!-- Temporary Password Banner -->
+            {% if temp_password %}
+            <div class="hra-password-banner" id="tempPasswordBox" style="margin-top: 20px;">
+                <div class="hra-banner-icon"><i class="fas fa-key"></i></div>
+                <div class="hra-banner-content">
+                    <h3>HR Account Created Successfully</h3>
+                    <p>Share this temporary password with the new HR member. <strong>Save it now</strong> — it won't be shown again.</p>
+                    <div class="hra-password-display">
+                        <div class="hra-pw-field-wrap">
+                            <i class="fas fa-key hra-pw-icon"></i>
+                            <input type="text" id="tempPassword" value="{{ temp_password }}" readonly class="hra-pw-input">
+                        </div>
+                        <button onclick="copyPassword()" class="hra-copy-btn">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                    <div class="hra-password-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>The HR member must change this password upon first login. <strong>Save this now!</strong></span>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label for="hr-email">
-                        <i class="fas fa-envelope"></i> Email Address
-                    </label>
-                    <input 
-                        type="email" 
-                        id="hr-email"
-                        name="email" 
-                        placeholder="hr@company.com" 
-                        required
-                        class="form-input"
-                    >
-                </div>
-
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-plus-circle"></i> Create HR Account
-                </button>
-
-            </form>
-
-            <div class="form-info">
-                <i class="fas fa-shield-alt"></i>
-                <span>A secure temporary password will be automatically generated</span>
+                <button class="hra-banner-close" onclick="closePasswordBox()"><i class="fas fa-times"></i></button>
             </div>
+            {% endif %}
         </div>
 
-        <!-- RIGHT COLUMN: HR LIST -->
-        <div class="hr-list-card">
-            <div class="card-header">
-                <h3>
+        <!-- Right Column -->
+        <div class="hra-right-col">
+            <div class="hra-card hra-team-card">
+                <div class="hra-card-header">
                     <i class="fas fa-users"></i>
-                    Your HR Team
-                </h3>
-                <p>{{ hrs | length }} team member{{ 's' if hrs | length != 1 else '' }}</p>
-            </div>
-
-            <div class="hr-list-container">
-                {% if not hrs %}
-                <div class="empty-state">
-                    <i class="fas fa-user-friends"></i>
-                    <h4>No HR Members Yet</h4>
-                    <p>Create your first HR account to start building your team</p>
-                </div>
-                {% else %}
-                <div class="hr-list">
-                    {% for hr in hrs %}
-                    <div class="hr-item">
-                        <div class="hr-avatar">
-                            {% if hr.profile_picture %}
-                                {% if hr.profile_picture.startswith('http') %}
-                                    <img src="{{ hr.profile_picture }}" alt="{{ hr.username }}">
-                                {% else %}
-                                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr.profile_picture) }}" alt="{{ hr.username }}">
-                                {% endif %}
-                            {% else %}
-                                <i class="fas fa-user-circle"></i>
-                            {% endif %}
+                    <h2>Your HR Team</h2>
+                    <div class="hra-card-actions">
+                        <div class="hra-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="hrSearch" placeholder="Search by name or email...">
                         </div>
-                        <div class="hr-info">
-                            <h4>{{ hr.username }}</h4>
-                            <p>
-                                <i class="fas fa-envelope"></i>
-                                {{ hr.email }}
-                            </p>
-                            {% if hr.must_change_password %}
-                            <span class="status-badge pending">
-                                <i class="fas fa-clock"></i> Awaiting First Login
-                            </span>
-                            {% else %}
-                            <span class="status-badge active">
-                                <i class="fas fa-check-circle"></i> Active
-                            </span>
-                            {% endif %}
-                        </div>
-                        <div class="hr-actions">
-                            <button class="btn-icon" title="View Details">
-                                <i class="fas fa-eye"></i>
+                        <div class="hra-filter-dropdown">
+                            <button class="hra-filter-btn" id="filterBtn">
+                                <i class="fas fa-sort"></i>
                             </button>
+                            <div class="hra-filter-menu" id="filterMenu">
+                                <div class="hra-filter-option" data-filter="all">
+                                    <i class="fas fa-users"></i> Show All
+                                </div>
+                                <div class="hra-filter-divider"></div>
+                                <div class="hra-filter-option" data-sort="name_asc">
+                                    <i class="fas fa-sort-alpha-down"></i> Name (A-Z)
+                                </div>
+                                <div class="hra-filter-option" data-sort="name_desc">
+                                    <i class="fas fa-sort-alpha-up"></i> Name (Z-A)
+                                </div>
+                                <div class="hra-filter-divider"></div>
+                                <div class="hra-filter-option" data-filter="active">
+                                    <i class="fas fa-check-circle"></i> Active
+                                </div>
+                                <div class="hra-filter-option" data-filter="pending">
+                                    <i class="fas fa-clock"></i> Pending
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-                {% endif %}
+                <div class="hra-card-body">
+                    <div class="hra-filter-tabs">
+                        <button class="hra-filter-tab active" data-filter="all">All ({{ hrs|length }})</button>
+                        <button class="hra-filter-tab" data-filter="active">Active ({{ hrs|selectattr('must_change_password', 'equalto', false)|list|length }})</button>
+                        <button class="hra-filter-tab" data-filter="pending">Pending ({{ hrs|selectattr('must_change_password', 'equalto', true)|list|length }})</button>
+                    </div>
+
+                    <div class="hra-table-wrapper">
+                        <table class="hra-table" id="hrTable">
+                            <thead>
+                                <tr>
+                                    <th>HR Member</th>
+                                    <th>EMAIL</th>
+                                    <th>Status</th>
+                                    <th style="width: 15%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="hrTableBody">
+                                {% for hr in hrs %}
+                                <tr data-status="{% if hr.must_change_password %}pending{% else %}active{% endif %}"
+                                    data-id="{{ hr.id }}"
+                                    data-name="{{ hr.username|lower }}"
+                                    data-email="{{ hr.email|lower }}"
+                                    data-fullname="{{ hr.username }}">
+                                    <td>
+                                        <div class="hra-member-info">
+                                            <div class="hra-avatar">
+                                                {% if hr.profile_picture %}
+                                                    {% if hr.profile_picture.startswith('http') %}
+                                                        <img src="{{ hr.profile_picture }}" alt="{{ hr.username }}">
+                                                    {% else %}
+                                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr.profile_picture) }}" alt="{{ hr.username }}">
+                                                    {% endif %}
+                                                {% else %}
+                                                    <div class="hra-avatar-placeholder">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div class="hra-member-name">{{ hr.username }}</div>
+                                                <div class="hra-member-joined">Joined: {{ hr.created_at.strftime('%b %d, %Y') if hr.created_at else 'N/A' }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="hra-contact-info">
+                                            <div><i class="fas fa-envelope"></i> {{ hr.email }}</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if hr.must_change_password %}
+                                            <span class="hra-badge hra-badge-pending">
+                                                <i class="fas fa-clock"></i> Pending Activation
+                                            </span>
+                                        {% else %}
+                                            <span class="hra-badge hra-badge-active">
+                                                <i class="fas fa-check-circle"></i> Active
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="hra-action-buttons">
+                                            <button class="hra-action-btn view-hr" data-id="{{ hr.id }}" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="hra-action-btn delete-hr" data-id="{{ hr.id }}" data-name="{{ hr.username }}" title="Delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION -->
+                    <div class="hra-pagination-wrap" id="paginationWrap">
+                        <!-- LEFT SIDE (Delete All) -->
+                        <div class="hra-pagination-left">
+                            {% if hrs|length > 0 %}
+                            <button type="button" class="hra-submit-btn" id="deleteAllHrBtn">
+                                <i class="fas fa-trash"></i> Delete All
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="hra-pagination-info" id="paginationInfo"></div>
+                        <div class="hra-pagination-controls">
+                            <button class="hra-page-btn" id="prevBtn">Previous</button>
+                            <div class="hra-page-numbers" id="pageNumbers"></div>
+                            <button class="hra-page-btn" id="nextBtn">Next</button>
+                        </div>
+                    </div>
+
+                    <!-- Empty state message -->
+                    <div class="hra-empty-results" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
+                        <i class="fas fa-user-slash" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                        <p>No HR members found matching your criteria.</p>
+                    </div>
+                </div>
             </div>
         </div>
-
     </div>
-
 </div>
 
-<script src="{{ url_for('static', filename='js/recruiter/hr_accounts.js') }}"></script>
+<!-- HR Details Modal -->
+<div id="hrDetailsModal" class="hra-modal">
+    <div class="hra-modal-content">
+        <div class="hra-modal-header">
+            <h3><i class="fas fa-user-circle"></i> HR Member Details</h3>
+            <button class="hra-modal-close">&times;</button>
+        </div>
+        <div class="hra-modal-body" id="hrDetailsContent"></div>
+    </div>
+</div>
 
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="hra-modal">
+    <div class="hra-modal-content hra-modal-sm">
+        <div class="hra-modal-header">
+            <h3 id="confirmTitle">Confirm Action</h3>
+            <button class="hra-modal-close" onclick="closeConfirmModal()">&times;</button>
+        </div>
+        <div class="hra-modal-body">
+            <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            <div class="hra-modal-buttons">
+                <button type="button" class="hra-btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+                <button type="button" class="hra-btn-danger" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/recruiter/hr_accounts.js') }}"></script>
 {% endblock %}

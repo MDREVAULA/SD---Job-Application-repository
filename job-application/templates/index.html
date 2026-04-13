@@ -181,16 +181,17 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="no-results">
+                <!-- NO JOBS FROM SERVER — plain, no card wrapper -->
+                <div class="no-results-plain">
                     <i class="fas fa-search"></i>
                     <h3>No jobs found</h3>
-                    <p>Try adjusting your search or filters</p>
+                    <p>There are currently no job postings available</p>
                 </div>
             {% endif %}
         </div>
 
-        <!-- EMPTY SEARCH STATE (hidden by default) -->
-        <div class="no-results search-empty-state" id="searchEmptyState" style="display:none;">
+        <!-- EMPTY SEARCH STATE — only shown by JS when jobs exist but filters return 0 -->
+        <div class="no-results-plain search-empty-state" id="searchEmptyState" style="display:none;">
             <i class="fas fa-filter"></i>
             <h3>No matching jobs</h3>
             <p>Try different keywords or clear your filters</p>

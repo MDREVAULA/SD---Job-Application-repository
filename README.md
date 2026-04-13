@@ -112,6 +112,8 @@ pip install python-dotenv
 pip install authlib
 pip install werkzeug
 pip install requests
+pip install python-dotenv
+pip install Pillow
 ```
 
 Or install everything at once if a `requirements.txt` is provided:

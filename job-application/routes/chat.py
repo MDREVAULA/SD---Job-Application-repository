@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile, HRProfile
+from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile, HRProfile, UserSettings
 from models import ApplicantNotification, RecruiterNotification, HRNotification
 from datetime import datetime
 from sqlalchemy import or_, and_
+import json
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
 
@@ -42,24 +43,101 @@ def get_company_name(user):
     return None
 
 
-def build_user_card(user, current_user_id=None):
-    """Return a dict with everything needed to render a user card."""
+def get_user_settings(user_id):
+    """
+    Return UserSettings for a user with safe defaults if none exist.
+    Returns a plain dict so the template/card can access fields easily.
+    """
+    s = UserSettings.query.filter_by(user_id=user_id).first()
+    if not s:
+        return {
+            "show_name":       "everyone",
+            "show_profile":    "everyone",
+            "who_can_message": "all",
+            "show_follow_list": "yes",
+            "show_follow_count": "yes",
+            "profile_audience": ["recruiter", "hr", "follower"],
+        }
+
+    try:
+        audience = json.loads(s.profile_audience_json) if s.profile_audience_json else ["recruiter", "hr", "follower"]
+    except Exception:
+        audience = ["recruiter", "hr", "follower"]
+
+    return {
+        "show_name":        s.show_name        or "everyone",
+        "show_profile":     s.show_profile     or "everyone",
+        "who_can_message":  s.who_can_message  or "all",
+        "show_follow_list": s.show_follow_list or "yes",
+        "show_follow_count": s.show_follow_count or "yes",
+        "profile_audience": audience,
+    }
+
+
+def is_mutual_follow(user_a_id, user_b_id):
+    """True if both users follow each other."""
+    if not user_a_id or not user_b_id:
+        return False
+    a_follows_b = Follow.query.filter_by(follower_id=user_a_id, followed_id=user_b_id).first()
+    b_follows_a = Follow.query.filter_by(follower_id=user_b_id, followed_id=user_a_id).first()
+    return bool(a_follows_b and b_follows_a)
+
+
+def build_user_card(user, current_user_id=None, current_user_role=None, following_ids=None):
+    """
+    Return a dict with everything needed to render a user card,
+    including privacy and messaging settings from UserSettings.
+    """
     company = get_company_name(user)
-    is_following = False
-    if current_user_id:
+
+    # ── Follow state ──
+    is_following = user.id in following_ids if following_ids is not None else False
+    if following_ids is None and current_user_id:
         is_following = Follow.query.filter_by(
             follower_id=current_user_id, followed_id=user.id
         ).first() is not None
 
+    follower_count = Follow.query.filter_by(followed_id=user.id).count()
+
+    # ── Mutual follow ──
+    mutual = is_mutual_follow(current_user_id, user.id) if current_user_id else False
+
+    # ── Privacy settings ──
+    settings = get_user_settings(user.id)
+    show_profile    = settings["show_profile"]
+    who_can_message = settings["who_can_message"]
+    show_name       = settings["show_name"]
+
+    # ── Display name — respect show_name == 'mutual' ──
+    full_name = get_display_name(user)
+    if show_name == "mutual" and not mutual:
+        display_name = user.username   # hide real name if not mutual
+    else:
+        display_name = full_name
+
+    # ── Can the current viewer message this user? ──
+    viewer_can_msg = True
+    if who_can_message == "recruiters":
+        if not (current_user_id and current_user_role == "recruiter"):
+            viewer_can_msg = False
+    elif who_can_message == "mutual":
+        if not mutual:
+            viewer_can_msg = False
+
     return {
-        "id": user.id,
-        "username": user.username,
-        "display_name": get_display_name(user),
-        "role": user.role,
-        "company": company,
+        "id":              user.id,
+        "username":        user.username,
+        "display_name":    display_name,
+        "role":            user.role,
+        "company":         company,
         "profile_picture": user.profile_picture,
-        "is_following": is_following,
-        "follower_count": Follow.query.filter_by(followed_id=user.id).count(),
+        "is_following":    is_following,
+        "is_mutual":       mutual,
+        "follower_count":  follower_count,
+        # ── privacy fields (used by template badges) ──
+        "show_profile":    show_profile,
+        "who_can_message": who_can_message,
+        "viewer_can_msg":  viewer_can_msg,
     }
 
 
@@ -101,7 +179,6 @@ def _notify_new_message(sender, receiver, message_preview):
     msg_text = f"<strong>{sender.username}</strong> sent you a message: \"{preview}\""
 
     if receiver.role == 'applicant':
-        # Check for recent unread notification from same sender to avoid spam
         existing = ApplicantNotification.query.filter_by(
             applicant_id=receiver.id,
             type='new_message',
@@ -215,8 +292,20 @@ def people():
 
     users = users_query.order_by(User.username).all()
 
-    current_id = current_user.id if current_user.is_authenticated else None
-    user_cards = [build_user_card(u, current_id) for u in users]
+    # Pre-fetch all follow relationships for the current viewer in one query
+    # to avoid N+1 queries inside build_user_card
+    current_id   = current_user.id   if current_user.is_authenticated else None
+    current_role = current_user.role if current_user.is_authenticated else None
+
+    following_ids = set()
+    if current_id:
+        rows = Follow.query.filter_by(follower_id=current_id).all()
+        following_ids = {r.followed_id for r in rows}
+
+    user_cards = [
+        build_user_card(u, current_id, current_role, following_ids)
+        for u in users
+    ]
 
     return render_template(
         "chat/people.html",

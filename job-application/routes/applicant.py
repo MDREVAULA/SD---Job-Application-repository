@@ -1,7 +1,12 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_required, current_user
-from models import db, Job, Application, User, ApplicantProfile, WorkExperience, Education, Skill, Project, Certification
-from models import RecruiterNotification, HRNotification, ApplicantNotification
+from models import (
+    db, Job, Application, User,
+    ApplicantProfile, WorkExperience,
+    ApplicantEducation,          # ← applicant-only education table
+    Skill, Project, Certification,
+    RecruiterNotification, HRNotification, ApplicantNotification
+)
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -41,11 +46,11 @@ def profile():
 
     prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
 
-    experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
-    educations     = Education.query.filter_by(profile_id=prof.id).order_by(Education.created_at.desc()).all() if prof else []
-    skills         = Skill.query.filter_by(profile_id=prof.id).all() if prof else []
-    projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all() if prof else []
-    certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all() if prof else []
+    experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all()    if prof else []
+    educations     = ApplicantEducation.query.filter_by(profile_id=prof.id).order_by(ApplicantEducation.created_at.desc()).all() if prof else []
+    skills         = Skill.query.filter_by(profile_id=prof.id).all()                                                        if prof else []
+    projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all()                 if prof else []
+    certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all()     if prof else []
 
     follower_rows  = Follow.query.filter_by(followed_id=current_user.id).all()
     following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
@@ -172,7 +177,7 @@ def delete_experience(exp_id):
 
 
 # ===============================
-# EDUCATION — ADD
+# EDUCATION — ADD  (applicant-only)
 # ===============================
 @applicant_bp.route('/profile/add-education', methods=['POST'])
 @login_required
@@ -183,7 +188,8 @@ def add_education():
 
     prof = get_or_create_profile()
 
-    edu = Education(
+    # ── Write into applicant_education, never recruiter_education ──
+    edu = ApplicantEducation(
         profile_id     = prof.id,
         school         = request.form.get('school', '').strip(),
         degree         = request.form.get('degree', '').strip(),
@@ -200,12 +206,12 @@ def add_education():
 
 
 # ===============================
-# EDUCATION — DELETE
+# EDUCATION — DELETE  (applicant-only)
 # ===============================
 @applicant_bp.route('/profile/delete-education/<int:edu_id>', methods=['POST'])
 @login_required
 def delete_education(edu_id):
-    edu = Education.query.get_or_404(edu_id)
+    edu = ApplicantEducation.query.get_or_404(edu_id)
     prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
     if not prof or edu.profile_id != prof.id:
         flash("Access denied!", "danger")
@@ -466,7 +472,6 @@ def apply_job(job_id):
         db.session.add(application)
         db.session.commit()
 
-        # Notify recruiter
         job_owner = Job.query.get(application.job_id)
         notif = RecruiterNotification(
             recruiter_id=job_owner.company_id,
@@ -477,7 +482,6 @@ def apply_job(job_id):
         )
         db.session.add(notif)
 
-        # Notify HR
         hr_users = User.query.filter_by(
             created_by=job_owner.company_id,
             role='hr'
@@ -493,7 +497,6 @@ def apply_job(job_id):
             )
             db.session.add(hr_notif)
 
-        # Notify applicant: job application submitted
         app_notif = ApplicantNotification(
             applicant_id=current_user.id,
             type='job_update',
@@ -746,9 +749,6 @@ def mark_notifications_read():
     db.session.commit()
     return jsonify({'ok': True})
 
-# ===============================
-# CLEAR ALL NOTIFICATIONS
-# ===============================
 
 @applicant_bp.route('/notifications/clear-all', methods=['POST'])
 @login_required
@@ -764,16 +764,15 @@ def clear_all_notifications():
     ).delete()
     db.session.commit()
 
-    # JSON request (bell dropdown AJAX)
     if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({'ok': True})
 
-    # Form POST (from notification history page)
     flash("All notifications cleared.", "success")
     return redirect(url_for('applicant.notification_history'))
 
+
 # ===============================
-# APPLICANT NOTIFICATION HISTORY PAGE
+# NOTIFICATION HISTORY PAGE
 # ===============================
 @applicant_bp.route('/notification-history')
 @login_required
@@ -784,7 +783,6 @@ def notification_history():
     notifs = ApplicantNotification.query.filter_by(
         applicant_id=current_user.id
     ).order_by(ApplicantNotification.created_at.desc()).all()
-    # Mark all as read when page is opened
     ApplicantNotification.query.filter_by(
         applicant_id=current_user.id, is_read=False
     ).update({'is_read': True})

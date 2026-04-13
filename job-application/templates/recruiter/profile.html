@@ -171,7 +171,9 @@
             <div class="prof-header-info">
                 <h1>
                     {% if profile and profile.first_name %}
-                        {{ profile.first_name }} {{ profile.surname }}
+                        {{ profile.first_name }}                         
+                        {% if profile.middle_name %} {{ profile.middle_name[0] }}.{% endif %} 
+                        {{ profile.surname }}
                     {% else %}
                         {{ current_user.username }}
                     {% endif %}

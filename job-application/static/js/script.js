@@ -54,31 +54,72 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-/* ============================= */
-/*        THEME TOGGLE           */
-/* ============================= */
-(function () {
-    const saved = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', saved);
-})();
+/* ============================================================
+   THEME SYSTEM
+   ─────────────────────────────────────────────────────────────
+   NOTE: The initial theme application (preventing flash) is now
+   handled by an inline <script> in <head> of layout.html.
+   This file only handles:
+     - Syncing UI controls (Settings buttons, sidebar buttons)
+     - The applyUserTheme() and guestSetTheme() helpers called
+       from settings.js and the sidebar toggle buttons
+   ============================================================ */
 
+// ── DOMContentLoaded: sync UI controls ──
 document.addEventListener('DOMContentLoaded', function () {
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const themeIcon      = document.getElementById('themeIcon');
+    // Read the already-applied theme from <html data-theme>
+    // (set by the inline head script, so it's always correct here)
+    const appliedTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const userTheme    = document.body.getAttribute('data-user-theme');
+    const isLoggedIn   = !!userTheme;
 
-    function applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        themeIcon.className = theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+    if (isLoggedIn) {
+        _syncSettingsThemeBtns(appliedTheme);
+    } else {
+        _syncGuestSidebarBtns(appliedTheme);
     }
-
-    applyTheme(localStorage.getItem('theme') || 'dark');
-
-    themeToggleBtn.addEventListener('click', function () {
-        const current = document.documentElement.getAttribute('data-theme');
-        applyTheme(current === 'dark' ? 'light' : 'dark');
-    });
 });
+
+/**
+ * Called by the Settings page Appearance buttons (setTheme in settings.js).
+ * Applies the theme visually AND saves it to the DB for logged-in users.
+ * This function must be global.
+ */
+function applyUserTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-user-theme', theme);
+    // Also update the meta tag so if the page is re-read it stays consistent
+    const meta = document.querySelector('meta[name="user-theme"]');
+    if (meta) meta.content = theme;
+    _syncSettingsThemeBtns(theme);
+}
+
+/**
+ * Guest-only: toggle theme via the sidebar buttons.
+ * Saves to localStorage only (no DB call).
+ */
+function guestSetTheme(theme) {
+    try { localStorage.setItem('guestTheme', theme); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', theme);
+    _syncGuestSidebarBtns(theme);
+}
+
+// ── Internal helpers ──
+
+function _syncSettingsThemeBtns(theme) {
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        const onclick = btn.getAttribute('onclick') || '';
+        const active  = onclick.includes("'" + theme + "'") || onclick.includes('"' + theme + '"');
+        btn.classList.toggle('active', active);
+    });
+}
+
+function _syncGuestSidebarBtns(theme) {
+    const light = document.getElementById('sidebarThemeLight');
+    const dark  = document.getElementById('sidebarThemeDark');
+    if (light) light.classList.toggle('active', theme === 'light');
+    if (dark)  dark.classList.toggle('active',  theme === 'dark');
+}
 
 /* =============================== */
 /* RECRUITER / HR NOTIFICATIONS    */
@@ -95,14 +136,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const notifMarkAll = document.getElementById('notifMarkAllBtn');
     const notifClear   = document.getElementById('notifClearBtn');
 
-    const isHR       = document.body.classList.contains('is-hr');
-    const API_BASE   = isHR ? '/hr/notifications' : '/recruiter/notifications';
+    const isHR     = document.body.classList.contains('is-hr');
+    const API_BASE = isHR ? '/hr/notifications' : '/recruiter/notifications';
 
     let lastUnreadCount = 0;
     let shownToastIds   = new Set();
     let panelOpen       = false;
 
-    // ── Toggle panel ──
     notifBtn.addEventListener('click', function (e) {
         e.stopPropagation();
         panelOpen = !panelOpen;
@@ -110,7 +150,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (panelOpen) loadNotifications(false);
     });
 
-    // ── Close on outside click ──
     document.addEventListener('click', function (e) {
         if (panelOpen && !notifWrapper.contains(e.target)) {
             panelOpen = false;
@@ -118,14 +157,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ── Mark all as read ──
     notifMarkAll.addEventListener('click', function (e) {
         e.stopPropagation();
         fetch(API_BASE + '/mark-read', { method: 'POST' })
             .then(() => loadNotifications(false));
     });
 
-    // ── Clear all ──
     notifClear.addEventListener('click', function (e) {
         e.stopPropagation();
         fetch(API_BASE + '/clear-all', { method: 'POST' })
@@ -139,13 +176,31 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 
-    // ── Fetch & render ──
+    const TYPE_META = {
+        new_application:    { icon: 'fa-file-alt',        title: 'New Application' },
+        interview_scheduled:{ icon: 'fa-calendar-check',  title: 'Interview Scheduled' },
+        new_message:        { icon: 'fa-comment-dots',    title: 'New Message' },
+        new_follow:         { icon: 'fa-user-plus',       title: 'New Follower' },
+        job_update:         { icon: 'fa-briefcase',       title: 'Job Update' },
+        application_status: { icon: 'fa-clipboard-check', title: 'Application Update' },
+    };
+
+    function getTypeMeta(type) {
+        return TYPE_META[type] || { icon: 'fa-bell', title: 'Notification' };
+    }
+
+    function getNotifUrl(n) {
+        if (n.type === 'new_message') return '/chat/inbox';
+        if (n.type === 'new_follow')  return isHR ? '/hr/profile' : '/recruiter/profile';
+        if (n.job_id) return isHR
+            ? '/hr/job-applications/' + n.job_id
+            : '/recruiter/job-applications/' + n.job_id;
+        return '#';
+    }
+
     function loadNotifications(silent) {
         fetch(API_BASE)
-            .then(r => {
-                if (!r.ok) return null;
-                return r.json();
-            })
+            .then(r => { if (!r.ok) return null; return r.json(); })
             .then(data => {
                 if (!data || data.error) return;
                 const count = data.unread_count || 0;
@@ -171,8 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!silent || panelOpen) renderList(data.notifications);
 
                 if (panelOpen && count > 0) {
-                    fetch(API_BASE + '/mark-read', { method: 'POST' })
-                        .then(() => updateBadge(0));
+                    fetch(API_BASE + '/mark-read', { method: 'POST' }).then(() => updateBadge(0));
                 }
             })
             .catch(() => {});
@@ -190,23 +244,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderList(notifications) {
         if (!notifications || notifications.length === 0) {
-            notifList.innerHTML = `
-                <div class="notif-empty">
-                    <i class="fas fa-bell-slash"></i>
-                    <p>No notifications yet</p>
-                </div>`;
+            notifList.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
             return;
         }
         notifList.innerHTML = notifications.map(function (n) {
-            const icon = n.type === 'interview_scheduled'
-                ? '<i class="fas fa-calendar-check"></i>'
-                : '<i class="fas fa-file-alt"></i>';
-            const url = n.job_id
-                ? (isHR ? '/hr/job-applications/' + n.job_id : '/recruiter/job-applications/' + n.job_id)
-                : '#';
+            const meta = getTypeMeta(n.type);
+            const url  = getNotifUrl(n);
             return `
             <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" onclick="window.location.href='${url}'">
-                <div class="notif-icon type-${n.type}">${icon}</div>
+                <div class="notif-icon type-${n.type}"><i class="fas ${meta.icon}"></i></div>
                 <div class="notif-body">
                     <p class="notif-msg">${n.message}</p>
                     <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
@@ -217,18 +263,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showToast(notif) {
         if (document.querySelectorAll('.notif-toast').length >= 3) return;
-        const icon = notif.type === 'interview_scheduled'
-            ? '<i class="fas fa-calendar-check"></i>'
-            : '<i class="fas fa-file-alt"></i>';
-        const title = notif.type === 'interview_scheduled'
-            ? 'Interview Scheduled'
-            : 'New Job Application';
+        const meta  = getTypeMeta(notif.type);
         const toast = document.createElement('div');
         toast.className = `notif-toast type-${notif.type}`;
         toast.innerHTML = `
-            <div class="notif-toast-icon">${icon}</div>
+            <div class="notif-toast-icon"><i class="fas ${meta.icon}"></i></div>
             <div class="notif-toast-body">
-                <div class="notif-toast-title">${title}</div>
+                <div class="notif-toast-title">${meta.title}</div>
                 <div class="notif-toast-msg">${notif.message}</div>
             </div>
             <button class="notif-toast-close" title="Dismiss"><i class="fas fa-times"></i></button>`;
@@ -249,9 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function dismissToast(toast) {
         if (!toast || !toast.parentNode) return;
         toast.style.animation = 'toastSlideOut 0.3s ease forwards';
-        setTimeout(function () {
-            if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 300);
+        setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
     }
 
     lastUnreadCount = -1;
