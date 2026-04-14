@@ -141,6 +141,7 @@ function appendBubble(msg) {
     div.className = `message-bubble ${msg.is_mine ? 'mine' : 'theirs'}`;
     div.dataset.msgId  = msg.id;
     div.dataset.isMine = msg.is_mine ? 'true' : 'false';
+    div.dataset.myReaction = '';
 
     let replyHtml = '';
     if (msg.reply_to_body) {
@@ -217,6 +218,7 @@ function sendMessage() {
     });
 }
 
+// ── POLL NEW MESSAGES ──
 function poll() {
     fetch(`/chat/poll/${RECEIVER_ID}?since=${lastMessageId}`)
         .then(r => r.json())
@@ -228,6 +230,20 @@ function poll() {
                     lastMessageId = msg.id;
                 }
             });
+        });
+}
+
+// ── POLL REACTIONS (real-time reaction sync) ──
+function pollReactions() {
+    fetch(`/chat/poll-reactions/${RECEIVER_ID}`)
+        .then(r => r.json())
+        .then(data => {
+            Object.entries(data).forEach(([msgId, info]) => {
+                updateReactionBar(parseInt(msgId), info.counts, info.my_reaction);
+            });
+        })
+        .catch(() => {
+            // Silently ignore network errors for reaction polling
         });
 }
 
@@ -322,8 +338,6 @@ function pickReaction(reactionKey, btn) {
 
 // Called when user clicks an existing chip under a bubble
 function onChipClick(chipEl) {
-    const bar    = chipEl.closest('.reaction-bar');
-    const wrap   = chipEl.closest('.reaction-bar-wrap');
     const bubble = chipEl.closest('.message-bubble');
     if (!bubble) return;
 
@@ -690,7 +704,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load existing reactions for all bubbles on page load
     document.querySelectorAll('.message-bubble[data-msg-id]').forEach(bubble => {
-        const rawCounts  = bubble.dataset.reactionCounts  ? JSON.parse(bubble.dataset.reactionCounts)  : {};
+        let rawCounts = {};
+        try {
+            rawCounts = JSON.parse(bubble.dataset.reactionCounts || '{}');
+        } catch(e) {
+            rawCounts = {};
+        }
         const myReaction = bubble.dataset.myReaction || '';
         if (Object.keys(rawCounts).length > 0) {
             updateReactionBar(parseInt(bubble.dataset.msgId), rawCounts, myReaction);
@@ -698,6 +717,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     if (typeof RECEIVER_ID !== 'undefined') {
+        // Poll new messages every 3 seconds
         setInterval(poll, 3000);
+        // Poll reactions every 3 seconds for real-time reaction updates
+        setInterval(pollReactions, 3000);
     }
 });

@@ -24,11 +24,44 @@
                     <i class="fas fa-briefcase"></i>
                     <select id="fieldFilter">
                         <option value="">All Categories</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="IT">IT</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Finance">Finance</option>
+                        <option value="Engineering">💻 Engineering</option>
+                        <option value="IT">🖥️ IT</option>
+                        <option value="UI/UX Design">🎨 UI/UX Design</option>
+                        <option value="Healthcare">⚕️ Healthcare</option>
+                        <option value="Marketing">📢 Marketing</option>
+                        <option value="Finance">💰 Finance</option>
+                        <option value="Architecture">🏗️ Architecture</option>
+                        <option value="Legal">⚖️ Legal</option>
+                        <option value="Education">🎓 Education</option>
+                        <option value="Sales">🛒 Sales</option>
+                        <option value="Customer Service">🤝 Customer Service</option>
+                        <option value="Logistics">🚛 Logistics</option>
+                        <option value="Manufacturing">🏭 Manufacturing</option>
+                        <option value="Research & Science">🔬 Research & Science</option>
+                        <option value="Game Development">🎮 Game Development</option>
+                        <option value="Media & Entertainment">🎬 Media & Entertainment</option>
+                        <option value="Supply Chain">📦 Supply Chain</option>
+                        <option value="Banking">🏦 Banking</option>
+                        <option value="Cybersecurity">🛡️ Cybersecurity</option>
+                        <option value="Data Science / AI">🤖 Data Science / AI</option>
+                        <option value="Accounting">📊 Accounting</option>
+                        <option value="Real Estate">🏘️ Real Estate</option>
+                        <option value="Travel & Tourism">✈️ Travel & Tourism</option>
+                        <option value="Food & Beverage">🍽️ Food & Beverage</option>
+                        <option value="Retail">🛍️ Retail</option>
+                        <option value="Beauty & Wellness">💄 Beauty & Wellness</option>
+                        <option value="Sports & Fitness">🏋️ Sports & Fitness</option>
+                        <option value="Environment">🌿 Environment</option>
+                        <option value="Aerospace">🚀 Aerospace</option>
+                        <option value="Energy & Utilities">⚡ Energy & Utilities</option>
+                        <option value="Pharmaceuticals">🏥 Pharmaceuticals</option>
+                        <option value="Maintenance & Repair">🔧 Maintenance & Repair</option>
+                        <option value="Graphic Design">🎨 Graphic Design</option>
+                        <option value="Content & Writing">📝 Content & Writing</option>
+                        <option value="Consulting">🧠 Consulting</option>
+                        <option value="Human Resources">👥 Human Resources</option>
+                        <option value="Mobile Development">📱 Mobile Development</option>
+                        <option value="Other">🌐 Other</option>
                     </select>
                 </div>
                 <div class="filter-input-group">
@@ -104,7 +137,6 @@
                      data-title="{{ job.title }}"
                      data-posted="{{ job.id }}"
                 >
-
                     <div class="job-main">
 
                         <!-- COMPANY LOGO -->
@@ -156,10 +188,10 @@
                                     {{ job.field or 'General' }}
                                 </span>
                                 {% if job.salary %}
-                                <span class="meta-tag salary-tag">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    {{ job.salary }}
-                                </span>
+                                    <span class="meta-tag salary-tag">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        {{ job.currency or '₱' }} {{ job.salary }}
+                                    </span>
                                 {% endif %}
                             </div>
 
@@ -173,33 +205,47 @@
                         <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-apply">
                             View & Apply
                         </a>
-                        <button class="btn-save" title="Save job">
-                            <i class="far fa-bookmark"></i>
+                        {% if current_user.is_authenticated and current_user.role == "applicant" %}
+                        <button class="btn-save {% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}saved{% endif %}"
+                            data-job-id="{{ job.id }}"
+                            data-auth="{{ 'true' if current_user.is_authenticated and current_user.role == 'applicant' else 'false' }}"
+                            onclick="toggleSaveJob(this, {{ job.id }})">
+                            <i class="{% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
                         </button>
+                        {% endif %}
                     </div>
 
                 </div>
                 {% endfor %}
+
             {% else %}
-                <!-- NO JOBS FROM SERVER — plain, no card wrapper -->
+                <!-- NO JOBS FROM SERVER -->
                 <div class="no-results-plain">
-                    <i class="fas fa-search"></i>
-                    <h3>No jobs found</h3>
-                    <p>There are currently no job postings available</p>
+                    <div class="empty-icon-wrap">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3>No Jobs Available</h3>
+                    <p>There are currently no job postings. Check back soon!</p>
                 </div>
             {% endif %}
         </div>
 
-        <!-- EMPTY SEARCH STATE — only shown by JS when jobs exist but filters return 0 -->
-        <div class="no-results-plain search-empty-state" id="searchEmptyState" style="display:none;">
-            <i class="fas fa-filter"></i>
-            <h3>No matching jobs</h3>
-            <p>Try different keywords or clear your filters</p>
-            <button class="reset-btn" id="resetSearch">Reset filters</button>
+        <!-- SEARCH EMPTY STATE — shown by JS when filters return 0 results -->
+        <div class="search-empty-state" id="searchEmptyState" style="display:none;">
+            <div class="empty-icon-wrap">
+                <i class="fas fa-filter"></i>
+            </div>
+            <h3>No Matching Jobs</h3>
+            <p>Try different keywords or clear your filters to see more results.</p>
+            <button class="reset-btn" id="resetSearch">
+                <i class="fas fa-rotate-left"></i> Reset Filters
+            </button>
         </div>
 
     </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/job_search.js') }}"></script>
+<script src="{{ url_for('static', filename='js/applicant/save_job.js') }}"></script>
+
 {% endblock %}

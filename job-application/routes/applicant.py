@@ -3,10 +3,11 @@ from flask_login import login_required, current_user
 from models import (
     db, Job, Application, User,
     ApplicantProfile, WorkExperience,
-    ApplicantEducation,          # ← applicant-only education table
+    ApplicantEducation,
     Skill, Project, Certification,
-    RecruiterNotification, HRNotification, ApplicantNotification
-)
+    RecruiterNotification, HRNotification, ApplicantNotification,
+    SavedJob
+)   
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -389,12 +390,9 @@ def upload_profile_picture():
     return redirect(url_for('applicant.profile'))
 
 
-# ===============================
-# APPLICANT DASHBOARD
-# ===============================
-@applicant_bp.route('/dashboard')
+@applicant_bp.route('/status')
 @login_required
-def dashboard():
+def status():
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -410,7 +408,15 @@ def dashboard():
         .all()
     )
 
-    return render_template('applicant/dashboard.html', applications=applications)
+    saved_job_ids = {
+        s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
+    }
+
+    return render_template(
+        'applicant/status.html',
+        applications=applications,
+        saved_job_ids=saved_job_ids
+    )
 
 
 # ===============================
@@ -418,9 +424,17 @@ def dashboard():
 # ===============================
 @applicant_bp.route('/job/<int:job_id>')
 def job_details(job_id):
+    from models import SavedJob
     job = Job.query.get_or_404(job_id)
     job_owner = User.query.get(job.company_id)
-    return render_template("applicant/job_details.html", job=job, job_owner=job_owner)
+
+    saved_job_ids = set()
+    if current_user.is_authenticated and current_user.role == 'applicant':
+        saved_job_ids = {
+            s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
+        }
+
+    return render_template("applicant/job_details.html", job=job, job_owner=job_owner, saved_job_ids=saved_job_ids)
 
 
 # ===============================
@@ -435,7 +449,7 @@ def apply_job(job_id):
 
     if not current_user.is_verified:
         flash("Your account is still waiting for admin verification.", "warning")
-        return redirect(url_for('applicant.dashboard'))
+        return redirect(url_for('applicant.status'))
 
     job = Job.query.get_or_404(job_id)
 
@@ -446,7 +460,7 @@ def apply_job(job_id):
 
     if existing:
         flash("You already applied for this job!", "warning")
-        return redirect(url_for('applicant.dashboard'))
+        return redirect(url_for('applicant.status'))
 
     if request.method == "POST":
         cover_letter = request.form.get("cover_letter")
@@ -509,7 +523,7 @@ def apply_job(job_id):
         db.session.commit()
 
         flash("Application submitted successfully!", "success")
-        return redirect(url_for('applicant.dashboard'))
+        return redirect(url_for('applicant.status'))
 
     return render_template("applicant/apply_job.html", job=job)
 
@@ -788,3 +802,51 @@ def notification_history():
     ).update({'is_read': True})
     db.session.commit()
     return render_template('applicant/notification_history.html', notifications=notifs)
+
+# ===============================
+# SAVE / UNSAVE JOB (AJAX)
+# ===============================
+@applicant_bp.route('/save-job/<int:job_id>', methods=['POST'])
+@login_required
+def save_job(job_id):
+    if current_user.role != 'applicant':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    existing = SavedJob.query.filter_by(
+        applicant_id=current_user.id,
+        job_id=job_id
+    ).first()
+
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        return jsonify({'success': True, 'saved': False})
+    else:
+        saved = SavedJob(applicant_id=current_user.id, job_id=job_id)
+        db.session.add(saved)
+        db.session.commit()
+        return jsonify({'success': True, 'saved': True})
+
+
+# ===============================
+# SAVED JOBS PAGE
+# ===============================
+@applicant_bp.route('/saved-jobs')
+@login_required
+def saved_jobs():
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    saved = SavedJob.query.filter_by(
+        applicant_id=current_user.id
+    ).order_by(SavedJob.created_at.desc()).all()
+
+    # Get the IDs of all saved jobs for the bookmark check
+    saved_job_ids = {s.job_id for s in saved}
+
+    return render_template(
+        'applicant/saved_jobs.html',
+        saved=saved,
+        saved_job_ids=saved_job_ids
+    )

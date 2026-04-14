@@ -84,6 +84,38 @@
                   <option value="Healthcare" {% if job.field=="Healthcare" %}selected{% endif %}>⚕️ Healthcare</option>
                   <option value="Marketing" {% if job.field=="Marketing" %}selected{% endif %}>📢 Marketing</option>
                   <option value="Finance" {% if job.field=="Finance" %}selected{% endif %}>💰 Finance</option>
+                  <option value="Architecture" {% if job.field=="Architecture" %}selected{% endif %}>🏗️ Architecture</option>
+                  <option value="Legal" {% if job.field=="Legal" %}selected{% endif %}>⚖️ Legal</option>
+                  <option value="Education" {% if job.field=="Education" %}selected{% endif %}>🎓 Education</option>
+                  <option value="Sales" {% if job.field=="Sales" %}selected{% endif %}>🛒 Sales</option>
+                  <option value="Customer Service" {% if job.field=="Customer Service" %}selected{% endif %}>🤝 Customer Service</option>
+                  <option value="Logistics" {% if job.field=="Logistics" %}selected{% endif %}>🚛 Logistics</option>
+                  <option value="Manufacturing" {% if job.field=="Manufacturing" %}selected{% endif %}>🏭 Manufacturing</option>
+                  <option value="Research & Science" {% if job.field=="Research & Science" %}selected{% endif %}>🔬 Research &amp; Science</option>
+                  <option value="Game Development" {% if job.field=="Game Development" %}selected{% endif %}>🎮 Game Development</option>
+                  <option value="Media & Entertainment" {% if job.field=="Media & Entertainment" %}selected{% endif %}>🎬 Media &amp; Entertainment</option>
+                  <option value="Supply Chain" {% if job.field=="Supply Chain" %}selected{% endif %}>📦 Supply Chain</option>
+                  <option value="Banking" {% if job.field=="Banking" %}selected{% endif %}>🏦 Banking</option>
+                  <option value="Cybersecurity" {% if job.field=="Cybersecurity" %}selected{% endif %}>🛡️ Cybersecurity</option>
+                  <option value="Data Science / AI" {% if job.field=="Data Science / AI" %}selected{% endif %}>🤖 Data Science / AI</option>
+                  <option value="Accounting" {% if job.field=="Accounting" %}selected{% endif %}>📊 Accounting</option>
+                  <option value="Real Estate" {% if job.field=="Real Estate" %}selected{% endif %}>🏘️ Real Estate</option>
+                  <option value="Travel & Tourism" {% if job.field=="Travel & Tourism" %}selected{% endif %}>✈️ Travel &amp; Tourism</option>
+                  <option value="Food & Beverage" {% if job.field=="Food & Beverage" %}selected{% endif %}>🍽️ Food &amp; Beverage</option>
+                  <option value="Retail" {% if job.field=="Retail" %}selected{% endif %}>🛍️ Retail</option>
+                  <option value="Beauty & Wellness" {% if job.field=="Beauty & Wellness" %}selected{% endif %}>💄 Beauty &amp; Wellness</option>
+                  <option value="Sports & Fitness" {% if job.field=="Sports & Fitness" %}selected{% endif %}>🏋️ Sports &amp; Fitness</option>
+                  <option value="Environment" {% if job.field=="Environment" %}selected{% endif %}>🌿 Environment</option>
+                  <option value="Aerospace" {% if job.field=="Aerospace" %}selected{% endif %}>🚀 Aerospace</option>
+                  <option value="Energy & Utilities" {% if job.field=="Energy & Utilities" %}selected{% endif %}>⚡ Energy &amp; Utilities</option>
+                  <option value="Pharmaceuticals" {% if job.field=="Pharmaceuticals" %}selected{% endif %}>🏥 Pharmaceuticals</option>
+                  <option value="Maintenance & Repair" {% if job.field=="Maintenance & Repair" %}selected{% endif %}>🔧 Maintenance &amp; Repair</option>
+                  <option value="Graphic Design" {% if job.field=="Graphic Design" %}selected{% endif %}>🎨 Graphic Design</option>
+                  <option value="Content & Writing" {% if job.field=="Content & Writing" %}selected{% endif %}>📝 Content &amp; Writing</option>
+                  <option value="Consulting" {% if job.field=="Consulting" %}selected{% endif %}>🧠 Consulting</option>
+                  <option value="Human Resources" {% if job.field=="Human Resources" %}selected{% endif %}>👥 Human Resources</option>
+                  <option value="Mobile Development" {% if job.field=="Mobile Development" %}selected{% endif %}>📱 Mobile Development</option>
+                  <option value="Other" {% if job.field=="Other" %}selected{% endif %}>🌐 Other</option>
                 </select>
               </div>
               <div class="field">
@@ -103,11 +135,31 @@
                 <input type="text" name="location" value="{{ job.location or '' }}" placeholder="City, State or Remote">
                 <div class="field-hint">City, State or Remote</div>
               </div>
-              <div class="field">
-                <label>Salary range</label>
-                <input type="text" name="salary" value="{{ job.salary or '' }}" placeholder="e.g. ₱30,000 – ₱50,000">
-                <div class="field-hint">Monthly or annual range</div>
+            </div>
+
+            <div class="field">
+              <label>Salary range</label>
+              <div style="display: flex; gap: 8px;">
+                <select name="currency" style="width: auto; flex-shrink: 0; padding: 10px; border: 1px solid var(--input-border); border-radius: 8px; font-size: 14px; color: var(--input-text); background: var(--input-bg);">
+                  <option value="PHP" {% if job.currency=="PHP" or not job.currency %}selected{% endif %}>₱ PHP</option>
+                  <option value="USD" {% if job.currency=="USD" %}selected{% endif %}>$ USD</option>
+                  <option value="EUR" {% if job.currency=="EUR" %}selected{% endif %}>€ EUR</option>
+                  <option value="GBP" {% if job.currency=="GBP" %}selected{% endif %}>£ GBP</option>
+                  <option value="JPY" {% if job.currency=="JPY" %}selected{% endif %}>¥ JPY</option>
+                  <option value="AUD" {% if job.currency=="AUD" %}selected{% endif %}>A$ AUD</option>
+                  <option value="CAD" {% if job.currency=="CAD" %}selected{% endif %}>C$ CAD</option>
+                  <option value="SGD" {% if job.currency=="SGD" %}selected{% endif %}>S$ SGD</option>
+                  <option value="KRW" {% if job.currency=="KRW" %}selected{% endif %}>₩ KRW</option>
+                  <option value="INR" {% if job.currency=="INR" %}selected{% endif %}>₹ INR</option>
+                  <option value="IDR" {% if job.currency=="IDR" %}selected{% endif %}>Rp IDR</option>
+                  <option value="MYR" {% if job.currency=="MYR" %}selected{% endif %}>RM MYR</option>
+                  <option value="THB" {% if job.currency=="THB" %}selected{% endif %}>฿ THB</option>
+                  <option value="AED" {% if job.currency=="AED" %}selected{% endif %}>د.إ AED</option>
+                  <option value="CHF" {% if job.currency=="CHF" %}selected{% endif %}>CHF</option>
+                </select>
+                <input type="text" name="salary" value="{{ job.salary or '' }}" placeholder="e.g. 30,000 – 50,000" style="flex: 1;">
               </div>
+              <div class="field-hint">Monthly or annual range</div>
             </div>
 
             <div class="field">

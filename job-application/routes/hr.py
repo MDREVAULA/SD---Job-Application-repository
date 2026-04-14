@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification
+from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification, HREducation
 from werkzeug.security import generate_password_hash
 from flask import current_app
 from PIL import Image
@@ -28,6 +28,12 @@ def profile():
 
     hr_profile = current_user.hr_profile
 
+    educations = []
+    if hr_profile:
+        educations = HREducation.query.filter_by(
+            profile_id=hr_profile.id
+        ).order_by(HREducation.created_at.desc()).all()
+
     recruiter_profile = None
     if current_user.created_by:
         recruiter_profile = RecruiterProfile.query.filter_by(
@@ -45,6 +51,7 @@ def profile():
         "hr/profile.html",
         profile=hr_profile,
         recruiter_profile=recruiter_profile,
+        educations=educations,
         follower_count=len(followers),
         following_count=len(following),
         followers=followers,
@@ -249,6 +256,63 @@ def update_social():
     flash("Links updated successfully!", "success")
     return redirect(url_for('hr.profile'))
 
+# ===============================
+# ADD EDUCATION (HR)
+# ===============================
+@hr_bp.route('/add-education', methods=['POST'])
+@login_required
+def add_education():
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    profile = current_user.hr_profile
+    if not profile:
+        profile = HRProfile(user_id=current_user.id)
+        db.session.add(profile)
+        db.session.flush()
+
+    is_current = request.form.get('is_current') == '1'
+
+    edu = HREducation(
+        profile_id     = profile.id,
+        school         = request.form.get('school', '').strip(),
+        degree         = request.form.get('degree', '').strip(),
+        field_of_study = request.form.get('field_of_study', '').strip(),
+        start_date     = request.form.get('start_date', '').strip(),
+        end_date       = '' if is_current else request.form.get('end_date', '').strip(),
+        is_current     = is_current,
+        description    = request.form.get('description', '').strip(),
+    )
+    db.session.add(edu)
+    db.session.commit()
+
+    flash("Education added!", "success")
+    return redirect(url_for('hr.profile'))
+
+
+# ===============================
+# DELETE EDUCATION (HR)
+# ===============================
+@hr_bp.route('/delete-education/<int:edu_id>', methods=['POST'])
+@login_required
+def delete_education(edu_id):
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    edu = HREducation.query.get_or_404(edu_id)
+    profile = current_user.hr_profile
+
+    if not profile or edu.profile_id != profile.id:
+        flash("Unauthorized action!", "danger")
+        return redirect(url_for('hr.profile'))
+
+    db.session.delete(edu)
+    db.session.commit()
+
+    flash("Education removed.", "success")
+    return redirect(url_for('hr.profile'))
 
 # ===============================
 # HR JOB LIST (VIEW ALL JOBS)

@@ -204,6 +204,25 @@ class RecruiterEducation(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# =========================
+# HR EDUCATION  (hr-only)
+# =========================
+class HREducation(db.Model):
+    """Education entries that belong exclusively to an HRProfile."""
+
+    __tablename__ = "hr_education"
+
+    id             = db.Column(db.Integer, primary_key=True)
+    profile_id     = db.Column(db.Integer, db.ForeignKey("hr_profile.id"), nullable=False)
+    school         = db.Column(db.String(200))
+    degree         = db.Column(db.String(200))
+    field_of_study = db.Column(db.String(200))
+    start_date     = db.Column(db.String(50))
+    end_date       = db.Column(db.String(50))
+    is_current     = db.Column(db.Boolean, default=False)
+    description    = db.Column(db.Text)
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 # =========================
 # SKILL  (applicant only)
@@ -336,6 +355,11 @@ class HRProfile(db.Model):
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
+    educations = db.relationship(
+    "HREducation", backref="hr_profile",
+    lazy=True, cascade="all, delete-orphan"
+)
+
 
 # =========================
 # JOB TABLE
@@ -362,6 +386,7 @@ class Job(db.Model):
     job_type = db.Column(db.String(50))
     location = db.Column(db.String(200))
     salary = db.Column(db.String(100))
+    currency = db.Column(db.String(10), default='PHP')
 
     poster = db.Column(db.String(200))
 
@@ -374,6 +399,12 @@ class Job(db.Model):
         cascade="all, delete-orphan"
     )
 
+    saved_by_users = db.relationship(
+        "SavedJob",
+        lazy=True,
+        cascade="all, delete-orphan",
+        overlaps="job,saved_by"
+    )
 
 # =========================
 # APPLICATION TABLE
@@ -403,6 +434,24 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+# =========================
+# SAVED JOBS TABLE
+# =========================
+class SavedJob(db.Model):
+    __tablename__ = 'saved_job'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    applicant_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    # ADD ondelete='CASCADE' here
+    job_id       = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='CASCADE'), nullable=False)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('applicant_id', 'job_id', name='unique_saved_job'),
+    )
+
+    applicant = db.relationship('User', foreign_keys=[applicant_id], backref='saved_jobs')
+    job       = db.relationship('Job', foreign_keys=[job_id], backref='saved_by', overlaps="saved_by_users")
 
 # =========================
 # FOLLOW TABLE

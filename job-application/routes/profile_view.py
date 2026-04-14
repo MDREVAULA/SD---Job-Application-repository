@@ -251,7 +251,7 @@ def view_recruiter_profile(user_id):
 # ── HR PUBLIC PROFILE ──
 @profile_view_bp.route('/hr/<int:user_id>')
 def view_hr_profile(user_id):
-    from models import RecruiterProfile, HRProfile
+    from models import RecruiterProfile, HRProfile, HREducation
     viewed_user = User.query.get_or_404(user_id)
     if viewed_user.role != 'hr':
         flash("This profile is not an HR member.", "warning")
@@ -275,6 +275,12 @@ def view_hr_profile(user_id):
     if viewed_user.created_by:
         recruiter_profile = RecruiterProfile.query.filter_by(user_id=viewed_user.created_by).first()
 
+    educations = []
+    if profile:
+        educations = HREducation.query.filter_by(
+            profile_id=profile.id
+        ).order_by(HREducation.created_at.desc()).all()
+
     is_following = False
     if current_user.is_authenticated:
         is_following = Follow.query.filter_by(
@@ -288,6 +294,7 @@ def view_hr_profile(user_id):
         viewed_user=viewed_user,
         profile=profile,
         recruiter_profile=recruiter_profile,
+        educations=educations,
         is_following=is_following,
         followers=followers  if show_follow_list  else [],
         following=following  if show_follow_list  else [],

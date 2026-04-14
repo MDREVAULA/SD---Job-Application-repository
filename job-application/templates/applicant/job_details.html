@@ -68,9 +68,13 @@
 
                 <div class="job-header-actions">
                     {% if current_user.is_authenticated and current_user.role == "applicant" %}
-                        <button class="btn-save" title="Save this job">
-                            <i class="far fa-bookmark"></i>
-                            <span>Save</span>
+                        <button class="btn-save {% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}saved{% endif %}"
+                                data-job-id="{{ job.id }}"
+                                data-auth="{{ 'true' if current_user.is_authenticated and current_user.role == 'applicant' else 'false' }}"
+                                onclick="toggleSaveJob(this, {{ job.id }})"
+                                title="{% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}Saved{% else %}Save this job{% endif %}">
+                            <i class="{% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                            <span>{% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}Saved{% else %}Save{% endif %}</span>
                         </button>
                         <button class="btn-share" title="Share this job">
                             <i class="fas fa-share-alt"></i>
@@ -99,7 +103,7 @@
                         <i class="fas fa-money-bill-wave"></i>
                         <div class="info-content">
                             <span class="info-label">Salary Range</span>
-                            <span class="info-value">{{ job.salary }}</span>
+                            <span class="info-value">{{ job.currency or 'PHP' }} {{ job.salary }}</span>
                         </div>
                     </div>
                 </div>
@@ -393,7 +397,7 @@
                                 </div>
                                 <div class="overview-content">
                                     <span class="overview-label">Salary</span>
-                                    <span class="overview-value">{{ job.salary }}</span>
+                                    <span class="overview-value">{{ job.currency or 'PHP' }} {{ job.salary }}</span>
                                 </div>
                             </div>
 
@@ -457,9 +461,12 @@
                                 <i class="fas fa-paper-plane"></i>
                                 <span>Apply for this Job</span>
                             </a>
-                            <button class="btn-sidebar-save">
-                                <i class="far fa-bookmark"></i>
-                                <span>Save for Later</span>
+                            <button class="btn-sidebar-save {% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}saved{% endif %}"
+                                    data-job-id="{{ job.id }}"
+                                    data-auth="{{ 'true' if current_user.is_authenticated and current_user.role == 'applicant' else 'false' }}"
+                                    onclick="toggleSaveJob(this, {{ job.id }})">
+                                <i class="{% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                                <span>{% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}Saved{% else %}Save for Later{% endif %}</span>
                             </button>
                         {% elif not current_user.is_authenticated %}
                             <a href="{{ url_for('auth.login') }}" class="btn-sidebar-apply">
@@ -545,5 +552,6 @@
     ];
 </script>
 <script src="{{ url_for('static', filename='js/job_gallery.js') }}"></script>
+<script src="{{ url_for('static', filename='js/applicant/save_job.js') }}"></script>
 
 {% endblock %}

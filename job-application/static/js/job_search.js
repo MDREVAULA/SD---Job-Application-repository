@@ -170,25 +170,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ============================================
-    // SAVE / BOOKMARK TOGGLE
-    // ============================================
-    document.querySelectorAll('.btn-save').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const icon = this.querySelector('i');
-            if (icon.classList.contains('far')) {
-                icon.classList.replace('far', 'fas');
-                this.classList.add('saved');
-                this.title = 'Saved';
-            } else {
-                icon.classList.replace('fas', 'far');
-                this.classList.remove('saved');
-                this.title = 'Save job';
-            }
-        });
-    });
-
-    // ============================================
     // CLEAR ALL FILTERS
     // ============================================
     if (clearAllBtn) {

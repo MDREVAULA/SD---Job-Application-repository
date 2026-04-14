@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_mail import Message
@@ -48,6 +48,12 @@ def redirect_by_role(user):
         return redirect(url_for("admin.dashboard"))
     return redirect(url_for("auth.index"))
 
+# =========================
+# HOME
+# =========================
+@auth_bp.route("/")
+def index():
+    return render_template("home.html")
 
 # =========================
 # SEND VERIFICATION EMAIL
@@ -97,21 +103,18 @@ Welcome to Job Portal!
 # =========================
 # PUBLIC PAGES
 # =========================
-@auth_bp.route("/")
-def index():
-    return render_template("home.html")
-
-
-@auth_bp.route("/jobs")
+@auth_bp.route('/jobs')
 def jobs():
-    try:
-        jobs = Job.query.filter(
-            (Job.expiration_date == None) | (Job.expiration_date >= date.today())
-        ).all()
-    except:
-        jobs = Job.query.all()
+    from models import Job, SavedJob
+    jobs = Job.query.all()  # or however you currently query jobs
 
-    return render_template("index.html", jobs=jobs)
+    saved_job_ids = set()
+    if current_user.is_authenticated and current_user.role == 'applicant':
+        saved_job_ids = {
+            s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
+        }
+
+    return render_template('index.html', jobs=jobs, saved_job_ids=saved_job_ids)
 
 
 @auth_bp.route("/help")
@@ -645,4 +648,4 @@ def account_rejected(user_id):
 def logout():
     logout_user()
     flash("Logged out successfully", "info")
-    return redirect(url_for("auth.index"))
+    return redirect(url_for("auth.index"))  

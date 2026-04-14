@@ -337,6 +337,7 @@ def post_job():
     job_type = request.form.get('job_type')
     location = request.form.get('location')
     salary = request.form.get('salary')
+    currency = request.form.get('currency', 'PHP')
     expiration_date = request.form.get('expiration_date')
 
     arrangement        = request.form.get('arrangement')
@@ -360,6 +361,7 @@ def post_job():
         job_type=job_type,
         location=location,
         salary=salary,
+        currency=currency,
         expiration_date=expiration,
         arrangement=arrangement,
         experience_level=experience_level,

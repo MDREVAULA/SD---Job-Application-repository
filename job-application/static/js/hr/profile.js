@@ -2,7 +2,7 @@
    HR PROFILE JS
    ============================================================ */
 
-// Toggle inline edit forms
+// Toggle inline edit forms (personal, social, etc.)
 function toggleEdit(section) {
     const view = document.getElementById('view-' + section);
     const form = document.getElementById('edit-' + section);
@@ -21,7 +21,6 @@ function toggleEdit(section) {
         form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Update ALL buttons that target this section
     document.querySelectorAll('[data-edit-target="' + section + '"]').forEach(btn => {
         btn.innerHTML = isEditing
             ? '<i class="fas fa-pen"></i> Edit'
@@ -29,10 +28,35 @@ function toggleEdit(section) {
     });
 }
 
+// Toggle add forms (education, etc.)
+function toggleAddForm(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const isOpen = el.dataset.open === 'true';
+
+    if (isOpen) {
+        el.dataset.open = 'false';
+        el.style.display = 'none';
+    } else {
+        el.dataset.open = 'true';
+        el.style.display = 'block';
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// Disable/clear end date when "currently studying" is checked
+function toggleEndDate(inputId, checkbox) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.disabled = checkbox.checked;
+    if (checkbox.checked) input.value = '';
+}
+
 // On page load
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Force-close all edit forms on load
+    // Force-close all edit and add forms on load
     document.querySelectorAll('.prof-edit-form, .prof-add-form').forEach(form => {
         form.style.display = 'none';
         form.dataset.open = 'false';

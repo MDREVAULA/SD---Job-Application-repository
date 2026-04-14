@@ -471,6 +471,19 @@ def conversation(other_id):
         follower_id=current_user.id, followed_id=other_id
     ).first() is not None
 
+    # ── Pre-build reaction data for each message ──
+    msg_ids = [m.id for m in messages]
+    all_rxns = MessageReaction.query.filter(
+        MessageReaction.message_id.in_(msg_ids)
+    ).all() if msg_ids else []
+
+    reaction_map = {}
+    for r in all_rxns:
+        entry = reaction_map.setdefault(r.message_id, {"counts": {}, "my_reaction": ""})
+        entry["counts"][r.reaction] = entry["counts"].get(r.reaction, 0) + 1
+        if r.user_id == current_user.id:
+            entry["my_reaction"] = r.reaction
+
     return render_template(
         "chat/inbox.html",
         conversations=conversations,
@@ -478,6 +491,7 @@ def conversation(other_id):
         active_display_name=get_display_name(other),
         active_company=get_company_name(other),
         messages=messages,
+        reaction_map=reaction_map,
         total_unread=total_unread,
         is_following=is_following,
     )
@@ -575,6 +589,50 @@ def poll_messages(other_id):
 
 
 # =========================
+# POLL REACTIONS  (AJAX GET)
+# =========================
+@chat_bp.route("/poll-reactions/<int:other_id>")
+@login_required
+def poll_reactions(other_id):
+    """
+    Return current reaction counts + my_reaction for every message
+    in the conversation. Called periodically by the frontend so reactions
+    update in real-time without a full page refresh.
+    """
+    msg_ids_query = Message.query.filter(
+        or_(
+            and_(Message.sender_id == current_user.id, Message.receiver_id == other_id),
+            and_(Message.sender_id == other_id,        Message.receiver_id == current_user.id)
+        )
+    ).with_entities(Message.id)
+
+    msg_ids = [row.id for row in msg_ids_query.all()]
+    if not msg_ids:
+        return jsonify({})
+
+    all_rxns = MessageReaction.query.filter(
+        MessageReaction.message_id.in_(msg_ids)
+    ).all()
+
+    # Build { "msg_id": { "counts": { "like": 2, ... }, "my_reaction": "like" } }
+    result = {}
+    for r in all_rxns:
+        mid = str(r.message_id)
+        if mid not in result:
+            result[mid] = {"counts": {}, "my_reaction": ""}
+        result[mid]["counts"][r.reaction] = result[mid]["counts"].get(r.reaction, 0) + 1
+        if r.user_id == current_user.id:
+            result[mid]["my_reaction"] = r.reaction
+
+    # Include messages that now have zero reactions so JS can clear their bars
+    for mid in msg_ids:
+        if str(mid) not in result:
+            result[str(mid)] = {"counts": {}, "my_reaction": ""}
+
+    return jsonify(result)
+
+
+# =========================
 # UNREAD COUNT  (AJAX — for nav badge)
 # =========================
 @chat_bp.route("/unread-count")
@@ -633,10 +691,10 @@ def unsend_message(msg_id):
 
     return jsonify({"deleted": True, "id": msg_id})
 
-# =========================
-# REACT MESSAGE
-# =========================
 
+# =========================
+# REACT MESSAGE  (AJAX POST)
+# =========================
 VALID_REACTIONS = {"like", "heart", "haha", "wow", "sad", "angry"}
 
 @chat_bp.route("/react/<int:msg_id>", methods=["POST"])
@@ -701,15 +759,3 @@ def react_message(msg_id):
         "counts":      counts,
         "my_reaction": my_reaction,
     })
-
-    msg_ids = [m.id for m in messages]
-    all_rxns = MessageReaction.query.filter(
-        MessageReaction.message_id.in_(msg_ids)
-    ).all() if msg_ids else []
-    
-    reaction_map = {}
-    for r in all_rxns:
-        entry = reaction_map.setdefault(r.message_id, {"counts": {}, "mine": ""})
-        entry["counts"][r.reaction] = entry["counts"].get(r.reaction, 0) + 1
-        if r.user_id == current_user.id:
-            entry["mine"] = r.reaction

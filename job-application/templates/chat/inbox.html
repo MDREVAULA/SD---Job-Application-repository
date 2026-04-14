@@ -136,12 +136,17 @@
                         {% set ns.prev_date = msg_date %}
                     {% endif %}
 
+                    {# ── Build reaction counts dict safely in Python-passed reaction_map ── #}
+                    {%- set rxn_data    = reaction_map.get(msg.id, {'counts': {}, 'my_reaction': ''}) -%}
+                    {%- set rxn_counts  = rxn_data['counts'] -%}
+                    {%- set my_reaction = rxn_data['my_reaction'] -%}
+
                 <div class="message-bubble {% if msg.sender_id == current_user.id %}mine{% else %}theirs{% endif %}"
                     data-msg-id="{{ msg.id }}"
                     data-is-mine="{{ 'true' if msg.sender_id == current_user.id else 'false' }}"
-                    data-reaction-counts="{{ msg.reactions | groupby('reaction') | map(attribute='list') | map('length') | list | tojson if msg.reactions else '{}' }}"
-                    data-my-reaction="{{ msg.reactions | selectattr('user_id', 'equalto', current_user.id) | map(attribute='reaction') | first | default('') }}">
-                
+                    data-reaction-counts="{{ rxn_counts | tojson }}"
+                    data-my-reaction="{{ my_reaction }}">
+
                     {# ── HOVER ACTION TOOLBAR ── #}
                     <div class="bubble-actions">
                         <button class="bubble-action-btn bubble-action-react" title="React"
@@ -157,7 +162,7 @@
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
                     </div>
-                
+
                     {# ── REPLY QUOTE ── #}
                     {% if msg.reply_to %}
                     <div class="reply-quote">
@@ -167,14 +172,14 @@
                         <span class="reply-quote-text">{{ msg.reply_to.body[:80] }}{{ '…' if msg.reply_to.body|length > 80 }}</span>
                     </div>
                     {% endif %}
-                
+
                     <div class="bubble-text">{{ msg.body }}</div>
                     <div class="bubble-time">
                         {{ msg.created_at.strftime('%I:%M %p') }}
                         {% if msg.edited %}<span class="edited-label"> · edited</span>{% endif %}
                     </div>
-                
-                    {# ── REACTION BAR (rendered by JS on DOMContentLoaded) ── #}
+
+                    {# ── REACTION BAR rendered by JS on DOMContentLoaded ── #}
                     <div class="reaction-bar-wrap"></div>
                 </div>
                 {% endfor %}

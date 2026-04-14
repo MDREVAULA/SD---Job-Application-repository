@@ -266,6 +266,101 @@
                     {% endif %}
                 </div>
             </div>
+            <!-- ── EDUCATION ── -->
+            <div class="prof-card" id="section-education" style="animation-delay:0.11s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-graduation-cap"></i> Education
+                        {% if educations %}<span class="prof-section-count">{{ educations | length }}</span>{% endif %}
+                    </div>
+                    <button class="prof-add-btn" onclick="toggleAddForm('add-education')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+
+                <div class="prof-add-form" id="add-education" style="display:none;">
+                    <form method="POST" action="{{ url_for('hr.add_education') }}">
+                        <div class="prof-form-grid">
+                            <div class="prof-form-group">
+                                <label>School / University</label>
+                                <input type="text" name="school" placeholder="e.g. University of the Philippines" required>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Degree</label>
+                                <input type="text" name="degree" placeholder="e.g. Bachelor of Science">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Field of Study</label>
+                                <input type="text" name="field_of_study" placeholder="e.g. Business Administration">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Start Date</label>
+                                <input type="month" name="start_date">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>End Date</label>
+                                <input type="month" name="end_date" id="edu-end-date">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label class="prof-checkbox-label">
+                                    <input type="checkbox" name="is_current" value="1"
+                                        onchange="toggleEndDate('edu-end-date', this)">
+                                    I am currently studying here
+                                </label>
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label>Description / Achievements</label>
+                                <textarea name="description" rows="3"
+                                        placeholder="Honors, achievements, relevant coursework..."></textarea>
+                            </div>
+                        </div>
+                        <div class="prof-form-actions">
+                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
+                            <button type="button" class="prof-btn-cancel"
+                                    onclick="toggleAddForm('add-education')">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="prof-items-list">
+                    {% if educations %}
+                        {% for edu in educations %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">{{ edu.school }}</div>
+                                <div class="prof-item-subtitle">
+                                    {{ edu.degree if edu.degree else '' }}
+                                    {% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}
+                                </div>
+                                <div class="prof-item-date">
+                                    {{ edu.start_date if edu.start_date else '' }}
+                                    {% if edu.is_current %} – Present
+                                    {% elif edu.end_date %} – {{ edu.end_date }}
+                                    {% endif %}
+                                </div>
+                                {% if edu.description %}
+                                <div class="prof-item-desc">{{ edu.description }}</div>
+                                {% endif %}
+                            </div>
+                            <form method="POST"
+                                action="{{ url_for('hr.delete_education', edu_id=edu.id) }}"
+                                class="prof-item-delete">
+                                <button type="submit" class="prof-btn-delete" title="Delete"
+                                        onclick="return confirm('Delete this education entry?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-graduation-cap"></i>
+                            <p>No education added yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
 
         </div><!-- /.prof-main -->
 

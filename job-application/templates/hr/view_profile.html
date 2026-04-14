@@ -200,6 +200,40 @@
                 </div>
             </div>
             {% endif %}
+            <!-- ── EDUCATION ── -->
+            {% if educations %}
+            <div class="pview-card" style="animation-delay:0.11s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title">
+                        <i class="fas fa-graduation-cap"></i> Education
+                        <span class="pview-section-count">{{ educations | length }}</span>
+                    </div>
+                </div>
+                <div class="pview-items-list">
+                    {% for edu in educations %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <div class="pview-item-body">
+                            <div class="pview-item-title">{{ edu.school }}</div>
+                            <div class="pview-item-subtitle">
+                                {{ edu.degree if edu.degree else '' }}
+                                {% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}
+                            </div>
+                            <div class="pview-item-date">
+                                {{ edu.start_date if edu.start_date else '' }}
+                                {% if edu.is_current %} – Present
+                                {% elif edu.end_date %} – {{ edu.end_date }}
+                                {% endif %}
+                            </div>
+                            {% if edu.description %}
+                            <div class="pview-item-desc">{{ edu.description }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
         </div><!-- /.pview-main -->
 

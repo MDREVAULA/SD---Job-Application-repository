@@ -228,119 +228,133 @@
         padding: 32px 24px 64px;
     }
 
-    /* Results Header */
-    .results-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
+/* ══════════════════════════════════════════════════
+   RESULTS HEADER
+══════════════════════════════════════════════════ */
 
-    .results-count {
-        font-size: 0.9375rem;
-        color: var(--text-muted, #6b7280);
-        font-weight: 500;
-    }
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 
-    .results-count span {
-        color: var(--icon-light);
-        font-weight: 700;
-        font-size: 1.0625rem;
-    }
+.results-count {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 
-    /* Sort Dropdown */
-    .sort-dropdown-wrapper {
-        position: relative;
-    }
+.results-count span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brand-green);
+}
 
-    .sort-btn {
-        padding: 9px 16px;
-        background: var(--bg-secondary, white);
-        border: 1.5px solid var(--border-color, #e5e7eb);
-        border-radius: 8px;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: var(--text-secondary, #374151);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s ease;
-        font-family: 'DM Sans', sans-serif;
-        box-shadow: 0 1px 3px var(--shadow-color, rgba(0,0,0,0.05));
-    }
+/* ══════════════════════════════════════════════════
+   SORT DROPDOWN — polished to match saved jobs
+══════════════════════════════════════════════════ */
 
-    .sort-btn:hover,
-    .sort-btn.open {
-        background: var(--bg-surface-alt, #f9fafb);
-        border-color: var(--icon-light);
-        color: var(--icon-light);
-    }
+.sort-dropdown-wrapper {
+    position: relative;
+}
 
-    .sort-chevron {
-        font-size: 11px;
-        transition: transform 0.2s ease;
-    }
+.sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    white-space: nowrap;
+}
 
-    .sort-btn.open .sort-chevron {
-        transform: rotate(180deg);
-    }
+.sort-btn:hover,
+.sort-btn.open {
+    border-color: var(--brand-green);
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
 
-    .sort-dropdown {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: calc(100% + 6px);
-        background: var(--bg-secondary, white);
-        border: 1.5px solid var(--border-color, #e5e7eb);
-        border-radius: 10px;
-        box-shadow: 0 8px 24px var(--shadow-color, rgba(0,0,0,0.1));
-        min-width: 180px;
-        z-index: 100;
-        overflow: hidden;
-    }
+.sort-btn i { font-size: 0.75rem; }
 
-    .sort-dropdown.open {
-        display: block;
-    }
+.sort-chevron {
+    margin-left: 2px;
+    transition: transform 0.25s ease;
+}
 
-    .sort-option {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        padding: 11px 16px;
-        background: none;
-        border: none;
-        text-align: left;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--text-secondary, #374151);
-        cursor: pointer;
-        transition: all 0.15s;
-        font-family: 'DM Sans', sans-serif;
-    }
+.sort-btn.open .sort-chevron {
+    transform: rotate(180deg);
+}
 
-    .sort-option i {
-        color: var(--text-muted, #9ca3af);
-        width: 16px;
-        font-size: 13px;
-    }
+.sort-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 6px 22px var(--shadow-color);
+    min-width: 180px;
+    z-index: 200;
+    overflow: hidden;
+    animation: dropdownIn 0.14s ease both;
+}
 
-    .sort-option:hover {
-        background: var(--bg-surface-alt, #f9fafb);
-        color: var(--text-primary, #111827);
-    }
+.sort-dropdown.open { display: block; }
 
-    .sort-option.active {
-        background: var(--icon);
-        color: var(--icon-light-2);
-        font-weight: 700;
-    }
+@keyframes dropdownIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
 
-    .sort-option.active i {
-        color: var(--icon-light-2);
-    }
+.sort-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: inherit;
+    text-align: left;
+}
+
+.sort-option:hover {
+    background: var(--bg-hover);
+    color: var(--brand-green);
+}
+
+.sort-option.active {
+    background: var(--bg-surface-alt);
+    color: var(--brand-green);
+    font-weight: 700;
+}
+
+.sort-option i {
+    font-size: 0.72rem;
+    width: 14px;
+    color: var(--brand-green);
+    flex-shrink: 0;
+}
 
     /* ================================
         JOBS LIST
@@ -601,54 +615,81 @@
         border-color: #F1B24A;
     }
 
-    /* ================================
-        EMPTY STATES
-        ================================ */
+/* ══════════════════════════════════════════════════
+   EMPTY / NO RESULTS STATES — Job Board
+══════════════════════════════════════════════════ */
 
-    .no-results {
-        text-align: center;
-        padding: 80px 20px;
-        background: var(--bg-secondary, white);
-        border-radius: 12px;
-        border: 1.5px solid var(--border-color, #e9ecef);
-    }
+.no-results-plain,
+.search-empty-state {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    margin-top: 8px;
+}
 
-    .no-results i {
-        font-size: 52px;
-        color: var(--text-muted, #d1d5db);
-        margin-bottom: 18px;
-        display: block;
-    }
+.no-results-plain .empty-icon-wrap,
+.search-empty-state .empty-icon-wrap {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px auto;
+}
 
-    .no-results h3 {
-        font-size: 1.375rem;
-        color: var(--text-secondary, #374151);
-        margin: 0 0 8px 0;
-        font-weight: 700;
-    }
+.no-results-plain .empty-icon-wrap i,
+.search-empty-state .empty-icon-wrap i {
+    font-size: 48px;
+    color: var(--border-color);
+}
 
-    .no-results p {
-        font-size: 0.9375rem;
-        color: var(--text-muted, #9ca3af);
-        margin: 0 0 24px 0;
-    }
+.no-results-plain h3,
+.search-empty-state h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+    width: 100%;
+    text-align: center;
+}
 
-    .reset-btn {
-        padding: 11px 28px;
-        background: var(--icon);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 0.9375rem;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: 'DM Sans', sans-serif;
-        transition: all 0.2s ease;
-    }
+.no-results-plain p,
+.search-empty-state p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0 auto 24px auto;
+    max-width: 300px;
+    text-align: center;
+}
 
-    .reset-btn:hover {
-        background: var(--icon-light);
-    }
+.reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 24px;
+    background: var(--brand-green-dark);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    font-family: inherit;
+    margin: 0 auto;
+}
+
+.reset-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
 
     /* ================================
         RESPONSIVE

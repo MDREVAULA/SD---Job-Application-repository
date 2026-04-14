@@ -363,12 +363,30 @@
             </a>
         </li>
 
-        <li>
-            <a href="{{ url_for('applicant.dashboard') }}"
-               class="sidebar-link {% if request.endpoint == 'applicant.dashboard' %}active{% endif %}">
-                <i class="fa-solid fa-address-card"></i>
-                <span>Dashboard</span>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle sidebar-link">
+                <div class="link-content">
+                    <i class="fa-solid fa-address-card"></i>
+                    <span>Dashboard</span>
+                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                </div>
             </a>
+            <ul class="submenu">
+                <li>
+                    <a href="{{ url_for('applicant.saved_jobs') }}"
+                       class="{% if request.endpoint == 'applicant.saved_jobs' %}active{% endif %}">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Listed Jobs</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('applicant.status') }}"
+                       class="{% if request.endpoint == 'applicant.status' %}active{% endif %}">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Application Status</span>
+                    </a>
+                </li>
+            </ul>
         </li>
 
         {% endif %}
