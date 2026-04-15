@@ -8,35 +8,27 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_completion_banner.css') }}">
 
 
-{# ── PROFILE COMPLETION BANNER ──────────────────────────────────────────────
-   Insert this block at the TOP of the prof-wrapper div, before prof-header.
-   It shows only when the account is Pending and the profile is incomplete.
-   ──────────────────────────────────────────────────────────────────────── #}
+{# ══════════════════════════════════════════════════════════════════════════════
+   APPLICANT PROFILE — COMPLETION BANNER
+   Replace the existing banner block at the top of applicant/profile.html.
 
-{% if current_user.verification_status == 'Pending' %}
-{% set is_complete = profile and profile.first_name and profile.last_name and profile.phone_number and profile.country and profile.city and profile.home_address %}
+   Two states only — admin is NOT involved for applicants:
+     • profile_complete = False  → show checklist, features locked
+     • profile_complete = True   → banner hidden, full access
+   ══════════════════════════════════════════════════════════════════════════════ #}
 
-<div class="profile-completion-banner {% if is_complete %}banner--ready{% else %}banner--incomplete{% endif %}">
+{% if not current_user.profile_complete %}
+<div class="profile-completion-banner banner--incomplete">
 
     <div class="pcb-icon">
-        {% if is_complete %}
-            <i class="fas fa-hourglass-half"></i>
-        {% else %}
-            <i class="fas fa-exclamation-triangle"></i>
-        {% endif %}
+        <i class="fas fa-exclamation-triangle"></i>
     </div>
 
     <div class="pcb-body">
-        {% if is_complete %}
-            <strong>Profile submitted — awaiting admin review</strong>
-            <p>Your profile looks complete! An admin will verify your account shortly. You'll receive a confirmation once approved.</p>
-        {% else %}
-            <strong>Complete your profile to get verified</strong>
-            <p>Fill in your personal information below so the admin can review and activate your account. You won't be able to apply for jobs until your account is verified.</p>
-        {% endif %}
+        <strong>Complete your profile to unlock all features</strong>
+        <p>Fill in the required fields below. Once done, you'll have full access to apply for jobs, message recruiters, and more — no waiting required.</p>
     </div>
 
-    {% if not is_complete %}
     <div class="pcb-checklist">
         <span class="pcb-check {% if profile and profile.first_name %}done{% endif %}">
             <i class="fas {% if profile and profile.first_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
@@ -50,16 +42,19 @@
             <i class="fas {% if profile and profile.phone_number %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
             Phone number
         </span>
+        <span class="pcb-check {% if profile and profile.country %}done{% endif %}">
+            <i class="fas {% if profile and profile.country %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            Country
+        </span>
         <span class="pcb-check {% if profile and profile.city %}done{% endif %}">
             <i class="fas {% if profile and profile.city %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
             City
         </span>
         <span class="pcb-check {% if profile and profile.home_address %}done{% endif %}">
             <i class="fas {% if profile and profile.home_address %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            Address
+            Home address
         </span>
     </div>
-    {% endif %}
 
 </div>
 {% endif %}
@@ -91,15 +86,15 @@
 
                 <!-- Action buttons -->
                 <div class="prof-header-actions">
-                    <div class="prof-verification-badge {% if current_user.verification_status == 'Approved' %}badge-verified{% elif current_user.verification_status == 'Pending' %}badge-pending{% else %}badge-rejected{% endif %}">
-                        {% if current_user.verification_status == 'Approved' %}
-                            <i class="fas fa-check-circle"></i> Verified
-                        {% elif current_user.verification_status == 'Pending' %}
-                            <i class="fas fa-hourglass-half"></i> Pending
+                        {% if current_user.profile_complete %}
+                        <div class="prof-verification-badge badge-verified">
+                            <i class="fas fa-check-circle"></i> Profile Complete
+                        </div>
                         {% else %}
-                            <i class="fas fa-times-circle"></i> Rejected
+                        <div class="prof-verification-badge badge-pending">
+                            <i class="fas fa-circle-exclamation"></i> Incomplete Profile
+                        </div>
                         {% endif %}
-                    </div>
                     <button class="prof-action-btn prof-action-btn-outline" onclick="toggleEdit('personal')" data-edit-target="personal">
                         <i class="fas fa-pen"></i> Edit Profile
                     </button>
@@ -823,7 +818,7 @@
                 </div>
                 <div class="prof-completion-wrap">
                     {% set score = namespace(val=0) %}
-                    {% if profile and profile.first_name %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.first_name and profile.last_name %}{% set score.val = score.val + 15 %}{% endif %}
                     {% if profile and profile.bio %}{% set score.val = score.val + 15 %}{% endif %}
                     {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.linkedin %}{% set score.val = score.val + 10 %}{% endif %}
@@ -844,8 +839,8 @@
                     <div class="prof-completion-pct">{{ score.val }}% complete</div>
 
                     <div class="prof-completion-tips">
-                        <div class="prof-completion-tip {% if profile and profile.first_name %}done{% endif %}">
-                            <i class="{% if profile and profile.first_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                        <div class="prof-completion-tip {% if profile and profile.first_name and profile.last_name %}done{% endif %}">
+                            <i class="{% if profile and profile.first_name and profile.last_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add your full name
                         </div>
                         <div class="prof-completion-tip {% if profile and profile.headline %}done{% endif %}">

@@ -710,3 +710,92 @@
             font-size: 28px;
         }
     }
+
+/* ================================================================
+   ADMIN NOTIFICATION ICON COLOURS
+   ================================================================ */
+
+.notif-icon.type-account_request,
+.notif-history-icon.type-account_request {
+    background: rgba(241, 178, 74, 0.18);
+    color: var(--brand-accent);
+}
+
+.notif-icon.type-account_approved,
+.notif-history-icon.type-account_approved {
+    background: rgba(157, 200, 141, 0.18);
+    color: var(--brand-green);
+}
+
+.notif-icon.type-account_rejected,
+.notif-history-icon.type-account_rejected {
+    background: rgba(255, 107, 107, 0.18);
+    color: var(--brand-danger);
+}
+
+.notif-icon.type-new_message,
+.notif-history-icon.type-new_message {
+    background: rgba(100, 181, 246, 0.18);
+    color: #64b5f6;
+}
+
+/* Toast accent colours for admin types */
+.admin-toast-account_request  { border-left-color: var(--brand-accent) !important; }
+.admin-toast-account_approved { border-left-color: var(--brand-green) !important; }
+.admin-toast-account_rejected { border-left-color: var(--brand-danger) !important; }
+.admin-toast-new_message      { border-left-color: #64b5f6 !important; }
+
+.admin-toast-account_request  .notif-toast-icon { color: var(--brand-accent); }
+.admin-toast-account_approved .notif-toast-icon { color: var(--brand-green); }
+.admin-toast-account_rejected .notif-toast-icon { color: var(--brand-danger); }
+.admin-toast-new_message      .notif-toast-icon { color: #64b5f6; }
+
+/* ── Sidebar unread badge (next to Notifications link) ── */
+.admin-sidebar-notif-badge {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #e53935;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.btn-ban {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    white-space: nowrap;
+}
+
+.btn-ban:hover {
+    background: rgba(220, 38, 38, 0.22);
+    border-color: #f87171;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.btn-restore--active {
+    background: rgba(157, 200, 141, 0.22);
+    border-color: #9DC88D;
+    color: #fff;
+}

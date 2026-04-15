@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+{% block title %}Banned Users — Admin{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
+
+<div class="admin-page-wrapper">
+
+    <!-- PAGE HEADER -->
+    <div class="admin-page-header">
+        <div class="admin-page-header-left">
+            <div class="admin-page-icon danger">
+                <i class="fas fa-ban" style="font-size:18px;"></i>
+            </div>
+            <div>
+                <h1 class="admin-page-title">Banned Users <span style="font-size:1rem; font-weight:700; background:rgba(77,119,78,0.12); color:#4D774E; border:1px solid rgba(77,119,78,0.25); border-radius:20px; padding:2px 12px; margin-left:6px;">{{ users|length }}</span></h1>
+                <p class="admin-page-subtitle">View and manage all banned accounts</p>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="admin-table-card">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Ban Reason</th>
+                    <th>Banned On</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in banned_users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role | capitalize }}</td>
+                    <td>
+                        {% if user.ban_reason %}
+                            <span class="remarks-text">{{ user.ban_reason }}</span>
+                        {% else %}
+                            <span class="remarks-none">No reason given</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.banned_at %}
+                            <span class="remarks-text">{{ user.banned_at.strftime('%b %d, %Y') }}</span>
+                        {% else %}
+                            <span class="remarks-none">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                              onsubmit="return confirm('Unban {{ user.username }}?')">
+                            <button type="submit" class="btn-restore">
+                                <i class="fas fa-unlock"></i> Unban
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                              onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                            <button type="submit" class="btn-ban">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="empty-row">
+                    <td colspan="6">
+                        <i class="fas fa-check-circle" style="color:#9DC88D;"></i>
+                        No banned users found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

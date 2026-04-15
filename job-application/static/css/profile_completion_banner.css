@@ -111,3 +111,35 @@
 .pcb-check.done i {
     color: #9DC88D;
 }
+
+/* ── Add these to profile_completion_banner.css ── */
+
+.pcb-actions {
+    margin-top: 14px;
+    flex-shrink: 0;
+}
+
+.pcb-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 22px;
+    background: #164A41;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s ease;
+}
+
+.pcb-submit-btn:hover {
+    background: #0e3229;
+}
+
+/* banner--ready with submit button needs a bit more padding */
+.banner--ready .pcb-actions {
+    padding-left: 0;
+}

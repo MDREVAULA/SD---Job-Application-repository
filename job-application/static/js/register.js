@@ -1,20 +1,35 @@
 /* ============================= */
 /*     REGISTER PAGE SCRIPT      */
-/* Step 1 only — quick sign-up   */
 /* ============================= */
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    const form        = document.querySelector('.register-form');
-    const emailInput  = document.querySelector('[name="email"]');
-    const userInput   = document.querySelector('[name="username"]');
-    const passInput   = document.getElementById('reg-password');
-    const toggleBtn   = document.getElementById('togglePassword');
-    const eyeIcon     = document.getElementById('eyeIcon');
+    const form         = document.querySelector('.register-form');
+    const emailInput   = document.querySelector('[name="email"]');
+    const userInput    = document.querySelector('[name="username"]');
+    const passInput    = document.getElementById('reg-password');
+    const toggleBtn    = document.getElementById('togglePassword');
+    const eyeIcon      = document.getElementById('eyeIcon');
     const strengthFill = document.getElementById('strengthFill');
-    const submitBtn   = document.getElementById('registerBtn');
+    const submitBtn    = document.getElementById('registerBtn');
+    const noteApplicant = document.getElementById('note-applicant');
+    const noteRecruiter = document.getElementById('note-recruiter');
+    const roleRadios    = document.querySelectorAll('input[name="role"]');
 
     if (!form) return;
+
+    /* ─── Role toggle — swap info note ─── */
+    roleRadios.forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            if (this.value === 'recruiter') {
+                noteApplicant.style.display = 'none';
+                noteRecruiter.style.display = '';
+            } else {
+                noteApplicant.style.display = '';
+                noteRecruiter.style.display = 'none';
+            }
+        });
+    });
 
     /* ─── Password visibility toggle ─── */
     if (toggleBtn) {
@@ -31,10 +46,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const val = passInput.value;
             let strength = 0;
 
-            if (val.length >= 8)               strength++;
-            if (/[A-Z]/.test(val))             strength++;
-            if (/[0-9]/.test(val))             strength++;
-            if (/[^A-Za-z0-9]/.test(val))      strength++;
+            if (val.length >= 8)              strength++;
+            if (/[A-Z]/.test(val))            strength++;
+            if (/[0-9]/.test(val))            strength++;
+            if (/[^A-Za-z0-9]/.test(val))     strength++;
 
             const pct   = (strength / 4) * 100;
             const color = strength <= 1 ? '#f87171'
@@ -68,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* Clear on type */
     if (userInput)  userInput.addEventListener('input',  () => clearError('err-username'));
-    if (emailInput) emailInput.addEventListener('input',  () => clearError('err-email'));
+    if (emailInput) emailInput.addEventListener('input', () => clearError('err-email'));
     if (passInput)  passInput.addEventListener('input',  () => clearError('err-password'));
 
     /* ─── Availability check (debounced) ─── */
@@ -80,8 +95,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function checkAvailability() {
-        const email    = emailInput  ? emailInput.value.trim()  : '';
-        const username = userInput   ? userInput.value.trim()   : '';
+        const email    = emailInput ? emailInput.value.trim() : '';
+        const username = userInput  ? userInput.value.trim()  : '';
 
         if (!email && !username) return;
 
@@ -102,8 +117,8 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (_) { /* silent fail */ }
     }
 
-    if (emailInput)  emailInput.addEventListener('blur',  scheduleCheck);
-    if (userInput)   userInput.addEventListener('blur',   scheduleCheck);
+    if (emailInput) emailInput.addEventListener('blur', scheduleCheck);
+    if (userInput)  userInput.addEventListener('blur',  scheduleCheck);
 
     /* ─── Client-side validation before submit ─── */
     form.addEventListener('submit', async function (e) {
@@ -113,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const username = userInput  ? userInput.value.trim()  : '';
         const email    = emailInput ? emailInput.value.trim() : '';
-        const password = passInput  ? passInput.value          : '';
+        const password = passInput  ? passInput.value         : '';
 
         if (!username) {
             showError('err-username', 'Username is required.');
@@ -133,8 +148,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!valid) return;
 
         /* Live availability check on submit */
-        submitBtn.disabled   = true;
-        submitBtn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+        submitBtn.disabled  = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
 
         try {
             const res  = await fetch('/check-availability', {

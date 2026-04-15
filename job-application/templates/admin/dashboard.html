@@ -1,46 +1,71 @@
 {% extends "layout.html" %}
-{% block content %}
+{% block title %}Admin Dashboard{% endblock %}
 
+{% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
 
 <div class="admin-dashboard-wrapper">
     <div class="admin-dashboard-container">
 
-        <!-- HEADER HERO — mirrors .search-hero -->
+        <!-- HEADER HERO -->
         <div class="admin-dashboard-header">
             <div class="admin-dashboard-header-inner">
-                <h2><i class="fas fa-shield-alt"></i> Admin Dashboard</h2>
-                <p class="admin-dashboard-subtitle">Manage and verify user accounts</p>
+                <div class="admin-dashboard-header-top">
+                    <div>
+                        <h2><i class="fas fa-shield-alt"></i> Admin Dashboard</h2>
+                        <p class="admin-dashboard-subtitle">Manage and verify user accounts</p>
+                    </div>
+                    <div class="admin-header-actions">
+                        <a href="{{ url_for('admin.all_users') }}" class="admin-hero-btn admin-hero-btn--outline">
+                            <i class="fas fa-users"></i> All Users
+                        </a>
+                        <a href="{{ url_for('admin.banned_users') }}" class="admin-hero-btn admin-hero-btn--danger">
+                            <i class="fas fa-ban"></i> Banned
+                            {% if banned_users %}
+                                <span class="admin-hero-badge">{{ banned_users|length }}</span>
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- STATS STRIP — floats over hero bottom -->
+        <!-- STATS STRIP -->
+        <!-- FIX 4: Changed "Pending Recruiters" to "All Recruiters" -->
         <div class="admin-stats-grid">
             <div class="admin-stat-card">
                 <i class="fas fa-building admin-stat-icon"></i>
-                <div class="admin-stat-number">{{ pending_recruiters|length }}</div>
-                <div class="admin-stat-label">Pending Recruiters</div>
+                <div class="admin-stat-number">{{ total_recruiters }}</div>
+                <div class="admin-stat-label">Total Recruiters</div>
             </div>
             <div class="admin-stat-card">
-                <i class="fas fa-user-tie admin-stat-icon"></i>
-                <div class="admin-stat-number">{{ pending_applicants|length }}</div>
-                <div class="admin-stat-label">Pending Applicants</div>
+                <i class="fas fa-users admin-stat-icon"></i>
+                <div class="admin-stat-number">{{ total_applicants }}</div>
+                <div class="admin-stat-label">Total Applicants</div>
+            </div>
+            <div class="admin-stat-card">
+                <i class="fas fa-ban admin-stat-icon admin-stat-icon--danger"></i>
+                <div class="admin-stat-number">{{ banned_users|length }}</div>
+                <div class="admin-stat-label">Banned Users</div>
             </div>
         </div>
 
         <!-- MAIN CONTENT -->
         <div class="admin-content-area">
 
-            <!-- Pending Recruiter Verification -->
+            <!-- Recruiter Verification Queue -->
+            <!-- FIX 1: Queue now correctly reflects submitted recruiters via backend fix -->
             <div class="admin-section">
                 <h3>
-                    <i class="fas fa-building"></i>
-                    Pending Recruiter Verification
+                    <i class="fas fa-user-tie"></i>
+                    Recruiter Verification Queue
                     <span class="admin-section-badge">{{ pending_recruiters|length }}</span>
                 </h3>
 
                 {% if pending_recruiters %}
-                    <!-- Results count bar -->
                     <div class="admin-results-header">
                         <div class="admin-results-count">
                             <span>{{ pending_recruiters|length }}</span> recruiter{{ 's' if pending_recruiters|length != 1 }} awaiting review
@@ -48,29 +73,57 @@
                     </div>
 
                     <ul class="admin-list">
-                        {% for rec in pending_recruiters %}
+                        {% for recruiter in pending_recruiters %}
                         <li class="admin-list-item">
                             <div class="admin-user-info">
                                 <div class="admin-user-avatar">
-                                    {{ rec.username[0]|upper }}
+                                    {% if recruiter.profile_picture %}
+                                        {% if recruiter.profile_picture.startswith('http') %}
+                                            <img src="{{ recruiter.profile_picture }}" alt="">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + recruiter.profile_picture) }}" alt="">
+                                        {% endif %}
+                                    {% else %}
+                                        {{ recruiter.username[0]|upper }}
+                                    {% endif %}
                                 </div>
                                 <div class="admin-user-details">
-                                    <p class="admin-user-name">{{ rec.username }}</p>
-                                    <p class="admin-user-email">{{ rec.email }}</p>
+                                    <p class="admin-user-name">{{ recruiter.username }}</p>
+                                    <p class="admin-user-email">{{ recruiter.email }}</p>
+                                    {% if recruiter.recruiter_profile %}
+                                    <p class="admin-user-company">
+                                        <i class="fas fa-building"></i>
+                                        {{ recruiter.recruiter_profile.company_name or '—' }}
+                                        {% if recruiter.recruiter_profile.company_industry %}
+                                            &middot; {{ recruiter.recruiter_profile.company_industry }}
+                                        {% endif %}
+                                    </p>
+                                    {% endif %}
                                     <div class="admin-user-meta">
                                         <span class="admin-meta-tag">
-                                            <i class="fas fa-building"></i> Recruiter
+                                            <i class="fas fa-user-tie"></i> Recruiter
                                         </span>
-                                        <span class="admin-meta-tag">
+                                        <span class="admin-meta-tag admin-meta-tag--pending">
                                             <i class="fas fa-clock"></i> Pending
                                         </span>
                                     </div>
                                 </div>
                             </div>
-                            <a href="{{ url_for('admin.review_recruiter', user_id=rec.id) }}" class="admin-review-btn">
-                                <i class="fas fa-search"></i>
-                                Review
-                            </a>
+                            <div class="admin-item-actions">
+                                <a href="{{ url_for('admin.review_recruiter', user_id=recruiter.id) }}" class="admin-review-btn">
+                                    <i class="fas fa-search"></i> Review
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.verify', user_id=recruiter.id) }}"
+                                      onsubmit="return confirm('Verify {{ recruiter.username }}?')">
+                                    <button type="submit" class="admin-action-btn admin-action-btn--approve">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                </form>
+                                <button type="button" class="admin-action-btn admin-action-btn--reject"
+                                        onclick="openRejectModal({{ recruiter.id }}, '{{ recruiter.username }}')">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </div>
                         </li>
                         {% endfor %}
                     </ul>
@@ -82,74 +135,137 @@
                 {% endif %}
             </div>
 
-            <!-- Pending Applicant Verification -->
+            <!-- Recently Banned -->
+            {% if banned_users %}
             <div class="admin-section">
                 <h3>
-                    <i class="fas fa-user-tie"></i>
-                    Pending Applicant Verification
-                    <span class="admin-section-badge">{{ pending_applicants|length }}</span>
+                    <i class="fas fa-ban"></i>
+                    Recently Banned
+                    <a href="{{ url_for('admin.banned_users') }}" class="admin-section-link">View All</a>
                 </h3>
 
-                {% if pending_applicants %}
-                    <!-- Results count bar -->
-                    <div class="admin-results-header">
-                        <div class="admin-results-count">
-                            <span>{{ pending_applicants|length }}</span> applicant{{ 's' if pending_applicants|length != 1 }} awaiting review
-                        </div>
-                    </div>
-
-                    <ul class="admin-list">
-                        {% for app in pending_applicants %}
-                        <li class="admin-list-item">
-                            <div class="admin-user-info">
-                                <div class="admin-user-avatar">
-                                    {{ app.username[0]|upper }}
-                                </div>
-                                <div class="admin-user-details">
-                                    <p class="admin-user-name">{{ app.username }}</p>
-                                    <p class="admin-user-email">{{ app.email }}</p>
-                                    <div class="admin-user-meta">
-                                        <span class="admin-meta-tag">
-                                            <i class="fas fa-user"></i> Applicant
-                                        </span>
-                                        <span class="admin-meta-tag">
-                                            <i class="fas fa-clock"></i> Pending
-                                        </span>
-                                    </div>
+                <ul class="admin-list">
+                    {% for user in banned_users[:5] %}
+                    <li class="admin-list-item admin-list-item--banned">
+                        <div class="admin-user-info">
+                            <div class="admin-user-avatar admin-user-avatar--banned">
+                                {% if user.profile_picture %}
+                                    {% if user.profile_picture.startswith('http') %}
+                                        <img src="{{ user.profile_picture }}" alt="">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture) }}" alt="">
+                                    {% endif %}
+                                {% else %}
+                                    {{ user.username[0]|upper }}
+                                {% endif %}
+                            </div>
+                            <div class="admin-user-details">
+                                <p class="admin-user-name">{{ user.username }}</p>
+                                <p class="admin-user-email">{{ user.email }}</p>
+                                {% if user.ban_reason %}
+                                <p class="admin-user-reason"><i class="fas fa-comment-alt"></i> {{ user.ban_reason }}</p>
+                                {% endif %}
+                                <div class="admin-user-meta">
+                                    <span class="admin-meta-tag">
+                                        <i class="fas fa-user"></i> {{ user.role|capitalize }}
+                                    </span>
+                                    <span class="admin-meta-tag admin-meta-tag--banned">
+                                        <i class="fas fa-ban"></i> Banned
+                                    </span>
                                 </div>
                             </div>
-                            <a href="{{ url_for('admin.review_applicant', user_id=app.id) }}" class="admin-review-btn">
-                                <i class="fas fa-search"></i>
-                                Review
-                            </a>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="admin-empty-state">
-                        <i class="fas fa-check-circle"></i>
-                        <p>No pending applicants</p>
-                    </div>
-                {% endif %}
+                        </div>
+                        <div class="admin-item-actions">
+                            <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                                  onsubmit="return confirm('Unban {{ user.username }}?')">
+                                <button type="submit" class="admin-action-btn admin-action-btn--approve">
+                                    <i class="fas fa-unlock"></i> Unban
+                                </button>
+                            </form>
+                            <!-- FIX 5: Delete button -->
+                            <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                                  onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                                <button type="submit" class="admin-action-btn admin-action-btn--delete">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
             </div>
+            {% endif %}
 
             <!-- Navigation Cards -->
             <div class="admin-nav-links">
-                <a href="{{ url_for('admin.rejected_applicants') }}" class="admin-nav-card">
-                    <i class="fas fa-user-times admin-nav-card-icon"></i>
-                    <h4 class="admin-nav-card-title">Rejected Applicants</h4>
-                    <p class="admin-nav-card-desc">View all rejected applicant accounts</p>
+                <a href="{{ url_for('admin.all_users') }}" class="admin-nav-card">
+                    <i class="fas fa-users admin-nav-card-icon"></i>
+                    <h4 class="admin-nav-card-title">All Users</h4>
+                    <p class="admin-nav-card-desc">Browse, filter, ban or unban all users</p>
                 </a>
-
-                <a href="{{ url_for('admin.scammers') }}" class="admin-nav-card">
+                <a href="{{ url_for('admin.banned_users') }}" class="admin-nav-card">
                     <i class="fas fa-ban admin-nav-card-icon"></i>
+                    <h4 class="admin-nav-card-title">Banned Users</h4>
+                    <p class="admin-nav-card-desc">View and manage all banned accounts</p>
+                </a>
+                <a href="{{ url_for('admin.scammers') }}" class="admin-nav-card">
+                    <i class="fas fa-times-circle admin-nav-card-icon"></i>
                     <h4 class="admin-nav-card-title">Rejected Recruiters</h4>
                     <p class="admin-nav-card-desc">View all rejected recruiter accounts</p>
                 </a>
             </div>
 
-        </div><!-- /.admin-content-area -->
+        </div>
     </div>
 </div>
+
+<!-- Reject Modal -->
+<div class="admin-modal-overlay" id="rejectModalOverlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-times-circle"></i> Reject Recruiter</h3>
+            <button class="admin-modal-close" onclick="closeRejectModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Rejecting <strong id="rejectUsername"></strong>. They will be notified and locked out.
+            </p>
+            <form method="POST" id="rejectForm">
+                <div class="admin-modal-field">
+                    <label class="admin-modal-label">
+                        <i class="fas fa-comment-alt"></i> Remarks (shown to recruiter)
+                    </label>
+                    <textarea name="remarks" class="admin-modal-textarea"
+                              placeholder="e.g. Invalid company documents, suspicious activity..."
+                              rows="3"></textarea>
+                </div>
+                <div class="admin-modal-footer">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeRejectModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
+                        <i class="fas fa-times"></i> Confirm Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRejectModal(userId, username) {
+    document.getElementById('rejectUsername').textContent = username;
+    document.getElementById('rejectForm').action = `/admin/reject/${userId}`;
+    document.getElementById('rejectModalOverlay').style.display = 'flex';
+}
+function closeRejectModal() {
+    document.getElementById('rejectModalOverlay').style.display = 'none';
+}
+document.getElementById('rejectModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeRejectModal();
+});
+</script>
 
 {% endblock %}

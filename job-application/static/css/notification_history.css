@@ -197,3 +197,14 @@
         padding: 14px 16px;
     }
 }
+.notif-history-icon.type-account_verified {
+    background: #EAF3DE;
+    color: #27500A;
+    border-color: #C0DD97;
+}
+
+.notif-history-icon.type-profile_complete {
+    background: #EAF3DE;
+    color: #27500A;
+    border-color: #C0DD97;
+}
