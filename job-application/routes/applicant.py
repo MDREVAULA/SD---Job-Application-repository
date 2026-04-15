@@ -603,7 +603,7 @@ def apply_job(job_id):
 
     if existing:
         flash("You already applied for this job!", "warning")
-        return redirect(url_for('applicant.dashboard'))
+        return redirect(url_for('applicant.job_details', job_id=job_id))
 
     if request.method == "POST":
         cover_letter = request.form.get("cover_letter")
@@ -669,7 +669,8 @@ def apply_job(job_id):
         db.session.commit()
 
         flash("Application submitted successfully!", "success")
-        return redirect(url_for('applicant.dashboard'))
+        # ── Redirect back to the job's detail page ──
+        return redirect(url_for('applicant.job_details', job_id=job_id))
 
     return render_template("applicant/apply_job.html", job=job)
 

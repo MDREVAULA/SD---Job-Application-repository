@@ -1,346 +1,741 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/job_posting.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/edit_job.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/job-posting-styles.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/delete_modal.css') }}">
 
-<div class="page-wrapper">
+<div class="job-view-wrapper">
 
-  <!-- BREADCRUMB -->
-  <div class="breadcrumb">
-    <a href="{{ url_for('recruiter.my_job_list') }}" class="breadcrumb-link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      My job postings
-    </a>
-    <span class="breadcrumb-sep">/</span>
-    <span class="breadcrumb-current">Edit posting</span>
+  <!-- Top Navigation Bar -->
+  <div class="job-view-nav">
+    <div class="nav-container">
+      <div class="nav-left">
+        <a href="{{ url_for('recruiter.my_job_list') }}" class="back-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </a>
+        <div class="job-title-section">
+          <div class="job-category">{{ job.field|upper }}</div>
+          <h1 class="job-title-main">{{ job.title }}</h1>
+          <div class="job-meta">
+            <span>{{ current_user.recruiter_profile.company_name }}</span>
+            <span class="meta-dot">•</span>
+            <span>{{ job.job_type }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <!-- Delete Job Button -->
+        <button type="button" class="btn-nav btn-delete-job" id="deleteJobBtn"
+          data-job-id="{{ job.id }}"
+          data-app-count="{{ job.applications|length }}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+          Delete Job
+        </button>
+        <div class="btn-nav allow-toggle-wrapper">
+          <span class="toggle-label-inline">Accept Applications</span>
+          <label class="toggle-switch" title="Toggle whether applicants can apply">
+            <input type="checkbox" id="allowApplicationsToggle"
+              {% if job.allow_applications %}checked{% endif %}
+              onchange="handleAllowToggle(this)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="btn-nav btn-status-badge {% if job.allow_applications %}btn-published{% else %}btn-closed{% endif %}" id="statusBadge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span id="statusText">{% if job.allow_applications %}Published{% else %}Closed{% endif %}</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- HEADER CARD -->
-  <div class="posting-header">
-    <div class="posting-header-left">
-      <div class="header-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-      </div>
-      <div>
-        <h1>Edit job posting</h1>
-        <p>Updating details for "{{ job.title }}"</p>
-      </div>
+  <!-- Tabs -->
+  <div class="job-view-tabs">
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="job-details">JOB DETAILS</button>
+      <button class="tab-btn" data-tab="requirements">REQUIREMENTS</button>
+      <button class="tab-btn" data-tab="gallery">GALLERY</button>
+      <button class="tab-btn" data-tab="hiring-team">HIRING TEAM</button>
     </div>
-
-    {% if current_user.verification_status != "Approved" %}
-    <div class="status-badge status-warning">
-      <span class="status-dot"></span>
-      Pending verification
-    </div>
-    {% else %}
-    <div class="status-badge status-success">
-      <span class="status-dot"></span>
-      Verified — ready to post
-    </div>
-    {% endif %}
   </div>
 
-  <!-- FORM SHELL -->
-  <div class="form-shell">
+  <!-- Main Form -->
+  <form method="POST" action="{{ url_for('recruiter.edit_job', job_id=job.id) }}" enctype="multipart/form-data" id="editJobForm">
 
-    <!-- TAB BAR -->
-    <div class="form-tabs">
-      <div class="form-tab active" data-tab="details">Job details</div>
-      <div class="form-tab" data-tab="requirements">Requirements</div>
-      <div class="form-tab" data-tab="media">Media</div>
-    </div>
-
-    <!-- MAIN FORM -->
-    <form method="POST"
-          action="{{ url_for('recruiter.edit_job', job_id=job.id) }}"
-          enctype="multipart/form-data"
-          class="job-form">
+    <div class="job-view-content">
 
       <!-- ========== TAB: JOB DETAILS ========== -->
-      <div class="tab-panel active" id="tab-details">
-        <div class="form-body two-col">
+      <div class="tab-content active" id="tab-job-details">
+        <div class="content-grid">
 
-          <!-- LEFT COLUMN -->
-          <div class="form-col">
-            <div class="section-label">Basic information</div>
+          <!-- Left Column -->
+          <div class="content-main">
 
-            <div class="field">
-              <label>Job title <span class="req">*</span></label>
-              <input type="text" name="title" value="{{ job.title }}" placeholder="e.g. Senior Software Engineer" required>
-              <div class="field-hint">Use a clear, searchable title candidates expect</div>
+            <!-- Header / Cover Photo Section -->
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Cover Photo</h3>
+                <button type="button" class="btn-edit-text" onclick="document.getElementById('coverPhotoInput').click()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Change Cover
+                </button>
+              </div>
+              <div class="header-image-container" id="coverPhotoContainer">
+                {% if job.cover_photo %}
+                  <img src="{{ url_for('static', filename='uploads/job_covers/' + job.cover_photo) }}"
+                       alt="Cover Photo" class="header-img" id="coverPhotoPreview">
+                {% elif job.images and job.images|length > 0 %}
+                  <img src="{{ url_for('static', filename='uploads/job_posters/' + job.images[0].image_path) }}"
+                       alt="Cover Photo" class="header-img" id="coverPhotoPreview">
+                {% else %}
+                  <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=400&fit=crop"
+                       alt="Cover Photo" class="header-img" id="coverPhotoPreview">
+                {% endif %}
+                <button type="button" class="btn-change-image" onclick="document.getElementById('coverPhotoInput').click()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Change
+                </button>
+              </div>
+              <!-- Hidden file input for cover photo -->
+              <input type="file" id="coverPhotoInput" name="cover_photo" accept="image/*"
+                     style="display:none" onchange="previewCoverPhoto(this)">
+              <p class="field-hint" style="margin-top: 8px;">
+                Recommended: 1200×400px, JPG/PNG/WebP, max 5MB. This is the main header image shown on the job listing.
+              </p>
             </div>
 
-            <div class="field-row">
+            <!-- Job Title Section -->
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Job Title & Description</h3>
+              </div>
+
               <div class="field">
-                <label>Job field <span class="req">*</span></label>
-                <select name="field">
-                  <option value="Engineering" {% if job.field=="Engineering" %}selected{% endif %}>💻 Engineering</option>
-                  <option value="IT" {% if job.field=="IT" %}selected{% endif %}>🖥️ IT</option>
-                  <option value="UI/UX Design" {% if job.field=="UI/UX Design" %}selected{% endif %}>🎨 UI/UX Design</option>
-                  <option value="Healthcare" {% if job.field=="Healthcare" %}selected{% endif %}>⚕️ Healthcare</option>
-                  <option value="Marketing" {% if job.field=="Marketing" %}selected{% endif %}>📢 Marketing</option>
-                  <option value="Finance" {% if job.field=="Finance" %}selected{% endif %}>💰 Finance</option>
-                  <option value="Architecture" {% if job.field=="Architecture" %}selected{% endif %}>🏗️ Architecture</option>
-                  <option value="Legal" {% if job.field=="Legal" %}selected{% endif %}>⚖️ Legal</option>
-                  <option value="Education" {% if job.field=="Education" %}selected{% endif %}>🎓 Education</option>
-                  <option value="Sales" {% if job.field=="Sales" %}selected{% endif %}>🛒 Sales</option>
-                  <option value="Customer Service" {% if job.field=="Customer Service" %}selected{% endif %}>🤝 Customer Service</option>
-                  <option value="Logistics" {% if job.field=="Logistics" %}selected{% endif %}>🚛 Logistics</option>
-                  <option value="Manufacturing" {% if job.field=="Manufacturing" %}selected{% endif %}>🏭 Manufacturing</option>
-                  <option value="Research & Science" {% if job.field=="Research & Science" %}selected{% endif %}>🔬 Research &amp; Science</option>
-                  <option value="Game Development" {% if job.field=="Game Development" %}selected{% endif %}>🎮 Game Development</option>
-                  <option value="Media & Entertainment" {% if job.field=="Media & Entertainment" %}selected{% endif %}>🎬 Media &amp; Entertainment</option>
-                  <option value="Supply Chain" {% if job.field=="Supply Chain" %}selected{% endif %}>📦 Supply Chain</option>
-                  <option value="Banking" {% if job.field=="Banking" %}selected{% endif %}>🏦 Banking</option>
-                  <option value="Cybersecurity" {% if job.field=="Cybersecurity" %}selected{% endif %}>🛡️ Cybersecurity</option>
-                  <option value="Data Science / AI" {% if job.field=="Data Science / AI" %}selected{% endif %}>🤖 Data Science / AI</option>
-                  <option value="Accounting" {% if job.field=="Accounting" %}selected{% endif %}>📊 Accounting</option>
-                  <option value="Real Estate" {% if job.field=="Real Estate" %}selected{% endif %}>🏘️ Real Estate</option>
-                  <option value="Travel & Tourism" {% if job.field=="Travel & Tourism" %}selected{% endif %}>✈️ Travel &amp; Tourism</option>
-                  <option value="Food & Beverage" {% if job.field=="Food & Beverage" %}selected{% endif %}>🍽️ Food &amp; Beverage</option>
-                  <option value="Retail" {% if job.field=="Retail" %}selected{% endif %}>🛍️ Retail</option>
-                  <option value="Beauty & Wellness" {% if job.field=="Beauty & Wellness" %}selected{% endif %}>💄 Beauty &amp; Wellness</option>
-                  <option value="Sports & Fitness" {% if job.field=="Sports & Fitness" %}selected{% endif %}>🏋️ Sports &amp; Fitness</option>
-                  <option value="Environment" {% if job.field=="Environment" %}selected{% endif %}>🌿 Environment</option>
-                  <option value="Aerospace" {% if job.field=="Aerospace" %}selected{% endif %}>🚀 Aerospace</option>
-                  <option value="Energy & Utilities" {% if job.field=="Energy & Utilities" %}selected{% endif %}>⚡ Energy &amp; Utilities</option>
-                  <option value="Pharmaceuticals" {% if job.field=="Pharmaceuticals" %}selected{% endif %}>🏥 Pharmaceuticals</option>
-                  <option value="Maintenance & Repair" {% if job.field=="Maintenance & Repair" %}selected{% endif %}>🔧 Maintenance &amp; Repair</option>
-                  <option value="Graphic Design" {% if job.field=="Graphic Design" %}selected{% endif %}>🎨 Graphic Design</option>
-                  <option value="Content & Writing" {% if job.field=="Content & Writing" %}selected{% endif %}>📝 Content &amp; Writing</option>
-                  <option value="Consulting" {% if job.field=="Consulting" %}selected{% endif %}>🧠 Consulting</option>
-                  <option value="Human Resources" {% if job.field=="Human Resources" %}selected{% endif %}>👥 Human Resources</option>
-                  <option value="Mobile Development" {% if job.field=="Mobile Development" %}selected{% endif %}>📱 Mobile Development</option>
-                  <option value="Other" {% if job.field=="Other" %}selected{% endif %}>🌐 Other</option>
-                </select>
+                <input type="text" name="title" value="{{ job.title }}" class="input-title"
+                       placeholder="e.g. Senior Product Designer" required>
               </div>
+
+              <div class="field-group">
+                <h4 class="subsection-title">Job Description</h4>
+                <textarea name="description" class="input-textarea" rows="6"
+                          placeholder="Describe the role and key responsibilities..." required>{{ job.description }}</textarea>
+              </div>
+
+              <div class="field-group">
+                <h4 class="subsection-title">Responsibilities / Notes</h4>
+                <textarea name="requirements_notes" class="input-textarea" rows="8"
+                          placeholder="• List key responsibilities&#10;• One per line...">{{ job.requirements_notes or '' }}</textarea>
+              </div>
+
+              <div class="divider-line"></div>
+
+              <div class="field-grid">
+                <div class="field">
+                  <label class="field-label">Job Field <span class="required">*</span></label>
+                  <select name="field" class="input-select" required>
+                    <option value="Engineering"  {% if job.field=="Engineering"  %}selected{% endif %}>💻 Engineering</option>
+                    <option value="IT"           {% if job.field=="IT"           %}selected{% endif %}>🖥️ IT</option>
+                    <option value="UI/UX Design" {% if job.field=="UI/UX Design" %}selected{% endif %}>🎨 UI/UX Design</option>
+                    <option value="Healthcare"   {% if job.field=="Healthcare"   %}selected{% endif %}>⚕️ Healthcare</option>
+                    <option value="Marketing"    {% if job.field=="Marketing"    %}selected{% endif %}>📢 Marketing</option>
+                    <option value="Finance"      {% if job.field=="Finance"      %}selected{% endif %}>💰 Finance</option>
+                    <option value="Architecture" {% if job.field=="Architecture" %}selected{% endif %}>🏗️ Architecture</option>
+                    <option value="Legal"        {% if job.field=="Legal"        %}selected{% endif %}>⚖️ Legal</option>
+                    <option value="Other"        {% if job.field=="Other"        %}selected{% endif %}>🌐 Other</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">Employment Type <span class="required">*</span></label>
+                  <select name="job_type" class="input-select" required>
+                    <option value="Full-time"   {% if job.job_type=="Full-time"   %}selected{% endif %}>Full-time</option>
+                    <option value="Part-time"   {% if job.job_type=="Part-time"   %}selected{% endif %}>Part-time</option>
+                    <option value="Contract"    {% if job.job_type=="Contract"    %}selected{% endif %}>Contract</option>
+                    <option value="Internship"  {% if job.job_type=="Internship"  %}selected{% endif %}>Internship</option>
+                  </select>
+                </div>
+              </div>
+
               <div class="field">
-                <label>Employment type <span class="req">*</span></label>
-                <select name="job_type">
-                  <option value="Full-time" {% if job.job_type=="Full-time" %}selected{% endif %}>Full-time</option>
-                  <option value="Part-time" {% if job.job_type=="Part-time" %}selected{% endif %}>Part-time</option>
-                  <option value="Contract" {% if job.job_type=="Contract" %}selected{% endif %}>Contract</option>
-                  <option value="Internship" {% if job.job_type=="Internship" %}selected{% endif %}>Internship</option>
-                </select>
+                <label class="field-label">Location</label>
+                <input type="text" name="location" value="{{ job.location or '' }}" class="input-text"
+                       placeholder="City, State or Remote">
               </div>
-            </div>
 
-            <div class="field-row">
               <div class="field">
-                <label>Location</label>
-                <input type="text" name="location" value="{{ job.location or '' }}" placeholder="City, State or Remote">
-                <div class="field-hint">City, State or Remote</div>
+                <label class="field-label">Salary Range</label>
+                <div class="salary-row">
+                  <select name="currency" class="input-select" style="width:120px;">
+                    <option value="PHP" {% if job.currency=="PHP" or not job.currency %}selected{% endif %}>₱ PHP</option>
+                    <option value="USD" {% if job.currency=="USD" %}selected{% endif %}>$ USD</option>
+                    <option value="EUR" {% if job.currency=="EUR" %}selected{% endif %}>€ EUR</option>
+                    <option value="GBP" {% if job.currency=="GBP" %}selected{% endif %}>£ GBP</option>
+                    <option value="JPY" {% if job.currency=="JPY" %}selected{% endif %}>¥ JPY</option>
+                  </select>
+                  <input type="text" name="salary" value="{{ job.salary or '' }}" class="input-text"
+                         placeholder="e.g. 30,000 – 50,000" style="flex:1;">
+                </div>
               </div>
-            </div>
 
-            <div class="field">
-              <label>Salary range</label>
-              <div style="display: flex; gap: 8px;">
-                <select name="currency" style="width: auto; flex-shrink: 0; padding: 10px; border: 1px solid var(--input-border); border-radius: 8px; font-size: 14px; color: var(--input-text); background: var(--input-bg);">
-                  <option value="PHP" {% if job.currency=="PHP" or not job.currency %}selected{% endif %}>₱ PHP</option>
-                  <option value="USD" {% if job.currency=="USD" %}selected{% endif %}>$ USD</option>
-                  <option value="EUR" {% if job.currency=="EUR" %}selected{% endif %}>€ EUR</option>
-                  <option value="GBP" {% if job.currency=="GBP" %}selected{% endif %}>£ GBP</option>
-                  <option value="JPY" {% if job.currency=="JPY" %}selected{% endif %}>¥ JPY</option>
-                  <option value="AUD" {% if job.currency=="AUD" %}selected{% endif %}>A$ AUD</option>
-                  <option value="CAD" {% if job.currency=="CAD" %}selected{% endif %}>C$ CAD</option>
-                  <option value="SGD" {% if job.currency=="SGD" %}selected{% endif %}>S$ SGD</option>
-                  <option value="KRW" {% if job.currency=="KRW" %}selected{% endif %}>₩ KRW</option>
-                  <option value="INR" {% if job.currency=="INR" %}selected{% endif %}>₹ INR</option>
-                  <option value="IDR" {% if job.currency=="IDR" %}selected{% endif %}>Rp IDR</option>
-                  <option value="MYR" {% if job.currency=="MYR" %}selected{% endif %}>RM MYR</option>
-                  <option value="THB" {% if job.currency=="THB" %}selected{% endif %}>฿ THB</option>
-                  <option value="AED" {% if job.currency=="AED" %}selected{% endif %}>د.إ AED</option>
-                  <option value="CHF" {% if job.currency=="CHF" %}selected{% endif %}>CHF</option>
-                </select>
-                <input type="text" name="salary" value="{{ job.salary or '' }}" placeholder="e.g. 30,000 – 50,000" style="flex: 1;">
+              <div class="field-grid">
+                <div class="field">
+                  <label class="field-label">Application Deadline</label>
+                  <input type="date" name="expiration_date"
+                         value="{{ job.expiration_date.strftime('%Y-%m-%d') if job.expiration_date else '' }}"
+                         class="input-text">
+                </div>
+                <div class="field">
+                  <label class="field-label">
+                    Max Applications (Recruitment Quota)
+                    <span class="field-hint" style="display:inline;margin-left:4px;">leave blank = unlimited</span>
+                  </label>
+                  <input type="number" name="max_applications" min="1"
+                         value="{{ job.max_applications or '' }}"
+                         class="input-text" placeholder="e.g. 50">
+                </div>
               </div>
-              <div class="field-hint">Monthly or annual range</div>
-            </div>
 
-            <div class="field">
-              <label>Application deadline</label>
-              <input type="date" name="expiration_date" value="{{ job.expiration_date.strftime('%Y-%m-%d') if job.expiration_date else '' }}">
-              <div class="field-hint">Listings close automatically after this date</div>
+              <!-- Work Arrangement -->
+              <div class="divider-line"></div>
+              <h4 class="subsection-title">Work Arrangement</h4>
+              <div class="tag-row" id="arrangementTags">
+                {% set current_arrangement = job.arrangement or '' %}
+                <div class="tag {% if 'On-site'       in current_arrangement %}sel{% endif %}" data-val="On-site">On-site</div>
+                <div class="tag {% if 'Remote'        in current_arrangement %}sel{% endif %}" data-val="Remote">Remote</div>
+                <div class="tag {% if 'Hybrid'        in current_arrangement %}sel{% endif %}" data-val="Hybrid">Hybrid</div>
+                <div class="tag {% if 'Flexible hours' in current_arrangement %}sel{% endif %}" data-val="Flexible hours">Flexible hours</div>
+                <div class="tag {% if 'Night shift'   in current_arrangement %}sel{% endif %}" data-val="Night shift">Night shift</div>
+              </div>
+              <input type="hidden" name="arrangement" id="arrangementInput" value="{{ job.arrangement or '' }}">
             </div>
-
-            <div class="divider"></div>
-            <div class="section-label">Work arrangement</div>
-            <div class="tag-row" id="arrangementTags">
-              {% set current_arrangement = job.arrangement or '' %}
-              <div class="tag {% if 'On-site' in current_arrangement %}sel{% endif %}" data-val="On-site">On-site</div>
-              <div class="tag {% if 'Remote' in current_arrangement %}sel{% endif %}" data-val="Remote">Remote</div>
-              <div class="tag {% if 'Hybrid' in current_arrangement %}sel{% endif %}" data-val="Hybrid">Hybrid</div>
-              <div class="tag {% if 'Flexible hours' in current_arrangement %}sel{% endif %}" data-val="Flexible hours">Flexible hours</div>
-              <div class="tag {% if 'Night shift' in current_arrangement %}sel{% endif %}" data-val="Night shift">Night shift</div>
-            </div>
-            <input type="hidden" name="arrangement" id="arrangementInput" value="{{ job.arrangement or '' }}">
           </div>
 
-          <!-- RIGHT COLUMN -->
-          <div class="form-col">
-            <div class="section-label">Job description</div>
+          <!-- Right Sidebar -->
+          {% include 'recruiter/_edit_job_sidebar.html' %}
 
-            <div class="tip-box">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <p>Clear descriptions attract 3× more qualified applicants. Include responsibilities, day-to-day tasks, and what success looks like.</p>
-            </div>
-
-            <div class="field">
-              <label>Description <span class="req">*</span></label>
-              <textarea name="description" placeholder="Describe the role, key responsibilities, qualifications, and what makes this opportunity unique..." required>{{ job.description }}</textarea>
-            </div>
-
-            <div class="divider"></div>
-            <div class="section-label">Posting overview</div>
-
-            <div class="info-cards">
-              <div class="info-card">
-                <div class="info-card-label">Posted by</div>
-                <div class="info-card-val">{{ current_user.company_name or 'Your company' }}</div>
-              </div>
-              <div class="info-card">
-                <div class="info-card-label">Visibility</div>
-                <div class="info-card-val">Public</div>
-              </div>
-              <div class="info-card">
-                <div class="info-card-label">Applicants</div>
-                <div class="info-card-val">{{ job.applications | length }}</div>
-              </div>
-            </div>
-
-          </div>
         </div>
       </div>
 
       <!-- ========== TAB: REQUIREMENTS ========== -->
-      <div class="tab-panel" id="tab-requirements">
-        <div class="form-body two-col">
-          <div class="form-col">
-            <div class="section-label">Experience & education</div>
-
-            <div class="field-row">
+      <div class="tab-content" id="tab-requirements">
+        <div class="content-grid">
+          <div class="content-main">
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Experience & Education</h3>
+              </div>
+              <div class="field-grid">
+                <div class="field">
+                  <label class="field-label">Experience Level</label>
+                  <select name="experience_level" class="input-select">
+                    <option value="">Select level</option>
+                    <option value="Entry-level"    {% if job.experience_level=="Entry-level"    %}selected{% endif %}>Entry-level</option>
+                    <option value="Mid-level"      {% if job.experience_level=="Mid-level"      %}selected{% endif %}>Mid-level</option>
+                    <option value="Senior"         {% if job.experience_level=="Senior"         %}selected{% endif %}>Senior</option>
+                    <option value="Lead / Manager" {% if job.experience_level=="Lead / Manager" %}selected{% endif %}>Lead / Manager</option>
+                    <option value="Executive"      {% if job.experience_level=="Executive"      %}selected{% endif %}>Executive</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">Years of Experience</label>
+                  <input type="text" name="years_exp" value="{{ job.years_exp or '' }}"
+                         class="input-text" placeholder="e.g. 5 Years +">
+                </div>
+              </div>
               <div class="field">
-                <label>Experience level</label>
-                <select name="experience_level">
-                  <option value="">Select level</option>
-                  <option value="Entry-level" {% if job.experience_level=="Entry-level" %}selected{% endif %}>Entry-level</option>
-                  <option value="Mid-level" {% if job.experience_level=="Mid-level" %}selected{% endif %}>Mid-level</option>
-                  <option value="Senior" {% if job.experience_level=="Senior" %}selected{% endif %}>Senior</option>
-                  <option value="Lead / Manager" {% if job.experience_level=="Lead / Manager" %}selected{% endif %}>Lead / Manager</option>
-                  <option value="Executive" {% if job.experience_level=="Executive" %}selected{% endif %}>Executive</option>
+                <label class="field-label">Education Requirement</label>
+                <select name="education" class="input-select">
+                  <option value="">No preference</option>
+                  <option value="High school diploma" {% if job.education=="High school diploma" %}selected{% endif %}>High school diploma</option>
+                  <option value="Associate degree"    {% if job.education=="Associate degree"    %}selected{% endif %}>Associate degree</option>
+                  <option value="Bachelor's degree"   {% if job.education=="Bachelor's degree"   %}selected{% endif %}>Bachelor's degree</option>
+                  <option value="Master's degree"     {% if job.education=="Master's degree"     %}selected{% endif %}>Master's degree</option>
+                  <option value="PhD"                 {% if job.education=="PhD"                 %}selected{% endif %}>PhD</option>
                 </select>
               </div>
               <div class="field">
-                <label>Years of experience</label>
-                <input type="text" name="years_exp" value="{{ job.years_exp or '' }}" placeholder="e.g. 2–4 years">
+                <label class="field-label">Languages</label>
+                <input type="text" name="languages" value="{{ job.languages or '' }}"
+                       class="input-text" placeholder="e.g. English (fluent), Filipino">
               </div>
             </div>
 
-            <div class="field">
-              <label>Education requirement</label>
-              <select name="education">
-                <option value="">No preference</option>
-                <option value="High school diploma" {% if job.education=="High school diploma" %}selected{% endif %}>High school diploma</option>
-                <option value="Associate degree" {% if job.education=="Associate degree" %}selected{% endif %}>Associate degree</option>
-                <option value="Bachelor's degree" {% if job.education=="Bachelor's degree" %}selected{% endif %}>Bachelor's degree</option>
-                <option value="Master's degree" {% if job.education=="Master's degree" %}selected{% endif %}>Master's degree</option>
-                <option value="PhD" {% if job.education=="PhD" %}selected{% endif %}>PhD</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label>Required skills</label>
-              <input type="text" name="required_skills" value="{{ job.required_skills or '' }}" placeholder="e.g. Python, SQL, Communication skills">
-              <div class="field-hint">Comma-separated list of required skills</div>
-            </div>
-          </div>
-
-          <div class="form-col">
-            <div class="section-label">Nice to have</div>
-
-            <div class="field">
-              <label>Preferred skills</label>
-              <input type="text" name="preferred_skills" value="{{ job.preferred_skills or '' }}" placeholder="e.g. Docker, AWS, Agile">
-              <div class="field-hint">Comma-separated list of preferred but not required skills</div>
-            </div>
-
-            <div class="field">
-              <label>Languages</label>
-              <input type="text" name="languages" value="{{ job.languages or '' }}" placeholder="e.g. English (fluent), Filipino">
-            </div>
-
-            <div class="field">
-              <label>Additional notes</label>
-              <textarea name="requirements_notes" style="min-height: 120px;" placeholder="Any other requirements, certifications, or details...">{{ job.requirements_notes or '' }}</textarea>
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Required Skills</h3>
+              </div>
+              <div class="field">
+                <label class="field-label">Must-Have Skills</label>
+                <input type="text" name="required_skills" value="{{ job.required_skills or '' }}"
+                       class="input-text" placeholder="e.g. Python, SQL, Communication skills">
+                <p class="field-hint">Comma-separated list of required skills</p>
+              </div>
+              <div class="field">
+                <label class="field-label">Preferred Skills</label>
+                <input type="text" name="preferred_skills" value="{{ job.preferred_skills or '' }}"
+                       class="input-text" placeholder="e.g. Docker, AWS, Agile">
+                <p class="field-hint">Comma-separated list of preferred but not required skills</p>
+              </div>
             </div>
           </div>
+
+          {% include 'recruiter/_edit_job_sidebar.html' %}
         </div>
       </div>
 
-      <!-- ========== TAB: MEDIA ========== -->
-      <div class="tab-panel" id="tab-media">
-        <div class="form-body">
-          <div class="section-label">Job images</div>
-          <p class="media-subtext">Showcase your office, team, or workplace culture. Good visuals increase application rates.</p>
+      <!-- ========== TAB: GALLERY ========== -->
+      <div class="tab-content" id="tab-gallery">
+        <div class="content-grid">
+          <div class="content-main">
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Job Gallery</h3>
+                <p class="card-subtitle">Showcase your office, team, or workplace culture</p>
+              </div>
 
-          <!-- CURRENT IMAGES -->
-          {% if job.images %}
-          <div class="section-label" style="margin-top: 0;">Current images</div>
-          <div class="current-images-hint">Hover over an image to remove it.</div>
-          <div class="image-preview-grid" style="margin-top: 12px; margin-bottom: 32px;">
-            {% for image in job.images %}
-            <div class="preview-card existing-image" id="image-{{ image.id }}">
-              <img src="{{ url_for('static', filename='uploads/job_posters/' + image.image_path) }}" alt="Job Image">
-              <button type="button" class="remove-btn" title="Delete image" onclick="openDeleteImageModal({{ image.id }})"></button>
+              {% if job.images and job.images|length > 0 %}
+              <div class="gallery-section">
+                <h4 class="gallery-section-title">Current Images</h4>
+                <p class="gallery-hint">Click the × to remove an image</p>
+                <div class="gallery-grid">
+                  {% for image in job.images %}
+                  <div class="gallery-card" id="image-{{ image.id }}">
+                    <img src="{{ url_for('static', filename='uploads/job_posters/' + image.image_path) }}"
+                         alt="Job Image" class="gallery-img">
+                    <button type="button" class="gallery-remove-btn" onclick="openDeleteImageModal({{ image.id }})">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="divider-line"></div>
+              {% endif %}
+
+              <div class="gallery-section">
+                <h4 class="gallery-section-title">Add New Images</h4>
+                <div class="upload-zone" onclick="document.getElementById('posterInput').click()">
+                  <div class="upload-zone-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                  </div>
+                  <p class="upload-primary"><span class="upload-link">Click to upload</span> or drag and drop</p>
+                  <p class="upload-formats">PNG, JPG, GIF — up to 10 MB each</p>
+                </div>
+                <input type="file" id="posterInput" name="posters" multiple accept="image/*" style="display:none;">
+                <div id="imagePreviewContainer" class="gallery-grid" style="margin-top:20px;"></div>
+              </div>
             </div>
-            {% endfor %}
-          </div>
-          <div class="divider"></div>
-          <div class="section-label">Add new images</div>
-          {% endif %}
-
-          <div class="upload-zone" onclick="document.getElementById('posterInput').click()">
-            <div class="upload-zone-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </div>
-            <p class="upload-primary"><span class="upload-link">Click to upload</span> or drag and drop</p>
-            <p class="upload-formats">PNG, JPG, GIF — up to 10 MB each</p>
           </div>
 
-          <input type="file" id="posterInput" name="posters" multiple accept="image/*" style="display: none;">
-          <div id="imagePreviewContainer" class="image-preview-grid"></div>
+          {% include 'recruiter/_edit_job_sidebar.html' %}
         </div>
       </div>
 
-      <!-- FORM FOOTER -->
-      <div class="form-footer">
-        <span class="footer-note">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Review your changes carefully before updating
-        </span>
-        <div class="footer-actions">
-          <a href="{{ url_for('recruiter.my_job_list') }}" class="btn btn-ghost">Cancel</a>
-          <button type="submit" class="btn btn-primary">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Save changes
-          </button>
-        </div>
-      </div>
+      <!-- ========== TAB: HIRING TEAM ========== -->
+      <div class="tab-content" id="tab-hiring-team">
+        <div class="content-grid">
+          <div class="content-main">
 
-    </form>
-  </div>
-</div>
+            <!-- Company Header Banner -->
+            <div class="content-card company-header-card">
+              <div class="company-header-banner">
+                <div class="company-header-content">
+                  <div class="company-logo-header">
+                    {% if current_user.recruiter_profile.company_logo %}
+                    <img src="{{ url_for('static', filename='uploads/company_logos/' + current_user.recruiter_profile.company_logo) }}"
+                         alt="Company Logo">
+                    {% else %}
+                    <div class="company-logo-placeholder-header">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                      </svg>
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="company-header-info">
+                    <h2 class="company-name-large">{{ current_user.recruiter_profile.company_name }}</h2>
+                    <p class="company-tagline">Manage your hiring team and company content for this job</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Company Overview (editable) ── -->
+            <div class="content-card" id="companyOverviewCard">
+              <div class="card-header">
+                <h3 class="card-title-main">Company Overview</h3>
+                <button type="button" class="btn-edit-text" onclick="toggleEditMode('overview')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Edit
+                </button>
+              </div>
+              <div class="company-info-grid" id="overviewDisplay">
+                <div class="company-info-box">
+                  <div class="info-box-header">
+                    <div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+                    <h4 class="info-box-title">Company</h4>
+                  </div>
+                  <p class="info-box-value">{{ current_user.recruiter_profile.company_name }}</p>
+                </div>
+                <div class="company-info-box">
+                  <div class="info-box-header">
+                    <div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+                    <h4 class="info-box-title">Industry</h4>
+                  </div>
+                  <p class="info-box-value" id="overviewIndustry">{{ current_user.recruiter_profile.company_industry or job.field }}</p>
+                </div>
+                <div class="company-info-box">
+                  <div class="info-box-header">
+                    <div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                    <h4 class="info-box-title">Company Size</h4>
+                  </div>
+                  <p class="info-box-value" id="overviewSize">Growing Company</p>
+                </div>
+                <div class="company-info-box">
+                  <div class="info-box-header">
+                    <div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                    <h4 class="info-box-title">Active Since</h4>
+                  </div>
+                  <p class="info-box-value">{{ current_user.created_at.strftime('%Y') if current_user.created_at else '2020' }}</p>
+                </div>
+              </div>
+              <!-- Edit form (hidden by default) -->
+              <div id="overviewEditForm" style="display:none;">
+                <div class="field-grid" style="margin-top:16px;">
+                  <div class="field">
+                    <label class="field-label">Industry / Field</label>
+                    <input type="text" id="editIndustry" class="input-text"
+                           value="{{ current_user.recruiter_profile.company_industry or job.field }}"
+                           placeholder="e.g. Technology, Healthcare">
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Company Size</label>
+                    <select id="editCompanySize" class="input-select">
+                      <option>1–10 employees</option>
+                      <option>11–50 employees</option>
+                      <option selected>Growing Company</option>
+                      <option>51–200 employees</option>
+                      <option>201–500 employees</option>
+                      <option>500+ employees</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="edit-actions">
+                  <button type="button" class="btn-save-section" onclick="saveOverview()">Save Overview</button>
+                  <button type="button" class="btn-cancel-section" onclick="toggleEditMode('overview')">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── About Company (editable) ── -->
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title-main">About Company</h3>
+                <button type="button" class="btn-edit-text" onclick="toggleEditMode('about')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Edit
+                </button>
+              </div>
+              <div class="company-about-text" id="aboutDisplay">
+                {% if job.about_company %}
+                  {{ job.about_company|safe }}
+                {% else %}
+                  <p>{{ current_user.recruiter_profile.company_name }} is a forward-thinking organization committed to innovation and excellence. We create opportunities for talented individuals to grow, learn, and make a meaningful impact.</p>
+                  <p>Our team is passionate about delivering outstanding results while maintaining a collaborative and supportive work environment.</p>
+                {% endif %}
+              </div>
+              <div id="aboutEditForm" style="display:none; margin-top:16px;">
+                <textarea id="aboutTextarea" class="input-textarea" rows="6"
+                          placeholder="Describe your company...">{{ job.about_company or '' }}</textarea>
+                <div class="edit-actions">
+                  <button type="button" class="btn-save-section" onclick="saveAbout()">Save</button>
+                  <button type="button" class="btn-cancel-section" onclick="toggleEditMode('about')">Cancel</button>
+                </div>
+              </div>
+
+              <div class="divider-line"></div>
+
+              <!-- Company Values (editable) -->
+              <div class="card-header" style="margin-bottom:16px;">
+                <h4 class="subsection-title" style="margin:0;">Company Values</h4>
+                <button type="button" class="btn-edit-text" onclick="toggleEditMode('values')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Edit
+                </button>
+              </div>
+              <div class="company-values" id="valuesDisplay">
+                {% set default_values = [
+                  {"title": "Innovation", "icon": "star", "description": "We encourage creative thinking and embrace new ideas to drive progress."},
+                  {"title": "Collaboration", "icon": "users", "description": "Teamwork and open communication are at the heart of everything we do."},
+                  {"title": "Excellence", "icon": "chart", "description": "We strive for the highest quality in our work and continuous improvement."}
+                ] %}
+                {% set values_data = job.company_values | from_json if job.company_values else default_values %}
+                {% for v in values_data %}
+                <div class="value-item">
+                  <div class="value-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  </div>
+                  <div class="value-content">
+                    <h5 class="value-title">{{ v.title }}</h5>
+                    <p class="value-description">{{ v.description }}</p>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              <div id="valuesEditForm" style="display:none; margin-top:16px;">
+                <div id="valuesEditorList">
+            {% set values_data = job.company_values | from_json if job.company_values else default_values %}
+                  {% for v in values_data %}
+                  <div class="value-editor-row">
+                    <input type="text" class="input-text value-title-input" placeholder="Value title" value="{{ v.title }}" style="margin-bottom:6px;">
+                    <input type="text" class="input-text value-desc-input" placeholder="Short description" value="{{ v.description }}">
+                    <button type="button" class="btn-remove-value" onclick="this.parentElement.remove()">×</button>
+                  </div>
+                  {% endfor %}
+                </div>
+                <button type="button" class="btn-add-value" onclick="addValueRow()">+ Add Value</button>
+                <div class="edit-actions">
+                  <button type="button" class="btn-save-section" onclick="saveValues()">Save Values</button>
+                  <button type="button" class="btn-cancel-section" onclick="toggleEditMode('values')">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Hiring Manager ── -->
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title-main">Hiring Manager</h3>
+                <a href="{{ url_for('recruiter.profile') }}" class="btn-edit-text">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  Edit Profile
+                </a>
+              </div>
+              <div class="hiring-manager-profile">
+                <div class="manager-avatar-section">
+                  <div class="manager-avatar-large">
+                    {% if current_user.profile_picture %}
+                      {% if current_user.profile_picture.startswith('http') %}
+                      <img src="{{ current_user.profile_picture }}" alt="Hiring Manager">
+                      {% else %}
+                      <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" alt="Hiring Manager">
+                      {% endif %}
+                    {% else %}
+                    <div class="manager-avatar-placeholder">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="manager-info-section">
+                  <h4 class="manager-name">{{ current_user.recruiter_profile.first_name }} {{ current_user.recruiter_profile.surname }}</h4>
+                  <p class="manager-role">Recruiter • {{ current_user.recruiter_profile.company_name }}</p>
+                  <p class="manager-bio">Primary hiring manager for this position. Responsible for screening candidates and coordinating the recruitment process.</p>
+                  <div class="manager-actions">
+                    <a href="{{ url_for('recruiter.profile') }}" class="btn-manager-profile">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      View My Profile
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── HR Team Members (assignable) ── -->
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title-main">HR Team Members</h3>
+                <p class="card-subtitle" style="margin:0;">HR accounts who can view and manage applications for this job</p>
+              </div>
+
+              {% if hr_list %}
+              <!-- Assign HR panel -->
+              <div class="hr-assign-panel">
+                <h4 class="subsection-title" style="margin-bottom:12px;">Add Team Member</h4>
+                <div class="hr-assign-list" id="hrAssignList">
+                  {% for hr in hr_list %}
+                  <div class="hr-assign-row {% if hr.id in assigned_hr_ids %}assigned{% endif %}"
+                       data-hr-id="{{ hr.id }}" id="hrAssignRow-{{ hr.id }}">
+                    <div class="hr-assign-info">
+                      <div class="hr-assign-avatar">
+                        {% if hr.profile_picture %}
+                          {% if hr.profile_picture.startswith('http') %}
+                          <img src="{{ hr.profile_picture }}" alt="{{ hr.username }}">
+                          {% else %}
+                          <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr.profile_picture) }}" alt="{{ hr.username }}">
+                          {% endif %}
+                        {% else %}
+                        <div class="hr-avatar-placeholder">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                          </svg>
+                        </div>
+                        {% endif %}
+                      </div>
+                      <div>
+                        <div class="hr-assign-name">{{ hr.username }}</div>
+                        <div class="hr-assign-email">{{ hr.email }}</div>
+                      </div>
+                    </div>
+                    <button type="button"
+                            class="btn-assign-hr {% if hr.id in assigned_hr_ids %}assigned{% endif %}"
+                            onclick="toggleTeamMember({{ job.id }}, {{ hr.id }}, this)"
+                            data-assigned="{{ 'true' if hr.id in assigned_hr_ids else 'false' }}">
+                      {% if hr.id in assigned_hr_ids %}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Assigned
+                      {% else %}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Assign
+                      {% endif %}
+                    </button>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% else %}
+              <div class="team-empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <p>No HR accounts created yet.</p>
+                <a href="{{ url_for('recruiter.hr_accounts') }}" class="btn-add-team">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Create HR Accounts
+                </a>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- ── Why Join Us (editable) ── -->
+            <div class="content-card highlight-card" style="position:relative;">
+              <div class="highlight-header">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <h3>Why Join {{ current_user.recruiter_profile.company_name }}?</h3>
+              </div>
+              <button type="button" class="btn-edit-text"
+                      style="position:absolute;top:24px;right:24px;"
+                      onclick="toggleEditMode('whyjoin')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Edit
+              </button>
+
+              <div class="highlight-benefits" id="whyjoinDisplay">
+                {% set default_benefits = [
+                  "Competitive salary and comprehensive benefits package",
+                  "Flexible work arrangements and work-life balance",
+                  "Professional development and learning opportunities",
+                  "Collaborative and inclusive team culture",
+                  "Modern office facilities and tools",
+                  "Career growth and advancement opportunities"
+                ] %}
+                {% set benefits = job.why_join_us | fromjson if job.why_join_us else default_benefits %}
+                {% for benefit in benefits %}
+                <div class="benefit-item">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <span>{{ benefit }}</span>
+                </div>
+                {% endfor %}
+              </div>
+
+              <div id="whyjoinEditForm" style="display:none; margin-top:16px;">
+                <div id="benefitsList">
+                  {% set benefits = job.why_join_us | fromjson if job.why_join_us else default_benefits %}
+                  {% for benefit in benefits %}
+                  <div class="benefit-editor-row">
+                    <input type="text" class="input-text benefit-input" value="{{ benefit }}" placeholder="e.g. Competitive salary">
+                    <button type="button" class="btn-remove-value" onclick="this.parentElement.remove()">×</button>
+                  </div>
+                  {% endfor %}
+                </div>
+                <button type="button" class="btn-add-value" onclick="addBenefitRow()">+ Add Benefit</button>
+                <div class="edit-actions">
+                  <button type="button" class="btn-save-section" onclick="saveWhyJoin()">Save</button>
+                  <button type="button" class="btn-cancel-section" onclick="toggleEditMode('whyjoin')">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- end content-main -->
+
+          {% include 'recruiter/_edit_job_sidebar.html' %}
+
+        </div>
+      </div><!-- end tab-hiring-team -->
+
+    </div><!-- end job-view-content -->
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <a href="{{ url_for('recruiter.my_job_list') }}" class="btn-cancel">Cancel</a>
+      <button type="submit" class="btn-save">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Save Changes
+      </button>
+    </div>
+
+  </form><!-- end main form -->
+</div><!-- end job-view-wrapper -->
 
 <!-- DELETE IMAGE MODAL -->
 <div id="deleteImageModal" class="delete-modal">
   <div class="delete-modal-content">
-    <div class="modal-icon" style="background: #fff3cd; border: 2px solid #ffc107;">
-      <i class="fas fa-image" style="color: #856404; font-size: 22px;"></i>
+    <div class="modal-icon" style="background:#fff3cd;border:2px solid #ffc107;">
+      <i class="fas fa-image" style="color:#856404;font-size:22px;"></i>
     </div>
     <h3>Delete image</h3>
     <p>Are you sure you want to delete this image? This action cannot be undone.</p>
@@ -355,29 +750,320 @@
   </div>
 </div>
 
-<style>
-  /* Edit-specific additions that extend job_posting.css */
-  .current-images-hint {
-    font-size: 12px;
-    color: #adb5bd;
-    margin-bottom: 4px;
-    font-style: italic;
-  }
+<!-- DELETE JOB MODAL -->
+<div id="deleteJobModal" class="delete-modal">
+  <div class="delete-modal-content">
+    <div class="modal-icon" style="background:#fee2e2;border:2px solid #ef4444;">
+      <i class="fas fa-trash-alt" style="color:#dc2626;font-size:22px;"></i>
+    </div>
+    <h3 id="deleteJobTitle">Delete Job Posting</h3>
+    <p id="deleteJobMessage">Are you sure you want to permanently delete this job posting?</p>
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeDeleteJobModal()">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button class="btn-danger" id="confirmDeleteJobBtn">
+        <i class="fas fa-trash"></i> Delete Job
+      </button>
+    </div>
+  </div>
+</div>
 
-  .preview-card.existing-image {
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
-
-  .preview-card.existing-image .remove-btn::before {
-    content: '×';
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 1;
-  }
-</style>
+<!-- Toast notification -->
+<div id="saveToast" class="save-toast" style="display:none;">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+  <span id="saveToastMsg">Saved successfully!</span>
+</div>
 
 <script src="{{ url_for('static', filename='js/recruiter/job_image_preview.js') }}"></script>
 <script src="{{ url_for('static', filename='js/recruiter/job_posting.js') }}"></script>
 <script src="{{ url_for('static', filename='js/recruiter/edit_job.js') }}"></script>
+
+<script>
+// ── Job ID available globally ──
+const JOB_ID = {{ job.id }};
+
+// ── Tab switching ──
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Work arrangement tags ──
+document.querySelectorAll('#arrangementTags .tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    tag.classList.toggle('sel');
+    updateArrangementInput();
+  });
+});
+function updateArrangementInput() {
+  const selected = Array.from(document.querySelectorAll('#arrangementTags .tag.sel'))
+    .map(t => t.dataset.val);
+  document.getElementById('arrangementInput').value = selected.join(', ');
+}
+
+// ── Cover photo preview ──
+function previewCoverPhoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('coverPhotoPreview').src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ── Allow Applications Toggle ──
+function handleAllowToggle(checkbox) {
+  const allowed = checkbox.checked;
+  fetch(`/recruiter/job-toggle-applications/${JOB_ID}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ allow: allowed })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      const badge  = document.getElementById('statusBadge');
+      const text   = document.getElementById('statusText');
+      badge.classList.toggle('btn-published', allowed);
+      badge.classList.toggle('btn-closed',    !allowed);
+      text.textContent = allowed ? 'Published' : 'Closed';
+      showToast(allowed ? 'Applications are now open.' : 'Applications are now closed.');
+    } else {
+      checkbox.checked = !allowed; // revert
+      showToast('Failed to update status.', true);
+    }
+  })
+  .catch(() => {
+    checkbox.checked = !allowed;
+    showToast('Network error.', true);
+  });
+}
+
+// ── Toast helper ──
+function showToast(msg, isError = false) {
+  const toast = document.getElementById('saveToast');
+  document.getElementById('saveToastMsg').textContent = msg;
+  toast.style.display = 'flex';
+  toast.style.borderColor = isError ? '#ef4444' : '#14b8a6';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+
+// ── Toggle edit mode for sections ──
+const editSections = {
+  overview: { display: 'overviewDisplay', form: 'overviewEditForm' },
+  about:    { display: 'aboutDisplay',    form: 'aboutEditForm'    },
+  values:   { display: 'valuesDisplay',   form: 'valuesEditForm'   },
+  whyjoin:  { display: 'whyjoinDisplay',  form: 'whyjoinEditForm'  },
+};
+function toggleEditMode(section) {
+  const s = editSections[section];
+  if (!s) return;
+  const displayEl = document.getElementById(s.display);
+  const formEl    = document.getElementById(s.form);
+  const isEditing = formEl.style.display !== 'none';
+  displayEl.style.display = isEditing ? '' : 'none';
+  formEl.style.display    = isEditing ? 'none' : 'block';
+}
+
+// ── Save About Company ──
+function saveAbout() {
+  const content = document.getElementById('aboutTextarea').value;
+  fetch(`/recruiter/update-job-company-content/${JOB_ID}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ section: 'about', content })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('aboutDisplay').innerHTML =
+        content ? content.replace(/\n/g, '<br>') : '<p>(no content)</p>';
+      toggleEditMode('about');
+      showToast('About company saved!');
+    } else showToast('Save failed.', true);
+  })
+  .catch(() => showToast('Network error.', true));
+}
+
+// ── Save Company Values ──
+function addValueRow(title='', desc='') {
+  const row = document.createElement('div');
+  row.className = 'value-editor-row';
+  row.innerHTML = `
+    <input type="text"  class="input-text value-title-input" placeholder="Value title" value="${title}" style="margin-bottom:6px;">
+    <input type="text"  class="input-text value-desc-input"  placeholder="Short description" value="${desc}">
+    <button type="button" class="btn-remove-value" onclick="this.parentElement.remove()">×</button>
+  `;
+  document.getElementById('valuesEditorList').appendChild(row);
+}
+function saveValues() {
+  const rows  = document.querySelectorAll('.value-editor-row');
+  const items = Array.from(rows).map(r => ({
+    title:       r.querySelector('.value-title-input').value.trim(),
+    description: r.querySelector('.value-desc-input').value.trim(),
+  })).filter(v => v.title);
+
+  fetch(`/recruiter/update-job-company-content/${JOB_ID}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ section: 'values', items })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      // Rebuild display
+      const display = document.getElementById('valuesDisplay');
+      display.innerHTML = items.map(v => `
+        <div class="value-item">
+          <div class="value-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </div>
+          <div class="value-content">
+            <h5 class="value-title">${escHtml(v.title)}</h5>
+            <p class="value-description">${escHtml(v.description)}</p>
+          </div>
+        </div>
+      `).join('');
+      toggleEditMode('values');
+      showToast('Company values saved!');
+    } else showToast('Save failed.', true);
+  })
+  .catch(() => showToast('Network error.', true));
+}
+
+// ── Save Overview ──
+function saveOverview() {
+  const industry = document.getElementById('editIndustry').value.trim();
+  const size     = document.getElementById('editCompanySize').value;
+  document.getElementById('overviewIndustry').textContent = industry;
+  document.getElementById('overviewSize').textContent     = size;
+  toggleEditMode('overview');
+  showToast('Overview updated locally. Full save on form submit.');
+}
+
+// ── Save Why Join Us ──
+function addBenefitRow(val='') {
+  const row = document.createElement('div');
+  row.className = 'benefit-editor-row';
+  row.innerHTML = `
+    <input type="text" class="input-text benefit-input" value="${val}" placeholder="e.g. Competitive salary">
+    <button type="button" class="btn-remove-value" onclick="this.parentElement.remove()">×</button>
+  `;
+  document.getElementById('benefitsList').appendChild(row);
+}
+function saveWhyJoin() {
+  const inputs = document.querySelectorAll('.benefit-input');
+  const items  = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
+
+  fetch(`/recruiter/update-job-company-content/${JOB_ID}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ section: 'why_join', items })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      const display = document.getElementById('whyjoinDisplay');
+      display.innerHTML = items.map(b => `
+        <div class="benefit-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>${escHtml(b)}</span>
+        </div>
+      `).join('');
+      toggleEditMode('whyjoin');
+      showToast('Benefits saved!');
+    } else showToast('Save failed.', true);
+  })
+  .catch(() => showToast('Network error.', true));
+}
+
+// ── HR Team Member Toggle ──
+function toggleTeamMember(jobId, hrId, btn) {
+  const isAssigned = btn.dataset.assigned === 'true';
+  const url  = isAssigned
+    ? `/recruiter/job-team/${jobId}/remove`
+    : `/recruiter/job-team/${jobId}/add`;
+
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ hr_id: hrId })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      const nowAssigned = !isAssigned;
+      btn.dataset.assigned = nowAssigned ? 'true' : 'false';
+      btn.classList.toggle('assigned', nowAssigned);
+      const row = document.getElementById(`hrAssignRow-${hrId}`);
+      if (row) row.classList.toggle('assigned', nowAssigned);
+      btn.innerHTML = nowAssigned
+        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Assigned`
+        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Assign`;
+      showToast(nowAssigned ? 'HR member assigned!' : 'HR member removed.');
+    } else {
+      showToast(data.error || 'Failed to update team.', true);
+    }
+  })
+  .catch(() => showToast('Network error.', true));
+}
+
+// ── Delete Job ──
+document.getElementById('deleteJobBtn').addEventListener('click', function() {
+  const appCount = parseInt(this.dataset.appCount) || 0;
+  const modal    = document.getElementById('deleteJobModal');
+
+  if (appCount > 0) {
+    document.getElementById('deleteJobTitle').textContent = 'Delete Job with Active Applications';
+    document.getElementById('deleteJobMessage').innerHTML =
+      `This job has <strong>${appCount} application(s)</strong>. Deleting it will permanently remove all applications. This cannot be undone.`;
+  } else {
+    document.getElementById('deleteJobTitle').textContent = 'Delete Job Posting';
+    document.getElementById('deleteJobMessage').textContent = 'Are you sure you want to permanently delete this job posting?';
+  }
+
+  document.getElementById('confirmDeleteJobBtn').onclick = function() {
+    fetch(`/recruiter/force-delete-job/${JOB_ID}`, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = '{{ url_for("recruiter.my_job_list") }}';
+        } else {
+          showToast(data.error || 'Delete failed.', true);
+          closeDeleteJobModal();
+        }
+      })
+      .catch(() => showToast('Network error.', true));
+  };
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+});
+
+function closeDeleteJobModal() {
+  document.getElementById('deleteJobModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Helper to escape HTML in JS-generated content
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
 
 {% endblock %}

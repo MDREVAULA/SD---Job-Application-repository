@@ -320,16 +320,24 @@ def delete_education(edu_id):
 @hr_bp.route('/job-list')
 @login_required
 def job_list():
-
     if current_user.role != 'hr':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    jobs = Job.query.filter_by(company_id=current_user.created_by).all()
+    from models import JobTeamMember
+
+    # Get IDs of jobs this HR is assigned to
+    assigned_job_ids = {
+        tm.job_id for tm in JobTeamMember.query.filter_by(hr_id=current_user.id).all()
+    }
+
+    # All jobs by their recruiter boss
+    all_jobs = Job.query.filter_by(company_id=current_user.created_by).all()
 
     return render_template(
         "hr/job_list.html",
-        jobs=jobs
+        jobs=all_jobs,
+        assigned_job_ids=assigned_job_ids,
     )
 
 
@@ -339,15 +347,24 @@ def job_list():
 @hr_bp.route('/job-applications/<int:job_id>')
 @login_required
 def job_applications(job_id):
-
     if current_user.role != 'hr':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
+    from models import JobTeamMember
+
+    # Check if this HR is assigned to this job
+    is_assigned = JobTeamMember.query.filter_by(
+        job_id=job_id,
+        hr_id=current_user.id
+    ).first()
+
+    if not is_assigned:
+        flash("You are not assigned to review this job.", "warning")
+        return redirect(url_for('hr.job_list'))
+
     job = Job.query.get_or_404(job_id)
-
     applications = Application.query.filter_by(job_id=job_id).all()
-
     recruiter_user = User.query.get(job.company_id)
 
     return render_template(

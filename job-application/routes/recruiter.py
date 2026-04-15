@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
 from models import (
-    db, Job, User, Application, JobImage, HRFeedback, 
-    RecruiterNotification, ApplicantNotification, RecruiterEducation
+    db, Job, User, Application, JobImage, HRFeedback,
+    RecruiterNotification, ApplicantNotification, RecruiterEducation,
+    JobTeamMember
 )
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
@@ -14,6 +15,7 @@ import secrets
 import string
 import os
 import uuid
+import json
 
 
 def generate_temp_password(length=10):
@@ -28,7 +30,6 @@ recruiter_bp = Blueprint('recruiter', __name__, url_prefix="/recruiter")
 # HELPER — ban check
 # ===============================
 def check_banned():
-    """Returns rendered template if user is banned, else None."""
     if current_user.is_authenticated and current_user.is_banned:
         from flask import render_template as rt
         return rt("account_banned.html", user=current_user)
@@ -37,8 +38,6 @@ def check_banned():
 
 # ===============================
 # HELPER — recruiter profile completion check
-# Required: first_name, surname, phone_number, company_name, 
-#           company_industry, country, city
 # ===============================
 def is_recruiter_profile_complete(profile):
     if not profile:
@@ -52,6 +51,15 @@ def is_recruiter_profile_complete(profile):
         profile.country,
         profile.city,
     ])
+
+
+# ===============================
+# HELPER — allowed image extensions
+# ===============================
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+def allowed_image(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 
 # ===============================
@@ -74,7 +82,6 @@ def profile():
     hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
     rec_profile = RecruiterProfile.query.filter_by(user_id=current_user.id).first()
 
-    # ── Use RecruiterEducation, not the shared Education model ──
     educations = []
     if rec_profile:
         educations = RecruiterEducation.query.filter_by(
@@ -90,8 +97,6 @@ def profile():
 
     profile_complete = is_recruiter_profile_complete(rec_profile)
 
-    # Determine verification state for banner
-    # States: "incomplete", "complete_unsubmitted", "pending", "approved", "rejected"
     if current_user.is_verified and current_user.verification_status == "Approved":
         verify_state = "approved"
     elif current_user.verification_status == "Rejected":
@@ -147,11 +152,9 @@ def submit_for_review():
         flash("Your account is already pending review.", "info")
         return redirect(url_for('recruiter.profile'))
 
-    # Mark as submitted
     profile.submitted_for_review = True
     current_user.verification_status = "Pending"
 
-    # ── Notify admin ──
     try:
         from routes.admin import push_admin_notif
         push_admin_notif(
@@ -330,7 +333,6 @@ def update_profile():
 
     db.session.flush()
 
-    # ── Re-fetch user row directly so SQLAlchemy tracks the change ──
     user_row = db.session.get(User, current_user.id)
     if not getattr(user_row, 'profile_completed', False):
         if is_recruiter_profile_complete(profile):
@@ -395,7 +397,6 @@ def add_education():
 
     is_current = request.form.get('is_current') == '1'
 
-    # ── Insert into recruiter_education, NOT applicant_education ──
     edu = RecruiterEducation(
         profile_id     = profile.id,
         school         = request.form.get('school', '').strip(),
@@ -428,7 +429,6 @@ def delete_education(edu_id):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    # ── Query recruiter_education, not applicant_education ──
     edu = RecruiterEducation.query.get_or_404(edu_id)
 
     profile = current_user.recruiter_profile
@@ -479,6 +479,11 @@ def post_job():
     languages          = request.form.get('languages')
     requirements_notes = request.form.get('requirements_notes')
 
+    # NEW fields
+    max_applications_str = request.form.get('max_applications', '').strip()
+    max_applications = int(max_applications_str) if max_applications_str.isdigit() else None
+    allow_applications = request.form.get('allow_applications') == 'on'
+
     expiration = None
     if expiration_date:
         expiration = datetime.strptime(expiration_date, "%Y-%m-%d").date()
@@ -501,6 +506,8 @@ def post_job():
         preferred_skills=preferred_skills,
         languages=languages,
         requirements_notes=requirements_notes,
+        max_applications=max_applications,
+        allow_applications=allow_applications,
     )
 
     db.session.add(job)
@@ -649,22 +656,16 @@ def create_hr():
 
 
 # ================================================================
-# SOFT-DELETE HR ACCOUNT  (supports undo within 8 seconds)
+# SOFT-DELETE / UNDO-DELETE / COMMIT-DELETE HR (unchanged)
 # ================================================================
+
 @recruiter_bp.route('/soft-delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
 def soft_delete_hr(hr_id):
-    """Stage 1 of undo-delete: mark HR account as soft-deleted."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
-    hr = User.query.filter_by(
-        id=hr_id,
-        role='hr',
-        created_by=current_user.id,
-        is_deleted=False
-    ).first()
-
+    hr = User.query.filter_by(id=hr_id, role='hr', created_by=current_user.id, is_deleted=False).first()
     if not hr:
         return jsonify({'success': False, 'error': 'HR account not found'}), 404
 
@@ -676,22 +677,13 @@ def soft_delete_hr(hr_id):
     return jsonify({'success': True, 'hr_id': hr_id})
 
 
-# ================================================================
-# SOFT-DELETE ALL HR ACCOUNTS  (supports undo within 8 seconds)
-# ================================================================
 @recruiter_bp.route('/soft-delete-all-hr', methods=['POST'])
 @login_required
 def soft_delete_all_hr():
-    """Stage 1 of undo-delete-all: mark ALL HR accounts as soft-deleted."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
-    hrs = User.query.filter_by(
-        created_by=current_user.id,
-        role='hr',
-        is_deleted=False
-    ).all()
-
+    hrs = User.query.filter_by(created_by=current_user.id, role='hr', is_deleted=False).all()
     if not hrs:
         return jsonify({'success': True, 'deleted_ids': []})
 
@@ -707,23 +699,13 @@ def soft_delete_all_hr():
     return jsonify({'success': True, 'deleted_ids': deleted_ids})
 
 
-# ================================================================
-# UNDO DELETE — restore one soft-deleted HR account
-# ================================================================
 @recruiter_bp.route('/undo-delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
 def undo_delete_hr(hr_id):
-    """Restore a single soft-deleted HR account (undo action)."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
-    hr = User.query.filter_by(
-        id=hr_id,
-        role='hr',
-        created_by=current_user.id,
-        is_deleted=True
-    ).first()
-
+    hr = User.query.filter_by(id=hr_id, role='hr', created_by=current_user.id, is_deleted=True).first()
     if not hr:
         return jsonify({'success': False, 'error': 'HR account not found or already committed'}), 404
 
@@ -735,13 +717,9 @@ def undo_delete_hr(hr_id):
     return jsonify({'success': True})
 
 
-# ================================================================
-# UNDO DELETE ALL — restore multiple soft-deleted HR accounts
-# ================================================================
 @recruiter_bp.route('/undo-delete-all-hr', methods=['POST'])
 @login_required
 def undo_delete_all_hr():
-    """Restore a list of soft-deleted HR account IDs (undo-all action)."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
@@ -753,12 +731,7 @@ def undo_delete_all_hr():
 
     restored = 0
     for hr_id in ids:
-        hr = User.query.filter_by(
-            id=hr_id,
-            role='hr',
-            created_by=current_user.id,
-            is_deleted=True
-        ).first()
+        hr = User.query.filter_by(id=hr_id, role='hr', created_by=current_user.id, is_deleted=True).first()
         if hr:
             hr.is_deleted = False
             hr.deleted_at = None
@@ -769,32 +742,19 @@ def undo_delete_all_hr():
     return jsonify({'success': True, 'restored': restored})
 
 
-# ================================================================
-# COMMIT DELETE — permanently remove one soft-deleted HR account
-# ================================================================
 @recruiter_bp.route('/commit-delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
 def commit_delete_hr(hr_id):
-    """Stage 2 of undo-delete: actually purge the HR account."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
-    hr = User.query.filter_by(
-        id=hr_id,
-        role='hr',
-        created_by=current_user.id,
-        is_deleted=True
-    ).first()
-
+    hr = User.query.filter_by(id=hr_id, role='hr', created_by=current_user.id, is_deleted=True).first()
     if not hr:
         return jsonify({'success': True, 'skipped': True})
 
     try:
         from sqlalchemy import text
-        db.session.execute(
-            text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
-            {"hr_id": hr.id}
-        )
+        db.session.execute(text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"), {"hr_id": hr.id})
         db.session.flush()
 
         if hr.hr_profile:
@@ -810,13 +770,9 @@ def commit_delete_hr(hr_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ================================================================
-# COMMIT DELETE ALL — permanently remove multiple soft-deleted HRs
-# ================================================================
 @recruiter_bp.route('/commit-delete-all-hr', methods=['POST'])
 @login_required
 def commit_delete_all_hr():
-    """Stage 2 of undo-delete-all: purge all HR accounts."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
@@ -830,20 +786,11 @@ def commit_delete_all_hr():
         from sqlalchemy import text
 
         for hr_id in ids:
-            hr = User.query.filter_by(
-                id=hr_id,
-                role='hr',
-                created_by=current_user.id,
-                is_deleted=True
-            ).first()
-
+            hr = User.query.filter_by(id=hr_id, role='hr', created_by=current_user.id, is_deleted=True).first()
             if not hr:
                 continue
 
-            db.session.execute(
-                text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
-                {"hr_id": hr_id}
-            )
+            db.session.execute(text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"), {"hr_id": hr_id})
             db.session.flush()
 
             if hr.hr_profile:
@@ -861,31 +808,19 @@ def commit_delete_all_hr():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ===============================
-# DELETE HR ACCOUNT  (legacy)
-# ===============================
 @recruiter_bp.route('/delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
 def delete_hr(hr_id):
-    """Legacy immediate delete (kept for backwards-compatibility)."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
-    hr = User.query.filter_by(
-        id=hr_id,
-        role='hr',
-        created_by=current_user.id
-    ).first()
-
+    hr = User.query.filter_by(id=hr_id, role='hr', created_by=current_user.id).first()
     if not hr:
         return jsonify({'success': False, 'error': 'HR account not found'}), 404
 
     try:
         from sqlalchemy import text
-        db.session.execute(
-            text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
-            {"hr_id": hr.id}
-        )
+        db.session.execute(text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"), {"hr_id": hr.id})
         db.session.flush()
 
         if hr.hr_profile:
@@ -902,21 +837,13 @@ def delete_hr(hr_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ===============================
-# DELETE ALL HR ACCOUNTS  (legacy)
-# ===============================
 @recruiter_bp.route('/delete-all-hr', methods=['POST'])
 @login_required
 def delete_all_hr():
-    """Legacy immediate delete-all (kept for backwards-compatibility)."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
-    hrs = User.query.filter_by(
-        created_by=current_user.id,
-        role='hr'
-    ).all()
-
+    hrs = User.query.filter_by(created_by=current_user.id, role='hr').all()
     if not hrs:
         return jsonify({'success': True, 'message': 'No HR accounts to delete'})
 
@@ -926,10 +853,7 @@ def delete_all_hr():
         hr_ids = [hr.id for hr in hrs]
 
         for hr_id in hr_ids:
-            db.session.execute(
-                text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
-                {"hr_id": hr_id}
-            )
+            db.session.execute(text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"), {"hr_id": hr_id})
         db.session.flush()
 
         for hr in hrs:
@@ -1093,7 +1017,7 @@ def schedule_interview(app_id):
 
 
 # ===============================
-# EDIT JOB
+# EDIT JOB  (GET + POST)
 # ===============================
 @recruiter_bp.route('/edit-job/<int:job_id>', methods=['GET', 'POST'])
 @login_required
@@ -1120,6 +1044,7 @@ def edit_job(job_id):
         job.job_type    = request.form.get('job_type')
         job.location    = request.form.get('location')
         job.salary      = request.form.get('salary')
+        job.currency    = request.form.get('currency', 'PHP')
         job.arrangement = request.form.get('arrangement')
 
         job.experience_level   = request.form.get('experience_level')
@@ -1136,13 +1061,40 @@ def edit_job(job_id):
         else:
             job.expiration_date = None
 
-        poster_files = request.files.getlist("posters")
+        # ── NEW fields ──
+        max_applications_str = request.form.get('max_applications', '').strip()
+        job.max_applications = int(max_applications_str) if max_applications_str.isdigit() else None
+        job.allow_applications = request.form.get('allow_applications') == 'on'
 
+        # ── About / Why Join / Company Overview (per-job override) ──
+        job.about_company  = request.form.get('about_company', '').strip() or None
+        job.why_join_us    = request.form.get('why_join_us', '').strip() or None
+        job.company_values = request.form.get('company_values', '').strip() or None
+
+        # ── Cover photo ──
+        cover_file = request.files.get('cover_photo')
+        if cover_file and cover_file.filename != '' and allowed_image(cover_file.filename):
+            upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_covers")
+            os.makedirs(upload_folder, exist_ok=True)
+
+            # Delete old cover if exists
+            if job.cover_photo:
+                old_path = os.path.join(upload_folder, job.cover_photo)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+
+            filename = secure_filename(cover_file.filename)
+            unique_name = f"cover_{job.id}_{uuid.uuid4().hex[:8]}_{filename}"
+            cover_file.save(os.path.join(upload_folder, unique_name))
+            job.cover_photo = unique_name
+
+        # ── Gallery images ──
+        poster_files = request.files.getlist("posters")
         upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_posters")
         os.makedirs(upload_folder, exist_ok=True)
 
         for poster_file in poster_files:
-            if poster_file and poster_file.filename != "":
+            if poster_file and poster_file.filename != "" and allowed_image(poster_file.filename):
                 filename = secure_filename(poster_file.filename)
                 unique_name = f"{uuid.uuid4()}_{filename}"
                 poster_path = os.path.join(upload_folder, unique_name)
@@ -1150,12 +1102,206 @@ def edit_job(job_id):
                 new_image = JobImage(job_id=job.id, image_path=unique_name)
                 db.session.add(new_image)
 
+        # ── Force updated_at refresh ──
+        job.updated_at = datetime.utcnow()
+
         db.session.commit()
 
         flash("Job updated successfully!", "success")
         return redirect(url_for('recruiter.edit_job', job_id=job.id))
 
-    return render_template("recruiter/edit_job.html", job=job)
+    # GET — pass HR list for team assignment
+    hr_list = User.query.filter_by(
+        created_by=current_user.id,
+        role='hr',
+        is_deleted=False
+    ).all()
+
+    assigned_hr_ids = {tm.hr_id for tm in job.team_members}
+
+    return render_template(
+        "recruiter/edit_job.html",
+        job=job,
+        hr_list=hr_list,
+        assigned_hr_ids=assigned_hr_ids,
+    )
+
+
+# ===============================
+# UPDATE JOB COVER PHOTO  (AJAX)
+# ===============================
+@recruiter_bp.route('/update-job-cover/<int:job_id>', methods=['POST'])
+@login_required
+def update_job_cover(job_id):
+    """Dedicated AJAX endpoint to change only the cover photo."""
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    job = Job.query.get_or_404(job_id)
+    if job.company_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    cover_file = request.files.get('cover_photo')
+    if not cover_file or cover_file.filename == '':
+        return jsonify({'success': False, 'error': 'No file provided'}), 400
+
+    if not allowed_image(cover_file.filename):
+        return jsonify({'success': False, 'error': 'Invalid file type'}), 400
+
+    upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_covers")
+    os.makedirs(upload_folder, exist_ok=True)
+
+    if job.cover_photo:
+        old_path = os.path.join(upload_folder, job.cover_photo)
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    filename = secure_filename(cover_file.filename)
+    unique_name = f"cover_{job.id}_{uuid.uuid4().hex[:8]}_{filename}"
+    cover_file.save(os.path.join(upload_folder, unique_name))
+    job.cover_photo = unique_name
+    job.updated_at  = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'url': url_for('static', filename=f'uploads/job_covers/{unique_name}')
+    })
+
+
+# ===============================
+# UPDATE JOB COMPANY CONTENT  (AJAX)
+# ===============================
+@recruiter_bp.route('/update-job-company-content/<int:job_id>', methods=['POST'])
+@login_required
+def update_job_company_content(job_id):
+    """
+    AJAX endpoint to update about_company, why_join_us, company_values
+    for a specific job posting.
+    """
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    job = Job.query.get_or_404(job_id)
+    if job.company_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    data = request.get_json(silent=True) or {}
+
+    section = data.get('section')
+
+    if section == 'about':
+        job.about_company = data.get('content', '').strip() or None
+
+    elif section == 'why_join':
+        # Expects a JSON array of strings
+        items = data.get('items', [])
+        job.why_join_us = json.dumps(items) if items else None
+
+    elif section == 'values':
+        # Expects a JSON array of {title, description}
+        items = data.get('items', [])
+        job.company_values = json.dumps(items) if items else None
+
+    elif section == 'overview':
+        # Plain text fields
+        job.about_company = data.get('about', '').strip() or None
+
+    else:
+        return jsonify({'success': False, 'error': 'Unknown section'}), 400
+
+    job.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+# ===============================
+# MANAGE JOB TEAM MEMBERS  (AJAX)
+# ===============================
+@recruiter_bp.route('/job-team/<int:job_id>/add', methods=['POST'])
+@login_required
+def add_job_team_member(job_id):
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    job = Job.query.get_or_404(job_id)
+    if job.company_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    data  = request.get_json(silent=True) or {}
+    hr_id = data.get('hr_id')
+
+    # Validate the HR belongs to this recruiter
+    hr = User.query.filter_by(id=hr_id, role='hr', created_by=current_user.id, is_deleted=False).first()
+    if not hr:
+        return jsonify({'success': False, 'error': 'HR member not found'}), 404
+
+    existing = JobTeamMember.query.filter_by(job_id=job_id, hr_id=hr_id).first()
+    if existing:
+        return jsonify({'success': False, 'error': 'Already assigned'}), 409
+
+    member = JobTeamMember(job_id=job_id, hr_id=hr_id)
+    db.session.add(member)
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'member': {
+            'id':       member.id,
+            'hr_id':    hr.id,
+            'username': hr.username,
+            'email':    hr.email,
+            'picture':  hr.profile_picture,
+        }
+    })
+
+
+@recruiter_bp.route('/job-team/<int:job_id>/remove', methods=['POST'])
+@login_required
+def remove_job_team_member(job_id):
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    job = Job.query.get_or_404(job_id)
+    if job.company_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    data  = request.get_json(silent=True) or {}
+    hr_id = data.get('hr_id')
+
+    member = JobTeamMember.query.filter_by(job_id=job_id, hr_id=hr_id).first()
+    if not member:
+        return jsonify({'success': False, 'error': 'Member not found'}), 404
+
+    db.session.delete(member)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+# ===============================
+# TOGGLE ALLOW APPLICATIONS  (AJAX)
+# ===============================
+@recruiter_bp.route('/job-toggle-applications/<int:job_id>', methods=['POST'])
+@login_required
+def toggle_allow_applications(job_id):
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    job = Job.query.get_or_404(job_id)
+    if job.company_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    data = request.get_json(silent=True) or {}
+    value = data.get('allow', True)
+    job.allow_applications = bool(value)
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(job, 'allow_applications')
+    job.updated_at = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({'success': True, 'allow_applications': job.allow_applications})
 
 
 # ===============================
@@ -1191,7 +1337,7 @@ def delete_job_image(image_id):
 
 
 # ===============================
-# DELETE JOB
+# DELETE JOB — with active-applications guard
 # ===============================
 @recruiter_bp.route('/delete-job/<int:job_id>', methods=['POST'])
 @login_required
@@ -1210,6 +1356,19 @@ def delete_job(job_id):
         flash("Unauthorized action!", "danger")
         return redirect(url_for('recruiter.job_posting'))
 
+    # ── Guard: block deletion if active applications exist ──
+    force = request.form.get('force_delete') == '1'
+    active_apps = Application.query.filter_by(job_id=job_id).count()
+
+    if active_apps > 0 and not force:
+        flash(
+            f"This job has {active_apps} application(s). "
+            "To delete it, confirm deletion from the job management page.",
+            "warning"
+        )
+        return redirect(url_for('recruiter.edit_job', job_id=job_id))
+
+    # Delete gallery images
     for image in job.images:
         file_path = os.path.join(
             current_app.root_path, "static", "uploads", "job_posters", image.image_path
@@ -1218,11 +1377,61 @@ def delete_job(job_id):
             os.remove(file_path)
         db.session.delete(image)
 
+    # Delete cover photo
+    if job.cover_photo:
+        cover_path = os.path.join(
+            current_app.root_path, "static", "uploads", "job_covers", job.cover_photo
+        )
+        if os.path.exists(cover_path):
+            os.remove(cover_path)
+
     db.session.delete(job)
     db.session.commit()
 
     flash("Job deleted successfully!", "success")
     return redirect(url_for('recruiter.my_job_list'))
+
+
+# ===============================
+# FORCE DELETE JOB  (AJAX — when there are active applicants)
+# ===============================
+@recruiter_bp.route('/force-delete-job/<int:job_id>', methods=['POST'])
+@login_required
+def force_delete_job(job_id):
+    """Called when recruiter explicitly confirms deletion despite active applications."""
+    if current_user.role != 'recruiter':
+        return jsonify({'success': False, 'error': 'Access denied'}), 403
+
+    job = Job.query.get_or_404(job_id)
+    if job.company_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+
+    try:
+        # Remove gallery images
+        for image in job.images:
+            file_path = os.path.join(
+                current_app.root_path, "static", "uploads", "job_posters", image.image_path
+            )
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            db.session.delete(image)
+
+        # Remove cover photo
+        if job.cover_photo:
+            cover_path = os.path.join(
+                current_app.root_path, "static", "uploads", "job_covers", job.cover_photo
+            )
+            if os.path.exists(cover_path):
+                os.remove(cover_path)
+
+        db.session.delete(job)
+        db.session.commit()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # ===============================
@@ -1244,9 +1453,6 @@ def notification_history():
     return render_template('recruiter/notification_history.html', notifications=notifs)
 
 
-# ===============================
-# CLEAR ALL NOTIFICATIONS
-# ===============================
 @recruiter_bp.route('/clear-all-notifications', methods=['POST'])
 @login_required
 def clear_all_notifications():
@@ -1261,9 +1467,6 @@ def clear_all_notifications():
     return redirect(url_for('recruiter.notification_history'))
 
 
-# ===============================
-# NOTIFICATIONS API
-# ===============================
 @recruiter_bp.route('/notifications')
 @login_required
 def get_notifications():

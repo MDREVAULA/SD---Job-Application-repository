@@ -1,0 +1,124 @@
+<div class="content-sidebar">
+  <div class="sidebar-card">
+    <h3 class="sidebar-title">Job Details</h3>
+ 
+    <div class="details-list">
+ 
+      <div class="detail-item">
+        <div class="detail-label">Job Creation Date</div>
+        <div class="detail-value">
+          {{ job.created_at.strftime('%B %d, %Y') if job.created_at else 'N/A' }}
+        </div>
+      </div>
+ 
+      <div class="detail-item">
+        <div class="detail-label">Recruitment Period</div>
+        <div class="detail-value">
+          {% if job.expiration_date %}
+            {{ job.created_at.strftime('%b %d, %Y') if job.created_at else 'Start' }}
+            &rarr;
+            {{ job.expiration_date.strftime('%b %d, %Y') }}
+          {% else %}
+            No deadline set
+          {% endif %}
+        </div>
+      </div>
+ 
+      <div class="detail-item">
+        <div class="detail-label">Last Updated</div>
+        <div class="detail-value">
+          {{ job.updated_at.strftime('%B %d, %Y') if job.updated_at else 'N/A' }}
+        </div>
+      </div>
+ 
+      <div class="detail-item">
+        <div class="detail-label">Hiring Manager</div>
+        <div class="detail-value detail-with-avatar">
+          {% if current_user.profile_picture %}
+            {% if current_user.profile_picture.startswith('http') %}
+            <img src="{{ current_user.profile_picture }}" alt="Avatar" class="detail-avatar">
+            {% else %}
+            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}"
+                 alt="Avatar" class="detail-avatar">
+            {% endif %}
+          {% else %}
+            <div class="detail-avatar-placeholder">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+          {% endif %}
+          <span>{{ current_user.recruiter_profile.first_name }} {{ current_user.recruiter_profile.surname }}</span>
+        </div>
+      </div>
+ 
+      <div class="detail-item">
+        <div class="detail-label">Applications</div>
+        <div class="detail-value">
+          <span id="sidebarAppCount">{{ job.applications|length }}</span>
+          {% if job.max_applications %}
+            / {{ job.max_applications }}
+            <span class="quota-badge {% if job.applications|length >= job.max_applications %}quota-full{% else %}quota-ok{% endif %}">
+              {% if job.applications|length >= job.max_applications %}FULL{% else %}{{ job.max_applications - job.applications|length }} slots left{% endif %}
+            </span>
+          {% else %}
+            <span class="quota-badge quota-ok">Unlimited</span>
+          {% endif %}
+        </div>
+      </div>
+ 
+      <div class="detail-item">
+        <div class="detail-label">Job Type</div>
+        <div class="detail-value">{{ job.job_type }}</div>
+      </div>
+ 
+      <div class="detail-item">
+        <div class="detail-label">Experience Level</div>
+        <div class="detail-value">{{ job.experience_level or 'Not specified' }}</div>
+      </div>
+ 
+      <div class="detail-item">
+        <div class="detail-label">Location</div>
+        <div class="detail-value detail-with-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          {{ job.location or 'Not specified' }}
+        </div>
+      </div>
+ 
+      <div class="detail-item">
+        <div class="detail-label">Salary</div>
+        <div class="detail-value">{{ job.currency or 'PHP' }} {{ job.salary or 'Not specified' }}</div>
+      </div>
+ 
+      <!-- Allow Applications Toggle -->
+      <div class="detail-item detail-toggle">
+        <span class="toggle-label">Accept Applications</span>
+        <label class="toggle-switch" title="Toggle whether applicants can apply to this job">
+          <input type="checkbox"
+                 id="sidebarAllowToggle"
+                 {% if job.allow_applications %}checked{% endif %}
+                 onchange="syncToggle(this)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+ 
+    </div>
+  </div>
+</div>
+ 
+<script>
+// Keep the nav toggle and sidebar toggle in sync
+function syncToggle(source) {
+  const navToggle     = document.getElementById('allowApplicationsToggle');
+  const sidebarToggle = document.getElementById('sidebarAllowToggle');
+ 
+  // Sync the other toggle visually
+  if (navToggle     && source !== navToggle)     navToggle.checked     = source.checked;
+  if (sidebarToggle && source !== sidebarToggle) sidebarToggle.checked = source.checked;
+ 
+  // Delegate to the main handler
+  handleAllowToggle(source);
+}
+</script>

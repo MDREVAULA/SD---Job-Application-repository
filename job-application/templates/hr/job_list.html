@@ -18,14 +18,22 @@
             </div>
         </div>
         <div class="header-stats">
-            <div class="stat-card">
-                <i class="fas fa-clipboard-list"></i>
-                <div>
-                    <h3>{{ jobs | length }}</h3>
-                    <p>Total Jobs</p>
+                {# In the card header section: #}
+                <div class="card-header-section">
+                <div class="job-badge">{{ job.field if job.field else 'General' }}</div>
+                <div class="applicants-badge">
+                    <i class="fas fa-user"></i> {{ job.applications | length }}
                 </div>
-            </div>
-            <div class="stat-card">
+                {% if job.id in assigned_job_ids %}
+                <div class="assigned-badge" style="background:#10b981;color:#fff;border-radius:999px;padding:2px 10px;font-size:0.72rem;">
+                    <i class="fas fa-check"></i> Assigned
+                </div>
+                {% else %}
+                <div class="assigned-badge" style="background:#e5e7eb;color:#6b7280;border-radius:999px;padding:2px 10px;font-size:0.72rem;">
+                    <i class="fas fa-lock"></i> View Only
+                </div>
+                {% endif %}
+                </div>
                 <i class="fas fa-users"></i>
                 <div>
                     <h3>
@@ -160,11 +168,18 @@
                 </div>
 
                 <div class="card-actions">
-                    <a href="{{ url_for('hr.job_applications', job_id=job.id) }}" 
-                       class="btn-view-applicants"
-                       title="View Applicants">
-                        <i class="fas fa-users"></i>
-                    </a>
+                {% if job.id in assigned_job_ids %}
+                <a href="{{ url_for('hr.job_applications', job_id=job.id) }}"
+                    class="btn-view-applicants" title="View Applicants">
+                    <i class="fas fa-users"></i>
+                </a>
+                {% else %}
+                <button class="btn-view-applicants" disabled
+                        style="opacity:0.4;cursor:not-allowed;"
+                        title="Not assigned to this job">
+                    <i class="fas fa-lock"></i>
+                </button>
+                {% endif %}
                 </div>
             </div>
 

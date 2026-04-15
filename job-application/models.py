@@ -401,6 +401,18 @@ class Job(db.Model):
 
     expiration_date = db.Column(db.Date)
 
+    created_at         = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at         = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    max_applications   = db.Column(db.Integer,  nullable=True)          # recruitment quota cap
+    allow_applications = db.Column(db.Boolean,  default=True)           # toggle on/off
+    cover_photo        = db.Column(db.String(200), nullable=True)       # header image filename
+ 
+    # Company-level override text (per job)
+    about_company      = db.Column(db.Text, nullable=True)
+    why_join_us        = db.Column(db.Text, nullable=True)              # JSON array of bullet strings
+    company_values     = db.Column(db.Text, nullable=True)              # JSON array of {title, description}
+
+
     applications = db.relationship(
         "Application",
         backref="job",
@@ -413,6 +425,12 @@ class Job(db.Model):
         lazy=True,
         cascade="all, delete-orphan",
         overlaps="job,saved_by"
+    )
+
+    team_members = db.relationship(
+        'JobTeamMember',
+        lazy=True,
+        cascade='all, delete-orphan',
     )
 
 
@@ -444,6 +462,23 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+# =========================
+# HR TEAM MEMBERS
+# =========================
+class JobTeamMember(db.Model):
+    __tablename__ = 'job_team_member'
+ 
+    id     = db.Column(db.Integer, primary_key=True)
+    job_id = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='CASCADE'), nullable=False)
+    hr_id  = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+ 
+    __table_args__ = (
+        db.UniqueConstraint('job_id', 'hr_id', name='unique_job_team_member'),
+    )
+ 
+    hr   = db.relationship('User',  foreign_keys=[hr_id])
+    job  = db.relationship('Job',   foreign_keys=[job_id])
 
 # =========================
 # SAVED JOBS TABLE

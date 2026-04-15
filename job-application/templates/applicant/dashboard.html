@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>My Dashboard</h1>
+
+    {% if not profile_complete %}
+    <div class="alert alert-warning">
+        Your profile is incomplete. <a href="{{ url_for('applicant.profile') }}">Complete it here</a> to unlock all features.
+    </div>
+    {% endif %}
+
+    <h2>My Applications</h2>
+
+    {% if applications %}
+    <table>
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Applied On</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr>
+                <td>{{ app.job.title }}</td>
+                <td>{{ app.job.company_name }}</td>
+                <td>{{ app.status | capitalize }}</td>
+                <td>{{ app.created_at.strftime('%b %d, %Y') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>You haven't applied to any jobs yet. <a href="{{ url_for('auth.index') }}">Browse jobs</a></p>
+    {% endif %}
+</div>
+{% endblock %}
