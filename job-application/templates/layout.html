@@ -162,11 +162,6 @@
         </div>
         {% endif %}
 
-        <!-- THEME TOGGLE -->
-        <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle light/dark mode">
-            <i class="fas fa-moon" id="themeIcon"></i>
-        </button>
-
         {% if current_user.is_authenticated %}
             <div class="user-info">
 
@@ -481,19 +476,9 @@
         </li>
 
         {% endif %}
-
-        <!-- LOGOUT -->
-        {% if current_user.is_authenticated %}
-        <li class="logout-item">
-            <a href="{{ url_for('auth.logout') }}" class="sidebar-link logout-link">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </a>
-        </li>
-        {% endif %}
-
+        
         <!-- ─── THEME TOGGLE — guests only ─────────────────── -->
-        {% if not current_user.is_authenticated %}
+        {% if not current_user.is_authenticated or current_user.role == 'admin' %}
         <li class="sidebar-theme-item">
             <div class="sidebar-theme-toggle">
                 <span class="sidebar-theme-label">
@@ -508,6 +493,16 @@
                     </button>
                 </div>
             </div>
+        </li>
+        {% endif %}
+
+        <!-- LOGOUT -->
+        {% if current_user.is_authenticated %}
+        <li class="logout-item">
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-link logout-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
         </li>
         {% endif %}
 
