@@ -12,65 +12,98 @@
 {% include 'components/profile_picture_modal.html' %}
 {% include 'components/company_logo_modal.html' %}
 
-{% if current_user.verification_status == 'Pending' %}
+{# ══════════════════════════════════════════════════════════════════════════════
+   RECRUITER PROFILE — VERIFICATION BANNER
+   Uses verify_state passed from the route instead of raw verification_status.
+   verify_state values:
+     "incomplete"           → missing required fields, show checklist
+     "complete_unsubmitted" → all fields done, show Submit button
+     "pending"              → submitted, waiting for admin
+     "approved"             → verified, no banner
+     "rejected"             → rejected, show rejection message
+   ══════════════════════════════════════════════════════════════════════════════ #}
 
-{% set is_complete = profile and profile.first_name and profile.last_name
-                     and profile.phone_number and profile.country
-                     and profile.city and profile.home_address %}
-
-{% set show_ready = is_complete or current_user.profile_complete %}
-
-<div class="profile-completion-banner {% if show_ready %}banner--ready{% else %}banner--incomplete{% endif %}">
-
-    <div class="pcb-icon">
-        {% if show_ready %}
-            <i class="fas fa-hourglass-half"></i>
-        {% else %}
-            <i class="fas fa-exclamation-triangle"></i>
-        {% endif %}
-    </div>
-
+{% if verify_state == 'incomplete' %}
+<div class="profile-completion-banner banner--incomplete">
+    <div class="pcb-icon"><i class="fas fa-exclamation-triangle"></i></div>
     <div class="pcb-body">
-        {% if show_ready %}
-            <strong>Profile submitted — awaiting admin review</strong>
-            <p>Your profile is complete and has been submitted for admin review. You'll receive a notification once your account is approved and you can start applying for jobs.</p>
-        {% else %}
-            <strong>Complete your profile to submit for verification</strong>
-            <p>Fill in all required fields below. Once complete, your profile will be submitted to the admin for review. You won't be able to apply for jobs until your account is verified.</p>
-        {% endif %}
+        <strong>Complete your profile to submit for verification</strong>
+        <p>Fill in all required fields. Once complete, you can submit your profile for admin review. You won't be able to post jobs until verified.</p>
     </div>
-
-    {% if not show_ready %}
     <div class="pcb-checklist">
         <span class="pcb-check {% if profile and profile.first_name %}done{% endif %}">
             <i class="fas {% if profile and profile.first_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
             First name
         </span>
-        <span class="pcb-check {% if profile and profile.last_name %}done{% endif %}">
-            <i class="fas {% if profile and profile.last_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+        <span class="pcb-check {% if profile and profile.surname %}done{% endif %}">
+            <i class="fas {% if profile and profile.surname %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
             Last name
         </span>
         <span class="pcb-check {% if profile and profile.phone_number %}done{% endif %}">
             <i class="fas {% if profile and profile.phone_number %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
             Phone number
         </span>
-        <span class="pcb-check {% if profile and profile.city %}done{% endif %}">
-            <i class="fas {% if profile and profile.city %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            City
+        <span class="pcb-check {% if profile and profile.company_name %}done{% endif %}">
+            <i class="fas {% if profile and profile.company_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            Company name
         </span>
-        <span class="pcb-check {% if profile and profile.home_address %}done{% endif %}">
-            <i class="fas {% if profile and profile.home_address %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            Address
+        <span class="pcb-check {% if profile and profile.company_industry %}done{% endif %}">
+            <i class="fas {% if profile and profile.company_industry %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            Industry
         </span>
         <span class="pcb-check {% if profile and profile.country %}done{% endif %}">
             <i class="fas {% if profile and profile.country %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
             Country
         </span>
+        <span class="pcb-check {% if profile and profile.city %}done{% endif %}">
+            <i class="fas {% if profile and profile.city %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            City
+        </span>
     </div>
-    {% endif %}
+</div>
 
+{% elif verify_state == 'complete_unsubmitted' %}
+<div class="profile-completion-banner banner--ready">
+    <div class="pcb-icon"><i class="fas fa-paper-plane"></i></div>
+    <div class="pcb-body">
+        <strong>Your profile is complete — submit for verification</strong>
+        <p>Everything looks good! Click the button to submit your profile to the admin for review. You'll be notified by email once approved.</p>
+    </div>
+    <div class="pcb-actions">
+        <form method="POST" action="{{ url_for('recruiter.submit_for_review') }}" style="display:inline;">
+            <button type="submit" class="pcb-submit-btn">
+                <i class="fas fa-paper-plane"></i> Submit for Review
+            </button>
+        </form>
+    </div>
+</div>
+
+{% elif verify_state == 'pending' %}
+<div class="profile-completion-banner banner--ready">
+    <div class="pcb-icon"><i class="fas fa-hourglass-half"></i></div>
+    <div class="pcb-body">
+        <strong>Profile submitted — awaiting admin review</strong>
+        <p>Your profile has been submitted and is under review. You'll receive an email notification once your account is approved and you can start posting jobs.</p>
+    </div>
+</div>
+
+{% elif verify_state == 'rejected' %}
+<div class="profile-completion-banner banner--incomplete">
+    <div class="pcb-icon"><i class="fas fa-times-circle"></i></div>
+    <div class="pcb-body">
+        <strong>Your account was not approved</strong>
+        <p>
+            {% if current_user.verification_remarks %}
+                Reason: {{ current_user.verification_remarks }}
+            {% else %}
+                Your recruiter account was not approved. Please update your profile information and resubmit.
+            {% endif %}
+        </p>
+    </div>
 </div>
 {% endif %}
+
+{# approved → no banner at all #}
 
 <div class="prof-wrapper">
 
@@ -175,11 +208,6 @@
                         <i class="fas fa-globe"></i> Portfolio
                     </a>
                     {% endif %}
-                    {% if profile and profile.company_website %}
-                    <a href="{{ profile.company_website }}" target="_blank" class="prof-social-btn">
-                        <i class="fas fa-briefcase"></i> Company Site
-                    </a>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -249,7 +277,7 @@
                             </div>
                             <div class="prof-form-group">
                                 <label>Last Name</label>
-                                <input type="text" name="last_name" value="{{ profile.surname if profile and profile.surname else '' }}" placeholder="Dela Cruz">
+                                <input type="text" name="surname" value="{{ profile.surname if profile and profile.surname else '' }}" placeholder="Dela Cruz">
                             </div>
                             <div class="prof-form-group">
                                 <label>Middle Name</label>
@@ -480,7 +508,7 @@
                 </div>
                 <div class="prof-completion-wrap">
                     {% set score = namespace(val=0) %}
-                    {% if profile and profile.first_name %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.first_name and profile.surname %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.bio %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.company_name %}{% set score.val = score.val + 15 %}{% endif %}
@@ -504,8 +532,8 @@
                     <div class="prof-completion-pct">{{ score.val }}% complete</div>
 
                     <div class="prof-completion-tips">
-                        <div class="prof-completion-tip {% if profile and profile.first_name %}done{% endif %}">
-                            <i class="{% if profile and profile.first_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                        <div class="prof-completion-tip {% if profile and profile.first_name and profile.surname %}done{% endif %}">
+                            <i class="{% if profile and profile.first_name and profile.surname %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add your full name
                         </div>
                         <div class="prof-completion-tip {% if profile and profile.headline %}done{% endif %}">

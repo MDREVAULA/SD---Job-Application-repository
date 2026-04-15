@@ -48,33 +48,16 @@ def redirect_by_role(user):
         return redirect(url_for("admin.dashboard"))
     return redirect(url_for("auth.index"))
 
-# =========================
-# HOME
-# =========================
-@auth_bp.route("/")
-def index():
-    return render_template("home.html")
 
 # =========================
 # SEND VERIFICATION EMAIL
 # =========================
 def send_verification_email(user):
+    """Send verification email to recruiters after admin approval."""
     try:
         from app import mail
 
-        if user.role == "applicant":
-            subject = "Your Account Has Been Verified – Job Portal"
-            body = f"""Hello {user.username},
-
-Great news! Your Job Portal account has been verified and is now active.
-
-You can now log in at: http://127.0.0.1:5000/login
-
-Welcome aboard!
-
-– The Job Portal Team"""
-
-        elif user.role == "recruiter":
+        if user.role == "recruiter":
             subject = "Your Recruiter Account Has Been Verified – Job Portal"
             body = f"""Hello {user.username},
 
@@ -85,7 +68,6 @@ You can now log in and start posting jobs at: http://127.0.0.1:5000/login
 Welcome to Job Portal!
 
 – The Job Portal Team"""
-
         else:
             return
 
@@ -103,10 +85,21 @@ Welcome to Job Portal!
 # =========================
 # PUBLIC PAGES
 # =========================
-@auth_bp.route('/jobs')
+@auth_bp.route("/")
+def index():
+    return render_template("home.html")
+
+
+@auth_bp.route("/jobs")
 def jobs():
-    from models import Job, SavedJob
-    jobs = Job.query.all()  # or however you currently query jobs
+    from models import SavedJob
+    
+    try:
+        jobs = Job.query.filter(
+            (Job.expiration_date == None) | (Job.expiration_date >= date.today())
+        ).all()
+    except:
+        jobs = Job.query.all()
 
     saved_job_ids = set()
     if current_user.is_authenticated and current_user.role == 'applicant':
@@ -114,7 +107,7 @@ def jobs():
             s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
         }
 
-    return render_template('index.html', jobs=jobs, saved_job_ids=saved_job_ids)
+    return render_template("index.html", jobs=jobs, saved_job_ids=saved_job_ids)
 
 
 @auth_bp.route("/help")
@@ -153,14 +146,18 @@ def login():
             flash("Invalid email or password", "login_error")
             return redirect(url_for("auth.login"))
 
-        # Recruiter rejected
-        if user.role == "recruiter" and user.verification_status == "Rejected":
-            return render_template("account_rejected.html", user=user)
+        # ── Ban check (all roles) ──
+        if user.is_banned:
+            return render_template("account_banned.html", user=user)
 
-        # Recruiter pending
-        if user.role == "recruiter" and user.verification_status == "Pending":
-            flash("Your recruiter account is pending admin verification.", "login_error")
-            return redirect(url_for("auth.login"))
+        # ── RECRUITERS: pending/rejected checks ──
+        if user.role == "recruiter":
+            profile = user.recruiter_profile
+            if profile and profile.submitted_for_review and user.verification_status == "Pending":
+                flash("Your recruiter account is pending admin verification.", "login_warning")
+                return redirect(url_for("auth.login"))
+            if user.verification_status == "Rejected":
+                return render_template("account_rejected.html", user=user)
 
         login_user(user)
 
@@ -201,68 +198,50 @@ def google_callback():
     google_id = info["sub"]
     email = info["email"]
     name = info.get("name", email.split("@")[0])
-
-    # =====================================================
-    # ADDED: grab Google profile picture URL
-    # =====================================================
     google_picture = info.get("picture")
 
-    # Check if user exists by Google ID
     user = User.query.filter_by(google_id=google_id).first()
 
     if not user:
-        # Check if email already registered manually
         user = User.query.filter_by(email=email).first()
 
         if user:
-            # Block admin from Google login
+            # Existing account — link Google to it
             if user.role == "admin":
                 flash("Invalid login method.", "login_error")
                 return redirect(url_for("auth.login"))
 
-            # Link Google to existing account
             user.google_id = google_id
-
-            # =====================================================
-            # ADDED: save Google picture only if they don't have
-            # a custom uploaded one yet
-            # =====================================================
             if google_picture and not user.profile_picture:
                 user.profile_picture = google_picture
-
             db.session.commit()
+
         else:
-            # New user — store info in session and ask for role
+            # Brand new Google user — ask for role selection
             session["google_id"] = google_id
             session["google_email"] = email
             session["google_name"] = name
-
-            # =====================================================
-            # ADDED: store Google picture in session so we can
-            # save it after the user picks their role
-            # =====================================================
             session["google_picture"] = google_picture
 
             return redirect(url_for("auth.google_role_select"))
 
-    # Block admin from Google login
     if user.role == "admin":
         flash("Invalid login method.", "login_error")
         return redirect(url_for("auth.login"))
 
-    # Block rejected recruiters
-    if user.role == "recruiter" and user.verification_status == "Rejected":
-        return render_template("account_rejected.html", user=user)
+    # ── Ban check ──
+    if user.is_banned:
+        return render_template("account_banned.html", user=user)
 
-    # Block pending recruiters
-    if user.role == "recruiter" and user.verification_status == "Pending":
-        flash("Your recruiter account is pending admin verification.", "login_error")
-        return redirect(url_for("auth.login"))
+    # ── Recruiter checks ──
+    if user.role == "recruiter":
+        profile = user.recruiter_profile
+        if profile and profile.submitted_for_review and user.verification_status == "Pending":
+            flash("Your recruiter account is pending admin verification.", "login_warning")
+            return redirect(url_for("auth.login"))
+        if user.verification_status == "Rejected":
+            return render_template("account_rejected.html", user=user)
 
-    # =====================================================
-    # ADDED: update Google picture on every login in case
-    # they changed their Google profile picture
-    # =====================================================
     if google_picture and not user.profile_picture:
         user.profile_picture = google_picture
         db.session.commit()
@@ -316,14 +295,10 @@ def google_applicant_profile():
         google_id = session.pop("google_id")
         email = session.pop("google_email")
         name = session.pop("google_name")
+        google_picture = session.pop("google_picture", None)
         session.pop("google_role", None)
 
-        # =====================================================
-        # ADDED: pop Google picture from session
-        # =====================================================
-        google_picture = session.pop("google_picture", None)
-
-        # Create user only now
+        # Create user
         user = User(
             username=name,
             email=email,
@@ -331,7 +306,8 @@ def google_applicant_profile():
             role="applicant",
             verification_status="Approved",
             is_verified=True,
-            profile_picture=google_picture  # ADDED
+            profile_completed=False,
+            profile_picture=google_picture
         )
         db.session.add(user)
         db.session.commit()
@@ -359,6 +335,16 @@ def google_applicant_profile():
         db.session.add(applicant_profile)
         db.session.commit()
 
+        try:
+            from routes.admin import push_admin_notif
+            push_admin_notif(
+                'account_request',
+                f'New applicant account registered via Google: <strong>{user.username}</strong>',
+                user_id=user.id
+            )
+        except:
+            pass
+
         login_user(user)
         flash("Account created with Google! Welcome aboard.", "success")
         return redirect_by_role(user)
@@ -380,14 +366,10 @@ def google_recruiter_profile():
         google_id = session.pop("google_id")
         email = session.pop("google_email")
         name = session.pop("google_name")
+        google_picture = session.pop("google_picture", None)
         session.pop("google_role", None)
 
-        # =====================================================
-        # ADDED: pop Google picture from session
-        # =====================================================
-        google_picture = session.pop("google_picture", None)
-
-        # Create user only now
+        # Create user
         user = User(
             username=name,
             email=email,
@@ -395,19 +377,20 @@ def google_recruiter_profile():
             role="recruiter",
             verification_status="Pending",
             is_verified=False,
-            profile_picture=google_picture  # ADDED
+            profile_completed=False,
+            profile_picture=google_picture
         )
         db.session.add(user)
         db.session.commit()
 
-        upload_folder = os.path.join(current_app.root_path, "static", "uploads")
+        upload_folder = os.path.join(current_app.root_path, "static", "uploads", "recruiter_documents")
         os.makedirs(upload_folder, exist_ok=True)
 
         logo_file = request.files.get("company_logo")
         proof_file = request.files.get("company_proof")
 
-        logo_filename = save_uploaded_file(logo_file, upload_folder)
-        proof_filename = save_uploaded_file(proof_file, upload_folder)
+        logo_filename = save_uploaded_file(logo_file, upload_folder) if logo_file else None
+        proof_filename = save_uploaded_file(proof_file, upload_folder) if proof_file else None
 
         profile = RecruiterProfile(
             user_id=user.id,
@@ -429,10 +412,21 @@ def google_recruiter_profile():
         db.session.add(profile)
         db.session.commit()
 
+        try:
+            from routes.admin import push_admin_notif
+            push_admin_notif(
+                'account_request',
+                f'New recruiter account registered via Google: <strong>{user.username}</strong>',
+                user_id=user.id
+            )
+        except:
+            pass
+
         flash("Registration complete! Your account is pending admin verification.", "info")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/google_recruiter_profile.html")
+
 
 # =========================
 # REGISTER
@@ -469,14 +463,26 @@ def register():
             email=email,
             password=password,
             role=role,
-            verification_status="Pending"
+            verification_status="Approved" if role == "applicant" else "Pending",
+            is_verified=role == "applicant",
+            profile_completed=False,
         )
 
         db.session.add(user)
         db.session.commit()
 
+        try:
+            from routes.admin import push_admin_notif
+            push_admin_notif(
+                'account_request',
+                f'New {user.role} account registered: <strong>{user.username}</strong>',
+                user_id=user.id
+            )
+        except:
+            pass
+
         # =========================
-        # APPLICANT PROFILE
+        # APPLICANT
         # =========================
         if role == "applicant":
             dob_str = request.form.get("date_of_birth")
@@ -501,10 +507,13 @@ def register():
             )
             db.session.add(applicant_profile)
             db.session.commit()
-            flash("Account created successfully! You can now log in.", "success")
+
+            login_user(user)
+            flash("Account created! Complete your profile to unlock all features.", "success")
+            return redirect_by_role(user)
 
         # =========================
-        # RECRUITER PROFILE
+        # RECRUITER
         # =========================
         if role == "recruiter":
             upload_folder = os.path.join(current_app.root_path, "static", "uploads", "recruiter_documents")
@@ -513,8 +522,8 @@ def register():
             logo_file = request.files.get("company_logo")
             proof_file = request.files.get("company_proof")
 
-            logo_filename = save_uploaded_file(logo_file, upload_folder)
-            proof_filename = save_uploaded_file(proof_file, upload_folder)
+            logo_filename = save_uploaded_file(logo_file, upload_folder) if logo_file else None
+            proof_filename = save_uploaded_file(proof_file, upload_folder) if proof_file else None
 
             profile = RecruiterProfile(
                 user_id=user.id,
@@ -535,9 +544,10 @@ def register():
             )
             db.session.add(profile)
             db.session.commit()
-            flash("Account created! Please wait for admin verification before logging in.", "info")
 
-        return redirect(url_for("auth.login"))
+            login_user(user)
+            flash("Account created! Complete your company profile, then submit for admin verification.", "info")
+            return redirect_by_role(user)
 
     return render_template("auth/register.html")
 
@@ -571,8 +581,7 @@ def forgot_password():
         user = User.query.filter_by(email=email).first()
 
         if user and user.google_id and not user.password:
-            # Google user — tell them to use Google
-            flash("This email is linked to a Google account. Please use 'Sign in with Google' instead.", "login_error")
+            flash("This email is linked to a Google account. Please use 'Sign in with Google' instead.", "login_warning")
             return redirect(url_for("auth.login"))
 
         if user and user.password:
@@ -648,4 +657,4 @@ def account_rejected(user_id):
 def logout():
     logout_user()
     flash("Logged out successfully", "info")
-    return redirect(url_for("auth.index"))  
+    return redirect(url_for("auth.index"))

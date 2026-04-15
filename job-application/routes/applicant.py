@@ -7,7 +7,7 @@ from models import (
     Skill, Project, Certification,
     RecruiterNotification, HRNotification, ApplicantNotification,
     SavedJob
-)   
+)
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -22,6 +22,34 @@ applicant_bp = Blueprint('applicant', __name__, url_prefix="/applicant")
 
 
 # ===============================
+# HELPER — check ban on every request
+# ===============================
+def check_banned():
+    """Returns a redirect response if the user is banned, else None."""
+    if current_user.is_authenticated and current_user.is_banned:
+        from flask import render_template as rt
+        return rt("account_banned.html", user=current_user)
+    return None
+
+
+# ===============================
+# HELPER — profile completion check
+# Minimum required: first_name, last_name, phone_number, city, country, home_address
+# ===============================
+def is_profile_complete(prof):
+    if not prof:
+        return False
+    return all([
+        prof.first_name,
+        prof.last_name,
+        prof.phone_number,
+        prof.city,
+        prof.country,
+        prof.home_address,
+    ])
+
+
+# ===============================
 # HELPER — get or create profile
 # ===============================
 def get_or_create_profile():
@@ -33,12 +61,54 @@ def get_or_create_profile():
     return profile
 
 
+# ================================================================
+# BEFORE REQUEST GATE
+# ================================================================
+@applicant_bp.before_request
+def gate_applicant_features():
+    """Gate access to features based on profile completion."""
+    if not current_user.is_authenticated:
+        return
+
+    if current_user.role != 'applicant':
+        return
+
+    # Already complete — full access
+    if getattr(current_user, 'profile_completed', False):
+        return
+
+    # Profile incomplete — only allow profile-related endpoints
+    ALLOWED = {
+        'applicant.profile',
+        'applicant.update_personal',
+        'applicant.update_social',
+        'applicant.upload_profile_picture',
+        'applicant.add_experience',     'applicant.delete_experience',
+        'applicant.add_education',      'applicant.delete_education',
+        'applicant.add_project',        'applicant.delete_project',
+        'applicant.add_skill',          'applicant.delete_skill',
+        'applicant.add_certification',  'applicant.delete_certification',
+        'applicant.upload_resume',      'applicant.delete_resume',
+        'applicant.upload_portfolio',   'applicant.delete_portfolio',
+        'applicant.upload_certificate', 'applicant.delete_certificate',
+        'auth.logout',
+    }
+
+    if request.endpoint not in ALLOWED:
+        flash("Please complete your profile first to access this feature.", "info")
+        return redirect(url_for('applicant.profile'))
+
+
 # ===============================
 # APPLICANT PROFILE
 # ===============================
 @applicant_bp.route('/profile')
 @login_required
 def profile():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -47,11 +117,11 @@ def profile():
 
     prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
 
-    experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all()    if prof else []
+    experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
     educations     = ApplicantEducation.query.filter_by(profile_id=prof.id).order_by(ApplicantEducation.created_at.desc()).all() if prof else []
-    skills         = Skill.query.filter_by(profile_id=prof.id).all()                                                        if prof else []
-    projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all()                 if prof else []
-    certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all()     if prof else []
+    skills         = Skill.query.filter_by(profile_id=prof.id).all() if prof else []
+    projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all() if prof else []
+    certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all() if prof else []
 
     follower_rows  = Follow.query.filter_by(followed_id=current_user.id).all()
     following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
@@ -61,6 +131,8 @@ def profile():
     following = [UserModel.query.get(r.followed_id) for r in following_rows]
     followers = [u for u in followers if u]
     following = [u for u in following if u]
+
+    profile_complete = is_profile_complete(prof)
 
     return render_template(
         'applicant/profile.html',
@@ -74,6 +146,7 @@ def profile():
         following_count=len(following),
         followers=followers,
         following=following,
+        profile_complete=profile_complete,
     )
 
 
@@ -83,6 +156,10 @@ def profile():
 @applicant_bp.route('/profile/update-personal', methods=['POST'])
 @login_required
 def update_personal():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -107,7 +184,21 @@ def update_personal():
         except:
             pass
 
+    # ── Flip profile_completed and notify — only fires once ──
+    was_complete = getattr(current_user, 'profile_completed', False)
+
+    if not was_complete and is_profile_complete(prof):
+        current_user.profile_completed = True
+
+        notif = ApplicantNotification(
+            applicant_id=current_user.id,
+            type='profile_complete',
+            message='🎉 Your profile is now <strong>complete</strong>! You can now browse and apply for jobs on the platform.',
+        )
+        db.session.add(notif)
+
     db.session.commit()
+
     flash("Personal information updated!", "success")
     return redirect(url_for('applicant.profile'))
 
@@ -118,6 +209,10 @@ def update_personal():
 @applicant_bp.route('/profile/update-social', methods=['POST'])
 @login_required
 def update_social():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -138,6 +233,10 @@ def update_social():
 @applicant_bp.route('/profile/add-experience', methods=['POST'])
 @login_required
 def add_experience():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -183,6 +282,10 @@ def delete_experience(exp_id):
 @applicant_bp.route('/profile/add-education', methods=['POST'])
 @login_required
 def add_education():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -229,6 +332,10 @@ def delete_education(edu_id):
 @applicant_bp.route('/profile/add-skill', methods=['POST'])
 @login_required
 def add_skill():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -269,6 +376,10 @@ def delete_skill(skill_id):
 @applicant_bp.route('/profile/add-project', methods=['POST'])
 @login_required
 def add_project():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -312,6 +423,10 @@ def delete_project(proj_id):
 @applicant_bp.route('/profile/add-certification', methods=['POST'])
 @login_required
 def add_certification():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -355,6 +470,10 @@ def delete_certification(cert_id):
 @applicant_bp.route('/upload-profile-picture', methods=['POST'])
 @login_required
 def upload_profile_picture():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -390,9 +509,16 @@ def upload_profile_picture():
     return redirect(url_for('applicant.profile'))
 
 
-@applicant_bp.route('/status')
+# ===============================
+# APPLICANT DASHBOARD
+# ===============================
+@applicant_bp.route('/dashboard')
 @login_required
-def status():
+def dashboard():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -408,15 +534,29 @@ def status():
         .all()
     )
 
+    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
+    profile_complete = is_profile_complete(prof)
+
     saved_job_ids = {
         s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
     }
 
     return render_template(
-        'applicant/status.html',
+        'applicant/dashboard.html',
         applications=applications,
-        saved_job_ids=saved_job_ids
+        profile_complete=profile_complete,
+        saved_job_ids=saved_job_ids,
     )
+
+
+# ===============================
+# APPLICATION STATUS PAGE (alias for dashboard)
+# ===============================
+@applicant_bp.route('/status')
+@login_required
+def status():
+    """Alias for dashboard for backward compatibility."""
+    return redirect(url_for('applicant.dashboard'))
 
 
 # ===============================
@@ -424,7 +564,6 @@ def status():
 # ===============================
 @applicant_bp.route('/job/<int:job_id>')
 def job_details(job_id):
-    from models import SavedJob
     job = Job.query.get_or_404(job_id)
     job_owner = User.query.get(job.company_id)
 
@@ -443,13 +582,17 @@ def job_details(job_id):
 @applicant_bp.route('/apply/<int:job_id>', methods=["GET", "POST"])
 @login_required
 def apply_job(job_id):
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    if not current_user.is_verified:
-        flash("Your account is still waiting for admin verification.", "warning")
-        return redirect(url_for('applicant.status'))
+    if not getattr(current_user, 'profile_completed', False):
+        flash("Please complete your profile before applying for jobs.", "warning")
+        return redirect(url_for('applicant.profile'))
 
     job = Job.query.get_or_404(job_id)
 
@@ -460,7 +603,7 @@ def apply_job(job_id):
 
     if existing:
         flash("You already applied for this job!", "warning")
-        return redirect(url_for('applicant.status'))
+        return redirect(url_for('applicant.dashboard'))
 
     if request.method == "POST":
         cover_letter = request.form.get("cover_letter")
@@ -486,6 +629,7 @@ def apply_job(job_id):
         db.session.add(application)
         db.session.commit()
 
+        # Notify recruiter
         job_owner = Job.query.get(application.job_id)
         notif = RecruiterNotification(
             recruiter_id=job_owner.company_id,
@@ -496,6 +640,7 @@ def apply_job(job_id):
         )
         db.session.add(notif)
 
+        # Notify HR
         hr_users = User.query.filter_by(
             created_by=job_owner.company_id,
             role='hr'
@@ -511,6 +656,7 @@ def apply_job(job_id):
             )
             db.session.add(hr_notif)
 
+        # Notify applicant
         app_notif = ApplicantNotification(
             applicant_id=current_user.id,
             type='job_update',
@@ -523,7 +669,7 @@ def apply_job(job_id):
         db.session.commit()
 
         flash("Application submitted successfully!", "success")
-        return redirect(url_for('applicant.status'))
+        return redirect(url_for('applicant.dashboard'))
 
     return render_template("applicant/apply_job.html", job=job)
 
@@ -764,6 +910,9 @@ def mark_notifications_read():
     return jsonify({'ok': True})
 
 
+# ===============================
+# CLEAR ALL NOTIFICATIONS
+# ===============================
 @applicant_bp.route('/notifications/clear-all', methods=['POST'])
 @login_required
 def clear_all_notifications():
@@ -786,7 +935,7 @@ def clear_all_notifications():
 
 
 # ===============================
-# NOTIFICATION HISTORY PAGE
+# APPLICANT NOTIFICATION HISTORY PAGE
 # ===============================
 @applicant_bp.route('/notification-history')
 @login_required
@@ -802,6 +951,7 @@ def notification_history():
     ).update({'is_read': True})
     db.session.commit()
     return render_template('applicant/notification_history.html', notifications=notifs)
+
 
 # ===============================
 # SAVE / UNSAVE JOB (AJAX)

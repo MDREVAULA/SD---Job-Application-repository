@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from flask import jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
-from models import db, Job, User, Application, JobImage, HRFeedback, RecruiterNotification, ApplicantNotification, HRProfile
-from models import RecruiterEducation   # ← recruiter-specific education table
+from models import (
+    db, Job, User, Application, JobImage, HRFeedback, 
+    RecruiterNotification, ApplicantNotification, RecruiterEducation
+)
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -22,20 +23,47 @@ def generate_temp_password(length=10):
 
 recruiter_bp = Blueprint('recruiter', __name__, url_prefix="/recruiter")
 
-@recruiter_bp.route('/applications')
-@login_required
-def all_applications():
-    # Show all applications across all jobs
-    applications = Application.query.join(Job).filter(Job.recruiter_id == current_user.id).all()
-    return render_template('recruiter/all_applications.html', applications=applications)
+
+# ===============================
+# HELPER — ban check
+# ===============================
+def check_banned():
+    """Returns rendered template if user is banned, else None."""
+    if current_user.is_authenticated and current_user.is_banned:
+        from flask import render_template as rt
+        return rt("account_banned.html", user=current_user)
+    return None
 
 
 # ===============================
-# RECRUITER PROFILE PAGE
+# HELPER — recruiter profile completion check
+# Required: first_name, surname, phone_number, company_name, 
+#           company_industry, country, city
+# ===============================
+def is_recruiter_profile_complete(profile):
+    if not profile:
+        return False
+    return all([
+        profile.first_name,
+        profile.surname,
+        profile.phone_number,
+        profile.company_name,
+        profile.company_industry,
+        profile.country,
+        profile.city,
+    ])
+
+
+# ===============================
+# RECRUITER PROFILE / DASHBOARD
 # ===============================
 @recruiter_bp.route('/profile')
 @login_required
 def profile():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -60,6 +88,21 @@ def profile():
     followers = [u for u in followers if u]
     following = [u for u in following if u]
 
+    profile_complete = is_recruiter_profile_complete(rec_profile)
+
+    # Determine verification state for banner
+    # States: "incomplete", "complete_unsubmitted", "pending", "approved", "rejected"
+    if current_user.is_verified and current_user.verification_status == "Approved":
+        verify_state = "approved"
+    elif current_user.verification_status == "Rejected":
+        verify_state = "rejected"
+    elif rec_profile and rec_profile.submitted_for_review:
+        verify_state = "pending"
+    elif profile_complete:
+        verify_state = "complete_unsubmitted"
+    else:
+        verify_state = "incomplete"
+
     return render_template(
         'recruiter/profile.html',
         jobs=jobs,
@@ -70,7 +113,59 @@ def profile():
         following_count=len(following),
         followers=followers,
         following=following,
+        profile_complete=profile_complete,
+        verify_state=verify_state,
     )
+
+
+# ===============================
+# SUBMIT PROFILE FOR ADMIN REVIEW
+# ===============================
+@recruiter_bp.route('/submit-for-review', methods=['POST'])
+@login_required
+def submit_for_review():
+    banned = check_banned()
+    if banned:
+        return banned
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    from models import RecruiterProfile
+    profile = current_user.recruiter_profile
+
+    if not is_recruiter_profile_complete(profile):
+        flash("Please complete all required profile fields before submitting for review.", "warning")
+        return redirect(url_for('recruiter.profile'))
+
+    if current_user.is_verified:
+        flash("Your account is already verified.", "info")
+        return redirect(url_for('recruiter.profile'))
+
+    if profile.submitted_for_review and current_user.verification_status == "Pending":
+        flash("Your account is already pending review.", "info")
+        return redirect(url_for('recruiter.profile'))
+
+    # Mark as submitted
+    profile.submitted_for_review = True
+    current_user.verification_status = "Pending"
+
+    # ── Notify admin ──
+    try:
+        from routes.admin import push_admin_notif
+        push_admin_notif(
+            'account_request',
+            f'Recruiter <strong>{current_user.username}</strong> has submitted their profile for verification.',
+            user_id=current_user.id
+        )
+    except:
+        pass
+
+    db.session.commit()
+
+    flash("Your profile has been submitted for admin review. You'll be notified once verified.", "success")
+    return redirect(url_for('recruiter.profile'))
 
 
 # ===============================
@@ -79,6 +174,10 @@ def profile():
 @recruiter_bp.route('/upload-profile-picture', methods=['POST'])
 @login_required
 def upload_profile_picture():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -124,6 +223,10 @@ def upload_profile_picture():
 @recruiter_bp.route('/upload-company-logo', methods=['POST'])
 @login_required
 def upload_company_logo():
+    banned = check_banned()
+    if banned:
+        return banned
+
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -175,6 +278,9 @@ def upload_company_logo():
 @recruiter_bp.route('/update-profile', methods=['POST'])
 @login_required
 def update_profile():
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -191,7 +297,7 @@ def update_profile():
     if section == 'personal':
         profile.first_name   = request.form.get('first_name', '').strip()
         profile.middle_name  = request.form.get('middle_name', '').strip()
-        profile.surname      = request.form.get('last_name', '').strip()
+        profile.surname      = request.form.get('surname', '').strip() or request.form.get('last_name', '').strip()
         profile.gender       = request.form.get('gender', '').strip()
         profile.phone_number = request.form.get('phone_number', '').strip()
         profile.home_address = request.form.get('home_address', '').strip()
@@ -222,6 +328,14 @@ def update_profile():
                 return redirect(url_for('recruiter.profile'))
             current_user.username = new_username
 
+    db.session.flush()
+
+    # ── Re-fetch user row directly so SQLAlchemy tracks the change ──
+    user_row = db.session.get(User, current_user.id)
+    if not getattr(user_row, 'profile_completed', False):
+        if is_recruiter_profile_complete(profile):
+            user_row.profile_completed = True
+
     db.session.commit()
     flash("Profile updated successfully!", "success")
     return redirect(url_for('recruiter.profile'))
@@ -233,6 +347,9 @@ def update_profile():
 @recruiter_bp.route('/update-social', methods=['POST'])
 @login_required
 def update_social():
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -260,6 +377,9 @@ def update_social():
 @recruiter_bp.route('/add-education', methods=['POST'])
 @login_required
 def add_education():
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -300,6 +420,9 @@ def add_education():
 @recruiter_bp.route('/delete-education/<int:edu_id>', methods=['POST'])
 @login_required
 def delete_education(edu_id):
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -326,10 +449,17 @@ def delete_education(edu_id):
 @recruiter_bp.route('/post-job', methods=['POST'])
 @login_required
 def post_job():
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
+
+    if not current_user.is_verified:
+        flash("Your account must be verified before you can post jobs.", "warning")
+        return redirect(url_for('recruiter.profile'))
 
     title = request.form.get('title')
     description = request.form.get('description')
@@ -401,6 +531,9 @@ def post_job():
 @recruiter_bp.route('/job-posting')
 @login_required
 def job_posting():
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -408,10 +541,7 @@ def job_posting():
 
     jobs = Job.query.filter_by(company_id=current_user.id).all()
 
-    return render_template(
-        "recruiter/job_posting.html",
-        jobs=jobs
-    )
+    return render_template("recruiter/job_posting.html", jobs=jobs)
 
 
 # ===============================
@@ -420,6 +550,9 @@ def job_posting():
 @recruiter_bp.route('/my-job-list')
 @login_required
 def my_job_list():
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -427,34 +560,34 @@ def my_job_list():
 
     jobs = Job.query.filter_by(company_id=current_user.id).all()
 
-    return render_template(
-        "recruiter/my_job_list.html",
-        jobs=jobs
-    )
+    return render_template("recruiter/my_job_list.html", jobs=jobs)
 
 
 # ===============================
 # HR ACCOUNTS PAGE
-# ── Only shows non-deleted HR accounts ──
 # ===============================
 @recruiter_bp.route('/hr-accounts')
 @login_required
 def hr_accounts():
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
+    if not current_user.is_verified:
+        flash("Your account must be verified to manage HR accounts.", "warning")
+        return redirect(url_for('recruiter.profile'))
+
     hrs = User.query.filter_by(
         created_by=current_user.id,
         role="hr",
-        is_deleted=False           # ← hide soft-deleted accounts
+        is_deleted=False
     ).all()
 
-    return render_template(
-        "recruiter/hr_accounts.html",
-        hrs=hrs
-    )
+    return render_template("recruiter/hr_accounts.html", hrs=hrs)
 
 
 # ===============================
@@ -463,10 +596,17 @@ def hr_accounts():
 @recruiter_bp.route('/create-hr', methods=['POST'])
 @login_required
 def create_hr():
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
+
+    if not current_user.is_verified:
+        flash("Your account must be verified to create HR accounts.", "warning")
+        return redirect(url_for('recruiter.profile'))
 
     username = request.form.get('username')
     email = request.form.get('email')
@@ -510,18 +650,11 @@ def create_hr():
 
 # ================================================================
 # SOFT-DELETE HR ACCOUNT  (supports undo within 8 seconds)
-# ── Marks is_deleted=True and records when. The JS countdown
-#    either calls /undo-delete-hr or /commit-delete-hr after 8s.
 # ================================================================
 @recruiter_bp.route('/soft-delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
 def soft_delete_hr(hr_id):
-    """
-    Stage 1 of undo-delete: mark the HR account as soft-deleted.
-    The row is hidden from the UI immediately but NOT yet purged.
-    The frontend starts an 8-second countdown; if the recruiter
-    clicks Undo the account is restored, otherwise commit is called.
-    """
+    """Stage 1 of undo-delete: mark HR account as soft-deleted."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
@@ -549,12 +682,7 @@ def soft_delete_hr(hr_id):
 @recruiter_bp.route('/soft-delete-all-hr', methods=['POST'])
 @login_required
 def soft_delete_all_hr():
-    """
-    Stage 1 of undo-delete-all: marks ALL of this recruiter's
-    non-deleted HR accounts as soft-deleted.
-    Returns the list of affected IDs so the frontend can pass them
-    back on undo or commit.
-    """
+    """Stage 1 of undo-delete-all: mark ALL HR accounts as soft-deleted."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
@@ -643,15 +771,11 @@ def undo_delete_all_hr():
 
 # ================================================================
 # COMMIT DELETE — permanently remove one soft-deleted HR account
-# Called automatically by the JS countdown when undo is NOT clicked
 # ================================================================
 @recruiter_bp.route('/commit-delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
 def commit_delete_hr(hr_id):
-    """
-    Stage 2 of undo-delete: actually purge the HR account from the
-    database after the undo window has expired.
-    """
+    """Stage 2 of undo-delete: actually purge the HR account."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
@@ -659,11 +783,10 @@ def commit_delete_hr(hr_id):
         id=hr_id,
         role='hr',
         created_by=current_user.id,
-        is_deleted=True              # must have been soft-deleted first
+        is_deleted=True
     ).first()
 
     if not hr:
-        # Already restored (undo was used) or never existed — that's fine
         return jsonify({'success': True, 'skipped': True})
 
     try:
@@ -693,10 +816,7 @@ def commit_delete_hr(hr_id):
 @recruiter_bp.route('/commit-delete-all-hr', methods=['POST'])
 @login_required
 def commit_delete_all_hr():
-    """
-    Stage 2 of undo-delete-all: purge all HR accounts whose IDs
-    are passed in the JSON body (and are still soft-deleted).
-    """
+    """Stage 2 of undo-delete-all: purge all HR accounts."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
@@ -718,7 +838,7 @@ def commit_delete_all_hr():
             ).first()
 
             if not hr:
-                continue  # already restored by undo — skip silently
+                continue
 
             db.session.execute(
                 text("DELETE FROM hr_feedback WHERE hr_id = :hr_id"),
@@ -742,12 +862,12 @@ def commit_delete_all_hr():
 
 
 # ===============================
-# DELETE HR ACCOUNT  (legacy — kept for backwards-compat)
+# DELETE HR ACCOUNT  (legacy)
 # ===============================
 @recruiter_bp.route('/delete-hr/<int:hr_id>', methods=['POST'])
 @login_required
 def delete_hr(hr_id):
-
+    """Legacy immediate delete (kept for backwards-compatibility)."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
@@ -783,12 +903,12 @@ def delete_hr(hr_id):
 
 
 # ===============================
-# DELETE ALL HR ACCOUNTS  (legacy — kept for backwards-compat)
+# DELETE ALL HR ACCOUNTS  (legacy)
 # ===============================
 @recruiter_bp.route('/delete-all-hr', methods=['POST'])
 @login_required
 def delete_all_hr():
-
+    """Legacy immediate delete-all (kept for backwards-compatibility)."""
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
@@ -833,6 +953,9 @@ def delete_all_hr():
 @recruiter_bp.route('/job-applications/<int:job_id>')
 @login_required
 def view_job_applications(job_id):
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -859,6 +982,9 @@ def view_job_applications(job_id):
 @recruiter_bp.route('/update-application-status/<int:app_id>', methods=['POST'])
 @login_required
 def update_application_status(app_id):
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -915,6 +1041,9 @@ def update_application_status(app_id):
 @recruiter_bp.route('/schedule-interview/<int:app_id>', methods=['POST'])
 @login_required
 def schedule_interview(app_id):
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -969,6 +1098,9 @@ def schedule_interview(app_id):
 @recruiter_bp.route('/edit-job/<int:job_id>', methods=['GET', 'POST'])
 @login_required
 def edit_job(job_id):
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -1032,7 +1164,9 @@ def edit_job(job_id):
 @recruiter_bp.route('/delete-job-image/<int:image_id>', methods=['POST'])
 @login_required
 def delete_job_image(image_id):
-    from flask import jsonify
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         return jsonify({'success': False, 'error': 'Access denied'}), 403
@@ -1044,9 +1178,7 @@ def delete_job_image(image_id):
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
 
     file_path = os.path.join(
-        current_app.root_path,
-        "static", "uploads", "job_posters",
-        image.image_path
+        current_app.root_path, "static", "uploads", "job_posters", image.image_path
     )
 
     if os.path.exists(file_path):
@@ -1064,6 +1196,9 @@ def delete_job_image(image_id):
 @recruiter_bp.route('/delete-job/<int:job_id>', methods=['POST'])
 @login_required
 def delete_job(job_id):
+    banned = check_banned()
+    if banned:
+        return banned
 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
@@ -1077,9 +1212,7 @@ def delete_job(job_id):
 
     for image in job.images:
         file_path = os.path.join(
-            current_app.root_path,
-            "static", "uploads", "job_posters",
-            image.image_path
+            current_app.root_path, "static", "uploads", "job_posters", image.image_path
         )
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -1091,192 +1224,9 @@ def delete_job(job_id):
     flash("Job deleted successfully!", "success")
     return redirect(url_for('recruiter.my_job_list'))
 
-@recruiter_bp.route('/setup-profile', methods=['GET', 'POST'])
-@login_required
-def setup_profile():
-    if request.method == 'POST':
-        # handle form saving here
-        pass
-    return redirect(url_for('recruiter.profile'))
-# ================================================================
-# PUBLIC PROFILE ROUTES
-# File: routes/profile_view.py
-# ================================================================
-
-from flask import Blueprint, render_template, redirect, url_for, flash, abort
-from flask_login import login_required, current_user
-from models import (
-    db, User, ApplicantProfile, WorkExperience,
-    Education, Skill, Project, Certification, Job, Follow
-)
-from datetime import date
-
-profile_view_bp = Blueprint('profile_view', __name__, url_prefix='/profile')
-
-
-# ── SMART REDIRECT — /profile/<user_id> → correct role view ──
-@profile_view_bp.route('/<int:user_id>')
-def view_profile(user_id):
-    """
-    Smart redirect: detects the user's role and sends the viewer
-    to the correct public profile page.
-    Also prevents logged-in users from viewing their own profile through
-    this route (redirects them to their editable profile instead).
-    """
-    user = User.query.get_or_404(user_id)
-
-    # Redirect self to their own editable profile (only if logged in)
-    if current_user.is_authenticated and current_user.id == user_id:
-        if user.role == 'applicant':
-            return redirect(url_for('applicant.profile'))
-        elif user.role == 'hr':
-            return redirect(url_for('hr.profile'))
-        elif user.role == 'recruiter':
-            return redirect(url_for('recruiter.profile'))
-
-    # Route to the correct public view
-    if user.role == 'applicant':
-        return redirect(url_for('profile_view.view_applicant_profile', user_id=user_id))
-    elif user.role == 'hr':
-        return redirect(url_for('profile_view.view_hr_profile', user_id=user_id))
-    elif user.role == 'recruiter':
-        return redirect(url_for('profile_view.view_recruiter_profile', user_id=user_id))
-    else:
-        abort(404)
-
-
-# ── APPLICANT PUBLIC PROFILE ──
-@profile_view_bp.route('/applicant/<int:user_id>')
-@login_required
-def view_applicant_profile(user_id):
-    """
-    Public read-only view of an applicant's profile.
-    Accessible by any logged-in user (recruiter, hr, other applicants).
-    """
-    viewed_user = User.query.get_or_404(user_id)
-
-    if viewed_user.role != 'applicant':
-        flash("This profile is not an applicant.", "warning")
-        return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
-    # Redirect self to own editable profile
-    if current_user.id == user_id:
-        return redirect(url_for('applicant.profile'))
-
-    prof = ApplicantProfile.query.filter_by(user_id=user_id).first()
-
-    experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
-    educations     = Education.query.filter_by(profile_id=prof.id).order_by(Education.created_at.desc()).all() if prof else []
-    skills         = Skill.query.filter_by(profile_id=prof.id).all() if prof else []
-    projects       = Project.query.filter_by(profile_id=prof.id).order_by(Project.created_at.desc()).all() if prof else []
-    certifications = Certification.query.filter_by(profile_id=prof.id).order_by(Certification.created_at.desc()).all() if prof else []
-
-    return render_template(
-        'applicant/view_profile.html',
-        viewed_user=viewed_user,
-        profile=prof,
-        experiences=experiences,
-        educations=educations,
-        skills=skills,
-        projects=projects,
-        certifications=certifications
-    )
-
-
-# ── HR PUBLIC PROFILE ──
-# routes/profile_view.py — fix view_hr_profile
-@profile_view_bp.route('/hr/<int:user_id>')
-@login_required
-def view_hr_profile(user_id):
-    viewed_user = User.query.get_or_404(user_id)
-
-    if viewed_user.role != 'hr':
-        flash("This profile is not an HR member.", "warning")
-        return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
-    if current_user.id == user_id:
-        return redirect(url_for('hr.profile'))
-
-    followers, following = _get_follow_lists(user_id)  # add this
-
-    is_following = False
-    if current_user.is_authenticated:
-        is_following = Follow.query.filter_by(
-            follower_id=current_user.id,
-            followed_id=user_id
-        ).first() is not None
-
-    return render_template(
-        'hr/view_profile.html',
-        viewed_user=viewed_user,
-        is_following=is_following,       # add these
-        followers=followers,
-        following=following,
-        follower_count=len(followers),
-        following_count=len(following),
-    )
-
-
-# ── RECRUITER PUBLIC PROFILE ──
-# NOTE: No @login_required — guests can view recruiter profiles
-@profile_view_bp.route('/recruiter/<int:user_id>')
-def view_recruiter_profile(user_id):
-    """
-    Public read-only view of a recruiter's profile.
-    Accessible by guests AND logged-in users.
-    Guests can see everything but Follow/Message buttons redirect to login.
-    """
-    from models import RecruiterProfile
-
-    viewed_user = User.query.get_or_404(user_id)
-
-    if viewed_user.role != 'recruiter':
-        flash("This profile is not a recruiter.", "warning")
-        return redirect(url_for('profile_view.view_profile', user_id=user_id))
-
-    # Redirect self (logged-in recruiter) to own editable profile
-    if current_user.is_authenticated and current_user.id == user_id:
-        return redirect(url_for('recruiter.profile'))
-
-    # Fetch recruiter profile details
-    profile = RecruiterProfile.query.filter_by(user_id=user_id).first()
-
-    # Fetch education entries
-    educations = []
-    if profile:
-        educations = Education.query.filter_by(
-            profile_id=profile.id
-        ).order_by(Education.created_at.desc()).all()
-
-    # Fetch active job postings (all jobs, template decides expired vs active)
-    posted_jobs = Job.query.filter_by(
-        company_id=user_id
-    ).order_by(Job.id.desc()).all()
-
-    # Check if the current user is following this recruiter
-    is_following = False
-    if current_user.is_authenticated:
-        is_following = Follow.query.filter_by(
-            follower_id=current_user.id,
-            followed_id=user_id
-        ).first() is not None
-
-    # Follower count
-    follower_count = Follow.query.filter_by(followed_id=user_id).count()
-
-    return render_template(
-        'recruiter/view_profile.html',
-        viewed_user=viewed_user,
-        profile=profile,
-        educations=educations,
-        posted_jobs=posted_jobs,
-        is_following=is_following,
-        follower_count=follower_count,
-        today=date.today()
-    )
 
 # ===============================
-# NOTIFICATION HISTORY PAGE
+# RECRUITER NOTIFICATION HISTORY PAGE
 # ===============================
 @recruiter_bp.route('/notification-history')
 @login_required
@@ -1309,7 +1259,6 @@ def clear_all_notifications():
 
     flash("All notifications cleared.", "success")
     return redirect(url_for('recruiter.notification_history'))
-
 
 
 # ===============================

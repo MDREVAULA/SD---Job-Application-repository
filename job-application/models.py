@@ -10,13 +10,13 @@ db = SQLAlchemy()
 # =========================
 class User(db.Model, UserMixin):
 
-    profile_completed = db.Column(db.Boolean, default=False)
-
     id = db.Column(db.Integer, primary_key=True)
 
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=True)  # nullable for Google users
+
+    profile_completed = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
 
     role = db.Column(db.String(50), nullable=False)
 
@@ -26,10 +26,15 @@ class User(db.Model, UserMixin):
     # Temporary password system
     must_change_password = db.Column(db.Boolean, default=False)
 
-    # Verification system
+    # Verification system (recruiters only after profile completion)
     is_verified = db.Column(db.Boolean, default=False)
     verification_status = db.Column(db.String(20), default="Pending")
     verification_remarks = db.Column(db.Text)
+
+    # Ban system (replaces applicant rejection)
+    is_banned = db.Column(db.Boolean, default=False)
+    ban_reason = db.Column(db.Text, nullable=True)
+    banned_at = db.Column(db.DateTime, nullable=True)
 
     # HR created by recruiter
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
@@ -109,23 +114,23 @@ class ApplicantProfile(db.Model):
 
     # RELATIONSHIPS
     work_experiences = db.relationship(
-        "WorkExperience", backref="applicant_profile",
+        "WorkExperience", backref="profile",
         lazy=True, cascade="all, delete-orphan"
     )
     educations = db.relationship(
-        "ApplicantEducation", backref="applicant_profile",
+        "ApplicantEducation", backref="profile",
         lazy=True, cascade="all, delete-orphan"
     )
     skills = db.relationship(
-        "Skill", backref="applicant_profile",
+        "Skill", backref="profile",
         lazy=True, cascade="all, delete-orphan"
     )
     projects = db.relationship(
-        "Project", backref="applicant_profile",
+        "Project", backref="profile",
         lazy=True, cascade="all, delete-orphan"
     )
     certifications = db.relationship(
-        "Certification", backref="applicant_profile",
+        "Certification", backref="profile",
         lazy=True, cascade="all, delete-orphan"
     )
 
@@ -177,7 +182,6 @@ class ApplicantEducation(db.Model):
 
 # ── Keep the old name as an alias so existing import statements
 #    (e.g. `from models import Education`) still work without changes
-#    in profile_view.py / applicant.py.
 Education = ApplicantEducation
 
 
@@ -203,6 +207,7 @@ class RecruiterEducation(db.Model):
     description = db.Column(db.Text)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 # =========================
 # HR EDUCATION  (hr-only)
@@ -319,6 +324,9 @@ class RecruiterProfile(db.Model):
     company_logo = db.Column(db.String(200))
     company_proof = db.Column(db.String(200))
 
+    # Track whether profile has been submitted for verification
+    submitted_for_review = db.Column(db.Boolean, default=False)
+
     # RELATIONSHIP — recruiter-specific education entries
     educations = db.relationship(
         "RecruiterEducation", backref="recruiter_profile",
@@ -356,9 +364,9 @@ class HRProfile(db.Model):
     portfolio = db.Column(db.String(200))
 
     educations = db.relationship(
-    "HREducation", backref="hr_profile",
-    lazy=True, cascade="all, delete-orphan"
-)
+        "HREducation", backref="hr_profile",
+        lazy=True, cascade="all, delete-orphan"
+    )
 
 
 # =========================
@@ -371,6 +379,7 @@ class Job(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
 
+    # Recruiter who posted job
     company_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     arrangement = db.Column(db.String(200))
@@ -406,6 +415,7 @@ class Job(db.Model):
         overlaps="job,saved_by"
     )
 
+
 # =========================
 # APPLICATION TABLE
 # =========================
@@ -434,6 +444,7 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+
 # =========================
 # SAVED JOBS TABLE
 # =========================
@@ -442,7 +453,6 @@ class SavedJob(db.Model):
 
     id           = db.Column(db.Integer, primary_key=True)
     applicant_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
-    # ADD ondelete='CASCADE' here
     job_id       = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='CASCADE'), nullable=False)
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -452,6 +462,7 @@ class SavedJob(db.Model):
 
     applicant = db.relationship('User', foreign_keys=[applicant_id], backref='saved_jobs')
     job       = db.relationship('Job', foreign_keys=[job_id], backref='saved_by', overlaps="saved_by_users")
+
 
 # =========================
 # FOLLOW TABLE
@@ -503,6 +514,9 @@ class Message(db.Model):
     )
 
 
+# =========================
+# MESSAGE REACTION TABLE
+# =========================
 class MessageReaction(db.Model):
     __tablename__ = "message_reaction"
 
@@ -518,7 +532,8 @@ class MessageReaction(db.Model):
 
     message = db.relationship("Message", backref=db.backref("reactions", cascade="all, delete-orphan"))
     user    = db.relationship("User", backref="message_reactions")
-    
+
+
 # =========================
 # HR FEEDBACK TABLE
 # =========================
@@ -574,6 +589,12 @@ class ApplicantNotification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     applicant_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     type = db.Column(db.String(50), nullable=False)
+    # Types:
+    #   new_message          — someone sent you a message
+    #   new_follow           — someone followed you
+    #   job_update           — job posting was updated
+    #   application_status   — your application status changed
+    #   interview_scheduled  — interview was scheduled for you
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
@@ -581,6 +602,41 @@ class ApplicantNotification(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     applicant = db.relationship("User", foreign_keys=[applicant_id], backref="applicant_notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
+
+
+# =========================
+# ADMIN NOTIFICATION TABLE
+# =========================
+class AdminNotification(db.Model):
+    __tablename__ = 'admin_notifications'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    type       = db.Column(db.String(50), nullable=False)
+    # Types: 'new_message', 'account_request', 'account_approved', 'account_rejected'
+    message    = db.Column(db.Text, nullable=False)
+    is_read    = db.Column(db.Boolean, default=False)
+    user_id    = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        now = datetime.utcnow()
+        diff = now - self.created_at
+        if diff.seconds < 60:
+            time_str = "just now"
+        elif diff.seconds < 3600:
+            time_str = f"{diff.seconds // 60}m ago"
+        elif diff.days == 0:
+            time_str = f"{diff.seconds // 3600}h ago"
+        else:
+            time_str = self.created_at.strftime("%b %d, %Y")
+        return {
+            'id':         self.id,
+            'type':       self.type,
+            'message':    self.message,
+            'is_read':    self.is_read,
+            'user_id':    self.user_id,
+            'created_at': time_str,
+        }
 
 
 # =========================
@@ -595,36 +651,51 @@ class JobImage(db.Model):
 
 
 # =========================
-# SETTINGS TAB
+# USER SETTINGS TABLE
 # =========================
 class UserSettings(db.Model):
+    """Stores per-user settings (privacy, notifications, appearance, etc.)"""
     __tablename__ = 'user_settings'
 
     id      = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
 
+    # ── Privacy ──────────────────────────────────────────────
     show_name         = db.Column(db.String(20), default='everyone')
+    # 'everyone' | 'specific' | 'none'
+    # Controls BOTH personal info AND documents together
     show_profile      = db.Column(db.String(20), default='everyone')
+    # JSON list used when show_profile == 'specific'
+    # Applicant options: 'recruiter', 'hr', 'mutual'
+    # HR/Recruiter options: 'mutual'
     profile_audience_json = db.Column(db.Text, default='["recruiter","hr","mutual"]')
 
     show_follow_list  = db.Column(db.String(10), default='yes')
     show_follow_count = db.Column(db.String(10), default='yes')
 
+    # 'all' | 'recruiters' | 'mutual'
     who_can_message   = db.Column(db.String(20), default='all')
 
+    # ── Notifications ─────────────────────────────────────────
     notif_app_status  = db.Column(db.Boolean, default=True)
     notif_messages    = db.Column(db.Boolean, default=True)
     notif_followers   = db.Column(db.Boolean, default=True)
     notif_jobs        = db.Column(db.Boolean, default=False)
 
+    # ── Appearance ────────────────────────────────────────────
+    # 'light' | 'dark' | 'system'
     theme             = db.Column(db.String(10), default='light')
+    # 'comfortable' | 'compact'
     density           = db.Column(db.String(15), default='comfortable')
 
+    # ── Language ─────────────────────────────────────────────
     language          = db.Column(db.String(10), default='en')
     timezone          = db.Column(db.String(50), default='Asia/Manila')
 
+    # ── Two-factor (security section) ────────────────────────
     two_factor        = db.Column(db.Boolean, default=False)
 
+    # Relationship back to user
     user = db.relationship('User', backref=db.backref('settings', uselist=False))
 
     def __repr__(self):
