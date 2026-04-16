@@ -22,7 +22,7 @@
                 </div>
                 <div class="filter-input-group">
                     <i class="fas fa-briefcase"></i>
-                    <select id="fieldFilter">
+                    <select id="categoryFilter">
                         <option value="">All Categories</option>
                         <option value="Engineering">💻 Engineering</option>
                         <option value="IT">🖥️ IT</option>
@@ -34,34 +34,6 @@
                         <option value="Legal">⚖️ Legal</option>
                         <option value="Education">🎓 Education</option>
                         <option value="Sales">🛒 Sales</option>
-                        <option value="Customer Service">🤝 Customer Service</option>
-                        <option value="Logistics">🚛 Logistics</option>
-                        <option value="Manufacturing">🏭 Manufacturing</option>
-                        <option value="Research & Science">🔬 Research & Science</option>
-                        <option value="Game Development">🎮 Game Development</option>
-                        <option value="Media & Entertainment">🎬 Media & Entertainment</option>
-                        <option value="Supply Chain">📦 Supply Chain</option>
-                        <option value="Banking">🏦 Banking</option>
-                        <option value="Cybersecurity">🛡️ Cybersecurity</option>
-                        <option value="Data Science / AI">🤖 Data Science / AI</option>
-                        <option value="Accounting">📊 Accounting</option>
-                        <option value="Real Estate">🏘️ Real Estate</option>
-                        <option value="Travel & Tourism">✈️ Travel & Tourism</option>
-                        <option value="Food & Beverage">🍽️ Food & Beverage</option>
-                        <option value="Retail">🛍️ Retail</option>
-                        <option value="Beauty & Wellness">💄 Beauty & Wellness</option>
-                        <option value="Sports & Fitness">🏋️ Sports & Fitness</option>
-                        <option value="Environment">🌿 Environment</option>
-                        <option value="Aerospace">🚀 Aerospace</option>
-                        <option value="Energy & Utilities">⚡ Energy & Utilities</option>
-                        <option value="Pharmaceuticals">🏥 Pharmaceuticals</option>
-                        <option value="Maintenance & Repair">🔧 Maintenance & Repair</option>
-                        <option value="Graphic Design">🎨 Graphic Design</option>
-                        <option value="Content & Writing">📝 Content & Writing</option>
-                        <option value="Consulting">🧠 Consulting</option>
-                        <option value="Human Resources">👥 Human Resources</option>
-                        <option value="Mobile Development">📱 Mobile Development</option>
-                        <option value="Other">🌐 Other</option>
                     </select>
                 </div>
                 <div class="filter-input-group">
@@ -79,169 +51,230 @@
         </div>
     </div>
 
-    <!-- ACTIVE FILTERS BAR -->
-    <div class="active-filters-bar" id="activeFiltersBar" style="display:none;">
-        <div class="active-filters-inner">
-            <span class="filters-label">Active filters:</span>
-            <div id="activeFilterTags"></div>
-            <button class="clear-all-btn" id="clearAllFilters">
-                <i class="fas fa-times"></i> Clear all
-            </button>
-        </div>
-    </div>
-
-    <!-- MAIN CONTENT -->
+    <!-- MAIN CONTENT - TWO COLUMN GRID -->
     <div class="job-board-content">
+        <div class="two-column-layout">
+            
+            <!-- LEFT SIDEBAR - FILTERS -->
+            <aside class="filters-sidebar">
+                <div class="filters-header">
+                    <h2>Filters</h2>
+                    <button class="clear-filters-btn" id="clearFiltersBtn">Clear</button>
+                </div>
 
-        <!-- RESULTS HEADER -->
-        <div class="results-header">
-            <div class="results-count">
-                <span id="jobsCount">{{ jobs|length }}</span> jobs found
-            </div>
-            <div class="results-actions">
-                <div class="sort-dropdown-wrapper">
-                    <button class="sort-btn" id="sortBtn">
-                        <i class="fas fa-sort-amount-down"></i>
-                        <span id="sortLabel">Sort: Newest First</span>
-                        <i class="fas fa-chevron-down sort-chevron"></i>
-                    </button>
-                    <div class="sort-dropdown" id="sortDropdown">
-                        <button class="sort-option active" data-sort="newest">
-                            <i class="fas fa-calendar-alt"></i> Newest First
-                        </button>
-                        <button class="sort-option" data-sort="oldest">
-                            <i class="fas fa-calendar"></i> Oldest First
-                        </button>
-                        <button class="sort-option" data-sort="az">
-                            <i class="fas fa-sort-alpha-down"></i> Title A–Z
-                        </button>
-                        <button class="sort-option" data-sort="za">
-                            <i class="fas fa-sort-alpha-up"></i> Title Z–A
-                        </button>
+                <!-- Working Schedule -->
+                <div class="filter-section">
+                    <h3>Working schedule</h3>
+                    <div class="filter-options" id="scheduleFilters">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="jobType" value="Full-time">
+                            <span>Full-time</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="jobType" value="Part-time">
+                            <span>Part-time</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="jobType" value="Internship">
+                            <span>Internship</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="jobType" value="Freelance">
+                            <span>Freelance</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="jobType" value="Contract">
+                            <span>Contract</span>
+                        </label>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- JOBS LIST -->
-        <div class="jobs-list" id="jobsList">
-            {% if jobs %}
-                {% for job in jobs %}
+                <!-- Employment Type -->
+                <div class="filter-section">
+                    <h3>Employment type</h3>
+                    <div class="filter-options" id="categoryFilters">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="Engineering">
+                            <span>Engineering</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="IT">
+                            <span>IT</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="UI/UX Design">
+                            <span>UI/UX Design</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="Healthcare">
+                            <span>Healthcare</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="Marketing">
+                            <span>Marketing</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="Finance">
+                            <span>Finance</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="Architecture">
+                            <span>Architecture</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="Legal">
+                            <span>Legal</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" name="category" value="Education">
+                            <span>Education</span>
+                        </label>
+                    </div>
+                </div>
+            </aside>
 
-                {# --- Resolve company info --- #}
-                {% set recruiter = job.company_id | get_recruiter_profile %}
-
-                <div class="job-item"
-                     data-field="{{ job.field }}"
-                     data-job-type="{{ job.job_type }}"
-                     data-title="{{ job.title }}"
-                     data-posted="{{ job.id }}"
-                >
-                    <div class="job-main">
-
-                        <!-- COMPANY LOGO -->
-                        <div class="job-logo">
-                            {% if recruiter and recruiter.company_logo %}
-                                <img
-                                    src="{{ url_for('static', filename='uploads/company_logos/' ~ recruiter.company_logo) }}"
-                                    alt="{{ recruiter.company_name }}"
-                                    class="company-logo-img"
-                                >
-                            {% else %}
-                                <div class="logo-placeholder">
-                                    <i class="fas fa-building"></i>
-                                </div>
-                            {% endif %}
+            <!-- RIGHT SIDE - JOB CARDS GRID -->
+            <div class="jobs-main">
+                <!-- RESULTS HEADER -->
+                <div class="results-header">
+                    <div class="results-count">
+                        <span id="jobsCount">{{ jobs|length }}</span> jobs found
+                    </div>
+                    <div class="results-actions">
+                        <div class="sort-dropdown-wrapper">
+                            <button class="sort-btn" id="sortBtn">
+                                <i class="fas fa-sort-amount-down"></i>
+                                <span id="sortLabel">Sort: Newest First</span>
+                                <i class="fas fa-chevron-down sort-chevron"></i>
+                            </button>
+                            <div class="sort-dropdown" id="sortDropdown">
+                                <button class="sort-option active" data-sort="newest">
+                                    <i class="fas fa-calendar-alt"></i> Newest First
+                                </button>
+                                <button class="sort-option" data-sort="oldest">
+                                    <i class="fas fa-calendar"></i> Oldest First
+                                </button>
+                                <button class="sort-option" data-sort="az">
+                                    <i class="fas fa-sort-alpha-down"></i> Title A–Z
+                                </button>
+                                <button class="sort-option" data-sort="za">
+                                    <i class="fas fa-sort-alpha-up"></i> Title Z–A
+                                </button>
+                            </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="job-details">
-                            <div class="job-header-row">
-                                <h2 class="job-title-link">{{ job.title }}</h2>
-                                {% if job.expiration_date %}
-                                    {% set today = now() %}
-                                    {% set days_left = (job.expiration_date - today.date()).days %}
-                                    {% if days_left <= 7 and days_left >= 0 %}
-                                        <span class="expiry-badge urgent">Closes in {{ days_left }}d</span>
+                <!-- JOBS GRID - 3 COLUMNS -->
+                <div class="jobs-list" id="jobsList">
+                    {% if jobs %}
+                        {% for job in jobs %}
+
+                        {# --- Resolve company info --- #}
+                        {% set recruiter = job.company_id | get_recruiter_profile %}
+
+                        <div class="job-card"
+                             data-field="{{ job.field }}"
+                             data-job-type="{{ job.job_type }}"
+                             data-title="{{ job.title }}"
+                             data-posted="{{ job.id }}"
+                        >
+                            <div class="job-card-inner">
+                                <!-- Bookmark Button -->
+                                {% if current_user.is_authenticated and current_user.role == "applicant" %}
+                                <button class="btn-bookmark {% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}saved{% endif %}"
+                                    data-job-id="{{ job.id }}"
+                                    onclick="toggleSaveJob(this, {{ job.id }})">
+                                    <i class="{% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                                </button>
+                                {% endif %}
+
+                                <!-- COMPANY LOGO -->
+                                <div class="job-logo">
+                                    {% if recruiter and recruiter.company_logo %}
+                                        <img
+                                            src="{{ url_for('static', filename='uploads/company_logos/' ~ recruiter.company_logo) }}"
+                                            alt="{{ recruiter.company_name }}"
+                                            class="company-logo-img"
+                                        >
+                                    {% else %}
+                                        <div class="logo-placeholder">
+                                            <i class="fas fa-building"></i>
+                                        </div>
                                     {% endif %}
-                                {% endif %}
-                            </div>
+                                </div>
 
-                            <div class="job-company">
-                                {% if recruiter %}
-                                    {{ recruiter.company_name or 'Company' }}
-                                {% else %}
-                                    Company
-                                {% endif %}
-                            </div>
+                                <div class="job-content">
+                                    <div class="job-header">
+                                        <div class="job-title-area">
+                                            {% if job.expiration_date %}
+                                                {% set today = now() %}
+                                                {% set days_left = (job.expiration_date - today.date()).days %}
+                                                {% if days_left <= 7 and days_left >= 0 %}
+                                                    <span class="closes-badge">Closes in {{ days_left }}d</span>
+                                                {% endif %}
+                                            {% endif %}
+                                            <h3 class="job-title">{{ job.title }}</h3>
+                                            <p class="job-company">
+                                                {% if recruiter %}
+                                                    {{ recruiter.company_name or 'Company' }}
+                                                {% else %}
+                                                    Company
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                            <div class="job-metadata">
-                                <span class="meta-tag location-tag">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    {{ job.location or 'Location not specified' }}
-                                </span>
-                                <span class="meta-tag type-tag type-{{ job.job_type | lower | replace(' ', '-') if job.job_type else 'other' }}">
-                                    <i class="fas fa-briefcase"></i>
-                                    {{ job.job_type or 'Not specified' }}
-                                </span>
-                                <span class="meta-tag field-tag">
-                                    <i class="fas fa-tag"></i>
-                                    {{ job.field or 'General' }}
-                                </span>
-                                {% if job.salary %}
-                                    <span class="meta-tag salary-tag">
-                                        <i class="fas fa-money-bill-wave"></i>
-                                        {{ job.currency or '₱' }} {{ job.salary }}
-                                    </span>
-                                {% endif %}
-                            </div>
+                                    <!-- Tags -->
+                                    <div class="job-tags">
+                                        <span class="tag tag-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            {{ job.location or 'Remote' }}
+                                        </span>
+                                        <span class="tag tag-type tag-{{ job.job_type | lower | replace(' ', '-') if job.job_type else 'other' }}">
+                                            {{ job.job_type or 'N/A' }}
+                                        </span>
+                                    </div>
 
-                            <div class="job-snippet">
-                                {{ job.description[:180] }}{% if job.description|length > 180 %}...{% endif %}
+                                    <!-- Description -->
+                                    <p class="job-description">
+                                        {{ job.description[:120] }}{% if job.description|length > 120 %}...{% endif %}
+                                    </p>
+
+                                    <!-- Apply Button -->
+                                    <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-apply">
+                                        View & Apply
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        {% endfor %}
 
-                    <div class="job-actions">
-                        <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-apply">
-                            View & Apply
-                        </a>
-                        {% if current_user.is_authenticated and current_user.role == "applicant" %}
-                        <button class="btn-save {% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}saved{% endif %}"
-                            data-job-id="{{ job.id }}"
-                            data-auth="{{ 'true' if current_user.is_authenticated and current_user.role == 'applicant' else 'false' }}"
-                            onclick="toggleSaveJob(this, {{ job.id }})">
-                            <i class="{% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
-                        </button>
-                        {% endif %}
-                    </div>
-
+                    {% else %}
+                        <!-- NO JOBS FROM SERVER -->
+                        <div class="no-results">
+                            <div class="empty-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h3>No Jobs Available</h3>
+                            <p>There are currently no job postings. Check back soon!</p>
+                        </div>
+                    {% endif %}
                 </div>
-                {% endfor %}
 
-            {% else %}
-                <!-- NO JOBS FROM SERVER -->
-                <div class="no-results-plain">
-                    <div class="empty-icon-wrap">
-                        <i class="fas fa-briefcase"></i>
+                <!-- SEARCH EMPTY STATE -->
+                <div class="search-empty-state" id="searchEmptyState" style="display:none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-filter"></i>
                     </div>
-                    <h3>No Jobs Available</h3>
-                    <p>There are currently no job postings. Check back soon!</p>
+                    <h3>No Matching Jobs</h3>
+                    <p>Try different keywords or clear your filters to see more results.</p>
+                    <button class="reset-btn" id="resetSearch">
+                        <i class="fas fa-rotate-left"></i> Reset Filters
+                    </button>
                 </div>
-            {% endif %}
-        </div>
-
-        <!-- SEARCH EMPTY STATE — shown by JS when filters return 0 results -->
-        <div class="search-empty-state" id="searchEmptyState" style="display:none;">
-            <div class="empty-icon-wrap">
-                <i class="fas fa-filter"></i>
             </div>
-            <h3>No Matching Jobs</h3>
-            <p>Try different keywords or clear your filters to see more results.</p>
-            <button class="reset-btn" id="resetSearch">
-                <i class="fas fa-rotate-left"></i> Reset Filters
-            </button>
         </div>
-
     </div>
 </div>
 

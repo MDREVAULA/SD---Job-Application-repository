@@ -5,6 +5,40 @@
 
 {% block content %}
 
+<!-- TOP NAVIGATION BAR -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="{{ url_for('hr.job_list') }}" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">{{ job.field|upper if job.field else 'GENERAL' }}</div>
+                <h1 class="job-title-main">{{ job.title }}</h1>
+                <div class="job-meta">
+                    <span>{{ job.recruiter.recruiter_profile.company_name if job.recruiter and job.recruiter.recruiter_profile else 'Company' }}</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ job.job_type }}</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ applications|length }} Applicants</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <a href="{{ url_for('hr.job_list') }}" class="btn-nav">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                All Jobs
+            </a>
+        </div>
+    </div>
+</div>
+
 <div class="applications-wrapper">
 
     <!-- PAGE TITLE -->

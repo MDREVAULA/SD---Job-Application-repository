@@ -3,6 +3,38 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hr/job_list.css') }}">
 
+<!-- TOP NAVIGATION BAR -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <div class="job-title-section">
+                <div class="job-category">JOB MANAGEMENT</div>
+                <h1 class="job-title-main">Job List</h1>
+                <div class="job-meta">
+                    <span>{{ jobs|length }} Total Jobs</span>
+                    <span class="meta-dot">•</span>
+                    <span>
+                        {% set total_apps = namespace(count=0) %}
+                        {% for job in jobs %}
+                            {% set total_apps.count = total_apps.count + (job.applications | length) %}
+                        {% endfor %}
+                        {{ total_apps.count }} Applications
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <a href="{{ url_for('recruiter.job_posting') }}" class="btn-apply-nav">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Post a Job
+            </a>
+        </div>
+    </div>
+</div>
+
 <div class="job-list-wrapper">
 
     <!-- MAIN TITLE -->

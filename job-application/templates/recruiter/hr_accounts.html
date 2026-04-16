@@ -3,260 +3,410 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/hr_accounts.css') }}">
 
-<div class="hra-container" style="max-width: 1600px; margin: 0 auto; padding: 24px 32px 80px; width: 100%; box-sizing: border-box;">
-    <!-- Header Section -->
-    <div class="hra-header">
-        <div class="hra-header-left">
-            <div class="hra-header-icon">
-                <i class="fas fa-users-cog"></i>
-            </div>
-            <div>
-                <h1 class="hra-title">HR Team Management</h1>
-                <p class="hra-subtitle">Manage your human resources team members and their permissions</p>
-            </div>
-        </div>
-        <div class="hra-header-stats">
-            <div class="hra-stat-card">
-                <div class="hra-stat-icon"><i class="fas fa-user-shield"></i></div>
-                <div class="hra-stat-info">
-                    <div class="hra-stat-value">{{ hrs|length }}</div>
-                    <div class="hra-stat-label">Total HR</div>
-                </div>
-            </div>
-            <div class="hra-stat-card">
-                <div class="hra-stat-icon"><i class="fas fa-check-circle"></i></div>
-                <div class="hra-stat-info">
-                    <div class="hra-stat-value">{{ hrs|selectattr('must_change_password', 'equalto', false)|list|length }}</div>
-                    <div class="hra-stat-label">Active</div>
-                </div>
-            </div>
-            <div class="hra-stat-card">
-                <div class="hra-stat-icon"><i class="fas fa-clock"></i></div>
-                <div class="hra-stat-info">
-                    <div class="hra-stat-value">{{ hrs|selectattr('must_change_password', 'equalto', true)|list|length }}</div>
-                    <div class="hra-stat-label">Pending</div>
+<!-- TOP NAVIGATION BAR -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <div class="job-title-section">
+                <div class="job-category">TEAM MANAGEMENT</div>
+                <h1 class="job-title-main">HR Team Management</h1>
+                <div class="job-meta">
+                    <span>{{ hrs|length }} Total HR</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ hrs|selectattr('must_change_password', 'equalto', false)|list|length }} Active</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ hrs|selectattr('must_change_password', 'equalto', true)|list|length }} Pending</span>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Main Content Grid -->
-    <div class="hra-grid">
-        <!-- Left Column -->
-        <div class="hra-left-col">
-            <!-- Create HR Form -->
-            <div class="hra-card">
-                <div class="hra-card-header">
-                    <i class="fas fa-user-plus"></i>
-                    <h2>Create New HR Account</h2>
+<div class="job-list-wrapper">
+
+    <!-- STATS CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Total HR Members</span>
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
                 </div>
-                <div class="hra-card-body">
-                    <form method="POST" action="{{ url_for('recruiter.create_hr') }}" class="hra-form" id="createHrForm">
-                        <div class="hra-form-group">
-                            <label><i class="fas fa-user"></i> Username <span class="required">*</span></label>
+            </div>
+            <div class="stat-value">{{ hrs|length }} Members</div>
+            <div class="stat-change neutral">HR Team Size</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Active Members</span>
+                <div class="stat-icon stat-icon-success">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                        <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value">{{ hrs|selectattr('must_change_password', 'equalto', false)|list|length }} Active</div>
+            <div class="stat-change positive">Logged in</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Pending Activation</span>
+                <div class="stat-icon stat-icon-warning">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value">{{ hrs|selectattr('must_change_password', 'equalto', true)|list|length }} Pending</div>
+            <div class="stat-change neutral">Awaiting first login</div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID LAYOUT -->
+    <div class="hr-accounts-grid">
+        
+        <!-- LEFT COLUMN: CREATE HR FORM -->
+        <div class="hr-left-section">
+            <div class="job-list-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="8.5" cy="7" r="4"/>
+                            <line x1="20" y1="8" x2="20" y2="14"/>
+                            <line x1="23" y1="11" x2="17" y2="11"/>
+                        </svg>
+                        Create New HR Account
+                    </h2>
+                </div>
+
+                <div class="hr-form-container">
+                    <form method="POST" action="{{ url_for('recruiter.create_hr') }}" class="hr-form-modern" id="createHrForm">
+                        <div class="form-group-modern">
+                            <label>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                Username <span class="required">*</span>
+                            </label>
                             <input type="text" name="username" placeholder="e.g., Jane Smith" required>
                         </div>
-                        <div class="hra-form-group">
-                            <label><i class="fas fa-envelope"></i> Email Address <span class="required">*</span></label>
+                        
+                        <div class="form-group-modern">
+                            <label>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                </svg>
+                                Email Address <span class="required">*</span>
+                            </label>
                             <input type="email" name="email" placeholder="hr@company.com" required>
                         </div>
-                        <button type="submit" class="hra-submit-btn">
-                            <i class="fas fa-plus-circle"></i> Create HR Account
+                        
+                        <button type="submit" class="btn-create-modern">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="16"/>
+                                <line x1="8" y1="12" x2="16" y2="12"/>
+                            </svg>
+                            Create HR Account
                         </button>
                     </form>
-                    <div class="hra-form-note">
-                        <i class="fas fa-shield-alt"></i>
+
+                    <div class="form-note-modern">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
                         <span>A secure temporary password will be automatically generated and sent to the HR member's email.</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Temporary Password Banner -->
+            <!-- TEMPORARY PASSWORD BANNER -->
             {% if temp_password %}
-            <div class="hra-password-banner" id="tempPasswordBox" style="margin-top: 20px;">
-                <div class="hra-banner-icon"><i class="fas fa-key"></i></div>
-                <div class="hra-banner-content">
+            <div class="password-banner-modern" id="tempPasswordBox">
+                <div class="banner-icon-modern">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                    </svg>
+                </div>
+                <div class="banner-content-modern">
                     <h3>HR Account Created Successfully</h3>
                     <p>Share this temporary password with the new HR member. <strong>Save it now</strong> — it won't be shown again.</p>
-                    <div class="hra-password-display">
-                        <div class="hra-pw-field-wrap">
-                            <i class="fas fa-key hra-pw-icon"></i>
-                            <input type="text" id="tempPassword" value="{{ temp_password }}" readonly class="hra-pw-input">
+                    <div class="password-display-modern">
+                        <div class="password-field-wrap">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                            </svg>
+                            <input type="text" id="tempPassword" value="{{ temp_password }}" readonly>
                         </div>
-                        <button onclick="copyPassword()" class="hra-copy-btn">
-                            <i class="fas fa-copy"></i> Copy
+                        <button onclick="copyPassword()" class="btn-copy-modern">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            Copy
                         </button>
                     </div>
-                    <div class="hra-password-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
+                    <div class="password-warning-modern">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
                         <span>The HR member must change this password upon first login. <strong>Save this now!</strong></span>
                     </div>
                 </div>
-                <button class="hra-banner-close" onclick="closePasswordBox()"><i class="fas fa-times"></i></button>
+                <button class="banner-close-modern" onclick="closePasswordBox()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
             {% endif %}
         </div>
 
-        <!-- Right Column -->
-        <div class="hra-right-col">
-            <div class="hra-card hra-team-card">
-                <div class="hra-card-header">
-                    <i class="fas fa-users"></i>
-                    <h2>Your HR Team</h2>
-                    <div class="hra-card-actions">
-                        <div class="hra-search">
-                            <i class="fas fa-search"></i>
+        <!-- RIGHT COLUMN: HR TEAM LIST -->
+        <div class="hr-right-section">
+            <div class="job-list-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        Your HR Team
+                    </h2>
+                    
+                    <div class="section-controls">
+                        <div class="search-box-inline">
+                            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
                             <input type="text" id="hrSearch" placeholder="Search by name or email...">
                         </div>
-                        <div class="hra-filter-dropdown">
-                            <button class="hra-filter-btn" id="filterBtn">
-                                <i class="fas fa-sort"></i>
+
+                        <div class="date-filter">
+                            <button class="filter-btn-modern" id="filterBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                                </svg>
                             </button>
-                            <div class="hra-filter-menu" id="filterMenu">
-                                <div class="hra-filter-option" data-filter="all">
-                                    <i class="fas fa-users"></i> Show All
+                            <div class="filter-menu-modern" id="filterMenu">
+                                <div class="filter-option-modern" data-filter="all">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                    Show All
                                 </div>
-                                <div class="hra-filter-divider"></div>
-                                <div class="hra-filter-option" data-sort="name_asc">
-                                    <i class="fas fa-sort-alpha-down"></i> Name (A-Z)
+                                <div class="filter-divider-modern"></div>
+                                <div class="filter-option-modern" data-sort="name_asc">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="m3 8 4-4 4 4"/>
+                                        <path d="M7 4v16"/>
+                                        <path d="M15 4h5l-5 6h5"/>
+                                    </svg>
+                                    Name (A-Z)
                                 </div>
-                                <div class="hra-filter-option" data-sort="name_desc">
-                                    <i class="fas fa-sort-alpha-up"></i> Name (Z-A)
+                                <div class="filter-option-modern" data-sort="name_desc">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="m3 16 4 4 4-4"/>
+                                        <path d="M7 20V4"/>
+                                        <path d="M15 4h5l-5 6h5"/>
+                                    </svg>
+                                    Name (Z-A)
                                 </div>
-                                <div class="hra-filter-divider"></div>
-                                <div class="hra-filter-option" data-filter="active">
-                                    <i class="fas fa-check-circle"></i> Active
+                                <div class="filter-divider-modern"></div>
+                                <div class="filter-option-modern" data-filter="active">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                    Active
                                 </div>
-                                <div class="hra-filter-option" data-filter="pending">
-                                    <i class="fas fa-clock"></i> Pending
+                                <div class="filter-option-modern" data-filter="pending">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    Pending
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="hra-card-body">
-                    <div class="hra-filter-tabs">
-                        <button class="hra-filter-tab active" data-filter="all">All ({{ hrs|length }})</button>
-                        <button class="hra-filter-tab" data-filter="active">Active ({{ hrs|selectattr('must_change_password', 'equalto', false)|list|length }})</button>
-                        <button class="hra-filter-tab" data-filter="pending">Pending ({{ hrs|selectattr('must_change_password', 'equalto', true)|list|length }})</button>
-                    </div>
 
-                    <div class="hra-table-wrapper">
-                        <table class="hra-table" id="hrTable">
-                            <thead>
-                                <tr>
-                                    <th>HR Member</th>
-                                    <th>EMAIL</th>
-                                    <th>Status</th>
-                                    <th style="width: 15%;"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="hrTableBody">
-                                {% for hr in hrs %}
-                                <tr data-status="{% if hr.must_change_password %}pending{% else %}active{% endif %}"
-                                    data-id="{{ hr.id }}"
-                                    data-name="{{ hr.username|lower }}"
-                                    data-email="{{ hr.email|lower }}"
-                                    data-fullname="{{ hr.username }}">
-                                    <td>
-                                        <div class="hra-member-info">
-                                            <div class="hra-avatar">
-                                                {% if hr.profile_picture %}
-                                                    {% if hr.profile_picture.startswith('http') %}
-                                                        <img src="{{ hr.profile_picture }}" alt="{{ hr.username }}">
-                                                    {% else %}
-                                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr.profile_picture) }}" alt="{{ hr.username }}">
-                                                    {% endif %}
-                                                {% else %}
-                                                    <div class="hra-avatar-placeholder">
-                                                        <i class="fas fa-user"></i>
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                            <div>
-                                                <div class="hra-member-name">{{ hr.username }}</div>
-                                                <div class="hra-member-joined">Joined: {{ hr.created_at.strftime('%b %d, %Y') if hr.created_at else 'N/A' }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="hra-contact-info">
-                                            <div><i class="fas fa-envelope"></i> {{ hr.email }}</div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% if hr.must_change_password %}
-                                            <span class="hra-badge hra-badge-pending">
-                                                <i class="fas fa-clock"></i> Pending Activation
-                                            </span>
-                                        {% else %}
-                                            <span class="hra-badge hra-badge-active">
-                                                <i class="fas fa-check-circle"></i> Active
-                                            </span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="hra-action-buttons">
-                                            <button class="hra-action-btn view-hr" data-id="{{ hr.id }}" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="hra-action-btn delete-hr" data-id="{{ hr.id }}" data-name="{{ hr.username }}" title="Delete">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- PAGINATION -->
-                    <div class="hra-pagination-wrap" id="paginationWrap">
-                        <!-- LEFT SIDE (Delete All) -->
-                        <div class="hra-pagination-left">
-                            {% if hrs|length > 0 %}
-                            <button type="button" class="hra-submit-btn" id="deleteAllHrBtn">
-                                <i class="fas fa-trash"></i> Delete All
-                            </button>
-                            {% endif %}
-                        </div>
-                        <div class="hra-pagination-info" id="paginationInfo"></div>
-                        <div class="hra-pagination-controls">
-                            <button class="hra-page-btn" id="prevBtn">Previous</button>
-                            <div class="hra-page-numbers" id="pageNumbers"></div>
-                            <button class="hra-page-btn" id="nextBtn">Next</button>
-                        </div>
-                    </div>
-
-                    <!-- Empty state message -->
-                    <div class="hra-empty-results" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
-                        <i class="fas fa-user-slash" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
-                        <p>No HR members found matching your criteria.</p>
-                    </div>
+                <!-- STATUS FILTER TABS -->
+                <div class="status-filter-tabs">
+                    <button class="status-filter-btn active" data-filter="all">All ({{ hrs|length }})</button>
+                    <button class="status-filter-btn" data-filter="active">Active ({{ hrs|selectattr('must_change_password', 'equalto', false)|list|length }})</button>
+                    <button class="status-filter-btn" data-filter="pending">Pending ({{ hrs|selectattr('must_change_password', 'equalto', true)|list|length }})</button>
                 </div>
+
+                <!-- HR TEAM TABLE -->
+                <div class="jobs-table-wrapper">
+                    {% if not hrs %}
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                        </svg>
+                        <h3>No HR members yet</h3>
+                        <p>Create your first HR team member to get started.</p>
+                    </div>
+                    {% else %}
+                    <table class="jobs-table" id="hrTable">
+                        <thead>
+                            <tr>
+                                <th>HR Member</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hrTableBody">
+                            {% for hr in hrs %}
+                            <tr class="job-row" 
+                                data-status="{% if hr.must_change_password %}pending{% else %}active{% endif %}"
+                                data-id="{{ hr.id }}"
+                                data-name="{{ hr.username|lower }}"
+                                data-email="{{ hr.email|lower }}"
+                                data-fullname="{{ hr.username }}">
+                                <td>
+                                    <div class="job-title-wrapper">
+                                        <div class="company-logo">
+                                            {% if hr.profile_picture %}
+                                                {% if hr.profile_picture.startswith('http') %}
+                                                    <img src="{{ hr.profile_picture }}" alt="{{ hr.username }}">
+                                                {% else %}
+                                                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr.profile_picture) }}" alt="{{ hr.username }}">
+                                                {% endif %}
+                                            {% else %}
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                                    <circle cx="12" cy="7" r="4"/>
+                                                </svg>
+                                            {% endif %}
+                                        </div>
+                                        <div class="job-info">
+                                            <div class="job-name">{{ hr.username }}</div>
+                                            <div class="job-meta-small">Joined: {{ hr.created_at.strftime('%b %d, %Y') if hr.created_at else 'N/A' }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="company-name">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                        </svg>
+                                        {{ hr.email }}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if hr.must_change_password %}
+                                        <span class="status-badge status-pending-modern">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <polyline points="12 6 12 12 16 14"/>
+                                            </svg>
+                                            Pending
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge status-active">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                <polyline points="20 6 9 17 4 12"/>
+                                            </svg>
+                                            Active
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn view-hr" data-id="{{ hr.id }}" title="View Profile">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </button>
+                                        <button class="action-btn action-btn-danger delete-hr" data-id="{{ hr.id }}" data-name="{{ hr.username }}" title="Delete">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="3 6 5 6 21 6"/>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+                </div>
+
+                <!-- PAGINATION -->
+                {% if hrs|length > 6 %}
+                <div class="pagination" id="paginationWrap">
+                    <button class="pagination-btn" id="prevBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                    </button>
+                    <div class="pagination-numbers" id="pageNumbers"></div>
+                    <button class="pagination-btn" id="nextBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>
+                </div>
+                {% endif %}
+
+                <!-- DELETE ALL BUTTON -->
+                {% if hrs|length > 0 %}
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center;">
+                    <button type="button" class="btn-delete-all-modern" id="deleteAllHrBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Delete All HR Members
+                    </button>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
+
 </div>
 
-<!-- HR Details Modal -->
-<div id="hrDetailsModal" class="hra-modal">
-    <div class="hra-modal-content">
-        <div class="hra-modal-header">
-            <h3><i class="fas fa-user-circle"></i> HR Member Details</h3>
-            <button class="hra-modal-close">&times;</button>
-        </div>
-        <div class="hra-modal-body" id="hrDetailsContent"></div>
-    </div>
-</div>
-
-<!-- Confirmation Modal -->
+<!-- Confirmation Modal (keeping original modal structure) -->
 <div id="confirmModal" class="hra-modal">
     <div class="hra-modal-content hra-modal-sm">
         <div class="hra-modal-header">
             <h3 id="confirmTitle">Confirm Action</h3>
-            <button class="hra-modal-close" onclick="closeConfirmModal()">&times;</button>
+            <button class="hra-modal-close" onclick="closeConfirmModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
         </div>
         <div class="hra-modal-body">
             <p id="confirmMessage">Are you sure you want to perform this action?</p>
@@ -270,4 +420,5 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/recruiter/hr_accounts.js') }}"></script>
+
 {% endblock %}
