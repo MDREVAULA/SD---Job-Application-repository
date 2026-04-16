@@ -70,6 +70,15 @@
   <!-- Main Form -->
   <form method="POST" action="{{ url_for('recruiter.edit_job', job_id=job.id) }}" enctype="multipart/form-data" id="editJobForm">
 
+    <!--
+      FIXED: Hidden inputs carry AJAX-saved company content through the main form submit.
+      Without these, every "Save Changes" click would clear about_company, why_join_us,
+      and company_values back to NULL because they weren't present in the form data.
+    -->
+    <input type="hidden" name="about_company"  id="aboutCompanyFormField"  value="{{ job.about_company  or '' }}">
+    <input type="hidden" name="why_join_us"    id="whyJoinUsFormField"     value="{{ job.why_join_us    or '' }}">
+    <input type="hidden" name="company_values" id="companyValuesFormField" value="{{ job.company_values or '' }}">
+
     <div class="job-view-content">
 
       <!-- ========== TAB: JOB DETAILS ========== -->
@@ -110,9 +119,8 @@
                   Change
                 </button>
               </div>
-              <!-- Hidden file input for cover photo -->
               <input type="file" id="coverPhotoInput" name="cover_photo" accept="image/*"
-                     style="display:none" onchange="previewCoverPhoto(this)">
+                     style="display:none">
               <p class="field-hint" style="margin-top: 8px;">
                 Recommended: 1200×400px, JPG/PNG/WebP, max 5MB. This is the main header image shown on the job listing.
               </p>
@@ -121,7 +129,7 @@
             <!-- Job Title Section -->
             <div class="content-card">
               <div class="card-header">
-                <h3 class="card-title">Job Title & Description</h3>
+                <h3 class="card-title">Job Title &amp; Description</h3>
               </div>
 
               <div class="field">
@@ -213,11 +221,11 @@
               <h4 class="subsection-title">Work Arrangement</h4>
               <div class="tag-row" id="arrangementTags">
                 {% set current_arrangement = job.arrangement or '' %}
-                <div class="tag {% if 'On-site'       in current_arrangement %}sel{% endif %}" data-val="On-site">On-site</div>
-                <div class="tag {% if 'Remote'        in current_arrangement %}sel{% endif %}" data-val="Remote">Remote</div>
-                <div class="tag {% if 'Hybrid'        in current_arrangement %}sel{% endif %}" data-val="Hybrid">Hybrid</div>
+                <div class="tag {% if 'On-site'        in current_arrangement %}sel{% endif %}" data-val="On-site">On-site</div>
+                <div class="tag {% if 'Remote'         in current_arrangement %}sel{% endif %}" data-val="Remote">Remote</div>
+                <div class="tag {% if 'Hybrid'         in current_arrangement %}sel{% endif %}" data-val="Hybrid">Hybrid</div>
                 <div class="tag {% if 'Flexible hours' in current_arrangement %}sel{% endif %}" data-val="Flexible hours">Flexible hours</div>
-                <div class="tag {% if 'Night shift'   in current_arrangement %}sel{% endif %}" data-val="Night shift">Night shift</div>
+                <div class="tag {% if 'Night shift'    in current_arrangement %}sel{% endif %}" data-val="Night shift">Night shift</div>
               </div>
               <input type="hidden" name="arrangement" id="arrangementInput" value="{{ job.arrangement or '' }}">
             </div>
@@ -235,7 +243,7 @@
           <div class="content-main">
             <div class="content-card">
               <div class="card-header">
-                <h3 class="card-title">Experience & Education</h3>
+                <h3 class="card-title">Experience &amp; Education</h3>
               </div>
               <div class="field-grid">
                 <div class="field">
@@ -394,31 +402,19 @@
               </div>
               <div class="company-info-grid" id="overviewDisplay">
                 <div class="company-info-box">
-                  <div class="info-box-header">
-                    <div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
-                    <h4 class="info-box-title">Company</h4>
-                  </div>
+                  <div class="info-box-header"><div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><h4 class="info-box-title">Company</h4></div>
                   <p class="info-box-value">{{ current_user.recruiter_profile.company_name }}</p>
                 </div>
                 <div class="company-info-box">
-                  <div class="info-box-header">
-                    <div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-                    <h4 class="info-box-title">Industry</h4>
-                  </div>
+                  <div class="info-box-header"><div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><h4 class="info-box-title">Industry</h4></div>
                   <p class="info-box-value" id="overviewIndustry">{{ current_user.recruiter_profile.company_industry or job.field }}</p>
                 </div>
                 <div class="company-info-box">
-                  <div class="info-box-header">
-                    <div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-                    <h4 class="info-box-title">Company Size</h4>
-                  </div>
+                  <div class="info-box-header"><div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h4 class="info-box-title">Company Size</h4></div>
                   <p class="info-box-value" id="overviewSize">Growing Company</p>
                 </div>
                 <div class="company-info-box">
-                  <div class="info-box-header">
-                    <div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-                    <h4 class="info-box-title">Active Since</h4>
-                  </div>
+                  <div class="info-box-header"><div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4 class="info-box-title">Active Since</h4></div>
                   <p class="info-box-value">{{ current_user.created_at.strftime('%Y') if current_user.created_at else '2020' }}</p>
                 </div>
               </div>
@@ -515,7 +511,7 @@
               </div>
               <div id="valuesEditForm" style="display:none; margin-top:16px;">
                 <div id="valuesEditorList">
-            {% set values_data = job.company_values | from_json if job.company_values else default_values %}
+                  {% set values_data = job.company_values | from_json if job.company_values else default_values %}
                   {% for v in values_data %}
                   <div class="value-editor-row">
                     <input type="text" class="input-text value-title-input" placeholder="Value title" value="{{ v.title }}" style="margin-bottom:6px;">
@@ -585,7 +581,6 @@
               </div>
 
               {% if hr_list %}
-              <!-- Assign HR panel -->
               <div class="hr-assign-panel">
                 <h4 class="subsection-title" style="margin-bottom:12px;">Add Team Member</h4>
                 <div class="hr-assign-list" id="hrAssignList">
@@ -618,14 +613,10 @@
                             onclick="toggleTeamMember({{ job.id }}, {{ hr.id }}, this)"
                             data-assigned="{{ 'true' if hr.id in assigned_hr_ids else 'false' }}">
                       {% if hr.id in assigned_hr_ids %}
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <polyline points="20 6 9 17 4 12"/>
-                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                         Assigned
                       {% else %}
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Assign
                       {% endif %}
                     </button>
@@ -782,72 +773,9 @@
 <script src="{{ url_for('static', filename='js/recruiter/edit_job.js') }}"></script>
 
 <script>
-// ── Job ID available globally ──
 const JOB_ID = {{ job.id }};
 
-// ── Tab switching ──
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-  });
-});
-
-// ── Work arrangement tags ──
-document.querySelectorAll('#arrangementTags .tag').forEach(tag => {
-  tag.addEventListener('click', () => {
-    tag.classList.toggle('sel');
-    updateArrangementInput();
-  });
-});
-function updateArrangementInput() {
-  const selected = Array.from(document.querySelectorAll('#arrangementTags .tag.sel'))
-    .map(t => t.dataset.val);
-  document.getElementById('arrangementInput').value = selected.join(', ');
-}
-
-// ── Cover photo preview ──
-function previewCoverPhoto(input) {
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      document.getElementById('coverPhotoPreview').src = e.target.result;
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-// ── Allow Applications Toggle ──
-function handleAllowToggle(checkbox) {
-  const allowed = checkbox.checked;
-  fetch(`/recruiter/job-toggle-applications/${JOB_ID}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ allow: allowed })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      const badge  = document.getElementById('statusBadge');
-      const text   = document.getElementById('statusText');
-      badge.classList.toggle('btn-published', allowed);
-      badge.classList.toggle('btn-closed',    !allowed);
-      text.textContent = allowed ? 'Published' : 'Closed';
-      showToast(allowed ? 'Applications are now open.' : 'Applications are now closed.');
-    } else {
-      checkbox.checked = !allowed; // revert
-      showToast('Failed to update status.', true);
-    }
-  })
-  .catch(() => {
-    checkbox.checked = !allowed;
-    showToast('Network error.', true);
-  });
-}
-
-// ── Toast helper ──
+/* ── Toast helper ── */
 function showToast(msg, isError = false) {
   const toast = document.getElementById('saveToast');
   document.getElementById('saveToastMsg').textContent = msg;
@@ -857,7 +785,7 @@ function showToast(msg, isError = false) {
   toast._timer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
 }
 
-// ── Toggle edit mode for sections ──
+/* ── Toggle edit mode ── */
 const editSections = {
   overview: { display: 'overviewDisplay', form: 'overviewEditForm' },
   about:    { display: 'aboutDisplay',    form: 'aboutEditForm'    },
@@ -874,7 +802,8 @@ function toggleEditMode(section) {
   formEl.style.display    = isEditing ? 'none' : 'block';
 }
 
-// ── Save About Company ──
+/* ── Save About Company ──
+   Also updates the hidden form field so "Save Changes" keeps the value. */
 function saveAbout() {
   const content = document.getElementById('aboutTextarea').value;
   fetch(`/recruiter/update-job-company-content/${JOB_ID}`, {
@@ -887,6 +816,8 @@ function saveAbout() {
     if (data.success) {
       document.getElementById('aboutDisplay').innerHTML =
         content ? content.replace(/\n/g, '<br>') : '<p>(no content)</p>';
+      /* FIXED: keep hidden field in sync so main form submit preserves value */
+      document.getElementById('aboutCompanyFormField').value = content;
       toggleEditMode('about');
       showToast('About company saved!');
     } else showToast('Save failed.', true);
@@ -894,7 +825,7 @@ function saveAbout() {
   .catch(() => showToast('Network error.', true));
 }
 
-// ── Save Company Values ──
+/* ── Save Company Values ── */
 function addValueRow(title='', desc='') {
   const row = document.createElement('div');
   row.className = 'value-editor-row';
@@ -920,7 +851,6 @@ function saveValues() {
   .then(r => r.json())
   .then(data => {
     if (data.success) {
-      // Rebuild display
       const display = document.getElementById('valuesDisplay');
       display.innerHTML = items.map(v => `
         <div class="value-item">
@@ -935,6 +865,8 @@ function saveValues() {
           </div>
         </div>
       `).join('');
+      /* FIXED: keep hidden field in sync */
+      document.getElementById('companyValuesFormField').value = JSON.stringify(items);
       toggleEditMode('values');
       showToast('Company values saved!');
     } else showToast('Save failed.', true);
@@ -942,17 +874,17 @@ function saveValues() {
   .catch(() => showToast('Network error.', true));
 }
 
-// ── Save Overview ──
+/* ── Save Overview (local only, persists on next form submit) ── */
 function saveOverview() {
   const industry = document.getElementById('editIndustry').value.trim();
   const size     = document.getElementById('editCompanySize').value;
   document.getElementById('overviewIndustry').textContent = industry;
   document.getElementById('overviewSize').textContent     = size;
   toggleEditMode('overview');
-  showToast('Overview updated locally. Full save on form submit.');
+  showToast('Overview updated — will be saved with next Save Changes.');
 }
 
-// ── Save Why Join Us ──
+/* ── Save Why Join Us ── */
 function addBenefitRow(val='') {
   const row = document.createElement('div');
   row.className = 'benefit-editor-row';
@@ -983,6 +915,8 @@ function saveWhyJoin() {
           <span>${escHtml(b)}</span>
         </div>
       `).join('');
+      /* FIXED: keep hidden field in sync */
+      document.getElementById('whyJoinUsFormField').value = JSON.stringify(items);
       toggleEditMode('whyjoin');
       showToast('Benefits saved!');
     } else showToast('Save failed.', true);
@@ -990,13 +924,12 @@ function saveWhyJoin() {
   .catch(() => showToast('Network error.', true));
 }
 
-// ── HR Team Member Toggle ──
+/* ── HR Team Member Toggle ── */
 function toggleTeamMember(jobId, hrId, btn) {
   const isAssigned = btn.dataset.assigned === 'true';
-  const url  = isAssigned
+  const url = isAssigned
     ? `/recruiter/job-team/${jobId}/remove`
     : `/recruiter/job-team/${jobId}/add`;
-
   fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1021,11 +954,38 @@ function toggleTeamMember(jobId, hrId, btn) {
   .catch(() => showToast('Network error.', true));
 }
 
-// ── Delete Job ──
-document.getElementById('deleteJobBtn').addEventListener('click', function() {
+/* ── Allow Applications Toggle ── */
+function handleAllowToggle(checkbox) {
+  const allowed = checkbox.checked;
+  fetch(`/recruiter/job-toggle-applications/${JOB_ID}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ allow: allowed })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      const badge = document.getElementById('statusBadge');
+      const text  = document.getElementById('statusText');
+      badge.classList.toggle('btn-published', allowed);
+      badge.classList.toggle('btn-closed',    !allowed);
+      text.textContent = allowed ? 'Published' : 'Closed';
+      showToast(allowed ? 'Applications are now open.' : 'Applications are now closed.');
+    } else {
+      checkbox.checked = !allowed;
+      showToast('Failed to update status.', true);
+    }
+  })
+  .catch(() => {
+    checkbox.checked = !allowed;
+    showToast('Network error.', true);
+  });
+}
+
+/* ── Delete Job ── */
+document.getElementById('deleteJobBtn').addEventListener('click', function () {
   const appCount = parseInt(this.dataset.appCount) || 0;
   const modal    = document.getElementById('deleteJobModal');
-
   if (appCount > 0) {
     document.getElementById('deleteJobTitle').textContent = 'Delete Job with Active Applications';
     document.getElementById('deleteJobMessage').innerHTML =
@@ -1034,8 +994,7 @@ document.getElementById('deleteJobBtn').addEventListener('click', function() {
     document.getElementById('deleteJobTitle').textContent = 'Delete Job Posting';
     document.getElementById('deleteJobMessage').textContent = 'Are you sure you want to permanently delete this job posting?';
   }
-
-  document.getElementById('confirmDeleteJobBtn').onclick = function() {
+  document.getElementById('confirmDeleteJobBtn').onclick = function () {
     fetch(`/recruiter/force-delete-job/${JOB_ID}`, { method: 'POST' })
       .then(r => r.json())
       .then(data => {
@@ -1048,7 +1007,6 @@ document.getElementById('deleteJobBtn').addEventListener('click', function() {
       })
       .catch(() => showToast('Network error.', true));
   };
-
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 });
@@ -1058,7 +1016,7 @@ function closeDeleteJobModal() {
   document.body.style.overflow = '';
 }
 
-// Helper to escape HTML in JS-generated content
+/* ── HTML escape helper ── */
 function escHtml(str) {
   const d = document.createElement('div');
   d.textContent = str;

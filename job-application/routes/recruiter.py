@@ -445,7 +445,7 @@ def delete_education(edu_id):
 
 
 # ===============================
-# POST JOB
+# POST JOB  
 # ===============================
 @recruiter_bp.route('/post-job', methods=['POST'])
 @login_required
@@ -480,10 +480,28 @@ def post_job():
     languages          = request.form.get('languages')
     requirements_notes = request.form.get('requirements_notes')
 
-    # NEW fields
+    # Quota / toggle
     max_applications_str = request.form.get('max_applications', '').strip()
     max_applications = int(max_applications_str) if max_applications_str.isdigit() else None
     allow_applications = request.form.get('allow_applications') == 'on'
+
+    # Company content
+    about_company_raw = request.form.get('about_company', '').strip()
+    about_company = about_company_raw or None
+
+    # why_join_us arrives as a JSON string from the hidden input (built by job_posting.js)
+    why_join_us_raw = request.form.get('why_join_us', '').strip()
+    if why_join_us_raw:
+        try:
+            # Validate it's proper JSON; store as-is
+            json.loads(why_join_us_raw)
+            why_join_us = why_join_us_raw
+        except (ValueError, TypeError):
+            # Fall back: treat as plain text, wrap in JSON array
+            lines = [l.strip() for l in why_join_us_raw.split('\n') if l.strip()]
+            why_join_us = json.dumps(lines) if lines else None
+    else:
+        why_join_us = None
 
     expiration = None
     if expiration_date:
@@ -509,13 +527,25 @@ def post_job():
         requirements_notes=requirements_notes,
         max_applications=max_applications,
         allow_applications=allow_applications,
+        about_company=about_company,
+        why_join_us=why_join_us,
     )
 
     db.session.add(job)
-    db.session.commit()
+    db.session.flush()  # get job.id before saving files
 
+    # ── Cover photo (FIXED: was never saved before) ──────────────
+    cover_file = request.files.get('cover_photo')
+    if cover_file and cover_file.filename != '' and allowed_image(cover_file.filename):
+        upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_covers")
+        os.makedirs(upload_folder, exist_ok=True)
+        filename = secure_filename(cover_file.filename)
+        unique_name = f"cover_{job.id}_{uuid.uuid4().hex[:8]}_{filename}"
+        cover_file.save(os.path.join(upload_folder, unique_name))
+        job.cover_photo = unique_name
+
+    # ── Gallery images ────────────────────────────────────────────
     poster_files = request.files.getlist("posters")
-
     upload_folder = os.path.join(current_app.root_path, "static", "uploads", "job_posters")
     os.makedirs(upload_folder, exist_ok=True)
 
