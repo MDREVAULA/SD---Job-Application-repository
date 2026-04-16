@@ -1,40 +1,224 @@
 {% extends "layout.html" %}
 
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/dashboard.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-container">
-    <h1>My Dashboard</h1>
 
-    {% if not profile_complete %}
-    <div class="alert alert-warning">
-        Your profile is incomplete. <a href="{{ url_for('applicant.profile') }}">Complete it here</a> to unlock all features.
+<div class="dashboard-wrapper">
+    <!-- Stats Section -->
+    <div class="stats-section">
+        <div class="stat-card stat-card--green">
+            <div class="stat-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">43</div>
+                <div class="stat-label">Application Sent</div>
+            </div>
+            <div class="stat-bar stat-bar--green"></div>
+        </div>
+
+        <div class="stat-card stat-card--blue">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">27</div>
+                <div class="stat-label">Interviews Schedule</div>
+            </div>
+            <div class="stat-bar stat-bar--blue"></div>
+        </div>
+
+        <div class="stat-card stat-card--orange">
+            <div class="stat-icon">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">52k</div>
+                <div class="stat-label">Profile Viewed</div>
+            </div>
+            <div class="stat-bar stat-bar--orange"></div>
+        </div>
     </div>
-    {% endif %}
 
-    <h2>My Applications</h2>
+    <!-- Main Content Grid -->
+    <div class="main-grid">
+        <!-- Left Column - Vacancy Stats -->
+        <div class="left-column">
+            <div class="vacancy-stats-card">
+                <div class="card-header">
+                    <h3>Vacancy Stats</h3>
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <button class="filter-btn active" data-index="0">
+                                <span class="filter-dot filter-dot--green"></span> Application Sent
+                            </button>
+                            <button class="filter-btn" data-index="1">
+                                <span class="filter-dot filter-dot--blue"></span> Interviews
+                            </button>
+                            <button class="filter-btn" data-index="2">
+                                <span class="filter-dot filter-dot--red"></span> Rejected
+                            </button>
+                        </div>
+                        <select class="month-select">
+                            <option>This Month</option>
+                            <option>Last Month</option>
+                            <option>Last 3 Months</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="vacancyChart"></canvas>
+                </div>
+            </div>
 
-    {% if applications %}
-    <table>
-        <thead>
-            <tr>
-                <th>Job Title</th>
-                <th>Company</th>
-                <th>Status</th>
-                <th>Applied On</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for app in applications %}
-            <tr>
-                <td>{{ app.job.title }}</td>
-                <td>{{ app.job.company_name }}</td>
-                <td>{{ app.status | capitalize }}</td>
-                <td>{{ app.created_at.strftime('%b %d, %Y') }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>You haven't applied to any jobs yet. <a href="{{ url_for('auth.index') }}">Browse jobs</a></p>
-    {% endif %}
+            <!-- Recommended Jobs Section -->
+            <div class="jobs-section">
+                <div class="jobs-header">
+                    <h3>Recomended Jobs</h3>
+                    <button class="view-more-btn">View More</button>
+                </div>
+
+                <div class="job-cards">
+                    <div class="job-card">
+                        <div class="job-icon job-icon--yellow">
+                            <span>A</span>
+                        </div>
+                        <div class="job-info">
+                            <h4>Freelance UI Designer</h4>
+                            <p class="company-name">Naonatu Team</p>
+                            <div class="job-details">
+                                <span class="job-salary">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    $21,000 - $25,000
+                                </span>
+                                <span class="job-period">/monthly</span>
+                            </div>
+                            <div class="job-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Manchester, England</span>
+                                <a href="#" class="view-maps">View Maps</a>
+                            </div>
+                        </div>
+                        <button class="follow-btn">+Follow</button>
+                    </div>
+
+                    <div class="job-card">
+                        <div class="job-icon job-icon--red">
+                            <span>O</span>
+                        </div>
+                        <div class="job-info">
+                            <h4>Senior UX Designer</h4>
+                            <p class="company-name">Inacyx Studios</p>
+                            <div class="job-details">
+                                <span class="job-salary">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    $21,000 - $25,000
+                                </span>
+                                <span class="job-period">/monthly</span>
+                            </div>
+                            <div class="job-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Manchester, England</span>
+                                <a href="#" class="view-maps">View Maps</a>
+                            </div>
+                        </div>
+                        <button class="follow-btn">+Follow</button>
+                    </div>
+
+                    <div class="job-card">
+                        <div class="job-icon job-icon--blue">
+                            <span>U</span>
+                        </div>
+                        <div class="job-info">
+                            <h4>Intern UX Designer</h4>
+                            <p class="company-name">Maximoz Team</p>
+                            <div class="job-details">
+                                <span class="job-salary">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    $14,000 - $25,000
+                                </span>
+                                <span class="job-period">/monthly</span>
+                            </div>
+                            <div class="job-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>London, England</span>
+                                <a href="#" class="view-maps">View Maps</a>
+                            </div>
+                        </div>
+                        <button class="follow-btn">+Follow</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Profile & Activities -->
+        <div class="right-column">
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <div class="avatar-ring">
+                        <img src="https://i.pravatar.cc/150?img=12" alt="Profile">
+                    </div>
+                </div>
+                <h3 class="profile-name">David Heree</h3>
+                <p class="profile-role">UX Designer</p>
+                
+                <div class="skills-section">
+                    <div class="skill-item">
+                        <div class="skill-circle skill-circle--orange">
+                            <span class="skill-percentage">88%</span>
+                        </div>
+                        <span class="skill-name">Research</span>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-circle skill-circle--green">
+                            <span class="skill-percentage">31%</span>
+                        </div>
+                        <span class="skill-name">Figma</span>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-circle skill-circle--blue">
+                            <span class="skill-percentage">7%</span>
+                        </div>
+                        <span class="skill-name">Photoshop</span>
+                    </div>
+                </div>
+
+                <div class="activities-section">
+                    <h4>Recent Activities</h4>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-puzzle-piece"></i>
+                            </div>
+                            <div class="activity-details">
+                                <p>Your application has accepted in <strong>3 Vacancy</strong></p>
+                                <span class="activity-time">12h ago</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-puzzle-piece"></i>
+                            </div>
+                            <div class="activity-details">
+                                <p>Your application has accepted in <strong>3 Vacancy</strong></p>
+                                <span class="activity-time">12h ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Dashboard Script -->
+<script src="{{ url_for('static', filename='js/applicant/dashboard.js') }}"></script>
+
 {% endblock %}

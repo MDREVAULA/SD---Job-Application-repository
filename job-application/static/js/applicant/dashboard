@@ -1,0 +1,237 @@
+/* ===============================================
+   ADMIN DASHBOARD - JAVASCRIPT
+   Copy this to: static/js/admin-dashboard.js
+   =============================================== */
+
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initVacancyChart();
+    initFilterButtons();
+    initFollowButtons();
+    initViewMapsLinks();
+    initMonthSelector();
+});
+
+/* ===============================================
+   VACANCY STATS CHART
+   =============================================== */
+
+function initVacancyChart() {
+    const ctx = document.getElementById('vacancyChart');
+    if (!ctx) return;
+
+    // Chart data
+    const data = {
+        labels: ['', '', '', '', '', '', '', '', '', ''],
+        datasets: [
+            {
+                label: 'Application Sent',
+                data: [30, 35, 32, 38, 42, 45, 41, 38, 35, 32],
+                borderColor: '#4caf50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: '#4caf50',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
+            },
+            {
+                label: 'Interviews',
+                data: [20, 25, 30, 35, 40, 45, 50, 55, 60, 58],
+                borderColor: '#2196f3',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: '#2196f3',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2,
+                hidden: true
+            },
+            {
+                label: 'Rejected',
+                data: [10, 12, 15, 13, 14, 16, 15, 14, 12, 10],
+                borderColor: '#f44336',
+                backgroundColor: 'rgba(244, 67, 54, 0.05)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: false,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: '#f44336',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2,
+                hidden: true
+            }
+        ]
+    };
+
+    // Chart configuration
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: '#fff',
+                    titleColor: '#2d3748',
+                    bodyColor: '#718096',
+                    borderColor: '#e2e8f0',
+                    borderWidth: 1,
+                    padding: 12,
+                    boxPadding: 6,
+                    usePointStyle: true,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        display: false
+                    }
+                },
+                y: {
+                    display: true,
+                    beginAtZero: true,
+                    grid: {
+                        color: '#f0f4f8',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        stepSize: 20,
+                        color: '#a0aec0',
+                        font: {
+                            size: 11
+                        },
+                        padding: 8
+                    }
+                }
+            }
+        }
+    };
+
+    // Create the chart
+    window.vacancyChart = new Chart(ctx, config);
+}
+
+/* ===============================================
+   FILTER BUTTONS FUNCTIONALITY
+   =============================================== */
+
+function initFilterButtons() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    
+    filterButtons.forEach((button) => {
+        button.addEventListener('click', function() {
+            const datasetIndex = parseInt(this.getAttribute('data-index'));
+            
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Update chart visibility
+            if (window.vacancyChart) {
+                window.vacancyChart.data.datasets.forEach((dataset, i) => {
+                    dataset.hidden = (i !== datasetIndex);
+                });
+                window.vacancyChart.update();
+            }
+        });
+    });
+}
+
+/* ===============================================
+   MONTH SELECT CHANGE HANDLER
+   =============================================== */
+
+function initMonthSelector() {
+    const monthSelect = document.querySelector('.month-select');
+    if (monthSelect) {
+        monthSelect.addEventListener('change', function() {
+            console.log('Selected period:', this.value);
+            
+            // Update chart with new data based on selection
+            if (window.vacancyChart) {
+                // Generate random data for demonstration
+                window.vacancyChart.data.datasets.forEach(dataset => {
+                    dataset.data = dataset.data.map(() => Math.floor(Math.random() * 60) + 10);
+                });
+                window.vacancyChart.update();
+            }
+        });
+    }
+}
+
+/* ===============================================
+   FOLLOW BUTTON HANDLERS
+   =============================================== */
+
+function initFollowButtons() {
+    const followButtons = document.querySelectorAll('.follow-btn');
+    followButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (this.textContent.includes('Follow')) {
+                this.textContent = '✓ Following';
+                this.style.background = '#e2e8f0';
+                this.style.color = '#4caf50';
+            } else {
+                this.textContent = '+Follow';
+                this.style.background = '#4caf50';
+                this.style.color = 'white';
+            }
+        });
+    });
+}
+
+/* ===============================================
+   VIEW MAPS LINKS
+   =============================================== */
+
+function initViewMapsLinks() {
+    const viewMapsLinks = document.querySelectorAll('.view-maps');
+    viewMapsLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const location = this.previousElementSibling.textContent;
+            alert(`Opening map for: ${location}`);
+            // You can integrate with Google Maps or other mapping services here
+        });
+    });
+}
+
+/* ===============================================
+   VIEW MORE BUTTON
+   =============================================== */
+
+const viewMoreBtn = document.querySelector('.view-more-btn');
+if (viewMoreBtn) {
+    viewMoreBtn.addEventListener('click', function() {
+        alert('View More Jobs clicked! You can implement navigation here.');
+    });
+}
