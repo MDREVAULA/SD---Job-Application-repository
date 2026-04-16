@@ -747,99 +747,136 @@
             </div>
           </div>
 
-{# ── About Company card ────────────────────────────────────────── #}
-<div class="content-card">
-  <h3 class="card-title-main">About {{ job_owner.recruiter_profile.company_name }}</h3>
-  <div class="company-about-text">
+          <!-- About Company Card -->
+          <div class="content-card">
+            <h3 class="card-title-main">About {{ job_owner.recruiter_profile.company_name }}</h3>
+            <div class="company-about-text">
+          
+              {# Use job-specific about_company if set, else fall back to recruiter profile description #}
+              {% if job.about_company %}
+                <p>{{ job.about_company }}</p>
+              {% elif job_owner.recruiter_profile.company_description %}
+                <p>{{ job_owner.recruiter_profile.company_description }}</p>
+              {% else %}
+                <p>
+                  {{ job_owner.recruiter_profile.company_name }} is committed to creating
+                  innovative solutions and fostering a culture of excellence. We believe in
+                  empowering our team members to achieve their full potential while delivering
+                  exceptional value to our clients and partners.
+                </p>
+              {% endif %}
+          
+              {# ── Company Values ─────────────────────────────────────────── #}
+              {% set default_values = [
+                {"title": "Innovation First",      "description": "We embrace new ideas and cutting-edge technologies to stay ahead."},
+                {"title": "Team Collaboration",    "description": "We work together to achieve remarkable results and support each other."},
+                {"title": "Growth Mindset",        "description": "Continuous learning and development are at the core of what we do."}
+              ] %}
+              {% if job.company_values %}
+                {% set values_list = job.company_values | from_json %}
+              {% else %}
+                {% set values_list = default_values %}
+              {% endif %}
+          
+              <div class="company-values">
+                {% for v in values_list %}
+                <div class="value-item">
+                  <div class="value-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <div class="value-content">
+                    <h5 class="value-title">{{ v.title }}</h5>
+                    <p class="value-description">{{ v.description }}</p>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+          
+            </div>
+          </div>
  
-    {# Use job-specific about_company if set, else fall back to recruiter profile description #}
-    {% if job.about_company %}
-      <p>{{ job.about_company }}</p>
-    {% elif job_owner.recruiter_profile.company_description %}
-      <p>{{ job_owner.recruiter_profile.company_description }}</p>
-    {% else %}
-      <p>
-        {{ job_owner.recruiter_profile.company_name }} is committed to creating
-        innovative solutions and fostering a culture of excellence. We believe in
-        empowering our team members to achieve their full potential while delivering
-        exceptional value to our clients and partners.
-      </p>
-    {% endif %}
- 
-    {# ── Company Values ─────────────────────────────────────────── #}
-    {% set default_values = [
-      {"title": "Innovation First",      "description": "We embrace new ideas and cutting-edge technologies to stay ahead."},
-      {"title": "Team Collaboration",    "description": "We work together to achieve remarkable results and support each other."},
-      {"title": "Growth Mindset",        "description": "Continuous learning and development are at the core of what we do."}
-    ] %}
-    {% if job.company_values %}
-      {% set values_list = job.company_values | from_json %}
-    {% else %}
-      {% set values_list = default_values %}
-    {% endif %}
- 
-    <div class="company-values">
-      {% for v in values_list %}
-      <div class="value-item">
-        <div class="value-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
-        <div class="value-content">
-          <h5 class="value-title">{{ v.title }}</h5>
-          <p class="value-description">{{ v.description }}</p>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
- 
-  </div>
-</div>
- 
- 
-{# ── Why Join Us card ──────────────────────────────────────────── #}
-<div class="content-card highlight-card">
-  <div class="highlight-header">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" stroke-width="2">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02
-        12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-    </svg>
-    <h3>Why Join {{ job_owner.recruiter_profile.company_name }}?</h3>
-  </div>
- 
-  {% set default_benefits = [
-    "Competitive compensation and benefits package",
-    "Professional development and learning opportunities",
-    "Collaborative and inclusive work environment",
-    "Work-life balance and flexible arrangements"
-  ] %}
-  {% if job.why_join_us %}
-    {% set benefits_list = job.why_join_us | fromjson %}
-  {% else %}
-    {% set benefits_list = default_benefits %}
-  {% endif %}
- 
-  <div class="highlight-benefits">
-    {% for benefit in benefits_list %}
-    <div class="benefit-item">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-        <polyline points="22 4 12 14.01 9 11.01"/>
-      </svg>
-      <span>{{ benefit }}</span>
-    </div>
-    {% endfor %}
-  </div>
-</div>
 
+          <!-- Hiring Manager Card -->
+          <div class="content-card">
+            <h3 class="card-title-main">Meet the Hiring Manager</h3>
+            
+            <div class="hiring-manager-profile">
+              <div class="manager-avatar-section">
+                <div class="manager-avatar-large">
+                  {% if job_owner.profile_picture %}
+                    {% if job_owner.profile_picture.startswith('http') %}
+                    <img src="{{ job_owner.profile_picture }}" alt="Hiring Manager">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + job_owner.profile_picture) }}" alt="Hiring Manager">
+                    {% endif %}
+                  {% else %}
+                  <div class="manager-avatar-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
 
+              <div class="manager-info-section">
+                <h4 class="manager-name">{{ job_owner.recruiter_profile.first_name }} {{ job_owner.recruiter_profile.surname }}</h4>
+                <p class="manager-role">Recruiter • {{ job_owner.recruiter_profile.company_name }}</p>
+                <p class="manager-bio">Passionate about connecting talented individuals with exciting career opportunities. I'm here to help you find your next great role!</p>
+                
+                <div class="manager-actions">
+                  <a href="{{ url_for('profile_view.view_profile', user_id=job_owner.id) }}" class="btn-manager-profile">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    View Full Profile
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
 
+          <!-- Why Join Us Card -->
+          <div class="content-card highlight-card">
+            <div class="highlight-header">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02
+                  12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              <h3>Why Join {{ job_owner.recruiter_profile.company_name }}?</h3>
+            </div>
+          
+            {% set default_benefits = [
+              "Competitive compensation and benefits package",
+              "Professional development and learning opportunities",
+              "Collaborative and inclusive work environment",
+              "Work-life balance and flexible arrangements"
+            ] %}
+            {% if job.why_join_us %}
+              {% set benefits_list = job.why_join_us | fromjson %}
+            {% else %}
+              {% set benefits_list = default_benefits %}
+            {% endif %}
+          
+            <div class="highlight-benefits">
+              {% for benefit in benefits_list %}
+              <div class="benefit-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <span>{{ benefit }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
         </div>
+ 
 
         <!-- Right Sidebar -->
         <div class="content-sidebar">
