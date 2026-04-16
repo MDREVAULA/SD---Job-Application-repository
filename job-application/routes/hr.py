@@ -388,11 +388,31 @@ def update_application_status(app_id):
 
     application = Application.query.get_or_404(app_id)
 
-    new_status = request.form.get('status')
-    new_feedback = request.form.get('hr_feedback')
+    new_status        = request.form.get('status')
+    new_feedback      = request.form.get('hr_feedback')
+    interview_date_str = request.form.get('interview_date')
+    interview_session  = request.form.get('interview_session')
+    meeting_type_val   = request.form.get('meeting_type')
+    meeting_link_val   = request.form.get('meeting_link')
 
     if new_status:
         application.status = new_status
+
+    if new_status == 'interview':
+        if interview_date_str:
+            application.interview_date = datetime.strptime(interview_date_str, "%Y-%m-%dT%H:%M")
+
+        if interview_session == 'online':
+            application.meeting_type = meeting_type_val or None
+            application.meeting_link = meeting_link_val or None
+        elif interview_session == 'face-to-face':
+            application.meeting_type = 'face-to-face'
+            application.meeting_link = None
+        # if interview_session is None, leave existing values untouched
+    elif new_status in ('accepted', 'rejected', 'pending'):
+        application.interview_date = None
+        application.meeting_type   = None
+        application.meeting_link   = None
 
     if new_feedback is not None and new_feedback.strip() != '':
         existing = HRFeedback.query.filter_by(
@@ -401,7 +421,7 @@ def update_application_status(app_id):
         ).first()
 
         if existing:
-            existing.feedback = new_feedback
+            existing.feedback   = new_feedback
             existing.updated_at = datetime.utcnow()
         else:
             new_fb = HRFeedback(
@@ -413,24 +433,26 @@ def update_application_status(app_id):
 
     db.session.commit()
 
-    # --- HR NOTIFICATION: status update (HR's own log) ---
     if new_status:
         applicant_user = User.query.get(application.applicant_id)
-        job_for_notif = Job.query.get(application.job_id)
+        job_for_notif  = Job.query.get(application.job_id)
+
         hr_notif = HRNotification(
             hr_id=current_user.id,
             type='new_application',
-            message=f"Application status for <strong>{applicant_user.username}</strong> on <strong>{job_for_notif.title}</strong> updated to <strong>{new_status.capitalize()}</strong>.",
+            message=f"Application status for <strong>{applicant_user.username}</strong> on "
+                    f"<strong>{job_for_notif.title}</strong> updated to "
+                    f"<strong>{new_status.capitalize()}</strong>.",
             application_id=application.id,
             job_id=application.job_id
         )
         db.session.add(hr_notif)
 
-        # --- APPLICANT NOTIFICATION: their status changed ---
         app_notif = ApplicantNotification(
             applicant_id=application.applicant_id,
             type='application_status',
-            message=f"Your application for <strong>{job_for_notif.title}</strong> has been updated to <strong>{new_status.capitalize()}</strong>.",
+            message=f"Your application for <strong>{job_for_notif.title}</strong> has been "
+                    f"updated to <strong>{new_status.capitalize()}</strong>.",
             application_id=application.id,
             job_id=application.job_id
         )
@@ -438,10 +460,7 @@ def update_application_status(app_id):
         db.session.commit()
 
     flash("Application updated successfully!", "success")
-    return redirect(
-        url_for('hr.job_applications', job_id=application.job_id)
-    )
-
+    return redirect(url_for('hr.job_applications', job_id=application.job_id))
 
 # ===============================
 # HR SCHEDULE INTERVIEW

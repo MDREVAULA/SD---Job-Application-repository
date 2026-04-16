@@ -1,151 +1,156 @@
-// ===================================
-// JOB LIST CONTROLS - Search, Sort, Filter, View Toggle
-// ===================================
+// ================================
+// RECRUITER JOB LIST - JavaScript
+// Filter, Search, and Sort functionality
+// ================================
 
-document.addEventListener('DOMContentLoaded', function () {
+// ===== GLOBAL STATE =====
+let allJobRows = [];
+let currentSort = 'newest';
 
-    const searchInput   = document.getElementById('jobSearchInput');
-    const sortSelect    = document.getElementById('sortSelect');
-    const viewButtons   = document.querySelectorAll('.jl-view-btn');
-    const jobsContainer = document.getElementById('jobsContainer');
-    const jobCards      = document.querySelectorAll('.jl-card');
-
-    // ===================================
-    // SEARCH
-    // ===================================
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase().trim();
-
-            jobCards.forEach(card => {
-                const title    = (card.getAttribute('data-title')    || '').toLowerCase();
-                const field    = (card.getAttribute('data-field')    || '').toLowerCase();
-                const location = (card.getAttribute('data-location') || '').toLowerCase();
-
-                const matches = title.includes(searchTerm) ||
-                                field.includes(searchTerm) ||
-                                location.includes(searchTerm);
-
-                card.style.display = matches ? '' : 'none';
-            });
-
-            checkEmptyState();
-        });
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', function() {
+    const tbody = document.getElementById('jobTableBody');
+    if (tbody) {
+        allJobRows = Array.from(tbody.querySelectorAll('.job-row'));
     }
+    
+    // Set initial sort
+    applySort();
+});
 
-    // ===================================
-    // SORT
-    // ===================================
-    if (sortSelect) {
-        sortSelect.addEventListener('change', function () {
-            const sortValue  = this.value;
-            const cardsArray = Array.from(jobCards);
-
-            cardsArray.sort((a, b) => {
-                switch (sortValue) {
-                    case 'a-z':
-                        return a.getAttribute('data-title').localeCompare(b.getAttribute('data-title'));
-                    case 'z-a':
-                        return b.getAttribute('data-title').localeCompare(a.getAttribute('data-title'));
-                    case 'newest': {
-                        const dA = new Date(a.getAttribute('data-date') || 0);
-                        const dB = new Date(b.getAttribute('data-date') || 0);
-                        return dB - dA;
-                    }
-                    case 'oldest': {
-                        const dA = new Date(a.getAttribute('data-date') || 0);
-                        const dB = new Date(b.getAttribute('data-date') || 0);
-                        return dA - dB;
-                    }
-                    case 'deadline-near': {
-                        const dA = new Date(a.getAttribute('data-deadline') || '9999-12-31');
-                        const dB = new Date(b.getAttribute('data-deadline') || '9999-12-31');
-                        return dA - dB;
-                    }
-                    case 'deadline-far': {
-                        const dA = new Date(a.getAttribute('data-deadline') || '1900-01-01');
-                        const dB = new Date(b.getAttribute('data-deadline') || '1900-01-01');
-                        return dB - dA;
-                    }
-                    case 'most-applicants': {
-                        const cA = parseInt(a.getAttribute('data-applicants') || 0);
-                        const cB = parseInt(b.getAttribute('data-applicants') || 0);
-                        return cB - cA;
-                    }
-                    case 'least-applicants': {
-                        const cA = parseInt(a.getAttribute('data-applicants') || 0);
-                        const cB = parseInt(b.getAttribute('data-applicants') || 0);
-                        return cA - cB;
-                    }
-                    default:
-                        return 0;
-                }
-            });
-
-            cardsArray.forEach(card => jobsContainer.appendChild(card));
-        });
-    }
-
-    // ===================================
-    // VIEW TOGGLE (Grid / List)
-    // ===================================
-    viewButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const viewType = this.getAttribute('data-view');
-
-            viewButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-
-            if (jobsContainer) {
-                jobsContainer.classList.remove('grid-view', 'list-view');
-                jobsContainer.classList.add(viewType + '-view');
-            }
-        });
+// ===== SEARCH FUNCTION =====
+function applySearch() {
+    const searchInput = document.getElementById('jobSearchInput');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    allJobRows.forEach(row => {
+        const title = row.dataset.title || '';
+        const field = row.dataset.field || '';
+        const location = row.dataset.location || '';
+        
+        const matchesSearch = !searchTerm || 
+            title.includes(searchTerm) || 
+            field.includes(searchTerm) || 
+            location.includes(searchTerm);
+        
+        if (matchesSearch) {
+            row.classList.remove('hidden');
+        } else {
+            row.classList.add('hidden');
+        }
     });
+    
+    // Update row numbers
+    updateRowNumbers();
+}
 
-    // ===================================
-    // EMPTY STATE
-    // ===================================
-    function checkEmptyState() {
-        const visibleCards = Array.from(jobCards).filter(c => c.style.display !== 'none');
+// ===== SORT FUNCTION =====
+function applySort() {
+    const sortSelect = document.getElementById('sortSelect');
+    if (!sortSelect) return;
+    
+    currentSort = sortSelect.value;
+    
+    // Sort the rows
+    allJobRows.sort((a, b) => {
+        switch(currentSort) {
+            case 'newest':
+                // Sort by date descending (newest first)
+                return b.dataset.date.localeCompare(a.dataset.date);
+            
+            case 'oldest':
+                // Sort by date ascending (oldest first)
+                return a.dataset.date.localeCompare(b.dataset.date);
+            
+            case 'a-z':
+                // Sort by title A-Z
+                return a.dataset.title.localeCompare(b.dataset.title);
+            
+            case 'z-a':
+                // Sort by title Z-A
+                return b.dataset.title.localeCompare(a.dataset.title);
+            
+            case 'deadline-near':
+                // Sort by deadline ascending (nearest first)
+                return a.dataset.deadline.localeCompare(b.dataset.deadline);
+            
+            case 'deadline-far':
+                // Sort by deadline descending (farthest first)
+                return b.dataset.deadline.localeCompare(a.dataset.deadline);
+            
+            case 'most-applicants':
+                // Sort by applicants descending (most first)
+                const aApplicants = parseInt(a.dataset.applicants) || 0;
+                const bApplicants = parseInt(b.dataset.applicants) || 0;
+                return bApplicants - aApplicants;
+            
+            case 'least-applicants':
+                // Sort by applicants ascending (least first)
+                const aApplicantsLeast = parseInt(a.dataset.applicants) || 0;
+                const bApplicantsLeast = parseInt(b.dataset.applicants) || 0;
+                return aApplicantsLeast - bApplicantsLeast;
+            
+            default:
+                return 0;
+        }
+    });
+    
+    // Re-append sorted rows to table body
+    const tbody = document.getElementById('jobTableBody');
+    if (tbody) {
+        allJobRows.forEach(row => {
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Update row numbers
+    updateRowNumbers();
+}
 
-        const existing = jobsContainer.querySelector('.jl-empty.search-empty');
-        if (existing) existing.remove();
+// ===== UPDATE ROW NUMBERS =====
+function updateRowNumbers() {
+    let visibleIndex = 1;
+    allJobRows.forEach(row => {
+        const rowNumber = row.querySelector('.row-number');
+        if (rowNumber) {
+            if (row.classList.contains('hidden')) {
+                // Keep the original number but hide it visually
+                rowNumber.style.opacity = '0';
+            } else {
+                rowNumber.textContent = visibleIndex;
+                rowNumber.style.opacity = '1';
+                visibleIndex++;
+            }
+        }
+    });
+}
 
-        if (visibleCards.length === 0 && jobCards.length > 0) {
-            const el = document.createElement('div');
-            el.className = 'jl-empty search-empty';
-            el.innerHTML = `
-                <i class="fas fa-search"></i>
-                <h3>No jobs found</h3>
-                <p>Try adjusting your search or filters</p>
-            `;
-            jobsContainer.appendChild(el);
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown', function(e) {
+    // Focus search on Ctrl+F or Cmd+F (prevent default browser search)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.getElementById('jobSearchInput');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
         }
     }
 });
 
-// ===================================
-// KEBAB MENU
-// ===================================
-function toggleKebab(btn) {
-    const menu   = btn.nextElementSibling;
-    const isOpen = menu.classList.contains('open');
-
-    // Close all open menus first
-    document.querySelectorAll('.jl-kebab-menu.open').forEach(m => m.classList.remove('open'));
-    document.querySelectorAll('.jl-kebab-btn.active').forEach(b => b.classList.remove('active'));
-
-    if (!isOpen) {
-        menu.classList.add('open');
-        btn.classList.add('active');
-    }
-}
-
-// Close kebab when clicking outside
-document.addEventListener('click', function (e) {
-    if (!e.target.closest('.jl-kebab-wrap')) {
-        document.querySelectorAll('.jl-kebab-menu.open').forEach(m => m.classList.remove('open'));
-        document.querySelectorAll('.jl-kebab-btn.active').forEach(b => b.classList.remove('active'));
-    }
+// ===== ANIMATION ON LOAD =====
+window.addEventListener('load', function() {
+    const rows = document.querySelectorAll('.job-row');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 30);
+    });
 });

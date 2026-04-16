@@ -9,6 +9,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from PIL import Image
+from datetime import date
 import base64
 import io
 import secrets
@@ -567,7 +568,11 @@ def my_job_list():
 
     jobs = Job.query.filter_by(company_id=current_user.id).all()
 
-    return render_template("recruiter/my_job_list.html", jobs=jobs)
+    return render_template(
+        "recruiter/my_job_list.html",
+        jobs=jobs,
+        current_date=date.today()
+    )
 
 
 # ===============================

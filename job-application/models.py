@@ -452,6 +452,8 @@ class Application(db.Model):
     recruiter_remarks = db.Column(db.Text)
 
     interview_date = db.Column(db.DateTime, nullable=True)
+    meeting_type    = db.Column(db.String(50),  nullable=True)
+    meeting_link    = db.Column(db.String(500), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

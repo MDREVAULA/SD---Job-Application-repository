@@ -1,233 +1,237 @@
-/* ============================================================
-   HR — Job Application List JS
-   Features: collapsible cards, search by name, sort
-   ============================================================ */
+// ================================
+// HR Job Applications — JavaScript
+// Filter · Search · Sort · Pagination · Upcoming interviews
+// ================================
 
-   let currentSort = 'date-desc';
-   let currentStatus = 'all';
-   
-   // ── Card collapse / expand ──────────────────────────────────
-   
-   function toggleCard(headerEl) {
-       const card = headerEl.closest('.app-card');
-       const body = card.querySelector('.app-card-body');
-       const icon = headerEl.querySelector('.card-toggle-icon i');
-       const isOpen = card.classList.contains('card-open');
-   
-       if (isOpen) {
-           // Collapse
-           body.style.maxHeight = body.scrollHeight + 'px';
-           requestAnimationFrame(() => {
-               body.style.maxHeight = '0';
-               body.style.opacity   = '0';
-           });
-           card.classList.remove('card-open');
-           icon.style.transform = 'rotate(0deg)';
-       } else {
-           // Expand
-           body.style.maxHeight = body.scrollHeight + 'px';
-           body.style.opacity   = '1';
-           card.classList.add('card-open');
-           icon.style.transform = 'rotate(180deg)';
-   
-           body.addEventListener('transitionend', function onEnd() {
-               if (card.classList.contains('card-open')) {
-                   body.style.maxHeight = 'none';
-               }
-               body.removeEventListener('transitionend', onEnd);
-           });
-       }
-   }
-   
-   // ── Status filter tabs ──────────────────────────────────────
-   
-   function filterByStatus(status) {
-       currentStatus = status;
-       const tabs = document.querySelectorAll('.filter-tab');
-       tabs.forEach(tab => {
-           tab.classList.toggle('active', tab.getAttribute('data-status') === status);
-       });
-       applyFilters();
-   }
-   
-   // ── Search ──────────────────────────────────────────────────
-   
-   function clearSearch() {
-       const input = document.getElementById('applicantSearch');
-       input.value = '';
-       document.getElementById('searchClear').style.display = 'none';
-       applyFilters();
-   }
-   
-   // ── Sort ────────────────────────────────────────────────────
-   
-   function setSort(sortKey) {
-       currentSort = sortKey;
-       document.querySelectorAll('.sort-btn').forEach(btn => {
-           btn.classList.toggle('active', btn.getAttribute('data-sort') === sortKey);
-       });
-       applyFilters();
-   }
-   
-   // ── Core: filter + sort + render ───────────────────────────
-   
-   function applyFilters() {
-       const searchVal = (document.getElementById('applicantSearch').value || '').toLowerCase().trim();
-       const clearBtn  = document.getElementById('searchClear');
-       if (clearBtn) clearBtn.style.display = searchVal ? 'flex' : 'none';
-   
-       const container = document.getElementById('applicationsContainer');
-       if (!container) return;
-   
-       const existing = container.querySelector('.no-results-state');
-       if (existing) existing.remove();
-   
-       const cards = Array.from(document.querySelectorAll('.app-card'));
-   
-       let visibleCards = [];
-       cards.forEach(card => {
-           const cardStatus = card.getAttribute('data-status');
-           const cardName   = card.getAttribute('data-name') || '';
-   
-           const statusMatch = currentStatus === 'all' || cardStatus === currentStatus;
-           const searchMatch = !searchVal || cardName.includes(searchVal);
-   
-           if (statusMatch && searchMatch) {
-               card.style.display = '';
-               visibleCards.push(card);
-           } else {
-               card.style.display = 'none';
-           }
-       });
-   
-       visibleCards.sort((a, b) => {
-           if (currentSort === 'date-desc') {
-               return (b.getAttribute('data-date') || '0').localeCompare(a.getAttribute('data-date') || '0');
-           } else if (currentSort === 'date-asc') {
-               return (a.getAttribute('data-date') || '0').localeCompare(b.getAttribute('data-date') || '0');
-           } else if (currentSort === 'name-asc') {
-               return (a.getAttribute('data-name') || '').localeCompare(b.getAttribute('data-name') || '');
-           } else if (currentSort === 'name-desc') {
-               return (b.getAttribute('data-name') || '').localeCompare(a.getAttribute('data-name') || '');
-           }
-           return 0;
-       });
-   
-       visibleCards.forEach(card => container.appendChild(card));
-   
-       const resultsEl = document.getElementById('resultsCount');
-       if (resultsEl) {
-           if (searchVal) {
-               resultsEl.textContent = visibleCards.length === 0
-                   ? 'No results'
-                   : `${visibleCards.length} result${visibleCards.length !== 1 ? 's' : ''}`;
-           } else {
-               resultsEl.textContent = '';
-           }
-       }
-   
-       if (visibleCards.length === 0) {
-           const statusMessages = {
-               all:       { icon: 'fa-search',        title: 'No Matching Applicants',  message: 'No applicants match your search.' },
-               pending:   { icon: 'fa-clock',          title: 'No Pending Applicants',   message: 'There are no applications with pending status.' },
-               interview: { icon: 'fa-calendar-check', title: 'No Interview Applicants', message: 'There are no applications scheduled for interview.' },
-               accepted:  { icon: 'fa-check-circle',   title: 'No Accepted Applicants',  message: 'There are no accepted applications.' },
-               rejected:  { icon: 'fa-times-circle',   title: 'No Rejected Applicants',  message: 'There are no rejected applications.' }
-           };
-           const m = statusMessages[currentStatus] || statusMessages.all;
-           const emptyState = document.createElement('div');
-           emptyState.className = 'no-results-state empty-state';
-           emptyState.innerHTML = `<i class="fas ${m.icon}"></i><h3>${m.title}</h3><p>${m.message}</p>`;
-           container.appendChild(emptyState);
-       }
-   }
-   
-   // ── Tab counts ──────────────────────────────────────────────
-   
-   function countApplications() {
-       const cards = document.querySelectorAll('.app-card');
-       const counts = { pending: 0, interview: 0, accepted: 0, rejected: 0 };
-       cards.forEach(card => {
-           const s = card.getAttribute('data-status');
-           if (counts.hasOwnProperty(s)) counts[s]++;
-       });
-       document.getElementById('tabPendingCount').textContent   = counts.pending;
-       document.getElementById('tabInterviewCount').textContent = counts.interview;
-       document.getElementById('tabAcceptedCount').textContent  = counts.accepted;
-       document.getElementById('tabRejectedCount').textContent  = counts.rejected;
-   }
-   
-   // ── Description toggle ──────────────────────────────────────
-   
-   function toggleHrDescription() {
-       const wrapper = document.getElementById('hrDescriptionWrapper');
-       const btn     = document.getElementById('hrToggleDescBtn');
-       const text    = document.getElementById('hrToggleDescText');
-       const isCollapsed = wrapper.classList.contains('collapsed');
-       if (isCollapsed) {
-           wrapper.classList.remove('collapsed');
-           text.textContent = 'Show Less';
-           btn.classList.add('expanded');
-       } else {
-           wrapper.classList.add('collapsed');
-           text.textContent = 'Show More';
-           btn.classList.remove('expanded');
-           wrapper.closest('.job-description-full').scrollIntoView({ behavior: 'smooth', block: 'start' });
-       }
-   }
-   
-   // ── Status select (show/hide interview scheduler) ───────────
-   
-   function onStatusChange(selectEl) {
-       const appId = selectEl.id.replace('status-', '');
-       const scheduleInline = document.getElementById('scheduleInline-' + appId);
-       if (scheduleInline) {
-           scheduleInline.style.display = selectEl.value === 'interview' ? 'block' : 'none';
-       }
-   }
-   
-   // ── Init ────────────────────────────────────────────────────
-   
-   document.addEventListener('DOMContentLoaded', function () {
-       countApplications();
-   
-       // Description toggle init
-       const wrapper = document.getElementById('hrDescriptionWrapper');
-       const btn     = document.getElementById('hrToggleDescBtn');
-       if (wrapper && btn) {
-           if (wrapper.scrollHeight > 80) {
-               wrapper.classList.add('collapsed');
-               btn.style.display = 'flex';
-           } else {
-               btn.style.display = 'none';
-               const fade = document.getElementById('hrDescriptionFade');
-               if (fade) fade.style.display = 'none';
-           }
-       }
-   
-       // Status select listeners
-       document.querySelectorAll('.status-select').forEach(select => {
-           select.addEventListener('change', function () { onStatusChange(this); });
-       });
-   
-       // Init all cards: closed by default
-       document.querySelectorAll('.app-card').forEach((card, index) => {
-           const body = card.querySelector('.app-card-body');
-           if (body) {
-               body.style.maxHeight = '0';
-               body.style.opacity   = '0';
-               body.style.overflow  = 'hidden';
-               body.style.transition = 'max-height 0.35s ease, opacity 0.25s ease';
-           }
-           card.style.opacity   = '0';
-           card.style.transform = 'translateY(16px)';
-           setTimeout(() => {
-               card.style.transition = 'opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease';
-               card.style.opacity    = '1';
-               card.style.transform  = 'translateY(0)';
-           }, 60 * index);
-       });
-   
-       // Initial sort
-       applyFilters();
-   });
+// ===== STATE =====
+let currentFilter = 'all';
+let currentSort   = 'date-desc';
+let currentPage   = 1;
+const CARDS_PER_PAGE = 8;
+let allCards = [];
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+    allCards = Array.from(document.querySelectorAll('.applicant-card'));
+    applyFilters();
+    filterUpcoming();   // init upcoming list too
+
+    // Staggered entrance animation
+    allCards.forEach((card, i) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(16px)';
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+            card.style.opacity    = '1';
+            card.style.transform  = 'translateY(0)';
+        }, 60 + i * 40);
+    });
+});
+
+// ===== FILTER + SEARCH =====
+function applyFilters() {
+    const term = (document.getElementById('applicantSearch')?.value || '').toLowerCase().trim();
+
+    const filtered = allCards.filter(card => {
+        const matchSearch = !term || card.dataset.name.includes(term);
+        const matchStatus = currentFilter === 'all' || card.dataset.status === currentFilter;
+        return matchSearch && matchStatus;
+    });
+
+    currentPage = 1;
+    renderPage(filtered);
+    renderPagination(filtered.length);
+}
+
+// ===== SORT =====
+function applySort() {
+    currentSort = document.getElementById('sortSelect')?.value || 'date-desc';
+
+    allCards.sort((a, b) => {
+        switch (currentSort) {
+            case 'date-desc': return b.dataset.date.localeCompare(a.dataset.date);
+            case 'date-asc':  return a.dataset.date.localeCompare(b.dataset.date);
+            case 'name-asc':  return a.dataset.name.localeCompare(b.dataset.name);
+            case 'name-desc': return b.dataset.name.localeCompare(a.dataset.name);
+            default: return 0;
+        }
+    });
+
+    // Re-attach sorted nodes
+    const container = document.getElementById('applicantList');
+    if (container) allCards.forEach(c => container.appendChild(c));
+
+    applyFilters();
+}
+
+// ===== RENDER PAGE =====
+function renderPage(filtered) {
+    allCards.forEach(c => { c.style.display = 'none'; });
+
+    const start = (currentPage - 1) * CARDS_PER_PAGE;
+    const slice = filtered.slice(start, start + CARDS_PER_PAGE);
+
+    slice.forEach(c => { c.style.display = 'block'; });
+
+    if (slice.length > 0) {
+        selectApplicant(slice[0]);
+    }
+}
+
+// ===== PAGINATION UI =====
+function renderPagination(total) {
+    const totalPages = Math.max(1, Math.ceil(total / CARDS_PER_PAGE));
+    const text   = document.getElementById('paginationText');
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+
+    if (text)    text.textContent = `Page ${currentPage} of ${totalPages}`;
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+}
+
+function getFiltered() {
+    const term = (document.getElementById('applicantSearch')?.value || '').toLowerCase().trim();
+    return allCards.filter(c => {
+        const matchSearch = !term || c.dataset.name.includes(term);
+        const matchStatus = currentFilter === 'all' || c.dataset.status === currentFilter;
+        return matchSearch && matchStatus;
+    });
+}
+
+function nextPage() {
+    const filtered    = getFiltered();
+    const totalPages  = Math.ceil(filtered.length / CARDS_PER_PAGE);
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderPage(filtered);
+        renderPagination(filtered.length);
+        document.getElementById('applicantList')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function previousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        const filtered = getFiltered();
+        renderPage(filtered);
+        renderPagination(filtered.length);
+        document.getElementById('applicantList')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// ===== STATUS FILTER =====
+function filterByStatus(btn, status) {
+    document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = status;
+    applyFilters();
+}
+
+// ===== SELECT APPLICANT =====
+function selectApplicant(card) {
+    document.querySelectorAll('.applicant-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+
+    document.querySelectorAll('.applicant-detail-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById('detail-' + card.dataset.appId);
+    if (panel) {
+        panel.classList.add('active');
+        if (window.innerWidth <= 1024) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+}
+
+// ===== INTERVIEW FIELD TOGGLE =====
+function toggleInterviewField(select, appId) {
+    const field = document.getElementById('interview-field-' + appId);
+    if (field) field.style.display = select.value === 'interview' ? 'block' : 'none';
+}
+
+// ===== ONLINE MEETING FIELDS TOGGLE =====
+function toggleMeetingLink(select, appId) {
+    const onlineFields = document.getElementById('online-fields-' + appId);
+    if (onlineFields) onlineFields.style.display = select.value === 'online' ? 'block' : 'none';
+}
+
+// ===== UPCOMING INTERVIEWS: SEARCH + TIME FILTER =====
+function filterUpcoming() {
+    const term       = (document.getElementById('upcomingSearch')?.value || '').toLowerCase().trim();
+    const timeFilter = document.getElementById('upcomingTimeFilter')?.value || 'all';
+
+    const items = document.querySelectorAll('#upcomingList .upcoming-item');
+    if (!items.length) return;
+
+    const now   = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Week boundaries (Mon–Sun)
+    const dayOfWeek   = today.getDay();
+    const diffToMon   = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+    const weekStart   = new Date(today); weekStart.setDate(today.getDate() + diffToMon);
+    const weekEnd     = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6);
+
+    // Month boundaries
+    const monthStart  = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthEnd    = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const name     = item.dataset.upcomingName || '';
+        const dateStr  = item.dataset.upcomingDate || '';   // YYYYMMDD
+
+        const matchName = !term || name.includes(term);
+
+        let matchTime = true;
+        if (timeFilter !== 'all' && dateStr.length === 8) {
+            const y = parseInt(dateStr.slice(0, 4), 10);
+            const m = parseInt(dateStr.slice(4, 6), 10) - 1;
+            const d = parseInt(dateStr.slice(6, 8), 10);
+            const itemDate = new Date(y, m, d);
+
+            if (timeFilter === 'week') {
+                matchTime = itemDate >= weekStart && itemDate <= weekEnd;
+            } else if (timeFilter === 'month') {
+                matchTime = itemDate >= monthStart && itemDate <= monthEnd;
+            }
+        }
+
+        const show = matchName && matchTime;
+        item.style.display = show ? 'flex' : 'none';
+        if (show) visibleCount++;
+    });
+
+    // Toggle no-results placeholder
+    const noResults = document.getElementById('upcomingNoResults');
+    const emptyBase = document.getElementById('upcomingEmpty');
+
+    if (noResults) noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    if (emptyBase) emptyBase.style.display  = 'none';  // hidden once JS runs (real empty state is from Jinja)
+}
+
+// ===== KEYBOARD NAVIGATION =====
+document.addEventListener('keydown', e => {
+    const active  = document.querySelector('.applicant-card.active');
+    if (!active) return;
+
+    const visible = Array.from(document.querySelectorAll('.applicant-card'))
+                         .filter(c => c.style.display !== 'none');
+    const idx = visible.indexOf(active);
+    let next = null;
+
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowRight') && idx < visible.length - 1) {
+        e.preventDefault();
+        next = visible[idx + 1];
+    }
+    if ((e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  && idx > 0) {
+        e.preventDefault();
+        next = visible[idx - 1];
+    }
+
+    if (next) {
+        selectApplicant(next);
+        next.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+});
