@@ -1442,7 +1442,37 @@ def force_delete_job(job_id):
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
 
     try:
-        # Remove gallery images
+        from sqlalchemy import text
+
+        # 1. Delete applicant notifications tied to this job's applications
+        db.session.execute(text("""
+            DELETE FROM applicant_notification
+            WHERE application_id IN (
+                SELECT id FROM application WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+
+        # 2. Delete recruiter notifications tied to this job
+        db.session.execute(text("""
+            DELETE FROM recruiter_notification
+            WHERE job_id = :job_id
+            OR application_id IN (
+                SELECT id FROM application WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+
+        # 3. Delete HR notifications tied to this job
+        db.session.execute(text("""
+            DELETE FROM hr_notification
+            WHERE job_id = :job_id
+            OR application_id IN (
+                SELECT id FROM application WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+
+        db.session.flush()
+
+        # 4. Remove gallery images from disk
         for image in job.images:
             file_path = os.path.join(
                 current_app.root_path, "static", "uploads", "job_posters", image.image_path
@@ -1451,7 +1481,7 @@ def force_delete_job(job_id):
                 os.remove(file_path)
             db.session.delete(image)
 
-        # Remove cover photo
+        # 5. Remove cover photo from disk
         if job.cover_photo:
             cover_path = os.path.join(
                 current_app.root_path, "static", "uploads", "job_covers", job.cover_photo

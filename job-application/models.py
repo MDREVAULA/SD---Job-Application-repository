@@ -45,7 +45,7 @@ class User(db.Model, UserMixin):
 
     profile_picture = db.Column(db.String(200), nullable=True)
 
-    # ── Soft-delete support (for undo on HR accounts) ──────────
+    # Soft-delete support (for undo on HR accounts)
     is_deleted = db.Column(db.Boolean, default=False, nullable=False)
     deleted_at = db.Column(db.DateTime, nullable=True)
     deleted_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
@@ -180,8 +180,7 @@ class ApplicantEducation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# ── Keep the old name as an alias so existing import statements
-#    (e.g. `from models import Education`) still work without changes
+# Keep the old name as an alias so existing import statements still work
 Education = ApplicantEducation
 
 
@@ -403,15 +402,14 @@ class Job(db.Model):
 
     created_at         = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at         = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    max_applications   = db.Column(db.Integer,  nullable=True)          # recruitment quota cap
-    allow_applications = db.Column(db.Boolean,  default=True)           # toggle on/off
-    cover_photo        = db.Column(db.String(200), nullable=True)       # header image filename
- 
-    # Company-level override text (per job)
-    about_company      = db.Column(db.Text, nullable=True)
-    why_join_us        = db.Column(db.Text, nullable=True)              # JSON array of bullet strings
-    company_values     = db.Column(db.Text, nullable=True)              # JSON array of {title, description}
+    max_applications   = db.Column(db.Integer,  nullable=True)
+    allow_applications = db.Column(db.Boolean,  default=True)
+    cover_photo        = db.Column(db.String(200), nullable=True)
 
+    # Company-level override text (per job)
+    about_company  = db.Column(db.Text, nullable=True)
+    why_join_us    = db.Column(db.Text, nullable=True)   # JSON array of bullet strings
+    company_values = db.Column(db.Text, nullable=True)   # JSON array of {title, description}
 
     applications = db.relationship(
         "Application",
@@ -452,8 +450,8 @@ class Application(db.Model):
     recruiter_remarks = db.Column(db.Text)
 
     interview_date = db.Column(db.DateTime, nullable=True)
-    meeting_type    = db.Column(db.String(50),  nullable=True)
-    meeting_link    = db.Column(db.String(500), nullable=True)
+    meeting_type   = db.Column(db.String(50),  nullable=True)
+    meeting_link   = db.Column(db.String(500), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -464,23 +462,25 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+
 # =========================
 # HR TEAM MEMBERS
 # =========================
 class JobTeamMember(db.Model):
     __tablename__ = 'job_team_member'
- 
+
     id     = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='CASCADE'), nullable=False)
     hr_id  = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
- 
+
     __table_args__ = (
         db.UniqueConstraint('job_id', 'hr_id', name='unique_job_team_member'),
     )
- 
-    hr   = db.relationship('User',  foreign_keys=[hr_id])
-    job  = db.relationship('Job',   foreign_keys=[job_id])
+
+    hr  = db.relationship('User', foreign_keys=[hr_id])
+    job = db.relationship('Job',  foreign_keys=[job_id])
+
 
 # =========================
 # SAVED JOBS TABLE
@@ -528,13 +528,13 @@ class Message(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    sender_id   = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     receiver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     body = db.Column(db.Text, nullable=False)
 
     is_read = db.Column(db.Boolean, default=False)
-    edited = db.Column(db.Boolean, default=False)
+    edited  = db.Column(db.Boolean, default=False)
 
     reply_to_id = db.Column(db.Integer, db.ForeignKey("message.id"), nullable=True)
 
@@ -559,7 +559,7 @@ class MessageReaction(db.Model):
 
     id         = db.Column(db.Integer, primary_key=True)
     message_id = db.Column(db.Integer, db.ForeignKey("message.id", ondelete="CASCADE"), nullable=False)
-    user_id    = db.Column(db.Integer, db.ForeignKey("user.id"),    nullable=False)
+    user_id    = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     reaction   = db.Column(db.String(20), nullable=False)  # like | heart | haha | wow | sad | angry
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -579,7 +579,7 @@ class HRFeedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=False)
-    hr_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    hr_id          = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     feedback = db.Column(db.Text, nullable=False)
 
@@ -591,15 +591,16 @@ class HRFeedback(db.Model):
 # RECRUITER NOTIFICATION TABLE
 # =========================
 class RecruiterNotification(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id           = db.Column(db.Integer, primary_key=True)
     recruiter_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    type = db.Column(db.String(50), nullable=False)
-    message = db.Column(db.Text, nullable=False)
-    is_read = db.Column(db.Boolean, default=False)
+    type         = db.Column(db.String(50), nullable=False)
+    message      = db.Column(db.Text, nullable=False)
+    is_read      = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
-    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    recruiter = db.relationship("User", foreign_keys=[recruiter_id], backref="notifications")
+    job_id       = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    recruiter   = db.relationship("User", foreign_keys=[recruiter_id], backref="notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
 
 
@@ -607,15 +608,16 @@ class RecruiterNotification(db.Model):
 # HR NOTIFICATION TABLE
 # =========================
 class HRNotification(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    hr_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    type = db.Column(db.String(50), nullable=False)
-    message = db.Column(db.Text, nullable=False)
-    is_read = db.Column(db.Boolean, default=False)
+    id             = db.Column(db.Integer, primary_key=True)
+    hr_id          = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type           = db.Column(db.String(50), nullable=False)
+    message        = db.Column(db.Text, nullable=False)
+    is_read        = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
-    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    hr = db.relationship("User", foreign_keys=[hr_id], backref="hr_notifications")
+    job_id         = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+
+    hr          = db.relationship("User", foreign_keys=[hr_id], backref="hr_notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
 
 
@@ -623,21 +625,16 @@ class HRNotification(db.Model):
 # APPLICANT NOTIFICATION TABLE
 # =========================
 class ApplicantNotification(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    applicant_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    type = db.Column(db.String(50), nullable=False)
-    # Types:
-    #   new_message          — someone sent you a message
-    #   new_follow           — someone followed you
-    #   job_update           — job posting was updated
-    #   application_status   — your application status changed
-    #   interview_scheduled  — interview was scheduled for you
-    message = db.Column(db.Text, nullable=False)
-    is_read = db.Column(db.Boolean, default=False)
+    id             = db.Column(db.Integer, primary_key=True)
+    applicant_id   = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    type           = db.Column(db.String(50), nullable=False)
+    message        = db.Column(db.Text, nullable=False)
+    is_read        = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
-    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    applicant = db.relationship("User", foreign_keys=[applicant_id], backref="applicant_notifications")
+    job_id         = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+
+    applicant   = db.relationship("User", foreign_keys=[applicant_id], backref="applicant_notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
 
 
@@ -649,7 +646,6 @@ class AdminNotification(db.Model):
 
     id         = db.Column(db.Integer, primary_key=True)
     type       = db.Column(db.String(50), nullable=False)
-    # Types: 'new_message', 'account_request', 'account_approved', 'account_rejected'
     message    = db.Column(db.Text, nullable=False)
     is_read    = db.Column(db.Boolean, default=False)
     user_id    = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
@@ -681,10 +677,10 @@ class AdminNotification(db.Model):
 # =========================
 class JobImage(db.Model):
 
-    id = db.Column(db.Integer, primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
+    id         = db.Column(db.Integer, primary_key=True)
+    job_id     = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=False)
     image_path = db.Column(db.String(200))
-    job = db.relationship("Job", backref="images")
+    job        = db.relationship("Job", backref="images")
 
 
 # =========================
@@ -697,42 +693,33 @@ class UserSettings(db.Model):
     id      = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
 
-    # ── Privacy ──────────────────────────────────────────────
-    show_name         = db.Column(db.String(20), default='everyone')
-    # 'everyone' | 'specific' | 'none'
-    # Controls BOTH personal info AND documents together
-    show_profile      = db.Column(db.String(20), default='everyone')
-    # JSON list used when show_profile == 'specific'
-    # Applicant options: 'recruiter', 'hr', 'mutual'
-    # HR/Recruiter options: 'mutual'
+    # Privacy
+    show_name             = db.Column(db.String(20), default='everyone')
+    show_profile          = db.Column(db.String(20), default='everyone')
     profile_audience_json = db.Column(db.Text, default='["recruiter","hr","mutual"]')
 
     show_follow_list  = db.Column(db.String(10), default='yes')
     show_follow_count = db.Column(db.String(10), default='yes')
 
-    # 'all' | 'recruiters' | 'mutual'
-    who_can_message   = db.Column(db.String(20), default='all')
+    who_can_message = db.Column(db.String(20), default='all')
 
-    # ── Notifications ─────────────────────────────────────────
-    notif_app_status  = db.Column(db.Boolean, default=True)
-    notif_messages    = db.Column(db.Boolean, default=True)
-    notif_followers   = db.Column(db.Boolean, default=True)
-    notif_jobs        = db.Column(db.Boolean, default=False)
+    # Notifications
+    notif_app_status = db.Column(db.Boolean, default=True)
+    notif_messages   = db.Column(db.Boolean, default=True)
+    notif_followers  = db.Column(db.Boolean, default=True)
+    notif_jobs       = db.Column(db.Boolean, default=False)
 
-    # ── Appearance ────────────────────────────────────────────
-    # 'light' | 'dark' | 'system'
-    theme             = db.Column(db.String(10), default='light')
-    # 'comfortable' | 'compact'
-    density           = db.Column(db.String(15), default='comfortable')
+    # Appearance
+    theme   = db.Column(db.String(10),  default='light')
+    density = db.Column(db.String(15),  default='comfortable')
 
-    # ── Language ─────────────────────────────────────────────
-    language          = db.Column(db.String(10), default='en')
-    timezone          = db.Column(db.String(50), default='Asia/Manila')
+    # Language
+    language = db.Column(db.String(10),  default='en')
+    timezone = db.Column(db.String(50),  default='Asia/Manila')
 
-    # ── Two-factor (security section) ────────────────────────
-    two_factor        = db.Column(db.Boolean, default=False)
+    # Two-factor (security section)
+    two_factor = db.Column(db.Boolean, default=False)
 
-    # Relationship back to user
     user = db.relationship('User', backref=db.backref('settings', uselist=False))
 
     def __repr__(self):

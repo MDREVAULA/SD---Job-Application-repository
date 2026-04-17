@@ -1,5 +1,6 @@
 // ============================================================
 // people.js — Follow/Unfollow + Message restriction notices
+// Enhanced version matching job-details design
 // ============================================================
 
 function toggleFollow(userId, btn) {
@@ -20,6 +21,9 @@ function toggleFollow(userId, btn) {
         // Update follower count
         const fc = document.getElementById(`fc-${userId}`);
         if (fc) fc.textContent = data.follower_count;
+    })
+    .catch(err => {
+        console.error('Follow toggle error:', err);
     });
 }
 
@@ -48,6 +52,8 @@ function showMsgRestriction(btn) {
     const titleEl  = document.getElementById('msgToastTitle');
     const textEl   = document.getElementById('msgToastText');
 
+    if (!toast || !titleEl || !textEl) return;
+
     titleEl.textContent = title;
     textEl.textContent  = text;
 
@@ -64,7 +70,17 @@ function closeMsgToast() {
 // Close toast on outside click
 document.addEventListener('click', (e) => {
     const toast = document.getElementById('msgRestrictionToast');
-    if (toast && !toast.contains(e.target)) {
+    if (toast && toast.classList.contains('show')) {
+        const toastInner = toast.querySelector('.msg-toast-inner');
+        if (!toastInner.contains(e.target) && !e.target.closest('.btn-message-restricted')) {
+            closeMsgToast();
+        }
+    }
+});
+
+// Close toast on ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
         closeMsgToast();
     }
 });

@@ -1,6 +1,6 @@
 /* ========================================
    JOB VIEW PAGE - APPLICANT VERSION
-   Using exact layout from edit job
+   Layout matches edit_job; overflow fixes preserved
    ======================================== */
 
 .job-view-wrapper {
@@ -16,6 +16,7 @@
   position: sticky;
   top: 65px;
   z-index: 100;
+  box-shadow: 0 2px 8px var(--shadow-color);
 }
 
 .nav-container {
@@ -31,6 +32,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
+  flex: 1;
 }
 
 .back-btn {
@@ -46,6 +49,7 @@
   cursor: pointer;
   transition: background 0.2s;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .back-btn:hover {
@@ -56,6 +60,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .job-category {
@@ -71,6 +76,9 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .job-meta {
@@ -89,6 +97,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .btn-nav {
@@ -134,13 +143,22 @@
   color: white;
 }
 
+.btn-applied-nav {
+  background: rgba(20, 184, 166, 0.1);
+  color: #0f9488;
+  border-color: #0f9488;
+  cursor: default;
+  pointer-events: none;
+}
+
 /* Tabs */
 .job-view-tabs {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
-  top: 133px;
+  top: 117px;
   z-index: 99;
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .tabs-container {
@@ -182,30 +200,47 @@
   display: block;
 }
 
-/* Main Content */
+/* ========================================
+   MAIN CONTENT — matches edit_job layout
+   ======================================== */
 .job-view-content {
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
 }
 
+/* Two-column grid: main + 360px sidebar */
 .content-grid {
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: 24px;
+  /* Prevent grid from ever exceeding the wrapper */
+  min-width: 0;
+}
+
+/* Left column */
+.content-main {
+  /* Crucial: allow the column to shrink below its content width */
+  min-width: 0;
+  /* Clip any stray overflow at the column boundary */
+  overflow: hidden;
 }
 
 .content-single {
   max-width: 900px;
 }
 
-/* Content Cards */
+/* ========================================
+   CONTENT CARDS
+   ======================================== */
 .content-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 16px;
+  /* Clip overflow that escapes the card itself */
+  overflow: hidden;
 }
 
 .card-title-main {
@@ -221,7 +256,9 @@
   margin: -8px 0 20px 0;
 }
 
-/* Header Image */
+/* ========================================
+   HEADER / COVER IMAGE
+   ======================================== */
 .header-image-container {
   position: relative;
   height: 200px;
@@ -236,13 +273,23 @@
   object-fit: cover;
 }
 
-/* Job Description */
+/* ========================================
+   JOB DESCRIPTION TEXT
+   The key overflow fix: break long words,
+   never let content grow beyond the card.
+   ======================================== */
 .job-description-text {
   font-size: 14px;
   line-height: 1.7;
   color: var(--text-primary);
   white-space: pre-wrap;
   margin-bottom: 20px;
+  /* Break any unbroken string (e.g. a URL or random chars) */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  word-wrap: break-word;
+  /* Hard cap so nothing can push past the card */
+  max-width: 100%;
 }
 
 .subsection-title {
@@ -258,7 +305,9 @@
   margin: 24px 0;
 }
 
-/* Tags */
+/* ========================================
+   TAGS / WORK ARRANGEMENT
+   ======================================== */
 .tag-row {
   display: flex;
   flex-wrap: wrap;
@@ -273,16 +322,28 @@
   font-size: 13px;
   color: var(--text-secondary);
   font-weight: 500;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-/* Sidebar */
+/* ========================================
+   SIDEBAR
+   ======================================== */
+.content-sidebar {
+  /* Ensure it never exceeds its grid cell */
+  min-width: 0;
+}
+
 .sidebar-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 24px;
   position: sticky;
-  top: 217px;
+  top: 200px;
+  align-self: start;
+  /* Clip anything that overflows the sidebar card */
+  overflow: hidden;
 }
 
 .sidebar-title {
@@ -316,6 +377,8 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .detail-with-icon {
@@ -330,7 +393,9 @@
   font-weight: 600;
 }
 
-/* Sidebar Apply Section */
+/* ========================================
+   SIDEBAR — APPLY SECTION
+   ======================================== */
 .sidebar-apply-section {
   margin-top: 24px;
   padding-top: 24px;
@@ -356,6 +421,7 @@
   cursor: pointer;
   text-decoration: none;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .btn-sidebar-apply:hover {
@@ -378,6 +444,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .btn-sidebar-save:hover {
@@ -395,7 +462,9 @@
   fill: currentColor;
 }
 
-/* Requirements Grid */
+/* ========================================
+   REQUIREMENTS GRID
+   ======================================== */
 .requirements-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -427,6 +496,7 @@
 
 .requirement-content {
   flex: 1;
+  min-width: 0;
 }
 
 .requirement-label {
@@ -442,9 +512,13 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-/* Skills Section */
+/* ========================================
+   SKILLS SECTION
+   ======================================== */
 .skills-section {
   margin-bottom: 24px;
 }
@@ -478,6 +552,8 @@
   border-radius: 20px;
   font-size: 13px;
   font-weight: 500;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .skill-required {
@@ -492,310 +568,16 @@
   border: 1px solid var(--border-color);
 }
 
-/* Gallery Grid View */
-.gallery-grid-view {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-.gallery-card-view {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  aspect-ratio: 16/10;
-  background: var(--bg-surface-alt);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.gallery-card-view:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--shadow-color);
-}
-
-.gallery-img-view {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Company Info Section */
-.company-info-section {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.company-logo-large {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface-alt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.company-logo-large img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.company-logo-placeholder {
-  color: var(--text-tertiary);
-}
-
-.company-details-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-.company-detail-box {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  background: var(--bg-surface-alt);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-}
-
-.detail-box-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #14b8a6;
-  flex-shrink: 0;
-}
-
-.detail-box-content {
-  flex: 1;
-}
-
-.detail-box-label {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-bottom: 4px;
-}
-
-.detail-box-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.recruiter-link {
-  color: #14b8a6;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: color 0.2s;
-}
-
-.recruiter-link:hover {
-  color: #0f9488;
-}
-
-/* Recruiter Profile Card */
-.recruiter-profile-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: var(--bg-surface-alt);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-}
-
-.recruiter-avatar-large {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--border-color);
-  flex-shrink: 0;
-}
-
-.recruiter-avatar-large img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.recruiter-avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  background: var(--bg-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-tertiary);
-}
-
-.recruiter-info-large {
-  flex: 1;
-}
-
-.recruiter-name-large {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 4px 0;
-}
-
-.recruiter-role-large {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0 0 12px 0;
-}
-
-.btn-view-profile {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.btn-view-profile:hover {
-  background: var(--bg-hover);
-  border-color: #14b8a6;
-  color: #14b8a6;
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-tertiary);
-}
-
-.empty-state svg {
-  margin-bottom: 16px;
-}
-
-.empty-state p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-
 /* ========================================
-   STICKY POSITIONING FIX
-   Add this to BOTH edit job and view job CSS
+   GALLERY — CAROUSEL
+   The fix: the thumbnail strip scrolls
+   internally; nothing expands the page.
    ======================================== */
-
-/* Fix for sticky navigation */
-.job-view-nav {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 65px;
-  z-index: 100;
-  box-shadow: 0 2px 8px var(--shadow-color);
-}
-
-.job-view-tabs {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 117px; /* Height of nav bar + top offset */
-  z-index: 99;
-  box-shadow: 0 2px 4px var(--shadow-color);
-}
-
-/* Adjust sidebar sticky position */
-.sidebar-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 24px;
-  position: sticky;
-  top: 200px; /* Adjusted for both nav bars */
-  align-self: start;
-}
-
-/* Description Toggle Styles */
-.description-wrapper {
-  position: relative;
-}
-
-.description-wrapper.collapsed {
-  max-height: 200px;
-  overflow: hidden;
-}
-
-.description-fade {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 80px;
-  background: linear-gradient(to bottom, transparent, var(--bg-secondary));
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 0.3s ease;
-}
-
-.description-wrapper:not(.collapsed) .description-fade {
-  opacity: 0;
-}
-
-.btn-toggle-description {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 8px 16px;
-  background: none;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #14b8a6;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-toggle-description:hover {
-  background: var(--bg-hover);
-  border-color: #14b8a6;
-}
-
-.btn-toggle-description svg {
-  transition: transform 0.3s ease;
-}
-
-.btn-toggle-description.expanded svg {
-  transform: rotate(180deg);
-}
-
-/* Gallery Carousel Styles (from original) */
 .gallery-container {
   width: 100%;
   margin-top: 20px;
+  /* Hard boundary — gallery can never exceed its card */
+  overflow: hidden;
 }
 
 .gallery-display {
@@ -821,10 +603,7 @@
 
 .gallery-background {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-size: cover;
   background-position: center;
   filter: blur(50px) brightness(0.6) saturate(1.2);
@@ -888,11 +667,17 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Thumbnail strip: scrolls internally, never pushes the page */
 .gallery-thumbnails {
   display: flex;
   gap: 10px;
+  /* Internal scroll only */
   overflow-x: auto;
-  padding: 4px 0;
+  /* Padding so the scrollbar doesn't clip thumbnails */
+  padding: 4px 0 8px 0;
+  /* Hard width cap = card width */
+  max-width: 100%;
+  box-sizing: border-box;
   scrollbar-width: thin;
   scrollbar-color: var(--border-color) transparent;
 }
@@ -905,6 +690,7 @@
 }
 
 .thumbnail-btn {
+  /* Fixed size — the strip scrolls, not the page */
   width: 80px;
   height: 80px;
   flex-shrink: 0;
@@ -934,36 +720,284 @@
   box-shadow: 0 0 0 1px #14b8a6;
 }
 
-/* Detail Avatar Styles (matching edit job) */
-.detail-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+/* ========================================
+   GALLERY — GRID VIEW (gallery tab)
+   ======================================== */
+.gallery-grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.gallery-card-view {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16/10;
+  background: var(--bg-surface-alt);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gallery-card-view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.gallery-img-view {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-.detail-avatar-placeholder {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+/* ========================================
+   COMPANY TAB
+   ======================================== */
+.company-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.company-logo-large {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
   background: var(--bg-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.company-logo-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.company-logo-placeholder {
+  color: var(--text-tertiary);
+}
+
+.company-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.company-detail-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.detail-box-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #14b8a6;
+  flex-shrink: 0;
+}
+
+.detail-box-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-box-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+
+.detail-box-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.recruiter-link {
+  color: #14b8a6;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.recruiter-link:hover {
+  color: #0f9488;
+}
+
+/* Recruiter Profile Card */
+.recruiter-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.recruiter-avatar-large {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.recruiter-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recruiter-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-surface);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-tertiary);
 }
 
-.detail-with-avatar {
-  display: flex;
+.recruiter-info-large {
+  flex: 1;
+  min-width: 0;
+}
+
+.recruiter-name-large {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.recruiter-role-large {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 12px 0;
+}
+
+.btn-view-profile {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-view-profile:hover {
+  background: var(--bg-hover);
+  border-color: #14b8a6;
+  color: #14b8a6;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-tertiary);
+}
+
+.empty-state svg {
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 /* ========================================
-   IMPROVED COMPANY TAB STYLES
+   DESCRIPTION TOGGLE
    ======================================== */
+.description-wrapper {
+  position: relative;
+  overflow: hidden;
+}
 
-/* Company Header Card */
+.description-wrapper.collapsed {
+  max-height: 200px;
+  overflow: hidden;
+}
+
+.description-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--bg-secondary));
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.description-wrapper:not(.collapsed) .description-fade {
+  opacity: 0;
+}
+
+.btn-toggle-description {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #14b8a6;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle-description:hover {
+  background: var(--bg-hover);
+  border-color: #14b8a6;
+}
+
+.btn-toggle-description svg {
+  transition: transform 0.3s ease;
+}
+
+.btn-toggle-description.expanded svg {
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   COMPANY HEADER BANNER
+   ======================================== */
 .company-header-card {
   padding: 0;
   overflow: hidden;
@@ -1032,6 +1066,7 @@
 
 .company-header-info {
   flex: 1;
+  min-width: 0;
 }
 
 .company-name-large {
@@ -1039,6 +1074,8 @@
   font-weight: 700;
   color: white;
   margin: 0 0 8px 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .company-tagline {
@@ -1047,7 +1084,6 @@
   margin: 0;
 }
 
-/* Company Information Grid */
 .company-info-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1061,6 +1097,7 @@
   border: 1px solid var(--border-color);
   border-radius: 12px;
   transition: all 0.2s;
+  overflow: hidden;
 }
 
 .company-info-box:hover {
@@ -1104,19 +1141,25 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-/* About Company Section */
 .company-about-text {
   font-size: 14px;
   line-height: 1.7;
   color: var(--text-primary);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .company-about-text p {
   margin: 0 0 24px 0;
 }
 
+/* ========================================
+   COMPANY VALUES
+   ======================================== */
 .company-values {
   display: flex;
   flex-direction: column;
@@ -1155,6 +1198,7 @@
 
 .value-content {
   flex: 1;
+  min-width: 0;
 }
 
 .value-title {
@@ -1162,6 +1206,8 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 6px 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .value-description {
@@ -1169,9 +1215,13 @@
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.6;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-/* Hiring Manager Profile */
+/* ========================================
+   HIRING MANAGER PROFILE
+   ======================================== */
 .hiring-manager-profile {
   display: flex;
   gap: 24px;
@@ -1212,6 +1262,7 @@
 
 .manager-info-section {
   flex: 1;
+  min-width: 0;
 }
 
 .manager-name {
@@ -1219,6 +1270,8 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 6px 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .manager-role {
@@ -1261,7 +1314,9 @@
   transform: translateY(-2px);
 }
 
-/* Highlight Card (Why Join Us) */
+/* ========================================
+   WHY JOIN US / HIGHLIGHT CARD
+   ======================================== */
 .highlight-card {
   background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(15, 148, 136, 0.05) 100%);
   border-color: #14b8a6;
@@ -1307,34 +1362,78 @@
   margin-top: 2px;
 }
 
-/* Responsive adjustments for Company tab */
-@media (max-width: 768px) {
-  .company-header-content {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .company-name-large {
-    font-size: 24px;
-  }
-
-  .company-info-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .hiring-manager-profile {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .manager-avatar-large {
-    width: 100px;
-    height: 100px;
-  }
+/* ========================================
+   QUOTA BADGE
+   ======================================== */
+.quota-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
 }
 
-/* Responsive */
+.quota-ok   { background: rgba(20,184,166,0.12); color: #0f9488; }
+.quota-full { background: rgba(239,68,68,0.12);  color: #dc2626; }
+.quota-low  { background: rgba(245,158,11,0.12); color: #d97706; }
+
+/* ========================================
+   DETAIL AVATAR HELPERS
+   ======================================== */
+.detail-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.detail-avatar-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bg-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+}
+
+.detail-with-avatar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Save toast */
+.save-toast {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--bg-secondary, #fff);
+  border: 1px solid #14b8a6;
+  border-left: 4px solid #14b8a6;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text-primary, #111);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 9999;
+  animation: toastIn 0.3s ease;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
 @media (max-width: 1024px) {
   .content-grid {
     grid-template-columns: 1fr;
@@ -1349,6 +1448,10 @@
   }
 
   .company-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .company-info-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1376,5 +1479,34 @@
 
   .gallery-grid-view {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .company-header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .company-name-large {
+    font-size: 24px;
+  }
+
+  .hiring-manager-profile {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .manager-avatar-large {
+    width: 100px;
+    height: 100px;
+  }
+
+  .value-item {
+    flex-direction: column;
+  }
+
+  .value-icon {
+    width: 40px;
+    height: 40px;
   }
 }

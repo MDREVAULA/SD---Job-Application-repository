@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/hr/job_list.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/job_list.css') }}">
 
 <!-- TOP NAVIGATION BAR -->
 <div class="job-view-nav">
@@ -22,15 +22,6 @@
                     </span>
                 </div>
             </div>
-        </div>
-
-        <div class="nav-right">
-            <a href="{{ url_for('recruiter.job_posting') }}" class="btn-apply-nav">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                Post a Job
-            </a>
         </div>
     </div>
 </div>
@@ -147,6 +138,7 @@
                         <th>Posted Date</th>
                         <th>Deadline</th>
                         <th>Applicants</th>
+                        <th>Quota</th> 
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -231,6 +223,19 @@
                         
                         <td class="applicants">
                             <span class="applicants-count">{{ job.applications | length }}</span>
+                        </td>
+
+                        <td class="quota">
+                            {% if job.max_applications %}
+                                {% set used = job.applications | length %}
+                                {% set total = job.max_applications %}
+                                {% set pct = (used / total * 100) | int %}
+                                <span class="quota-badge {% if pct >= 100 %}quota-full{% elif pct >= 75 %}quota-warn{% endif %}">
+                                    {{ used }}/{{ total }}
+                                </span>
+                            {% else %}
+                                <span class="quota-badge quota-none">—</span>
+                            {% endif %}
                         </td>
                         
                         <td class="actions">
