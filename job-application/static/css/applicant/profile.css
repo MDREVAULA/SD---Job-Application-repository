@@ -321,6 +321,20 @@
     color: #fff;
 }
 
+.prof-verification-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.badge-verified  { background: #EAF3DE; border: 1px solid #C0DD97; color: #27500A; }
+.badge-pending   { background: #FAEEDA; border: 1px solid #FAC775; color: #633806; }
+.badge-rejected  { background: #FCEBEB; border: 1px solid #F7C1C1; color: #501313; }
 
 /* ══════════════════════════════════════════
    TWO-COLUMN LAYOUT
