@@ -2,7 +2,6 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile, HRProfile, UserSettings
 from models import ApplicantNotification, RecruiterNotification, HRNotification
-from routes.admin import push_admin_notif
 from datetime import datetime
 from sqlalchemy import or_, and_
 from models import MessageReaction 
@@ -536,14 +535,6 @@ def send_message(receiver_id):
     _notify_new_message(current_user, receiver, body)
 
     db.session.commit()
-
-    db.session.commit()
-
-    from routes.admin import push_admin_notif
-    push_admin_notif(
-        'new_message',
-        f'New message from <strong>{current_user.username}</strong> to {receiver.username}'
-    )
 
     # Build reply preview fields for the JS
     reply_to_body   = None

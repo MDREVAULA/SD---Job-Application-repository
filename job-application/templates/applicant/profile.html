@@ -10,14 +10,13 @@
 
 {# ══════════════════════════════════════════════════════════════════════════════
    APPLICANT PROFILE — COMPLETION BANNER
-   Replace the existing banner block at the top of applicant/profile.html.
 
    Two states only — admin is NOT involved for applicants:
      • profile_complete = False  → show checklist, features locked
      • profile_complete = True   → banner hidden, full access
    ══════════════════════════════════════════════════════════════════════════════ #}
 
-{% if not current_user.profile_complete %}
+{% if not profile_complete %}
 <div class="profile-completion-banner banner--incomplete">
 
     <div class="pcb-icon">
@@ -86,7 +85,7 @@
 
                 <!-- Action buttons -->
                 <div class="prof-header-actions">
-                        {% if current_user.profile_complete %}
+                        {% if profile_complete %}
                         <div class="prof-verification-badge badge-verified">
                             <i class="fas fa-check-circle"></i> Profile Complete
                         </div>
