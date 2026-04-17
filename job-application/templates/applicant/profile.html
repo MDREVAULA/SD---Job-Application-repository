@@ -10,14 +10,12 @@
 
 {# ══════════════════════════════════════════════════════════════════════════════
    APPLICANT PROFILE — COMPLETION BANNER
-   Replace the existing banner block at the top of applicant/profile.html.
-
-   Two states only — admin is NOT involved for applicants:
-     • profile_complete = False  → show checklist, features locked
-     • profile_complete = True   → banner hidden, full access
+   Only shows when profile is NOT complete.
+   This banner will automatically disappear once all required fields are filled.
    ══════════════════════════════════════════════════════════════════════════════ #}
 
-{% if not current_user.profile_complete %}
+{# FIXED: The condition should be checking current_user.profile_complete, NOT just a variable #}
+{% if current_user.is_authenticated and not current_user.profile_complete %}
 <div class="profile-completion-banner banner--incomplete">
 
     <div class="pcb-icon">

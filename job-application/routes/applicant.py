@@ -555,9 +555,11 @@ def dashboard():
 @applicant_bp.route('/status')
 @login_required
 def status():
-    """Alias for dashboard for backward compatibility."""
-    return redirect(url_for('applicant.dashboard'))
+    banned = check_banned()
+    if banned:
+        return banned
 
+    return render_template('applicant/status.html')
 
 # ===============================
 # JOB DETAILS
@@ -568,12 +570,22 @@ def job_details(job_id):
     job_owner = User.query.get(job.company_id)
 
     saved_job_ids = set()
+    existing_application = None  # ← add this
     if current_user.is_authenticated and current_user.role == 'applicant':
         saved_job_ids = {
             s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
         }
+        existing_application = Application.query.filter_by(  # ← add this
+            applicant_id=current_user.id, job_id=job_id
+        ).first()
 
-    return render_template("applicant/job_details.html", job=job, job_owner=job_owner, saved_job_ids=saved_job_ids)
+    return render_template(
+        "applicant/job_details.html",
+        job=job,
+        job_owner=job_owner,
+        saved_job_ids=saved_job_ids,
+        existing_application=existing_application,  # ← add this
+    )
 
 
 # ===============================
@@ -604,6 +616,13 @@ def apply_job(job_id):
     if existing:
         flash("You already applied for this job!", "warning")
         return redirect(url_for('applicant.job_details', job_id=job_id))
+
+    # quota check
+    if job.max_applications is not None:
+        current_count = Application.query.filter_by(job_id=job_id).count()
+        if current_count >= job.max_applications:
+            flash("This job has reached its application quota.", "warning")
+            return redirect(url_for('applicant.job_details', job_id=job_id))
 
     if request.method == "POST":
         cover_letter = request.form.get("cover_letter")

@@ -6,7 +6,23 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/delete_modal.css') }}">
 
 <div class="job-view-wrapper">
-
+<div id="unsavedBanner" style="display:none;
+  position:sticky; top:65px; z-index:200;
+  background:#fef3c7; border-bottom:2px solid #f59e0b;
+  padding:10px 24px; align-items:center; justify-content:space-between; gap:12px;">
+  <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#92400e;font-weight:500;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    You have unsaved changes. Click <strong style="margin:0 4px;">Save Changes</strong> to keep them.
+  </div>
+  <button type="submit" form="editJobForm"
+    style="padding:6px 18px;background:#f59e0b;color:white;border:none;border-radius:6px;
+           font-size:13px;font-weight:600;cursor:pointer;">
+    Save Now
+  </button>
+</div>
   <!-- Top Navigation Bar -->
   <div class="job-view-nav">
     <div class="nav-container">
@@ -40,9 +56,9 @@
         <div class="btn-nav allow-toggle-wrapper">
           <span class="toggle-label-inline">Accept Applications</span>
           <label class="toggle-switch" title="Toggle whether applicants can apply">
-            <input type="checkbox" id="allowApplicationsToggle"
-              {% if job.allow_applications %}checked{% endif %}
-              onchange="handleAllowToggle(this)">
+          <input type="checkbox" id="allowApplicationsToggle"
+            {% if job.allow_applications %}checked{% endif %}
+            onchange="handleAllowToggle(this)">>
             <span class="toggle-slider"></span>
           </label>
         </div>
@@ -69,6 +85,8 @@
 
   <!-- Main Form -->
   <form method="POST" action="{{ url_for('recruiter.edit_job', job_id=job.id) }}" enctype="multipart/form-data" id="editJobForm">
+    <input type="hidden" name="allow_applications" id="allowApplicationsHidden"
+  value="{{ 'on' if job.allow_applications else '' }}">
 
     <!--
       FIXED: Hidden inputs carry AJAX-saved company content through the main form submit.
@@ -121,9 +139,30 @@
               </div>
               <input type="file" id="coverPhotoInput" name="cover_photo" accept="image/*"
                      style="display:none">
-              <p class="field-hint" style="margin-top: 8px;">
-                Recommended: 1200×400px, JPG/PNG/WebP, max 5MB. This is the main header image shown on the job listing.
-              </p>
+              <div class="cover-photo-meta" style="
+                display:flex; align-items:flex-start; gap:10px;
+                margin-top:10px; padding:10px 14px;
+                background:var(--bg-surface-alt,#f9fafb);
+                border:1px solid var(--border-color,#e5e7eb);
+                border-radius:8px; font-size:12px; color:var(--text-muted,#9ca3af);
+              ">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;color:#14b8a6">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8"  x2="12"    y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div>
+                  <strong style="color:var(--text-secondary,#374151);display:block;margin-bottom:3px;">
+                    Cover Photo Guidelines
+                  </strong>
+                  Recommended size: <strong>1200 × 400 px</strong> &nbsp;·&nbsp;
+                  Accepted formats: JPG, PNG, WebP &nbsp;·&nbsp;
+                  <strong style="color:#dc2626;">Max file size: 5 MB</strong>
+                  <br>
+                  After selecting a file you can <strong>drag &amp; zoom</strong> to adjust the framing.
+                </div>
+              </div>
             </div>
 
             <!-- Job Title Section -->
@@ -210,9 +249,25 @@
                     Max Applications (Recruitment Quota)
                     <span class="field-hint" style="display:inline;margin-left:4px;">leave blank = unlimited</span>
                   </label>
-                  <input type="number" name="max_applications" min="1"
-                         value="{{ job.max_applications or '' }}"
-                         class="input-text" placeholder="e.g. 50">
+                  {% set current = job.applications|length if job.applications else 0 %}
+                  {% set max = job.max_applications %}
+
+                  <input type="number"
+                        name="max_applications"
+                        min="{{ current if current > 0 else 1 }}"
+                        value="{{ max or '' }}"
+                        class="input-text"
+                        placeholder="e.g. 50">
+
+                  {% if max and current >= max %}
+                    <p class="field-hint" style="color:#dc2626;">
+                      Quota reached. You can only increase the limit.
+                    </p>
+                  {% elif max %}
+                    <p class="field-hint">
+                      Minimum allowed: {{ current }} (current applications)
+                    </p>
+                  {% endif %}
                 </div>
               </div>
 
@@ -346,7 +401,11 @@
                     </svg>
                   </div>
                   <p class="upload-primary"><span class="upload-link">Click to upload</span> or drag and drop</p>
-                  <p class="upload-formats">PNG, JPG, GIF — up to 10 MB each</p>
+                  <p class="upload-formats">
+                    PNG · JPG · WebP · GIF &nbsp;·&nbsp;
+                    <strong style="color:#dc2626;">Max 10 MB per image</strong>
+                    &nbsp;·&nbsp; Multiple files supported
+                  </p>
                 </div>
                 <input type="file" id="posterInput" name="posters" multiple accept="image/*" style="display:none;">
                 <div id="imagePreviewContainer" class="gallery-grid" style="margin-top:20px;"></div>
@@ -768,32 +827,78 @@
   <span id="saveToastMsg">Saved successfully!</span>
 </div>
 
+  <div id="leaveConfirmModal" class="delete-modal" style="display:none;">
+    <div class="delete-modal-content">
+      <div class="modal-icon" style="background:#fef3c7;border:2px solid #f59e0b;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <h3>Unsaved changes</h3>
+      <p>You have unsaved changes on this page. If you leave now your changes will be lost.</p>
+      <div class="modal-buttons">
+        <button class="btn-secondary" onclick="closeLeaveModal()">
+          Stay &amp; save
+        </button>
+        <button class="btn-danger" id="leaveConfirmBtn">
+          Leave without saving
+        </button>
+      </div>
+    </div>
+  </div>
+
 <script src="{{ url_for('static', filename='js/recruiter/job_image_preview.js') }}"></script>
 <script src="{{ url_for('static', filename='js/recruiter/job_posting.js') }}"></script>
 <script src="{{ url_for('static', filename='js/recruiter/edit_job.js') }}"></script>
 
 <script>
 const JOB_ID = {{ job.id }};
-
-/* ── Toast helper ── */
-function showToast(msg, isError = false) {
+ 
+/* ── Toast helper ─────────────────────────────────────── */
+function showToast(msg, isError) {
   const toast = document.getElementById('saveToast');
   document.getElementById('saveToastMsg').textContent = msg;
-  toast.style.display = 'flex';
+  toast.style.display   = 'flex';
   toast.style.borderColor = isError ? '#ef4444' : '#14b8a6';
   clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+  toast._timer = setTimeout(function () { toast.style.display = 'none'; }, 3000);
 }
-
-/* ── Toggle edit mode ── */
-const editSections = {
-  overview: { display: 'overviewDisplay', form: 'overviewEditForm' },
-  about:    { display: 'aboutDisplay',    form: 'aboutEditForm'    },
-  values:   { display: 'valuesDisplay',   form: 'valuesEditForm'   },
-  whyjoin:  { display: 'whyjoinDisplay',  form: 'whyjoinEditForm'  },
+ 
+/* ══════════════════════════════════════════════════════
+   ALLOW-APPLICATIONS TOGGLE
+   No AJAX — write to hidden input, submit with the form.
+   ══════════════════════════════════════════════════════ */
+function handleAllowToggle(checkbox) {
+  const allowed = checkbox.checked;
+  /* Update the status badge */
+  const badge = document.getElementById('statusBadge');
+  const text  = document.getElementById('statusText');
+  badge.classList.toggle('btn-published',  allowed);
+  badge.classList.toggle('btn-closed',    !allowed);
+  text.textContent = allowed ? 'Published' : 'Closed';
+  /* Write to hidden field so it travels with the main form */
+  document.getElementById('allowApplicationsHidden').value = allowed ? 'on' : '';
+  markDirty();
+}
+ 
+/* ══════════════════════════════════════════════════════
+   INLINE SECTION EDITORS
+   "Save" only updates the display + hidden fields.
+   No AJAX. All data is committed via the main form submit.
+   ══════════════════════════════════════════════════════ */
+ 
+/* ── toggle between display and edit form ── */
+const _editSections = {
+  overview: { display: 'overviewDisplay',  form: 'overviewEditForm'  },
+  about:    { display: 'aboutDisplay',     form: 'aboutEditForm'     },
+  values:   { display: 'valuesDisplay',    form: 'valuesEditForm'    },
+  whyjoin:  { display: 'whyjoinDisplay',   form: 'whyjoinEditForm'   },
 };
+ 
 function toggleEditMode(section) {
-  const s = editSections[section];
+  const s = _editSections[section];
   if (!s) return;
   const displayEl = document.getElementById(s.display);
   const formEl    = document.getElementById(s.form);
@@ -801,225 +906,251 @@ function toggleEditMode(section) {
   displayEl.style.display = isEditing ? '' : 'none';
   formEl.style.display    = isEditing ? 'none' : 'block';
 }
-
-/* ── Save About Company ──
-   Also updates the hidden form field so "Save Changes" keeps the value. */
+ 
+/* ── About Company ── */
 function saveAbout() {
   const content = document.getElementById('aboutTextarea').value;
-  fetch(`/recruiter/update-job-company-content/${JOB_ID}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ section: 'about', content })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      document.getElementById('aboutDisplay').innerHTML =
-        content ? content.replace(/\n/g, '<br>') : '<p>(no content)</p>';
-      /* FIXED: keep hidden field in sync so main form submit preserves value */
-      document.getElementById('aboutCompanyFormField').value = content;
-      toggleEditMode('about');
-      showToast('About company saved!');
-    } else showToast('Save failed.', true);
-  })
-  .catch(() => showToast('Network error.', true));
+ 
+  /* Update the visible display */
+  document.getElementById('aboutDisplay').innerHTML =
+    content ? content.replace(/\n/g, '<br>') : '<p>(no content)</p>';
+ 
+  /* Keep hidden field in sync so the main form POST carries the value */
+  document.getElementById('aboutCompanyFormField').value = content;
+ 
+  toggleEditMode('about');
+  markDirty();
+  showToast('About company updated — click Save Changes to persist.');
 }
-
-/* ── Save Company Values ── */
-function addValueRow(title='', desc='') {
+ 
+/* ── Company Values ── */
+function addValueRow(title, desc) {
+  title = title || '';
+  desc  = desc  || '';
   const row = document.createElement('div');
   row.className = 'value-editor-row';
-  row.innerHTML = `
-    <input type="text"  class="input-text value-title-input" placeholder="Value title" value="${title}" style="margin-bottom:6px;">
-    <input type="text"  class="input-text value-desc-input"  placeholder="Short description" value="${desc}">
-    <button type="button" class="btn-remove-value" onclick="this.parentElement.remove()">×</button>
-  `;
+  row.innerHTML =
+    '<input type="text"  class="input-text value-title-input" placeholder="Value title"'
+    + ' value="' + _esc(title) + '" style="margin-bottom:6px;">'
+    + '<input type="text" class="input-text value-desc-input"  placeholder="Short description"'
+    + ' value="' + _esc(desc) + '">'
+    + '<button type="button" class="btn-remove-value" onclick="this.parentElement.remove()">×</button>';
   document.getElementById('valuesEditorList').appendChild(row);
 }
+ 
 function saveValues() {
   const rows  = document.querySelectorAll('.value-editor-row');
-  const items = Array.from(rows).map(r => ({
-    title:       r.querySelector('.value-title-input').value.trim(),
-    description: r.querySelector('.value-desc-input').value.trim(),
-  })).filter(v => v.title);
-
-  fetch(`/recruiter/update-job-company-content/${JOB_ID}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ section: 'values', items })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      const display = document.getElementById('valuesDisplay');
-      display.innerHTML = items.map(v => `
-        <div class="value-item">
-          <div class="value-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-            </svg>
-          </div>
-          <div class="value-content">
-            <h5 class="value-title">${escHtml(v.title)}</h5>
-            <p class="value-description">${escHtml(v.description)}</p>
-          </div>
-        </div>
-      `).join('');
-      /* FIXED: keep hidden field in sync */
-      document.getElementById('companyValuesFormField').value = JSON.stringify(items);
-      toggleEditMode('values');
-      showToast('Company values saved!');
-    } else showToast('Save failed.', true);
-  })
-  .catch(() => showToast('Network error.', true));
+  const items = Array.from(rows).map(function (r) {
+    return {
+      title:       r.querySelector('.value-title-input').value.trim(),
+      description: r.querySelector('.value-desc-input').value.trim(),
+    };
+  }).filter(function (v) { return v.title; });
+ 
+  /* Update visible display */
+  document.getElementById('valuesDisplay').innerHTML = items.map(function (v) {
+    return '<div class="value-item">'
+      + '<div class="value-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"'
+      + ' stroke="currentColor" stroke-width="2">'
+      + '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'
+      + '</svg></div>'
+      + '<div class="value-content">'
+      + '<h5 class="value-title">'  + _esc(v.title)       + '</h5>'
+      + '<p class="value-description">' + _esc(v.description) + '</p>'
+      + '</div></div>';
+  }).join('');
+ 
+  /* Keep hidden field in sync */
+  document.getElementById('companyValuesFormField').value = JSON.stringify(items);
+ 
+  toggleEditMode('values');
+  markDirty();
+  showToast('Company values updated — click Save Changes to persist.');
 }
-
-/* ── Save Overview (local only, persists on next form submit) ── */
+ 
+/* ── Company Overview (local display only; carried by main form) ── */
 function saveOverview() {
   const industry = document.getElementById('editIndustry').value.trim();
   const size     = document.getElementById('editCompanySize').value;
   document.getElementById('overviewIndustry').textContent = industry;
   document.getElementById('overviewSize').textContent     = size;
   toggleEditMode('overview');
-  showToast('Overview updated — will be saved with next Save Changes.');
+  markDirty();
+  showToast('Overview updated — click Save Changes to persist.');
 }
-
-/* ── Save Why Join Us ── */
-function addBenefitRow(val='') {
+ 
+/* ── Why Join Us ── */
+function addBenefitRow(val) {
+  val = val || '';
   const row = document.createElement('div');
   row.className = 'benefit-editor-row';
-  row.innerHTML = `
-    <input type="text" class="input-text benefit-input" value="${val}" placeholder="e.g. Competitive salary">
-    <button type="button" class="btn-remove-value" onclick="this.parentElement.remove()">×</button>
-  `;
+  row.innerHTML =
+    '<input type="text" class="input-text benefit-input"'
+    + ' value="' + _esc(val) + '" placeholder="e.g. Competitive salary">'
+    + '<button type="button" class="btn-remove-value" onclick="this.parentElement.remove()">×</button>';
   document.getElementById('benefitsList').appendChild(row);
 }
+ 
 function saveWhyJoin() {
   const inputs = document.querySelectorAll('.benefit-input');
-  const items  = Array.from(inputs).map(i => i.value.trim()).filter(Boolean);
-
-  fetch(`/recruiter/update-job-company-content/${JOB_ID}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ section: 'why_join', items })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      const display = document.getElementById('whyjoinDisplay');
-      display.innerHTML = items.map(b => `
-        <div class="benefit-item">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          <span>${escHtml(b)}</span>
-        </div>
-      `).join('');
-      /* FIXED: keep hidden field in sync */
-      document.getElementById('whyJoinUsFormField').value = JSON.stringify(items);
-      toggleEditMode('whyjoin');
-      showToast('Benefits saved!');
-    } else showToast('Save failed.', true);
-  })
-  .catch(() => showToast('Network error.', true));
+  const items  = Array.from(inputs).map(function (i) { return i.value.trim(); }).filter(Boolean);
+ 
+  /* Update visible display */
+  document.getElementById('whyjoinDisplay').innerHTML = items.map(function (b) {
+    return '<div class="benefit-item">'
+      + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none"'
+      + ' stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
+      + '<span>' + _esc(b) + '</span></div>';
+  }).join('');
+ 
+  /* Keep hidden field in sync */
+  document.getElementById('whyJoinUsFormField').value = JSON.stringify(items);
+ 
+  toggleEditMode('whyjoin');
+  markDirty();
+  showToast('Benefits updated — click Save Changes to persist.');
 }
-
-/* ── HR Team Member Toggle ── */
+ 
+ 
+/* ══════════════════════════════════════════════════════
+   HR TEAM MEMBER TOGGLE
+   Changes are queued locally; AJAX is fired on main form submit.
+   ══════════════════════════════════════════════════════ */
+ 
+/*
+  _teamQueue  = { hrId: 'add' | 'remove' }
+  Tracks what needs to be sent to the server when "Save Changes" is pressed.
+  If a member is toggled back to their original state the entry is deleted.
+*/
+const _teamOriginal = {};   /* hrId → true (assigned) | false (not assigned) */
+const _teamQueue    = {};   /* hrId → 'add' | 'remove' — pending changes     */
+ 
+document.addEventListener('DOMContentLoaded', function () {
+  /* Seed the original state from the rendered buttons */
+  document.querySelectorAll('.btn-assign-hr').forEach(function (btn) {
+    const row  = btn.closest('[data-hr-id]');
+    if (!row) return;
+    const hrId = parseInt(row.dataset.hrId, 10);
+    _teamOriginal[hrId] = btn.dataset.assigned === 'true';
+  });
+});
+ 
 function toggleTeamMember(jobId, hrId, btn) {
   const isAssigned = btn.dataset.assigned === 'true';
-  const url = isAssigned
-    ? `/recruiter/job-team/${jobId}/remove`
-    : `/recruiter/job-team/${jobId}/add`;
-  fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ hr_id: hrId })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      const nowAssigned = !isAssigned;
-      btn.dataset.assigned = nowAssigned ? 'true' : 'false';
-      btn.classList.toggle('assigned', nowAssigned);
-      const row = document.getElementById(`hrAssignRow-${hrId}`);
-      if (row) row.classList.toggle('assigned', nowAssigned);
-      btn.innerHTML = nowAssigned
-        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Assigned`
-        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Assign`;
-      showToast(nowAssigned ? 'HR member assigned!' : 'HR member removed.');
-    } else {
-      showToast(data.error || 'Failed to update team.', true);
-    }
-  })
-  .catch(() => showToast('Network error.', true));
-}
-
-/* ── Allow Applications Toggle ── */
-function handleAllowToggle(checkbox) {
-  const allowed = checkbox.checked;
-  fetch(`/recruiter/job-toggle-applications/${JOB_ID}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ allow: allowed })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      const badge = document.getElementById('statusBadge');
-      const text  = document.getElementById('statusText');
-      badge.classList.toggle('btn-published', allowed);
-      badge.classList.toggle('btn-closed',    !allowed);
-      text.textContent = allowed ? 'Published' : 'Closed';
-      showToast(allowed ? 'Applications are now open.' : 'Applications are now closed.');
-    } else {
-      checkbox.checked = !allowed;
-      showToast('Failed to update status.', true);
-    }
-  })
-  .catch(() => {
-    checkbox.checked = !allowed;
-    showToast('Network error.', true);
-  });
-}
-
-/* ── Delete Job ── */
-document.getElementById('deleteJobBtn').addEventListener('click', function () {
-  const appCount = parseInt(this.dataset.appCount) || 0;
-  const modal    = document.getElementById('deleteJobModal');
-  if (appCount > 0) {
-    document.getElementById('deleteJobTitle').textContent = 'Delete Job with Active Applications';
-    document.getElementById('deleteJobMessage').innerHTML =
-      `This job has <strong>${appCount} application(s)</strong>. Deleting it will permanently remove all applications. This cannot be undone.`;
+  const nowAssigned = !isAssigned;
+ 
+  /* Update UI */
+  btn.dataset.assigned = nowAssigned ? 'true' : 'false';
+  btn.classList.toggle('assigned', nowAssigned);
+  const row = document.getElementById('hrAssignRow-' + hrId);
+  if (row) row.classList.toggle('assigned', nowAssigned);
+  btn.innerHTML = nowAssigned
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<polyline points="20 6 9 17 4 12"/></svg> Assigned'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Assign';
+ 
+  /* Queue or dequeue */
+  if (nowAssigned !== _teamOriginal[hrId]) {
+    _teamQueue[hrId] = nowAssigned ? 'add' : 'remove';
   } else {
-    document.getElementById('deleteJobTitle').textContent = 'Delete Job Posting';
-    document.getElementById('deleteJobMessage').textContent = 'Are you sure you want to permanently delete this job posting?';
+    delete _teamQueue[hrId];
   }
-  document.getElementById('confirmDeleteJobBtn').onclick = function () {
-    fetch(`/recruiter/force-delete-job/${JOB_ID}`, { method: 'POST' })
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          window.location.href = '{{ url_for("recruiter.my_job_list") }}';
-        } else {
-          showToast(data.error || 'Delete failed.', true);
-          closeDeleteJobModal();
-        }
-      })
-      .catch(() => showToast('Network error.', true));
-  };
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-});
-
-function closeDeleteJobModal() {
-  document.getElementById('deleteJobModal').style.display = 'none';
-  document.body.style.overflow = '';
+ 
+  markDirty();
+  showToast((nowAssigned ? 'HR member marked for assignment' : 'HR member marked for removal')
+    + ' — click Save Changes to persist.');
 }
-
+ 
+/* Flush queued team changes when the main form submits */
+document.addEventListener('DOMContentLoaded', function () {
+  const mainForm = document.getElementById('editJobForm');
+  if (!mainForm) return;
+ 
+  mainForm.addEventListener('submit', function (e) {
+    const pending = Object.keys(_teamQueue);
+    if (pending.length === 0) return; /* nothing to flush */
+ 
+    e.preventDefault(); /* Hold submission until AJAX is done */
+ 
+    const promises = pending.map(function (hrId) {
+      const action = _teamQueue[hrId];
+      const url    = '/recruiter/job-team/' + JOB_ID + '/' + action;
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hr_id: parseInt(hrId, 10) }),
+      }).then(function (r) { return r.json(); });
+    });
+ 
+    Promise.all(promises)
+      .then(function () {
+        /* Clear queue, then let the form submit for real */
+        pending.forEach(function (id) { delete _teamQueue[id]; });
+        markClean();
+        mainForm.submit();
+      })
+      .catch(function (err) {
+        console.error('Team member sync error:', err);
+        showToast('Could not save team changes. Please try again.', true);
+      });
+  });
+});
+ 
+ 
+/* ══════════════════════════════════════════════════════
+   DELETE JOB (immediate — intentional destructive action)
+   ══════════════════════════════════════════════════════ */
+ 
+document.addEventListener('DOMContentLoaded', function () {
+  const deleteJobBtn = document.getElementById('deleteJobBtn');
+  if (deleteJobBtn) {
+    deleteJobBtn.addEventListener('click', function () {
+      const appCount = parseInt(this.dataset.appCount) || 0;
+      const modal    = document.getElementById('deleteJobModal');
+      if (appCount > 0) {
+        document.getElementById('deleteJobTitle').textContent   = 'Delete Job with Active Applications';
+        document.getElementById('deleteJobMessage').innerHTML   =
+          'This job has <strong>' + appCount + ' application(s)</strong>.'
+          + ' Deleting it will permanently remove all applications. This cannot be undone.';
+      } else {
+        document.getElementById('deleteJobTitle').textContent   = 'Delete Job Posting';
+        document.getElementById('deleteJobMessage').textContent =
+          'Are you sure you want to permanently delete this job posting?';
+      }
+      document.getElementById('confirmDeleteJobBtn').onclick = function () {
+        fetch('/recruiter/force-delete-job/' + JOB_ID, { method: 'POST' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.success) {
+              markClean();   /* Don't trigger the leave-warning */
+              window.location.href = '{{ url_for("recruiter.my_job_list") }}';
+            } else {
+              showToast(data.error || 'Delete failed.', true);
+              closeDeleteJobModal();
+            }
+          })
+          .catch(function () { showToast('Network error.', true); });
+      };
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+  }
+});
+ 
+function closeDeleteJobModal() {
+  const modal = document.getElementById('deleteJobModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+}
+ 
+ 
 /* ── HTML escape helper ── */
-function escHtml(str) {
+function _esc(str) {
   const d = document.createElement('div');
-  d.textContent = str;
+  d.textContent = String(str);
   return d.innerHTML;
 }
 </script>

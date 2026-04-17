@@ -13,10 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const container        = document.getElementById('savedContainer');
     const fieldFilter      = document.getElementById('savedFieldFilter');
     const typeFilter       = document.getElementById('savedTypeFilter');
-    const sortNewest       = document.getElementById('sortNewest');
-    const sortOldest       = document.getElementById('sortOldest');
-    const sortAZ           = document.getElementById('sortAZ');
-    const sortZA           = document.getElementById('sortZA');
     const activeFiltersBar = document.getElementById('savedActiveFiltersBar');
     const activeFilterTags = document.getElementById('savedActiveFilterTags');
     const clearAllBtn      = document.getElementById('savedClearAll');

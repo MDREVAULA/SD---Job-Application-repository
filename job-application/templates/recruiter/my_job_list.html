@@ -50,7 +50,6 @@
                 </div>
             </div>
             <div class="stat-value">{{ jobs|length }} Jobs</div>
-            <div class="stat-change positive">+2 from last week</div>
         </div>
 
         <div class="stat-card">
@@ -71,7 +70,6 @@
                 {% endfor %}
                 {{ total_apps.count }} Applicants
             </div>
-            <div class="stat-change positive">+12 from this week</div>
         </div>
 
         <div class="stat-card">
@@ -84,7 +82,6 @@
                 </div>
             </div>
             <div class="stat-value">{{ jobs|length }} Posted</div>
-            <div class="stat-change neutral">Same as last week</div>
         </div>
     </div>
 
@@ -102,9 +99,7 @@
                 </div>
 
                 <div class="date-filter">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
+                    <i class="fas fa-filter"></i>
                     <select id="sortSelect" onchange="applySort()">
                         <option value="newest">Newest First</option>
                         <option value="oldest">Oldest First</option>
@@ -142,6 +137,7 @@
                         <th>Posted Date</th>
                         <th>Deadline</th>
                         <th>Applicants</th>
+                        <th>Quota</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -241,6 +237,19 @@
                         <td class="applicants">
                             <span class="applicants-count">{{ job.applications | length }}</span>
                         </td>
+
+                        <td class="quota">
+                            {% if job.max_applications %}
+                                {% set used = job.applications | length %}
+                                {% set total = job.max_applications %}
+                                {% set pct = (used / total * 100) | int %}
+                                <span class="quota-badge {% if pct >= 100 %}quota-full{% elif pct >= 75 %}quota-warn{% endif %}">
+                                    {{ used }}/{{ total }}
+                                </span>
+                            {% else %}
+                                <span class="quota-badge quota-none">—</span>
+                            {% endif %}
+                        </td>
                         
                         <td class="actions">
                             <div class="action-buttons">
@@ -294,6 +303,7 @@
 </div>
 
 <!-- DELETE MODAL -->
+<!-- DELETE MODAL -->
 <div id="deleteModal" class="delete-modal">
   <div class="delete-modal-content">
     <div class="modal-icon">
@@ -303,7 +313,14 @@
         </svg>
     </div>
     <h3>Delete job posting</h3>
-    <p>Are you sure you want to delete this job? This action cannot be undone and all applications will be lost.</p>
+
+    <p id="deleteNormalMsg">
+        Are you sure you want to delete this job? This action cannot be undone and all applications will be lost.
+    </p>
+    <p id="deleteWarning" style="display:none; color: var(--danger);">
+        <strong>Warning:</strong> This job has active applicants. Deleting it will permanently remove all their applications. This cannot be undone.
+    </p>
+
     <div class="modal-buttons">
       <button class="btn-secondary" onclick="closeDeleteModal()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

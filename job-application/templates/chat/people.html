@@ -1,234 +1,264 @@
 {% extends "layout.html" %}
 
-{% block content %}
+{% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat/people.css') }}">
+{% endblock %}
 
-<div class="people-page">
-<div class="people-page-inner">
+{% block content %}
 
-    <!-- ============================
-         TOP BAR
-    ============================ -->
-    <div class="people-topbar">
-
-        <div class="people-topbar-header">
-            <h1><i class="fas fa-users"></i> People</h1>
-            <span class="people-results-meta">
-                {% if query %}
-                    {{ user_cards|length }} result{{ 's' if user_cards|length != 1 }} for "<strong>{{ query }}</strong>"
-                {% else %}
-                    {{ user_cards|length }} people on HireBon
-                {% endif %}
-            </span>
+<div class="people-page-wrapper">
+  
+  <!-- Top Navigation with Search -->
+  <div class="people-nav">
+    <div class="people-nav-container">
+      <div class="people-nav-left">
+        <div class="people-title-section">
+          <div class="people-category">NETWORKING</div>
+          <h1 class="people-title-main"><i class="fas fa-users"></i> Browse People</h1>
+          <div class="people-meta">
+            {% if query %}
+              {{ user_cards|length }} result{{ 's' if user_cards|length != 1 }} for "<strong>{{ query }}</strong>"
+            {% else %}
+              {{ user_cards|length }} people on HireBon
+            {% endif %}
+          </div>
         </div>
+      </div>
 
-        <form method="GET" action="{{ url_for('chat.people') }}">
-            <div class="search-input-group">
-                <i class="fas fa-search people-search-icon"></i>
-                <input
-                    type="text"
-                    name="q"
-                    class="people-search-input"
-                    placeholder="Search by name or username..."
-                    value="{{ query }}"
-                    autocomplete="off"
-                >
-                <button type="submit" class="search-btn">Search</button>
-            </div>
-
-            <div class="role-filter-tabs">
-                <a href="{{ url_for('chat.people', q=query) }}"
-                   class="role-tab {% if not role_filter %}active{% endif %}">All</a>
-                <a href="{{ url_for('chat.people', q=query, role='applicant') }}"
-                   class="role-tab {% if role_filter == 'applicant' %}active{% endif %}">
-                    <i class="fas fa-user-tie"></i> Applicants
-                </a>
-                <a href="{{ url_for('chat.people', q=query, role='recruiter') }}"
-                   class="role-tab {% if role_filter == 'recruiter' %}active{% endif %}">
-                    <i class="fas fa-building"></i> Recruiters
-                </a>
-                <a href="{{ url_for('chat.people', q=query, role='hr') }}"
-                   class="role-tab {% if role_filter == 'hr' %}active{% endif %}">
-                    <i class="fas fa-users-cog"></i> HR
-                </a>
-            </div>
+      <div class="people-nav-right">
+        <form method="GET" action="{{ url_for('chat.people') }}" class="search-form-inline">
+          <div class="search-input-wrapper">
+            <i class="fas fa-search search-people"></i>
+            <input
+              type="text"
+              name="q"
+              class="search-input"
+              placeholder="Search by name or username..."
+              value="{{ query }}"
+              autocomplete="off"
+            >
+            <!-- <button type="submit" class="btn-search-people">
+              <i class="fas fa-search"></i>
+              Search
+            </button> -->
+          </div>
         </form>
+      </div>
     </div>
+  </div>
 
-    <!-- GUEST NOTICE -->
+  <!-- Filter Tabs Bar -->
+  <div class="people-filter-bar">
+    <div class="filter-bar-container">
+      <div class="role-filter-tabs">
+        <a href="{{ url_for('chat.people', q=query) }}"
+           class="role-tab {% if not role_filter %}active{% endif %}">
+          <i class="fas fa-globe"></i> All
+        </a>
+        <a href="{{ url_for('chat.people', q=query, role='applicant') }}"
+           class="role-tab {% if role_filter == 'applicant' %}active{% endif %}">
+          <i class="fas fa-user-tie"></i> Applicants
+        </a>
+        <a href="{{ url_for('chat.people', q=query, role='recruiter') }}"
+           class="role-tab {% if role_filter == 'recruiter' %}active{% endif %}">
+          <i class="fas fa-building"></i> Recruiters
+        </a>
+        <a href="{{ url_for('chat.people', q=query, role='hr') }}"
+           class="role-tab {% if role_filter == 'hr' %}active{% endif %}">
+          <i class="fas fa-users-cog"></i> HR
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="people-content">
+    
+    <!-- Guest Notice -->
     {% if not current_user.is_authenticated %}
-    <div class="guest-notice">
-        <i class="fas fa-info-circle"></i>
-        <span>You're browsing as a guest. <a href="{{ url_for('auth.login') }}">Log in</a> or <a href="{{ url_for('auth.register') }}">sign up</a> to follow people and send messages.</span>
+    <div class="guest-notice-card">
+      <i class="fas fa-info-circle"></i>
+      <div class="guest-notice-content">
+        <span class="guest-notice-title">You're browsing as a guest</span>
+        <span class="guest-notice-text">
+          <a href="{{ url_for('auth.login') }}">Log in</a> or 
+          <a href="{{ url_for('auth.register') }}">sign up</a> to follow people and send messages.
+        </span>
+      </div>
     </div>
     {% endif %}
 
-    <!-- ============================
-         PEOPLE GRID
-    ============================ -->
+    <!-- People Grid -->
     {% if user_cards %}
     <div class="people-grid">
-        {% for card in user_cards %}
- 
-        {# ── Privacy / messaging come straight from the server ── #}
-        {% set privacy      = card.show_profile %}
-        {% set msg_setting  = card.who_can_message %}
-        {% set viewer_can_msg = card.viewer_can_msg %}
-         
-        <div class="person-card"
-             data-role="{{ card.role }}"
-             data-user-id="{{ card.id }}"
-             data-msg-setting="{{ msg_setting }}"
-             data-display-name="{{ card.display_name }}"
-             data-viewer-can-msg="{{ 'true' if viewer_can_msg else 'false' }}">
-         
-            <!-- COVER STRIP -->
-            <div class="card-cover role-{{ card.role }}">
-                <div class="card-avatar-wrap">
-                    {% if card.profile_picture %}
-                        {% if card.profile_picture.startswith('http') %}
-                            <img src="{{ card.profile_picture }}" alt="{{ card.username }}" class="person-avatar">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='uploads/profile_pictures/' + card.profile_picture) }}"
-                                 alt="{{ card.username }}" class="person-avatar">
-                        {% endif %}
-                    {% else %}
-                        <div class="person-avatar-placeholder"><i class="fas fa-user"></i></div>
-                    {% endif %}
-                </div>
-            </div>
-         
-            <!-- CARD BODY -->
-            <div class="card-body">
-         
-                <!-- Name row with privacy badge -->
-                <div class="person-name-row">
-                    <h3 class="person-name">{{ card.display_name }}</h3>
-         
-                    {# ── Profile privacy indicator ── #}
-                    {% if privacy == 'none' %}
-                    <span class="person-privacy-badge badge-locked"
-                          title="This profile is completely private">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    {% elif privacy == 'specific' %}
-                    <span class="person-privacy-badge badge-restricted"
-                          title="This profile is visible to a specific audience only">
-                        <i class="fas fa-user-shield"></i>
-                    </span>
-                    {% endif %}
-         
-                    {# ── Messaging restriction indicator ── #}
-                    {% if msg_setting == 'recruiters' %}
-                    <span class="person-msg-badge badge-recruiters-only"
-                          title="Only recruiters can message this person">
-                        <i class="fas fa-briefcase"></i>
-                    </span>
-                    {% elif msg_setting == 'mutual' %}
-                    <span class="person-msg-badge badge-mutuals-only"
-                          title="Only mutual followers can message this person">
-                        <i class="fas fa-user-friends"></i>
-                    </span>
-                    {% endif %}
-                </div>
-         
-                <span class="person-username">@{{ card.username }}</span>
-         
-                <span class="person-role-pill role-{{ card.role }}">
-                    {% if card.role == 'applicant' %}Applicant
-                    {% elif card.role == 'recruiter' %}Recruiter
-                    {% elif card.role == 'hr' %}HR
-                    {% endif %}
-                </span>
-         
-                {% if card.company %}
-                <div class="person-company">
-                    <i class="fas fa-briefcase"></i>
-                    {{ card.company }}
-                </div>
-                {% endif %}
-         
-                <div class="person-followers">
-                    <i class="fas fa-user-friends"></i>
-                    <span class="follower-count" id="fc-{{ card.id }}">{{ card.follower_count }}</span>
-                    &nbsp;follower{{ 's' if card.follower_count != 1 }}
-                </div>
-            </div>
-         
-            <!-- CARD FOOTER -->
-            <div class="card-footer">
-                {% if current_user.is_authenticated %}
-         
-                    <button
-                        class="btn-follow {% if card.is_following %}following{% endif %}"
-                        id="follow-btn-{{ card.id }}"
-                        onclick="toggleFollow({{ card.id }}, this)"
-                    >
-                        {% if card.is_following %}
-                            <i class="fas fa-user-check"></i> Following
-                        {% else %}
-                            <i class="fas fa-user-plus"></i> Follow
-                        {% endif %}
-                    </button>
-         
-                    {# ── Message button — shows toast if restricted ── #}
-                    {% if viewer_can_msg %}
-                    <a href="{{ url_for('chat.conversation', other_id=card.id) }}"
-                       class="btn-message" title="Message {{ card.display_name }}">
-                        <i class="fas fa-comment"></i>
-                    </a>
-                    {% else %}
-                    <button class="btn-message btn-message-restricted"
-                            title="Messaging restricted"
-                            onclick="showMsgRestriction(this)">
-                        <i class="fas fa-comment-slash"></i>
-                    </button>
-                    {% endif %}
-         
-                    <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}"
-                       class="btn-view-profile"
-                       title="View {{ card.display_name }}'s profile">
-                        <i class="fas fa-eye"></i>
-                    </a>
-         
-                {% else %}
-                    <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}" class="btn-follow">
-                        <i class="fas fa-sign-in-alt"></i> View Profile
-                    </a>
-                {% endif %}
-            </div>
-         
+      {% for card in user_cards %}
+      
+      {# ── Privacy / messaging settings ── #}
+      {% set privacy      = card.show_profile %}
+      {% set msg_setting  = card.who_can_message %}
+      {% set viewer_can_msg = card.viewer_can_msg %}
+      
+      <div class="person-card"
+           data-role="{{ card.role }}"
+           data-user-id="{{ card.id }}"
+           data-msg-setting="{{ msg_setting }}"
+           data-display-name="{{ card.display_name }}"
+           data-viewer-can-msg="{{ 'true' if viewer_can_msg else 'false' }}">
+      
+        <!-- Cover Strip -->
+        <div class="card-cover role-{{ card.role }}">
+          <div class="card-avatar-wrap">
+            {% if card.profile_picture %}
+              {% if card.profile_picture.startswith('http') %}
+                <img src="{{ card.profile_picture }}" alt="{{ card.username }}" class="person-avatar">
+              {% else %}
+                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + card.profile_picture) }}"
+                     alt="{{ card.username }}" class="person-avatar">
+              {% endif %}
+            {% else %}
+              <div class="person-avatar-placeholder"><i class="fas fa-user"></i></div>
+            {% endif %}
+          </div>
         </div>
-        {% endfor %}
+      
+        <!-- Card Body -->
+        <div class="card-body">
+      
+          <!-- Name row with badges -->
+          <div class="person-name-row">
+            <h3 class="person-name">{{ card.display_name }}</h3>
+      
+            {# ── Privacy badges ── #}
+            {% if privacy == 'none' %}
+            <span class="person-privacy-badge badge-locked"
+                  title="This profile is completely private">
+              <i class="fas fa-lock"></i>
+            </span>
+            {% elif privacy == 'specific' %}
+            <span class="person-privacy-badge badge-restricted"
+                  title="This profile is visible to a specific audience only">
+              <i class="fas fa-user-shield"></i>
+            </span>
+            {% endif %}
+      
+            {# ── Messaging badges ── #}
+            {% if msg_setting == 'recruiters' %}
+            <span class="person-msg-badge badge-recruiters-only"
+                  title="Only recruiters can message this person">
+              <i class="fas fa-briefcase"></i>
+            </span>
+            {% elif msg_setting == 'mutual' %}
+            <span class="person-msg-badge badge-mutuals-only"
+                  title="Only mutual followers can message this person">
+              <i class="fas fa-user-friends"></i>
+            </span>
+            {% endif %}
+          </div>
+      
+          <span class="person-username">@{{ card.username }}</span>
+      
+          <span class="person-role-pill role-{{ card.role }}">
+            {% if card.role == 'applicant' %}
+              <i class="fas fa-user-tie"></i> Applicant
+            {% elif card.role == 'recruiter' %}
+              <i class="fas fa-building"></i> Recruiter
+            {% elif card.role == 'hr' %}
+              <i class="fas fa-users-cog"></i> HR
+            {% endif %}
+          </span>
+      
+          {% if card.company %}
+          <div class="person-company">
+            <i class="fas fa-briefcase"></i>
+            {{ card.company }}
+          </div>
+          {% endif %}
+      
+          <div class="person-followers">
+            <i class="fas fa-user-friends"></i>
+            <span class="follower-count" id="fc-{{ card.id }}">{{ card.follower_count }}</span>
+            &nbsp;follower{{ 's' if card.follower_count != 1 }}
+          </div>
+        </div>
+      
+        <!-- Card Footer -->
+        <div class="card-footer">
+          {% if current_user.is_authenticated %}
+      
+            <button
+              class="btn-follow {% if card.is_following %}following{% endif %}"
+              id="follow-btn-{{ card.id }}"
+              onclick="toggleFollow({{ card.id }}, this)"
+            >
+              {% if card.is_following %}
+                <i class="fas fa-user-check"></i> Following
+              {% else %}
+                <i class="fas fa-user-plus"></i> Follow
+              {% endif %}
+            </button>
+      
+            {# ── Message button ── #}
+            {% if viewer_can_msg %}
+            <a href="{{ url_for('chat.conversation', other_id=card.id) }}"
+               class="btn-message" title="Message {{ card.display_name }}">
+              <i class="fas fa-comment"></i>
+            </a>
+            {% else %}
+            <button class="btn-message btn-message-restricted"
+                    title="Messaging restricted"
+                    onclick="showMsgRestriction(this)">
+              <i class="fas fa-comment-slash"></i>
+            </button>
+            {% endif %}
+      
+            <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}"
+               class="btn-view-profile"
+               title="View {{ card.display_name }}'s profile">
+              <i class="fas fa-eye"></i>
+            </a>
+      
+          {% else %}
+            <a href="{{ url_for('profile_view.view_profile', user_id=card.id) }}" class="btn-follow btn-guest-view">
+              <i class="fas fa-sign-in-alt"></i> View Profile
+            </a>
+          {% endif %}
+        </div>
+      
+      </div>
+      {% endfor %}
     </div>
 
     {% else %}
-    <!-- EMPTY STATE -->
+    <!-- Empty State -->
     <div class="people-empty">
+      <div class="empty-icon">
         <i class="fas fa-user-slash"></i>
-        <h3>No people found</h3>
-        <p>Try a different search term or remove the role filter.</p>
-        {% if query %}
-            <a href="{{ url_for('chat.people') }}" class="btn-clear-search">Clear search</a>
-        {% endif %}
+      </div>
+      <h3>No people found</h3>
+      <p>Try a different search term or remove the role filter.</p>
+      {% if query %}
+        <a href="{{ url_for('chat.people') }}" class="btn-clear-search">
+          <i class="fas fa-times-circle"></i> Clear search
+        </a>
+      {% endif %}
     </div>
     {% endif %}
 
-</div><!-- .people-page-inner -->
-</div><!-- .people-page -->
+  </div><!-- .people-content -->
+</div><!-- .people-page-wrapper -->
 
 <!-- ── MESSAGE RESTRICTION TOAST ── -->
 <div class="msg-restriction-toast" id="msgRestrictionToast">
-    <div class="msg-toast-inner">
-        <i class="fas fa-comment-slash msg-toast-icon"></i>
-        <div class="msg-toast-body">
-            <p class="msg-toast-title" id="msgToastTitle"></p>
-            <p class="msg-toast-text" id="msgToastText"></p>
-        </div>
-        <button class="msg-toast-close" onclick="closeMsgToast()">
-            <i class="fas fa-times"></i>
-        </button>
+  <div class="msg-toast-inner">
+    <i class="fas fa-comment-slash msg-toast-icon"></i>
+    <div class="msg-toast-body">
+      <p class="msg-toast-title" id="msgToastTitle"></p>
+      <p class="msg-toast-text" id="msgToastText"></p>
     </div>
+    <button class="msg-toast-close" onclick="closeMsgToast()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/chat/people.js') }}"></script>

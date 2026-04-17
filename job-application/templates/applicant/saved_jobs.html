@@ -1,228 +1,226 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/saved_jobs.css') }}">
 
-<div class="applications-wrapper">
-
-    <!-- HEADER -->
-    <div class="applications-header">
-        <div class="header-main">
-            <div class="header-icon-wrap">
-                <i class="fas fa-bookmark"></i>
-            </div>
-            <div class="header-title-block">
-                <p class="header-eyebrow">My Saved Jobs</p>
-                <h1>Listed Jobs</h1>
-                <div class="header-tags">
-                    <span class="htag htag-field">
-                        <i class="fas fa-bookmark"></i>
-                        {{ saved | length }} Saved
-                    </span>
-                </div>
-            </div>
-            <div class="header-right-col">
-                <div class="applicant-count-pill">
-                    <i class="fas fa-bookmark"></i>
-                    <span>{{ saved | length }} Job{{ 's' if saved | length != 1 else '' }}</span>
-                </div>
-                <a href="{{ url_for('auth.jobs') }}" class="btn-back-header">
-                    <i class="fas fa-search"></i>
-                    <span>Browse Jobs</span>
-                </a>
-            </div>
+<div class="job-view-wrapper">
+  
+  <!-- Top Navigation Bar (copied from job-details-view.html) -->
+  <div class="job-view-nav">
+    <div class="nav-container">
+      <div class="nav-left">
+        <div class="job-title-section">
+          <div class="job-category">MY DASHBOARD</div>
+          <h1 class="job-title-main">Saved Jobs</h1>
+          <div class="job-meta">
+            <span>{{ saved | length }} Job{{ 's' if saved | length != 1 else '' }} Saved</span>
+          </div>
         </div>
-    </div>
+      </div>
 
+      <div class="nav-right">
+        <a href="{{ url_for('auth.jobs') }}" class="btn-nav btn-browse-nav">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          Browse Jobs
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="job-view-content">
     <div class="applications-list">
 
-        {% if not saved %}
-        <div class="empty-state">
-            <i class="fas fa-bookmark"></i>
-            <h3>No Saved Jobs Yet</h3>
-            <p>Bookmark jobs you're interested in to find them here later.</p>
-            <a href="{{ url_for('auth.jobs') }}" class="btn-browse-empty">
-                <i class="fas fa-search"></i> Browse Jobs
-            </a>
-        </div>
-        {% else %}
+      {% if not saved %}
+      <div class="empty-state">
+        <i class="fas fa-bookmark"></i>
+        <h3>No Saved Jobs Yet</h3>
+        <p>Bookmark jobs you're interested in to find them here later.</p>
+        <a href="{{ url_for('auth.jobs') }}" class="btn-browse-empty">
+          <i class="fas fa-search"></i> Browse Jobs
+        </a>
+      </div>
+      {% else %}
 
-        <!-- SEARCH + FILTER TOOLBAR -->
-        <div class="applicant-toolbar">
-            <div class="toolbar-search">
-                <i class="fas fa-search toolbar-search-icon"></i>
-                <input type="text" id="savedSearch" placeholder="Search by title or company..."
-                    autocomplete="off">
-                <button class="search-clear" id="savedClear" style="display:none;">
-                    <i class="fas fa-times"></i>
+      <!-- SEARCH + FILTER TOOLBAR -->
+      <div class="applicant-toolbar">
+        <div class="toolbar-search">
+          <i class="fas fa-search toolbar-search-icon"></i>
+          <input type="text" id="savedSearch" placeholder="Search by title or company..."
+              autocomplete="off">
+          <button class="search-clear" id="savedClear" style="display:none;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <select id="savedFieldFilter" class="jl-select" style="height:38px; min-width:150px;">
+                    <option value="">All Categories</option>
+                    <option value="Engineering">💻 Engineering</option>
+                    <option value="IT">🖥️ IT</option>
+                    <option value="UI/UX Design">🎨 UI/UX Design</option>
+                    <option value="Healthcare">⚕️ Healthcare</option>
+                    <option value="Marketing">📢 Marketing</option>
+                    <option value="Finance">💰 Finance</option>
+                    <option value="Architecture">🏗️ Architecture</option>
+                    <option value="Legal">⚖️ Legal</option>
+                    <option value="Education">🎓 Education</option>
+                    <option value="Sales">🛒 Sales</option>
+                    <option value="Customer Service">🤝 Customer Service</option>
+                    <option value="Logistics">🚛 Logistics</option>
+                    <option value="Manufacturing">🏭 Manufacturing</option>
+                    <option value="Research & Science">🔬 Research & Science</option>
+                    <option value="Game Development">🎮 Game Development</option>
+                    <option value="Media & Entertainment">🎬 Media & Entertainment</option>
+                    <option value="Supply Chain">📦 Supply Chain</option>
+                    <option value="Banking">🏦 Banking</option>
+                    <option value="Cybersecurity">🛡️ Cybersecurity</option>
+                    <option value="Data Science / AI">🤖 Data Science / AI</option>
+                    <option value="Accounting">📊 Accounting</option>
+                    <option value="Real Estate">🏘️ Real Estate</option>
+                    <option value="Travel & Tourism">✈️ Travel & Tourism</option>
+                    <option value="Food & Beverage">🍽️ Food & Beverage</option>
+                    <option value="Retail">🛍️ Retail</option>
+                    <option value="Beauty & Wellness">💄 Beauty & Wellness</option>
+                    <option value="Sports & Fitness">🏋️ Sports & Fitness</option>
+                    <option value="Environment">🌿 Environment</option>
+                    <option value="Aerospace">🚀 Aerospace</option>
+                    <option value="Energy & Utilities">⚡ Energy & Utilities</option>
+                    <option value="Pharmaceuticals">🏥 Pharmaceuticals</option>
+                    <option value="Maintenance & Repair">🔧 Maintenance & Repair</option>
+                    <option value="Graphic Design">🎨 Graphic Design</option>
+                    <option value="Content & Writing">📝 Content & Writing</option>
+                    <option value="Consulting">🧠 Consulting</option>
+                    <option value="Human Resources">👥 Human Resources</option>
+                    <option value="Mobile Development">📱 Mobile Development</option>
+                    <option value="Other">🌐 Other</option>
+        </select>
+
+        <select id="savedTypeFilter" class="jl-select" style="height:38px; min-width:140px;">
+          <option value="">All Job Types</option>
+          <option value="full-time">Full-time</option>
+          <option value="part-time">Part-time</option>
+          <option value="internship">Internship</option>
+          <option value="freelance">Freelance</option>
+          <option value="contract">Contract</option>
+        </select>
+
+        <div class="sort-label">
+          <i class="fas fa-sort-amount-down"></i> Sort:
+        </div>
+        <div class="sort-buttons">
+          <button class="sort-btn saved-sort-btn active" data-sort="newest">Newest</button>
+          <button class="sort-btn saved-sort-btn" data-sort="oldest">Oldest</button>
+          <button class="sort-btn saved-sort-btn" data-sort="az">A–Z</button>
+          <button class="sort-btn saved-sort-btn" data-sort="za">Z–A</button>
+        </div>
+
+        <div class="toolbar-results">
+          <span id="savedCount">{{ saved | length }} job{{ 's' if saved | length != 1 else '' }}</span>
+        </div>
+      </div>
+
+      <!-- ACTIVE FILTERS BAR -->
+      <div id="savedActiveFiltersBar" style="display:none; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+        <span class="filters-label" style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">Active filters:</span>
+        <div id="savedActiveFilterTags" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+        <button id="savedClearAll" class="sort-btn" style="margin-left:auto;">
+          <i class="fas fa-times"></i> Clear all
+        </button>
+      </div>
+
+      <!-- SAVED JOB CARDS -->
+      <div id="savedContainer">
+        {% for s in saved %}
+        {% set job = s.job %}
+        {% set recruiter = job.company_id | get_recruiter_profile if job else None %}
+        <div class="saved-card"
+            data-title="{{ job.title | lower if job else '' }}"
+            data-company="{{ recruiter.company_name | lower if recruiter and recruiter.company_name else '' }}"
+            data-field="{{ job.field | lower if job and job.field else '' }}"
+            data-jobtype="{{ job.job_type | lower if job and job.job_type else '' }}"
+            data-savedid="{{ s.id }}">
+
+          <div class="saved-card-logo">
+            {% if recruiter and recruiter.company_logo %}
+                <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter.company_logo) }}"
+                     alt="{{ recruiter.company_name }}" class="applicant-avatar-img">
+            {% else %}
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;">
+                  {{ job.title[0] | upper if job else '?' }}
+                </div>
+            {% endif %}
+          </div>
+
+          <div class="saved-card-body">
+            <div class="saved-card-top">
+              <div>
+                <h4 class="saved-job-title">{{ job.title if job else 'Job Removed' }}</h4>
+                <span class="saved-company-name">
+                  <i class="fas fa-building"></i>
+                  {{ recruiter.company_name if recruiter and recruiter.company_name else 'Unknown Company' }}
+                </span>
+              </div>
+              <div class="saved-card-actions">
+                {% if job %}
+                <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-view-saved">
+                  <i class="fas fa-eye"></i> View
+                </a>
+                {% if current_user.is_verified %}
+                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-apply-saved">
+                  <i class="fas fa-paper-plane"></i> Apply
+                </a>
+                {% endif %}
+                {% endif %}
+                <button class="btn-unsave" onclick="unsaveJob(this, {{ s.job_id }})" title="Remove from saved">
+                  <i class="fas fa-bookmark"></i>
                 </button>
+              </div>
             </div>
 
-            <select id="savedFieldFilter" class="jl-select" style="height:38px; min-width:150px;">
-                        <option value="">All Categories</option>
-                        <option value="Engineering">💻 Engineering</option>
-                        <option value="IT">🖥️ IT</option>
-                        <option value="UI/UX Design">🎨 UI/UX Design</option>
-                        <option value="Healthcare">⚕️ Healthcare</option>
-                        <option value="Marketing">📢 Marketing</option>
-                        <option value="Finance">💰 Finance</option>
-                        <option value="Architecture">🏗️ Architecture</option>
-                        <option value="Legal">⚖️ Legal</option>
-                        <option value="Education">🎓 Education</option>
-                        <option value="Sales">🛒 Sales</option>
-                        <option value="Customer Service">🤝 Customer Service</option>
-                        <option value="Logistics">🚛 Logistics</option>
-                        <option value="Manufacturing">🏭 Manufacturing</option>
-                        <option value="Research & Science">🔬 Research & Science</option>
-                        <option value="Game Development">🎮 Game Development</option>
-                        <option value="Media & Entertainment">🎬 Media & Entertainment</option>
-                        <option value="Supply Chain">📦 Supply Chain</option>
-                        <option value="Banking">🏦 Banking</option>
-                        <option value="Cybersecurity">🛡️ Cybersecurity</option>
-                        <option value="Data Science / AI">🤖 Data Science / AI</option>
-                        <option value="Accounting">📊 Accounting</option>
-                        <option value="Real Estate">🏘️ Real Estate</option>
-                        <option value="Travel & Tourism">✈️ Travel & Tourism</option>
-                        <option value="Food & Beverage">🍽️ Food & Beverage</option>
-                        <option value="Retail">🛍️ Retail</option>
-                        <option value="Beauty & Wellness">💄 Beauty & Wellness</option>
-                        <option value="Sports & Fitness">🏋️ Sports & Fitness</option>
-                        <option value="Environment">🌿 Environment</option>
-                        <option value="Aerospace">🚀 Aerospace</option>
-                        <option value="Energy & Utilities">⚡ Energy & Utilities</option>
-                        <option value="Pharmaceuticals">🏥 Pharmaceuticals</option>
-                        <option value="Maintenance & Repair">🔧 Maintenance & Repair</option>
-                        <option value="Graphic Design">🎨 Graphic Design</option>
-                        <option value="Content & Writing">📝 Content & Writing</option>
-                        <option value="Consulting">🧠 Consulting</option>
-                        <option value="Human Resources">👥 Human Resources</option>
-                        <option value="Mobile Development">📱 Mobile Development</option>
-                        <option value="Other">🌐 Other</option>
-            </select>
-
-            <select id="savedTypeFilter" class="jl-select" style="height:38px; min-width:140px;">
-                <option value="">All Job Types</option>
-                <option value="full-time">Full-time</option>
-                <option value="part-time">Part-time</option>
-                <option value="internship">Internship</option>
-                <option value="freelance">Freelance</option>
-                <option value="contract">Contract</option>
-            </select>
-
-            <div class="sort-label">
-                <i class="fas fa-sort-amount-down"></i> Sort:
-            </div>
-            <div class="sort-buttons">
-                <button class="sort-btn saved-sort-btn active" data-sort="newest">Newest</button>
-                <button class="sort-btn saved-sort-btn" data-sort="oldest">Oldest</button>
-                <button class="sort-btn saved-sort-btn" data-sort="az">A–Z</button>
-                <button class="sort-btn saved-sort-btn" data-sort="za">Z–A</button>
+            <div class="saved-chips">
+              {% if job and job.job_type %}
+              <span class="detail-chip"><i class="fas fa-briefcase"></i> {{ job.job_type }}</span>
+              {% endif %}
+              {% if job and job.location %}
+              <span class="detail-chip"><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
+              {% endif %}
+              {% if job and job.salary %}
+              <span class="detail-chip"><i class="fas fa-money-bill-wave"></i> {{ job.currency or '' }} {{ job.salary }}</span>
+              {% endif %}
+              {% if job and job.field %}
+              <span class="detail-chip"><i class="fas fa-tag"></i> {{ job.field }}</span>
+              {% endif %}
+              {% if job and job.expiration_date %}
+              <span class="detail-chip deadline-chip">
+                <i class="fas fa-hourglass-end"></i>
+                Deadline: {{ job.expiration_date.strftime('%b %d, %Y') }}
+              </span>
+              {% endif %}
             </div>
 
-            <div class="toolbar-results">
-                <span id="savedCount">{{ saved | length }} job{{ 's' if saved | length != 1 else '' }}</span>
+            <div class="saved-footer">
+              <span class="saved-date">
+                <i class="fas fa-bookmark"></i>
+                Saved {{ s.created_at.strftime('%B %d, %Y') }}
+              </span>
             </div>
+          </div>
         </div>
+        {% endfor %}
+      </div>
 
-        <!-- ACTIVE FILTERS BAR -->
-        <div id="savedActiveFiltersBar" style="display:none; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-            <span class="filters-label" style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">Active filters:</span>
-            <div id="savedActiveFilterTags" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
-            <button id="savedClearAll" class="sort-btn" style="margin-left:auto;">
-                <i class="fas fa-times"></i> Clear all
-            </button>
-        </div>
+      <!-- NO RESULTS (search) -->
+      <div class="no-results-state" id="savedEmpty" style="display:none;">
+        <i class="fas fa-search"></i>
+        <h3>No matching jobs</h3>
+        <p>Try a different search term</p>
+      </div>
 
-        <!-- SAVED JOB CARDS -->
-        <div id="savedContainer">
-            {% for s in saved %}
-            {% set job = s.job %}
-            {% set recruiter = job.company_id | get_recruiter_profile if job else None %}
-            <div class="saved-card"
-                data-title="{{ job.title | lower if job else '' }}"
-                data-company="{{ recruiter.company_name | lower if recruiter and recruiter.company_name else '' }}"
-                data-field="{{ job.field | lower if job and job.field else '' }}"
-                data-jobtype="{{ job.job_type | lower if job and job.job_type else '' }}"
-                data-savedid="{{ s.id }}">
-
-                <div class="saved-card-logo">
-                    {% if recruiter and recruiter.company_logo %}
-                        <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter.company_logo) }}"
-                             alt="{{ recruiter.company_name }}" class="applicant-avatar-img">
-                    {% else %}
-                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;">
-                            {{ job.title[0] | upper if job else '?' }}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="saved-card-body">
-                    <div class="saved-card-top">
-                        <div>
-                            <h4 class="saved-job-title">{{ job.title if job else 'Job Removed' }}</h4>
-                            <span class="saved-company-name">
-                                <i class="fas fa-building"></i>
-                                {{ recruiter.company_name if recruiter and recruiter.company_name else 'Unknown Company' }}
-                            </span>
-                        </div>
-                        <div class="saved-card-actions">
-                            {% if job %}
-                            <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-view-saved">
-                                <i class="fas fa-eye"></i> View
-                            </a>
-                            {% if current_user.is_verified %}
-                            <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-apply-saved">
-                                <i class="fas fa-paper-plane"></i> Apply
-                            </a>
-                            {% endif %}
-                            {% endif %}
-                            <button class="btn-unsave" onclick="unsaveJob(this, {{ s.job_id }})" title="Remove from saved">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="saved-chips">
-                        {% if job and job.job_type %}
-                        <span class="detail-chip"><i class="fas fa-briefcase"></i> {{ job.job_type }}</span>
-                        {% endif %}
-                        {% if job and job.location %}
-                        <span class="detail-chip"><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
-                        {% endif %}
-                        {% if job and job.salary %}
-                        <span class="detail-chip"><i class="fas fa-money-bill-wave"></i> {{ job.currency or '' }} {{ job.salary }}</span>
-                        {% endif %}
-                        {% if job and job.field %}
-                        <span class="detail-chip"><i class="fas fa-tag"></i> {{ job.field }}</span>
-                        {% endif %}
-                        {% if job and job.expiration_date %}
-                        <span class="detail-chip deadline-chip">
-                            <i class="fas fa-hourglass-end"></i>
-                            Deadline: {{ job.expiration_date.strftime('%b %d, %Y') }}
-                        </span>
-                        {% endif %}
-                    </div>
-
-                    <div class="saved-footer">
-                        <span class="saved-date">
-                            <i class="fas fa-bookmark"></i>
-                            Saved {{ s.created_at.strftime('%B %d, %Y') }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- NO RESULTS (search) -->
-        <div class="no-results-state" id="savedEmpty" style="display:none;">
-            <i class="fas fa-search"></i>
-            <h3>No matching jobs</h3>
-            <p>Try a different search term</p>
-        </div>
-
-        {% endif %}
+      {% endif %}
     </div>
+  </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/applicant/saved_job.js') }}"></script>

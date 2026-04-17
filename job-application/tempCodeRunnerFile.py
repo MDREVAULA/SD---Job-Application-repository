@@ -70,24 +70,47 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 # ============================================================
-# JINJA2 FILTER — resolve RecruiterProfile from a user ID
-# Usage in templates: {{ job.company_id | get_recruiter_profile }}
+# JINJA2 FILTERS — registered BEFORE blueprints
 # ============================================================
+
 @app.template_filter('get_recruiter_profile')
 def get_recruiter_profile(user_id):
     if not user_id:
         return None
     return RecruiterProfile.query.filter_by(user_id=user_id).first()
 
+
+def _parse_json(value, default=None):
+    """
+    Safe JSON parser for Jinja2 filters.
+    Returns `default` (empty list) when value is None, empty, or invalid JSON.
+    This prevents TemplateRuntimeError on jobs that have no values set yet.
+    """
+    if not value:
+        return default if default is not None else []
+    try:
+        return json.loads(value)
+    except (ValueError, TypeError):
+        return default if default is not None else []
+
+# Register under BOTH spellings used across templates:
+#   {{ job.why_join_us | fromjson }}   ← used in job_details.html, edit_job.html
+#   {{ job.company_values | from_json }} ← used in edit_job.html
+app.jinja_env.filters['fromjson']  = _parse_json
+app.jinja_env.filters['from_json'] = _parse_json
+
+
 # ============================================================
 # CONTEXT PROCESSOR — make now() available in all templates
-# Usage in templates: {{ now() }}
 # ============================================================
 @app.context_processor
 def inject_now():
     return {'now': datetime.utcnow}
 
-# Register Blueprints
+
+# ============================================================
+# REGISTER BLUEPRINTS
+# ============================================================
 from routes.auth import auth_bp
 from routes.applicant import applicant_bp
 from routes.recruiter import recruiter_bp
@@ -107,14 +130,9 @@ app.register_blueprint(profile_view_bp)
 app.register_blueprint(settings_bp)
 
 
-@app.template_filter('from_json')
-def from_json_filter(value):
-    try:
-        return json.loads(value) if value else []
-    except:
-        return []
-
-# Run App
+# ============================================================
+# RUN
+# ============================================================
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
