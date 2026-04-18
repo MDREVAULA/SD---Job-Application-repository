@@ -5,56 +5,42 @@
 
 <div class="job-board-container">
 
-    <!-- SEARCH HERO -->
-    <div class="search-hero">
-        <div class="search-hero-content">
-            <h1>Find your next opportunity</h1>
-            <p>Discover jobs from verified companies</p>
+    <!-- TOP NAVIGATION BAR -->
+    <div class="jb-nav">
+        <div class="jb-nav-container">
 
-            <div class="search-box">
-                <div class="search-input-group">
-                    <i class="fas fa-search"></i>
+            <!-- Left: Title -->
+            <div class="jb-nav-left">
+                <div class="jb-title-section">
+                    <div class="jb-category-label">JOB BOARD</div>
+                    <h1 class="jb-title-main">Browse Jobs</h1>
+                    <div class="jb-meta">
+                        <span id="jobsCount">{{ jobs|length }}</span> jobs found
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center: Search only -->
+            <div class="jb-nav-filters">
+                <div class="jb-search-wrap">
+                    <i class="fas fa-search jb-search-icon"></i>
                     <input
                         type="text"
                         id="jobSearchInput"
-                        placeholder="Job title, keywords, or company"
+                        placeholder="Search jobs..."
                     >
                 </div>
-                <div class="filter-input-group">
-                    <i class="fas fa-briefcase"></i>
-                    <select id="categoryFilter">
-                        <option value="">All Categories</option>
-                        <option value="Engineering">💻 Engineering</option>
-                        <option value="IT">🖥️ IT</option>
-                        <option value="UI/UX Design">🎨 UI/UX Design</option>
-                        <option value="Healthcare">⚕️ Healthcare</option>
-                        <option value="Marketing">📢 Marketing</option>
-                        <option value="Finance">💰 Finance</option>
-                        <option value="Architecture">🏗️ Architecture</option>
-                        <option value="Legal">⚖️ Legal</option>
-                        <option value="Education">🎓 Education</option>
-                        <option value="Sales">🛒 Sales</option>
-                    </select>
-                </div>
-                <div class="filter-input-group">
-                    <i class="fas fa-clock"></i>
-                    <select id="jobTypeFilter">
-                        <option value="">All Job Types</option>
-                        <option value="Full-time">Full-time</option>
-                        <option value="Part-time">Part-time</option>
-                        <option value="Internship">Internship</option>
-                        <option value="Freelance">Freelance</option>
-                        <option value="Contract">Contract</option>
-                    </select>
-                </div>
             </div>
+
+            <!-- Right: placeholder for symmetry -->
+            <div class="jb-nav-right"></div>
         </div>
     </div>
 
     <!-- MAIN CONTENT - TWO COLUMN GRID -->
     <div class="job-board-content">
         <div class="two-column-layout">
-            
+
             <!-- LEFT SIDEBAR - FILTERS -->
             <aside class="filters-sidebar">
                 <div class="filters-header">
@@ -137,8 +123,8 @@
             <div class="jobs-main">
                 <!-- RESULTS HEADER -->
                 <div class="results-header">
-                    <div class="results-count">
-                        <span id="jobsCount">{{ jobs|length }}</span> jobs found
+                    <div class="results-count-label">
+                        Showing all results
                     </div>
                     <div class="results-actions">
                         <div class="sort-dropdown-wrapper">
@@ -165,14 +151,11 @@
                     </div>
                 </div>
 
-                <!-- JOBS GRID - 3 COLUMNS -->
+                <!-- JOBS GRID -->
                 <div class="jobs-list" id="jobsList">
                     {% if jobs %}
                         {% for job in jobs %}
-
-                        {# --- Resolve company info --- #}
                         {% set recruiter = job.company_id | get_recruiter_profile %}
-
                         <div class="job-card"
                              data-field="{{ job.field }}"
                              data-job-type="{{ job.job_type }}"
@@ -180,7 +163,6 @@
                              data-posted="{{ job.id }}"
                         >
                             <div class="job-card-inner">
-                                <!-- Bookmark Button -->
                                 {% if current_user.is_authenticated and current_user.role == "applicant" %}
                                 <button class="btn-bookmark {% if current_user.is_authenticated and current_user.role == 'applicant' and job.id in saved_job_ids %}saved{% endif %}"
                                     data-job-id="{{ job.id }}"
@@ -189,7 +171,6 @@
                                 </button>
                                 {% endif %}
 
-                                <!-- COMPANY LOGO -->
                                 <div class="job-logo">
                                     {% if recruiter and recruiter.company_logo %}
                                         <img
@@ -225,7 +206,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Tags -->
                                     <div class="job-tags">
                                         <span class="tag tag-location">
                                             <i class="fas fa-map-marker-alt"></i>
@@ -236,12 +216,10 @@
                                         </span>
                                     </div>
 
-                                    <!-- Description -->
                                     <p class="job-description">
                                         {{ job.description[:120] }}{% if job.description|length > 120 %}...{% endif %}
                                     </p>
 
-                                    <!-- Apply Button -->
                                     <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-apply">
                                         View & Apply
                                     </a>
@@ -249,9 +227,7 @@
                             </div>
                         </div>
                         {% endfor %}
-
                     {% else %}
-                        <!-- NO JOBS FROM SERVER -->
                         <div class="no-results">
                             <div class="empty-icon">
                                 <i class="fas fa-briefcase"></i>
