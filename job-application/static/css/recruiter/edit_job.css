@@ -253,13 +253,28 @@
 }
 
 /* Header Image */
+/* Cover photo container — must match the 1200×400 crop output exactly */
 .header-image-container {
   position: relative;
-  height: 200px;
+  width: 100%;
+  aspect-ratio: 3 / 1;     /* 1200 ÷ 400 = 3:1 — matches crop modal exactly */
   border-radius: 8px;
   overflow: hidden;
-  background: var(--bg-surface-alt);
+  background: var(--bg-surface-alt, #f3f4f6);
+  contain: layout style;   /* NO 'size' — that would suppress aspect-ratio   */
 }
+
+.header-image-container .header-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  animation: _coverFadeIn 0.18s ease both;
+}
+
 
 .header-img {
   width: 100%;
@@ -1797,7 +1812,8 @@ textarea {
 .company-values {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  margin-top: 24px;
 }
 
 .value-item {
@@ -1815,7 +1831,6 @@ textarea {
   background: var(--bg-hover);
   border-color: #14b8a6;
   transform: translateX(4px);
-  box-shadow: 0 2px 8px var(--shadow-color);
 }
 
 .value-icon {
@@ -1832,6 +1847,7 @@ textarea {
 
 .value-content {
   flex: 1;
+  min-width: 0;
 }
 
 .value-title {
@@ -1839,6 +1855,8 @@ textarea {
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 6px 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .value-description {
@@ -1846,11 +1864,13 @@ textarea {
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.6;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
+
 
 /* Highlight Card (Why Join Us) */
 .highlight-card {
-  position: relative;
   background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(15, 148, 136, 0.05) 100%);
   border-color: #14b8a6;
 }
@@ -2148,15 +2168,123 @@ textarea {
   background: #0f9488;
   border-color: #0f9488;
 }
-
-/* ── Cover photo container hover state ── */
-.header-image-container {
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
 .header-image-container:hover { opacity: 0.92; }
 
+/* ── Value editor rows ── */
+.value-editor-row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--bg-surface-alt, #f9fafb);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 10px;
+  transition: border-color 0.2s;
+}
+.value-editor-row:hover { border-color: #14b8a6; }
+ 
+.value-editor-icon-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.value-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color, #e5e7eb);
+  background: var(--bg-surface, #fff);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+.value-icon-btn:hover {
+  border-color: #14b8a6;
+  background: rgba(20,184,166,0.08);
+  transform: scale(1.1);
+}
+.value-icon-btn.active {
+  border-color: #14b8a6;
+  background: rgba(20,184,166,0.15);
+  box-shadow: 0 0 0 2px rgba(20,184,166,0.3);
+}
+ 
+.value-editor-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+ 
+/* ── Benefit editor rows ── */
+.benefit-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  background: var(--bg-surface-alt, #f9fafb);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+.benefit-editor-row:hover { border-color: #14b8a6; }
+.benefit-editor-row .input-text { flex: 1; margin: 0; }
+.benefit-editor-row::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(20,184,166,0.15);
+  border: 2px solid #14b8a6;
+  flex-shrink: 0;
+}
+ 
+/* ── Remove button ── */
+.btn-remove-value {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #ef4444;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.btn-remove-value:hover { background: rgba(239,68,68,0.1); }
+ 
+/* ── Add button ── */
+.btn-add-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-surface, #fff);
+  border: 1.5px dashed #14b8a6;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #14b8a6;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+.btn-add-value:hover { background: rgba(20,184,166,0.08); }
+
 /* Responsive for company values */
+@keyframes _coverFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @media (max-width: 768px) {
   .value-item {
     flex-direction: column;

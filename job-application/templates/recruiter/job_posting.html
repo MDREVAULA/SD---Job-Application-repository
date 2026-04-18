@@ -298,123 +298,83 @@
       </div>
 
       <!-- ========== TAB: REQUIREMENTS ========== -->
+      <!-- FIXED: Now matches edit_job.html design exactly -->
       <div class="tab-content" id="tab-requirements">
         <div class="content-grid">
           
           <div class="content-main">
             
-            <!-- Experience Requirements -->
+            <!-- Experience & Education — matches edit_job -->
             <div class="content-card">
               <div class="card-header">
-                <h3 class="card-title">Experience Requirements</h3>
+                <h3 class="card-title">Experience &amp; Education</h3>
               </div>
-
-              <div class="requirements-grid">
-                <div class="requirement-item">
-                  <div class="requirement-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                  </div>
-                  <div class="requirement-content">
-                    <div class="requirement-label">Experience Level</div>
-                    <select name="experience_level" class="requirement-value input-select">
-                      <option value="">Select level</option>
-                      <option value="Entry-level">Entry-level</option>
-                      <option value="Mid-level">Mid-level</option>
-                      <option value="Senior">Senior</option>
-                      <option value="Lead / Manager">Lead / Manager</option>
-                      <option value="Executive">Executive</option>
-                    </select>
-                  </div>
+ 
+              <div class="field-grid">
+                <div class="field">
+                  <label class="field-label">Experience Level</label>
+                  <select name="experience_level" class="input-select">
+                    <option value="">Select level</option>
+                    <option value="Entry-level">Entry-level</option>
+                    <option value="Mid-level">Mid-level</option>
+                    <option value="Senior">Senior</option>
+                    <option value="Lead / Manager">Lead / Manager</option>
+                    <option value="Executive">Executive</option>
+                  </select>
                 </div>
-
-                <div class="requirement-item">
-                  <div class="requirement-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                  </div>
-                  <div class="requirement-content">
-                    <div class="requirement-label">Years of Experience</div>
-                    <input type="text" name="years_exp" value="" class="requirement-value input-text" placeholder="e.g. 3-5 years">
-                  </div>
-                </div>
-
-                <div class="requirement-item">
-                  <div class="requirement-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
-                    </svg>
-                  </div>
-                  <div class="requirement-content">
-                    <div class="requirement-label">Education</div>
-                    <select name="education" class="requirement-value input-select">
-                      <option value="">No preference</option>
-                      <option value="High school diploma">High school diploma</option>
-                      <option value="Associate degree">Associate degree</option>
-                      <option value="Bachelor's degree">Bachelor's degree</option>
-                      <option value="Master's degree">Master's degree</option>
-                      <option value="PhD">PhD</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="requirement-item">
-                  <div class="requirement-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                  </div>
-                  <div class="requirement-content">
-                    <div class="requirement-label">Languages</div>
-                    <input type="text" name="languages" value="" class="requirement-value input-text" placeholder="e.g. English, Filipino">
-                  </div>
+                <div class="field">
+                  <label class="field-label">Years of Experience</label>
+                  <input type="text" name="years_exp" value="" class="input-text" placeholder="e.g. 3-5 years">
                 </div>
               </div>
-
+ 
+              <div class="field">
+                <label class="field-label">Education Requirement</label>
+                <select name="education" class="input-select">
+                  <option value="">No preference</option>
+                  <option value="High school diploma">High school diploma</option>
+                  <option value="Associate degree">Associate degree</option>
+                  <option value="Bachelor's degree">Bachelor's degree</option>
+                  <option value="Master's degree">Master's degree</option>
+                  <option value="PhD">PhD</option>
+                </select>
+              </div>
+ 
+              <div class="field">
+                <label class="field-label">Languages</label>
+                <input type="text" name="languages" value="" class="input-text" placeholder="e.g. English (fluent), Filipino">
+              </div>
             </div>
-
-            <!-- Skills Section -->
+ 
+            <!-- Skills Section — matches edit_job -->
             <div class="content-card">
               <div class="card-header">
                 <h3 class="card-title">Required Skills</h3>
               </div>
-
-              <div class="skills-section">
-                <h4 class="skills-subtitle">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  Must-Have Skills
-                </h4>
+ 
+              <div class="field">
+                <label class="field-label">Must-Have Skills</label>
                 <input type="text" name="required_skills" value="" class="input-text" placeholder="e.g. JavaScript, React, Node.js">
                 <p class="field-hint">Comma-separated list of required skills</p>
               </div>
-
-              <div class="skills-section">
-                <h4 class="skills-subtitle">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                  Nice-to-Have Skills
-                </h4>
+ 
+              <div class="field">
+                <label class="field-label">Preferred Skills</label>
                 <input type="text" name="preferred_skills" value="" class="input-text" placeholder="e.g. TypeScript, GraphQL, Docker">
-                <p class="field-hint">Comma-separated list of preferred skills</p>
+                <p class="field-hint">Comma-separated list of preferred but not required skills</p>
               </div>
-
+ 
               <div class="divider-line"></div>
-
+ 
               <div class="field">
                 <label class="field-label">Additional Requirements</label>
                 <textarea name="requirements_notes" class="input-textarea" rows="5" placeholder="Any other requirements, certifications, or details..."></textarea>
               </div>
-
             </div>
-
+ 
           </div>
-
-          <!-- Right Sidebar -->
+ 
+          <!-- Right Sidebar - REQUIREMENTS -->
           <div class="content-sidebar">
             <div class="sidebar-card">
               <h3 class="sidebar-title">Job Details</h3>
@@ -458,7 +418,7 @@
               </div>
             </div>
           </div>
-
+ 
         </div>
       </div>
 
@@ -622,24 +582,6 @@
               </div>
             </div>
 
-            <!-- Why Join Us — EDITABLE for new job -->
-            <div class="content-card highlight-card">
-              <div class="highlight-header">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-                <h3>Why Join {{ current_user.recruiter_profile.company_name }}?</h3>
-              </div>
-              <p class="card-subtitle" style="margin-bottom:12px;">
-                Enter one benefit per line. Leave blank to use default benefits.
-              </p>
-              <textarea id="whyJoinUsTextarea"
-                        class="input-textarea" rows="7"
-                        placeholder="Competitive salary and comprehensive benefits package&#10;Flexible work arrangements and work-life balance&#10;Professional development and learning opportunities&#10;Collaborative and inclusive team culture&#10;Modern office facilities and tools&#10;Career growth and advancement opportunities"></textarea>
-              <!-- Stores JSON array on submit -->
-              <input type="hidden" name="why_join_us" id="whyJoinUsHidden" value="">
-            </div>
-
             <!-- Hiring Team Card -->
             <div class="content-card">
               <div class="card-header">
@@ -680,6 +622,30 @@
                 </div>
               </div>
             </div>
+
+                        <!-- Why Join Us — FIXED: list-based editor matching edit_job style -->
+            <div class="content-card highlight-card">
+              <div class="highlight-header">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <h3>Why Join {{ current_user.recruiter_profile.company_name }}?</h3>
+              </div>
+              <p class="field-hint" style="margin-bottom:16px;">
+                Add each benefit as a separate item. These appear as a checklist on the job listing.
+              </p>
+ 
+              <div id="benefitsList">
+              </div>
+ 
+              <button type="button" class="btn-add-value" onclick="addBenefitRow()" style="margin-top:12px;">
+                + Add Benefit
+              </button>
+
+              <!-- Stores JSON array on submit -->
+              <input type="hidden" name="why_join_us" id="whyJoinUsHidden" value="">
+            </div>
+
 
           </div>
 
@@ -761,5 +727,56 @@
 {# NOTE: NO inline script here — job_posting.js handles tabs,
          job_image_preview.js handles arrangement tags, cover photo, gallery, drag-drop.
          Having a third set of listeners caused every click to cancel itself. #}
-
+<script>
+/* ══════════════════════════════════════════════════════
+   HIRING TEAM TAB — CLIENT-SIDE LOGIC FOR job_posting.html
+   ══════════════════════════════════════════════════════ */
+ 
+/* ── About Company: sync hidden field ── */
+document.getElementById('aboutCompanyTextarea').addEventListener('input', function () {
+  document.getElementById('aboutCompanyHidden').value = this.value;
+});
+ 
+/* ── Add a new benefit row ── */
+function addBenefitRow() {
+  const row = document.createElement('div');
+  row.className = 'benefit-editor-row';
+  row.innerHTML =
+    '<input type="text" class="input-text benefit-input" placeholder="e.g. Competitive salary">'
+    + '<button type="button" class="btn-remove-value"'
+    + ' onclick="this.parentElement.remove(); syncBenefitsHidden()">×</button>';
+  document.getElementById('benefitsList').appendChild(row);
+  row.querySelector('input').addEventListener('input', syncBenefitsHidden);
+  row.querySelector('input').focus();
+}
+ 
+/* ── Collect benefits and write to hidden input ── */
+function syncBenefitsHidden() {
+  const inputs = document.querySelectorAll('#benefitsList .benefit-input');
+  const items  = Array.from(inputs).map(function (i) { return i.value.trim(); }).filter(Boolean);
+  document.getElementById('whyJoinUsHidden').value = JSON.stringify(items);
+}
+ 
+/* ── Wire live sync on pre-seeded benefit rows ── */
+document.querySelectorAll('#benefitsList input').forEach(function (inp) {
+  inp.addEventListener('input', syncBenefitsHidden);
+});
+ 
+/* ── On form submit: flush all hidden fields ── */
+document.querySelector('form[action]').addEventListener('submit', function () {
+  /* About company */
+  document.getElementById('aboutCompanyHidden').value =
+    document.getElementById('aboutCompanyTextarea').value.trim();
+ 
+  /* Values */
+  syncValuesHidden();
+ 
+  /* Benefits */
+  syncBenefitsHidden();
+});
+ 
+/* Initial sync so the defaults are captured */
+syncValuesHidden();
+syncBenefitsHidden();
+</script>
 {% endblock %}

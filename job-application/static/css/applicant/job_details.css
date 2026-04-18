@@ -261,7 +261,7 @@
    ======================================== */
 .header-image-container {
   position: relative;
-  height: 200px;
+  aspect-ratio: 3 / 1;   /* was height: 200px */
   border-radius: 8px;
   overflow: hidden;
   background: var(--bg-surface-alt);
@@ -1086,9 +1086,8 @@
 
 .company-info-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-  margin-top: 20px;
 }
 
 .company-info-box {
@@ -1097,43 +1096,39 @@
   border: 1px solid var(--border-color);
   border-radius: 12px;
   transition: all 0.2s;
-  overflow: hidden;
 }
 
 .company-info-box:hover {
-  background: var(--bg-hover);
   border-color: #14b8a6;
+  background: var(--bg-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .info-box-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
 .info-box-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  background: rgba(20, 184, 166, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #14b8a6;
-  flex-shrink: 0;
 }
 
 .info-box-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
-  margin: 0;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
+  margin: 0;
 }
 
 .info-box-value {
@@ -1141,8 +1136,6 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  overflow-wrap: break-word;
-  word-break: break-word;
 }
 
 .company-about-text {
