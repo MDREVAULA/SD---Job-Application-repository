@@ -3,367 +3,317 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/status.css') }}">
 
-<div class="applications-wrapper">
-
-    <!-- ═══════════════════════════════════════════
-         HEADER
-    ═══════════════════════════════════════════ -->
-    <div class="applications-header">
-        <div class="header-main">
-            <div class="header-icon-wrap">
-                <i class="fas fa-folder-open"></i>
-            </div>
-            <div class="header-title-block">
-                <p class="header-eyebrow">My Applications</p>
-                <h1>Application Status</h1>
-                <div class="header-tags">
-                    <span class="htag htag-field">
-                        <i class="fas fa-paper-plane"></i>
-                        {{ applications | length }} Applied
-                    </span>
-                    <span class="htag htag-type">
-                        <i class="fas fa-check-circle"></i>
+<!-- TOP NAVIGATION BAR -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <div class="job-title-section">
+                <div class="job-category">MY APPLICATIONS</div>
+                <h1 class="job-title-main">Application Status</h1>
+                <div class="job-meta">
+                    <span>{{ applications|length }} Total Applications</span>
+                    <span class="meta-dot">•</span>
+                    <span>
                         {{ applications | selectattr('status', 'equalto', 'accepted') | list | length }} Accepted
                     </span>
-                    <span class="htag htag-arr">
-                        <i class="fas fa-clock"></i>
-                        {{ applications | selectattr('status', 'equalto', 'pending') | list | length }} Pending
-                    </span>
                 </div>
             </div>
-            <div class="header-right-col">
-                <div class="applicant-count-pill">
-                    <i class="fas fa-briefcase"></i>
-                    <span>{{ applications | length }} Application{{ 's' if applications | length != 1 else '' }}</span>
-                </div>
-                <a href="{{ url_for('auth.jobs') }}" class="btn-back-header">
-                    <i class="fas fa-search"></i>
-                    <span>Browse Jobs</span>
-                </a>
-            </div>
         </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════
-         VERIFICATION BANNER
-    ═══════════════════════════════════════════ 
-    {% if current_user.verification_status == "Pending" %}
-    <div class="appdash-alert appdash-alert-warning">
-        <i class="fas fa-hourglass-half"></i>
-        <div>
-            <strong>Account Pending Verification</strong>
-            <p>Your account is awaiting admin verification. You cannot apply for jobs yet.</p>
-        </div>
-    </div>
-    {% elif current_user.verification_status == "Rejected" %}
-    <div class="appdash-alert appdash-alert-danger">
-        <i class="fas fa-times-circle"></i>
-        <div>
-            <strong>Account Rejected</strong>
-            <p>Your account was rejected by the admin.{% if current_user.verification_remarks %} Reason: {{ current_user.verification_remarks }}{% endif %}</p>
-        </div>
-    </div>
-    {% elif current_user.verification_status == "Approved" %}
-    <div class="appdash-alert appdash-alert-success">
-        <i class="fas fa-check-circle"></i>
-        <div>
-            <strong>Account Verified</strong>
-            <p>Your account is verified. You can apply for jobs.</p>
-        </div>
-    </div>
-    {% endif %} -->
-
-    <!-- ═══════════════════════════════════════════
-         APPLICATIONS PANEL
-    ═══════════════════════════════════════════ -->
-    <div class="applications-list">
-
-        {% if not applications %}
-        <div class="empty-state">
-            <i class="fas fa-folder-open"></i>
-            <h3>No Applications Yet</h3>
-            <p>You haven't applied to any jobs yet. Browse the job board to get started!</p>
-            <a href="{{ url_for('auth.jobs') }}" class="btn-browse-empty">
-                <i class="fas fa-search"></i> Browse Jobs
+        <div class="nav-right">
+            <a href="{{ url_for('auth.jobs') }}" class="btn-apply-nav">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                Browse Jobs
             </a>
         </div>
-        {% else %}
+    </div>
+</div>
 
-        <!-- FILTER TABS -->
-        <div class="filter-tabs">
-            <button class="filter-tab active" data-status="all" onclick="filterByStatus('all')">
-                <i class="fas fa-th-large"></i> All
-                <span class="tab-count" id="tabAllCount">{{ applications | length }}</span>
-            </button>
-            <button class="filter-tab" data-status="pending" onclick="filterByStatus('pending')">
-                <i class="fas fa-clock"></i> Pending
-                <span class="tab-count" id="tabPendingCount">0</span>
-            </button>
-            <button class="filter-tab" data-status="interview" onclick="filterByStatus('interview')">
-                <i class="fas fa-calendar-check"></i> Interview
-                <span class="tab-count" id="tabInterviewCount">0</span>
-            </button>
-            <button class="filter-tab" data-status="accepted" onclick="filterByStatus('accepted')">
-                <i class="fas fa-check-circle"></i> Accepted
-                <span class="tab-count" id="tabAcceptedCount">0</span>
-            </button>
-            <button class="filter-tab" data-status="rejected" onclick="filterByStatus('rejected')">
-                <i class="fas fa-times-circle"></i> Rejected
-                <span class="tab-count" id="tabRejectedCount">0</span>
-            </button>
-        </div>
+<div class="job-list-wrapper">
 
-        <!-- SEARCH & SORT TOOLBAR -->
-        <div class="applicant-toolbar">
-            <div class="toolbar-search">
-                <i class="fas fa-search toolbar-search-icon"></i>
-                <input
-                    type="text"
-                    id="applicantSearch"
-                    placeholder="Search by company or job title..."
-                    oninput="applyFilters()"
-                    autocomplete="off"
-                >
-                <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none;" title="Clear search">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="toolbar-sort">
-                <span class="sort-label"><i class="fas fa-sort"></i> Sort:</span>
-                <div class="sort-buttons">
-                    <button class="sort-btn active" data-sort="date-desc" onclick="setSort('date-desc')" title="Newest first">
-                        <i class="fas fa-calendar-alt"></i> Newest
-                    </button>
-                    <button class="sort-btn" data-sort="date-asc" onclick="setSort('date-asc')" title="Oldest first">
-                        <i class="fas fa-calendar-alt"></i> Oldest
-                    </button>
-                    <button class="sort-btn" data-sort="name-asc" onclick="setSort('name-asc')" title="Company A to Z">
-                        <i class="fas fa-sort-alpha-down"></i> A → Z
-                    </button>
-                    <button class="sort-btn" data-sort="name-desc" onclick="setSort('name-desc')" title="Company Z to A">
-                        <i class="fas fa-sort-alpha-up"></i> Z → A
-                    </button>
+    <!-- STATS CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Total Applications</span>
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
                 </div>
             </div>
-            <div class="toolbar-results">
-                <span id="resultsCount"></span>
+            <div class="stat-value">{{ applications|length }} Applications</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Pending Review</span>
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value">
+                {{ applications | selectattr('status', 'equalto', 'pending') | list | length }} Pending
             </div>
         </div>
 
-        <!-- APPLICATION CARDS -->
-        <div class="applications-container" id="applicationsContainer">
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Accepted Offers</span>
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value">{{ applications | selectattr('status', 'equalto', 'accepted') | list | length }} Accepted</div>
+        </div>
+    </div>
 
-            {% for app in applications %}
-            {% set recruiter = app.job.company_id | get_recruiter_profile if app.job else None %}
-            <div class="app-card"
-                 data-status="{{ app.status | lower }}"
-                 data-name="{{ app.job.title | lower if app.job else '' }}"
-                 data-company="{{ recruiter.company_name | lower if recruiter and recruiter.company_name else '' }}"
-                 data-date="{{ app.created_at.strftime('%Y%m%d%H%M%S') if app.created_at else '0' }}">
+    <!-- APPLICATION LIST SECTION -->
+    <div class="job-list-section">
+        <div class="section-header">
+            <h2 class="section-title">All Applications</h2>
 
-                <!-- CARD HEADER (clickable) -->
-                <div class="app-header app-header-toggle" onclick="toggleCard(this)" title="Click to expand / collapse">
+            <div class="section-controls">
+                <!-- SEARCH -->
+                <div class="search-box-inline">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="jobSearchInput" placeholder="Search job or company..." oninput="applyFilters()">
+                </div>
 
-                    <div class="applicant-info">
-                        <!-- Company Logo / Avatar -->
-                        <div class="applicant-avatar">
-                            {% if recruiter and recruiter.company_logo %}
-                                <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter.company_logo) }}" alt="Company Logo" class="applicant-avatar-img">
-                            {% elif app.job %}
-                                {{ app.job.title[0] | upper }}
+                <!-- STATUS FILTER -->
+                <div class="date-filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    <select id="statusFilter" onchange="applyFilters()">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="interview">Interview</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+
+                <!-- SORT -->
+                <div class="date-filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+                        <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                    <select id="sortSelect" onchange="applyFilters()">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="a-z">Company A-Z</option>
+                        <option value="z-a">Company Z-A</option>
+                        <option value="status">By Status</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- APPLICATIONS TABLE -->
+        <div class="jobs-table-wrapper" id="jobsContainer">
+            {% if not applications %}
+            <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <h3>No applications yet</h3>
+                <p>Start applying for jobs to see your applications here</p>
+            </div>
+            {% else %}
+            <table class="jobs-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Applied Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="jobTableBody">
+                    {% for app in applications %}
+                    {% set job = app.job %}
+                    {% set recruiter = job.company_id | get_recruiter_profile if job else None %}
+                    <tr class="job-row"
+                        data-title="{{ job.title|lower if job else '' }}"
+                        data-company="{{ recruiter.company_name|lower if recruiter and recruiter.company_name else '' }}"
+                        data-field="{{ job.field|lower if job and job.field else '' }}"
+                        data-status="{{ app.status|lower }}"
+                        data-date="{{ app.created_at.strftime('%Y%m%d%H%M%S') if app.created_at else '00000000000000' }}">
+
+                        <td class="row-number">{{ loop.index }}</td>
+
+                        <td class="job-title-cell">
+                            <div class="job-title-wrapper">
+                                <div class="company-logo">
+                                    {% if recruiter and recruiter.company_logo %}
+                                    <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter.company_logo) }}" alt="Logo">
+                                    {% else %}
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                    </svg>
+                                    {% endif %}
+                                </div>
+                                <div class="job-info">
+                                    <div class="job-name">{{ job.title if job else 'Job Removed' }}</div>
+                                    <div class="job-meta-small">
+                                        {% if job and job.job_type %}{{ job.job_type }}{% endif %}
+                                        {% if job and job.location %} • {{ job.location }}{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="company-name">
+                            {% if recruiter and recruiter.company_name %}{{ recruiter.company_name }}{% else %}Unknown Company{% endif %}
+                        </td>
+
+                        <td class="department">
+                            <span class="department-badge">{{ job.field if job and job.field else 'General' }}</span>
+                        </td>
+
+                        <td class="status">
+                            {% if app.status|lower == 'pending' %}
+                            <span class="status-badge status-pending">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Pending
+                            </span>
+                            {% elif app.status|lower == 'interview' %}
+                            <span class="status-badge status-interview">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                Interview
+                            </span>
+                            {% elif app.status|lower == 'accepted' %}
+                            <span class="status-badge status-accepted">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                Accepted
+                            </span>
+                            {% elif app.status|lower == 'rejected' %}
+                            <span class="status-badge status-rejected">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                Rejected
+                            </span>
                             {% else %}
-                                ?
+                            <span class="status-badge status-pending">{{ app.status }}</span>
                             {% endif %}
-                        </div>
+                        </td>
 
-                        <div class="applicant-details">
-                            <!-- Company Name -->
-                            <h4>
-                                {% if recruiter and recruiter.company_name %}
-                                    {{ recruiter.company_name }}
+                        <td class="date">
+                            {% if app.created_at %}
+                                {{ app.created_at.strftime('%b %d, %Y') }}
+                            {% else %}N/A{% endif %}
+                        </td>
+                        <td class="actions">
+                            <div class="action-buttons">
+                                <!-- View Submitted Application -->
+                                <button class="action-btn"
+                                        title="View Application"
+                                        onclick="window.location.href='{{ url_for('applicant.application_detail', app_id=app.id) }}'">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                                <!-- Online Meeting (only show if interview scheduled) -->
+                                {% if app.status|lower == 'interview' and app.meeting_link %}
+                                <a href="{{ app.meeting_link }}" target="_blank" class="action-btn action-btn-meeting" title="Join Online Meeting">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="23 7 16 12 23 17 23 7"/>
+                                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                                    </svg>
+                                </a>
                                 {% else %}
-                                    Unknown Company
+                                <button class="action-btn" disabled title="No meeting scheduled">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="23 7 16 12 23 17 23 7"/>
+                                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                                    </svg>
+                                </button>
                                 {% endif %}
-                            </h4>
-                            <!-- Job Title -->
-                            <span class="app-date">
-                                <i class="fas fa-briefcase"></i>
-                                {{ app.job.title if app.job else 'Job Removed' }}
-                            </span>
-                            <!-- Applied Date -->
-                            <span class="app-date" style="margin-top: 2px;">
-                                <i class="fas fa-calendar"></i>
-                                Applied {{ app.created_at.strftime('%B %d, %Y') if app.created_at else 'N/A' }}
-                            </span>
-                            <!-- Interview date pill (if scheduled) -->
-                            {% if app.status == 'interview' and app.interview_date %}
-                            <div class="interview-date-inline">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span class="interview-label">Interview:</span>
-                                <span class="interview-value">{{ app.interview_date.strftime('%B %d, %Y at %I:%M %p') }}</span>
                             </div>
-                            {% endif %}
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
 
-                    <div class="app-header-right">
-                        <!-- Status Badge -->
-                        <div class="status-badge status-{{ app.status | lower }}">
-                            {% if app.status | lower == 'pending' %}<i class="fas fa-clock"></i> Pending
-                            {% elif app.status | lower == 'accepted' %}<i class="fas fa-check-circle"></i> Accepted
-                            {% elif app.status | lower == 'rejected' %}<i class="fas fa-times-circle"></i> Rejected
-                            {% elif app.status | lower == 'interview' %}<i class="fas fa-calendar-check"></i> Interview
-                            {% else %}<i class="fas fa-question-circle"></i> {{ app.status }}
-                            {% endif %}
-                        </div>
-                        <!-- Chevron -->
-                        <div class="card-toggle-icon">
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- COLLAPSIBLE BODY -->
-                <div class="app-card-body">
-
-                    <div class="app-details">
-
-                        <!-- JOB INFO CHIPS -->
-                        {% if app.job %}
-                        <div class="job-chips-row">
-                            {% if app.job.job_type %}
-                            <span class="detail-chip"><i class="fas fa-tag"></i> {{ app.job.job_type }}</span>
-                            {% endif %}
-                            {% if app.job.location %}
-                            <span class="detail-chip"><i class="fas fa-map-marker-alt"></i> {{ app.job.location }}</span>
-                            {% endif %}
-                            {% if app.job.salary %}
-                            <span class="detail-chip"><i class="fas fa-money-bill-wave"></i> {{ app.job.salary }}</span>
-                            {% endif %}
-                            {% if app.job.expiration_date %}
-                            <span class="detail-chip"><i class="fas fa-hourglass-end"></i> Deadline: {{ app.job.expiration_date.strftime('%b %d, %Y') }}</span>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
-                        <!-- RESUME LINK -->
-                        {% if app.resume %}
-                        <p>
-                            <strong><i class="fas fa-file-pdf"></i> Resume:</strong>
-                            <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + app.resume) }}"
-                               target="_blank" class="file-link">
-                                View Submitted Resume <i class="fas fa-external-link-alt"></i>
-                            </a>
-                        </p>
-                        {% endif %}
-
-                        <!-- COVER LETTER -->
-                        {% if app.cover_letter %}
-                        <div class="cover-letter-section">
-                            <strong><i class="fas fa-comment-alt"></i> Cover Letter:</strong>
-                            <div class="cover-letter-text">{{ app.cover_letter }}</div>
-                        </div>
-                        {% endif %}
-
-                        <!-- RECRUITER REMARKS -->
-                        {% if app.recruiter_remarks %}
-                        <div class="feedback-card feedback-recruiter" style="margin-top: 12px;">
-                            <div class="feedback-card-header">
-                                <div class="feedback-avatar">
-                                    <div class="feedback-avatar-default recruiter-avatar-bg">
-                                        <i class="fas fa-user-tie"></i>
-                                    </div>
-                                </div>
-                                <div class="feedback-meta">
-                                    <span class="feedback-author">
-                                        {% if recruiter and recruiter.first_name %}
-                                            {{ recruiter.first_name }} {{ recruiter.surname }}
-                                        {% else %}
-                                            Recruiter
-                                        {% endif %}
-                                    </span>
-                                    <span class="feedback-role-tag recruiter-tag">
-                                        <i class="fas fa-user-tie"></i> Recruiter Feedback
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="feedback-body">{{ app.recruiter_remarks }}</div>
-                        </div>
-                        {% endif %}
-
-                        <!-- HR FEEDBACKS -->
-                        {% if app.hr_feedbacks %}
-                        <div class="hr-feedbacks-wrapper">
-                            {% for fb in app.hr_feedbacks %}
-                            <div class="feedback-card feedback-hr">
-                                <div class="feedback-card-header">
-                                    <div class="feedback-avatar">
-                                        {% if fb.hr_user.profile_picture %}
-                                            {% if fb.hr_user.profile_picture.startswith('http') %}
-                                                <img src="{{ fb.hr_user.profile_picture }}" alt="{{ fb.hr_user.username }}" class="feedback-avatar-img">
-                                            {% else %}
-                                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + fb.hr_user.profile_picture) }}" alt="{{ fb.hr_user.username }}" class="feedback-avatar-img">
-                                            {% endif %}
-                                        {% else %}
-                                            <div class="feedback-avatar-default hr-avatar-bg">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="feedback-meta">
-                                        <span class="feedback-author">
-                                            {% if fb.hr_user.hr_profile %}
-                                                {{ fb.hr_user.hr_profile.first_name }} {{ fb.hr_user.hr_profile.last_name }}
-                                            {% else %}
-                                                {{ fb.hr_user.username }}
-                                            {% endif %}
-                                        </span>
-                                        <span class="feedback-role-tag hr-tag">
-                                            <i class="fas fa-user"></i> HR Feedback
-                                        </span>
-                                        <span class="feedback-date">
-                                            {{ fb.updated_at.strftime('%b %d, %Y') if fb.updated_at else fb.created_at.strftime('%b %d, %Y') }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="feedback-body">{{ fb.feedback }}</div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <!-- INTERVIEW DATE BLOCK -->
-                        {% if app.status == 'interview' and app.interview_date %}
-                        <div class="interview-block">
-                            <i class="fas fa-calendar-alt"></i>
-                            <div>
-                                <div class="interview-block-label">Interview Scheduled</div>
-                                <div class="interview-block-value">
-                                    {{ app.interview_date.strftime('%A, %B %d, %Y at %I:%M %p') }}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                    </div>
-                    <!-- end .app-details -->
-
-                </div>
-                <!-- end .app-card-body -->
-
+            <!-- No results message (hidden by default) -->
+            <div id="noResults" class="empty-state" style="display:none;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <h3>No results found</h3>
+                <p>Try adjusting your search or filter</p>
             </div>
-            {% endfor %}
-
+            {% endif %}
         </div>
-        <!-- end #applicationsContainer -->
 
+        {% if applications|length > 10 %}
+        <div class="pagination">
+            <button class="pagination-btn" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </button>
+            <span class="pagination-info">Page 1 of 1</span>
+            <button class="pagination-btn" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                </svg>
+            </button>
+        </div>
         {% endif %}
     </div>
-    <!-- end .applications-list -->
 
 </div>
-<!-- end .applications-wrapper -->
 
-<script src="{{ url_for('static', filename='js/applicant/dashboard.js') }}"></script>
+<!-- Extra style for the merged view button -->
+<style>
+.view-detail-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.view-detail-btn:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+.view-detail-btn svg { transition: color 0.2s ease; }
+.view-detail-btn:hover svg { color: white; }
+</style>
+
+<script src="{{ url_for('static', filename='js/applicant/application_status.js') }}"></script>
+
 {% endblock %}
