@@ -49,6 +49,7 @@
         </div>
         {% elif onboarding.status == 'confirmed' %}
         <div class="emp-alert emp-alert-success">
+            <a href="{{ url_for('applicant.status') }}">View your employment record →</a>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
             <div>
                 <strong>Employment Confirmed!</strong> You are now an employee. <a href="{{ url_for('employment.applicant_onboarding_status', app_id=application.id) }}">View your employment record →</a>

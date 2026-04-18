@@ -77,7 +77,7 @@
                                 <div class="emp-req-desc">{{ req.description }}</div>
                                 {% endif %}
                             </div>
-                            <form method="POST" style="margin:0;">
+                            <form method="POST" action="{{ url_for('employment.manage_requirements', job_id=job.id) }}" style="margin:0;">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="req_id" value="{{ req.id }}">
                                 <button type="submit" class="emp-delete-req-btn"
@@ -112,7 +112,7 @@
                         Add Requirement
                     </div>
                 </div>
-                <form method="POST" class="emp-add-form">
+                <form method="POST" action="{{ url_for('employment.manage_requirements', job_id=job.id) }}" class="emp-add-form">
                     <input type="hidden" name="action" value="add">
                     <div class="emp-form-group">
                         <label>Document Title <span class="emp-req-star">*</span></label>
@@ -142,7 +142,11 @@
             <div class="emp-card emp-info-card">
                 <div class="emp-card-header">
                     <div class="emp-card-title">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
                         Common Requirements
                     </div>
                 </div>

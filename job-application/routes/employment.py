@@ -28,7 +28,7 @@ def _allowed_doc(filename):
 # ── RECRUITER: Manage employment requirements per job ──
 # ================================================================
 
-@employment_bp.route('/requirements/<int:job_id>', methods=['GET'])
+@employment_bp.route('/requirements/<int:job_id>', methods=['GET', 'POST'])
 @login_required
 def manage_requirements(job_id):
     if current_user.role != 'recruiter':
@@ -40,8 +40,42 @@ def manage_requirements(job_id):
         flash("Unauthorized!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
 
-    requirements = EmploymentRequirement.query.filter_by(job_id=job_id).all()
+    if request.method == 'POST':
+        action = request.form.get('action')
 
+        if action == 'add':
+            title       = request.form.get('title', '').strip()
+            description = request.form.get('description', '').strip()
+            is_required = request.form.get('is_required') == '1'
+
+            if not title:
+                flash("Document title is required.", "danger")
+                return redirect(url_for('employment.manage_requirements', job_id=job_id))
+
+            req = EmploymentRequirement(
+                job_id=job_id,
+                title=title,
+                description=description,
+                is_required=is_required,
+            )
+            db.session.add(req)
+            db.session.commit()
+            flash("Requirement added.", "success")
+
+        elif action == 'delete':
+            req_id = request.form.get('req_id', type=int)
+            req = EmploymentRequirement.query.get_or_404(req_id)
+            if req.job_id == job_id:
+                db.session.delete(req)
+                db.session.commit()
+                flash("Requirement removed.", "success")
+            else:
+                flash("Unauthorized!", "danger")
+
+        return redirect(url_for('employment.manage_requirements', job_id=job_id))
+
+    # GET
+    requirements = EmploymentRequirement.query.filter_by(job_id=job_id).all()
     return render_template(
         'employment/manage_requirements.html',
         job=job,
@@ -116,7 +150,7 @@ def submit_documents(app_id):
         return redirect(url_for('applicant.dashboard'))
 
     existing_emp = Employee.query.filter_by(application_id=app_id).first()
-    if existing_emp and existing_emp.employment_status == 'active':  # FIXED
+    if existing_emp and existing_emp.employment_status == 'active':
         flash("You are already confirmed as an employee for this job.", "info")
         return redirect(url_for('applicant.dashboard'))
 
@@ -136,16 +170,16 @@ def submit_documents(app_id):
 
         uploaded_any = False
         for req in requirements:
-            file = request.files.get(f'doc_{req.id}')
+            file = request.files.get(f'req_{req.id}')  # matches name="req_{{ req.id }}" in template
             if not file or file.filename == '':
                 continue
             if not _allowed_doc(file.filename):
-                flash(f"Invalid file type for {req.title}. Use PDF, JPG, or PNG.", "danger")  # FIXED: req.title
+                flash(f"Invalid file type for {req.title}. Use PDF, JPG, or PNG.", "danger")
                 continue
 
             file.seek(0, 2); size = file.tell(); file.seek(0)
             if size > 10 * 1024 * 1024:
-                flash(f"{req.title} exceeds 10 MB limit.", "danger")  # FIXED: req.title
+                flash(f"{req.title} exceeds 10 MB limit.", "danger")
                 continue
 
             ext      = os.path.splitext(file.filename.lower())[1]
@@ -158,16 +192,13 @@ def submit_documents(app_id):
                 if old and os.path.exists(old):
                     os.remove(old)
                 sub.file_path    = filename
-                sub.submitted_at = datetime.utcnow()  # FIXED: submitted_at not uploaded_at
-                sub.notes        = None               # FIXED: notes not review_status/review_note
-                # REMOVED: sub.review_status, sub.review_note, sub.reviewed_by, sub.reviewed_at
-                # — these columns do not exist on EmploymentSubmission
+                sub.submitted_at = datetime.utcnow()
+                sub.notes        = None
             else:
                 sub = EmploymentSubmission(
                     application_id=app_id,
                     requirement_id=req.id,
                     file_path=filename,
-                    # submitted_at has a server default, no need to pass it
                 )
                 db.session.add(sub)
                 submissions_map[req.id] = sub
@@ -206,12 +237,34 @@ def submit_documents(app_id):
 
         return redirect(url_for('employment.submit_documents', app_id=app_id))
 
+    # ==================
+    # GET
+    # ==================
+    from models import EmploymentOnboarding, RecruiterProfile
+
+    onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
+
+    if not onboarding:
+        onboarding = EmploymentOnboarding(
+            application_id=app_id,
+            status='pending_submission'
+        )
+        db.session.add(onboarding)
+        db.session.commit()
+
+    recruiter_profile = RecruiterProfile.query.filter_by(
+        user_id=job.company_id
+    ).first()
+
     return render_template(
         'employment/submit_documents.html',
         application=application,
         job=job,
         requirements=requirements,
         submissions_map=submissions_map,
+        existing=submissions_map,
+        onboarding=onboarding,
+        recruiter_profile=recruiter_profile,
     )
 
 
