@@ -1,0 +1,187 @@
+{% extends "layout.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="about-page">
+
+    <!-- Hero Section -->
+    <div class="about-hero">
+        <div class="about-hero-content">
+            <div class="hero-logo-group">
+                <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="hero-logo">
+                <div class="hero-text-group">
+                    <p class="hero-tagline">Where Opportunity Meets the Right Job</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Us: text left, image right -->
+    <div class="about-strip strip-white">
+        <div class="strip-inner">
+            <div class="strip-text" id="about-us">
+                <h2 class="section-title">About Us</h2>
+                <p class="section-body-text">
+                    Lorem ipsum dolor sit amet consectetur adipiscing elit. Ex sapien vitae pellentesque sem placerat in id. Pretium tellus duis convallis tempus leo eu aenean. Urna tempor pulvinar vivamus fringilla lacus nec metus. Iaculis massa nisl malesuada lacinia integer nunc posuere. Semper vel class aptent taciti sociosqu ad litora.
+                </p>
+            </div>
+            <div class="strip-image">
+                <div class="image-panel">
+                    <div class="panel-bg panel-bg--orange"></div>
+                    <img src="{{ url_for('static', filename='uploads/about_photos/about-us.jpg') }}" alt="About Us" class="panel-img">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vision: image left, text right -->
+    <div class="about-strip strip-tint">
+        <div class="strip-inner strip-inner--reverse">
+            <div class="strip-text" id="vision">
+                <div class="section-icon section-icon--green">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h2 class="section-title">Vision</h2>
+                <p class="section-body-text">
+                    Lorem ipsum dolor sit amet consectetur adipiscing elit. Ex sapien vitae pellentesque sem placerat in id. Pretium tellus duis convallis tempus leo eu aenean. Urna tempor pulvinar vivamus fringilla lacus nec metus. Iaculis massa nisl malesuada lacinia integer nunc posuere. Semper vel class aptent taciti sociosqu ad litora.
+                </p>
+            </div>
+            <div class="strip-image">
+                <div class="image-panel image-panel--left">
+                    <div class="panel-bg panel-bg--green"></div>
+                    <img src="{{ url_for('static', filename='uploads/about_photos/vision.jpg') }}" alt="Our Vision" class="panel-img">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mission: text left, image right -->
+    <div class="about-strip strip-white">
+        <div class="strip-inner">
+            <div class="strip-text" id="mission">
+                <div class="section-icon section-icon--orange">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <h2 class="section-title">Mission</h2>
+                <p class="section-body-text">
+                    Lorem ipsum dolor sit amet consectetur adipiscing elit. Ex sapien vitae pellentesque sem placerat in id. Pretium tellus duis convallis tempus leo eu aenean. Urna tempor pulvinar vivamus fringilla lacus nec metus. Iaculis massa nisl malesuada lacinia integer nunc posuere. Semper vel class aptent taciti sociosqu ad litora.
+                </p>
+            </div>
+            <div class="strip-image">
+                <div class="image-panel">
+                    <div class="panel-bg panel-bg--dark"></div>
+                    <img src="{{ url_for('static', filename='uploads/about_photos/mission.jpg') }}" alt="Our Mission" class="panel-img">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Team -->
+    <div class="about-strip strip-tint" id="our-team">
+        <div class="team-container">
+            <h2 class="section-title">Our Team</h2>
+            <div class="team-grid">
+
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='uploads/team_photos/Bernardino.jpg') }}" alt="John Renz W. Bernardino" class="team-photo-img">
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">John Renz W. Bernardino</h3>
+                        <p class="team-email"><a href="mailto:jrenzwbernardino@gmail.com">jrenzwbernardino@gmail.com</a></p>
+                        <p class="team-bio">Team bio, motto, etc.</p>
+                        <div class="team-social">
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='uploads/team_photos/Matuto.png') }}" alt="Chelsy Rhaine M. Matuto" class="team-photo-img">
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">Chelsy Rhaine M. Matuto</h3>
+                        <p class="team-email"><a href="mailto:chelsymatuto21@gmail.com">chelsymatuto21@gmail.com</a></p>
+                        <p class="team-bio">Team bio, motto, etc.</p>
+                        <div class="team-social">
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='uploads/team_photos/Paraiso.jpg') }}" alt="Maria Samantha A. Paraiso" class="team-photo-img">
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">Maria Samantha A. Paraiso</h3>
+                        <p class="team-email"><a href="mailto:samsamparaiso@gmail.com">samsamparaiso@gmail.com</a></p>
+                        <p class="team-bio">Team bio, motto, etc.</p>
+                        <div class="team-social">
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='uploads/team_photos/Revaula.png') }}" alt="Mark Daniel D. Revaula" class="team-photo-img">
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">Mark Daniel D. Revaula</h3>
+                        <p class="team-email"><a href="mailto:mdd.revaula@gmail.com">mdd.revaula@gmail.com</a></p>
+                        <p class="team-bio">Team bio, motto, etc.</p>
+                        <div class="team-social">
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='uploads/team_photos/Sacatani.jpg') }}" alt="Juliana Mae C. Sacatani" class="team-photo-img">
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">Juliana Mae C. Sacatani</h3>
+                        <p class="team-email"><a href="mailto:julianamaesactani@gmail.com">julianamaesactani@gmail.com</a></p>
+                        <p class="team-bio">Team bio, motto, etc.</p>
+                        <div class="team-social">
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="{{ url_for('static', filename='uploads/team_photos/Villafuerte.png') }}" alt="Angela Franceska L. Villafuerte" class="team-photo-img">
+                    </div>
+                    <div class="team-info">
+                        <h3 class="team-name">Angela Franceska L. Villafuerte</h3>
+                        <p class="team-email"><a href="mailto:angelaschoolacc5@gmail.com">angelaschoolacc5@gmail.com</a></p>
+                        <p class="team-bio">Team bio, motto, etc.</p>
+                        <div class="team-social">
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/about.js') }}"></script>
+
+{% endblock %}

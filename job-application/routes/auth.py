@@ -658,3 +658,10 @@ def logout():
     logout_user()
     flash("Logged out successfully", "info")
     return redirect(url_for("auth.index"))
+
+# =========================
+# ABOUT US PAGE
+# =========================
+@auth_bp.route('/about')
+def about():
+    return render_template('about.html')
