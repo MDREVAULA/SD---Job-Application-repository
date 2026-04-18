@@ -142,7 +142,7 @@
                             {% endif %}
 
                             <!-- File upload input -->
-                            {% if onboarding.status not in ('submitted', 'confirmed') %}
+                            {% if onboarding.status not in ('confirmed',) %}
                             <div class="emp-upload-zone" id="zone-{{ req.id }}">
                                 <input type="file"
                                        name="req_{{ req.id }}"
@@ -173,21 +173,25 @@
                         {% endfor %}
                     </div>
 
-                    {% if onboarding.status not in ('submitted', 'confirmed') %}
-                    <div class="emp-form-footer">
-                        <div class="emp-submit-info">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                            Upload all <strong>required</strong> documents to submit for review.
-                        </div>
-                        <button type="submit" class="emp-submit-btn" id="empSubmitBtn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="22" y1="2" x2="11" y2="13"/>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                            </svg>
-                            Save &amp; Submit Documents
-                        </button>
+{% if onboarding.status not in ('confirmed',) %}
+                <div class="emp-form-footer">
+                    <div class="emp-submit-info">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Upload all <strong>required</strong> documents to submit for review.
                     </div>
-                    {% endif %}
+                    <button type="submit" class="emp-submit-btn" id="empSubmitBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                        {% if onboarding.status == 'submitted' %}
+                        Update Documents
+                        {% else %}
+                        Save &amp; Submit Documents
+                        {% endif %}
+                    </button>
+                </div>
+                {% endif %}
                 </form>
                 {% endif %}
             </div>

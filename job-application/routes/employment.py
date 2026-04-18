@@ -170,7 +170,7 @@ def submit_documents(app_id):
 
         uploaded_any = False
         for req in requirements:
-            file = request.files.get(f'req_{req.id}')  # matches name="req_{{ req.id }}" in template
+            file = request.files.get(f'req_{req.id}')
             if not file or file.filename == '':
                 continue
             if not _allowed_doc(file.filename):
@@ -208,6 +208,21 @@ def submit_documents(app_id):
         if uploaded_any:
             db.session.commit()
 
+            from models import EmploymentOnboarding
+            onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
+            if onboarding:
+                # Allow re-submission from needs_revision OR already submitted
+                if onboarding.status in ('pending_submission', 'needs_revision', 'submitted'):
+                    onboarding.status = 'submitted'
+                    onboarding.submitted_at = datetime.utcnow()
+            else:
+                onboarding = EmploymentOnboarding(
+                    application_id=app_id,
+                    status='submitted',
+                    submitted_at=datetime.utcnow()
+                )
+                db.session.add(onboarding)
+
             db.session.add(RecruiterNotification(
                 recruiter_id=job.company_id,
                 type='employment_docs',
@@ -237,9 +252,7 @@ def submit_documents(app_id):
 
         return redirect(url_for('employment.submit_documents', app_id=app_id))
 
-    # ==================
-    # GET
-    # ==================
+    # ── GET ──
     from models import EmploymentOnboarding, RecruiterProfile
 
     onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
@@ -272,7 +285,7 @@ def submit_documents(app_id):
 # ── RECRUITER / HR: Review submitted documents ──
 # ================================================================
 
-@employment_bp.route('/review/<int:app_id>', methods=['GET'])
+@employment_bp.route('/review/<int:app_id>', methods=['GET', 'POST'])
 @login_required
 def review_documents(app_id):
     if current_user.role not in ('recruiter', 'hr'):
@@ -295,17 +308,83 @@ def review_documents(app_id):
             flash("You are not assigned to this job.", "warning")
             return redirect(url_for('hr.job_list'))
 
+    # ── Handle POST actions (confirm / request_revision) ──
+    if request.method == 'POST':
+        from models import EmploymentOnboarding
+        action = request.form.get('action')
+        onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
+
+        if action == 'confirm' and onboarding:
+            existing_emp = Employee.query.filter_by(application_id=app_id).first()
+            if not existing_emp:
+                recruiter_user = User.query.get(job.company_id)
+                company_name = None
+                if recruiter_user and recruiter_user.recruiter_profile:
+                    company_name = recruiter_user.recruiter_profile.company_name
+
+                employee = Employee(
+                    user_id=application.applicant_id,
+                    job_id=job.id,
+                    application_id=app_id,
+                    confirmed_by=current_user.id,
+                    job_title=job.title,
+                    company_name=company_name,
+                    employment_status='active',
+                )
+                db.session.add(employee)
+                application.status = 'employed'
+                onboarding.status = 'confirmed'
+                onboarding.reviewed_at = datetime.utcnow()
+
+                from models import ApplicantNotification
+                db.session.add(ApplicantNotification(
+                    applicant_id=application.applicant_id,
+                    type='employment_confirmed',
+                    message=(
+                        f"🎉 Congratulations! You have been officially confirmed as an employee "
+                        f"for <strong>{job.title}</strong>."
+                    ),
+                    application_id=app_id,
+                    job_id=job.id,
+                ))
+                db.session.commit()
+                flash("Employment confirmed! The applicant is now an employee.", "success")
+            else:
+                flash("Already confirmed.", "info")
+
+        elif action == 'request_revision' and onboarding:
+            note = request.form.get('reviewer_note', '').strip()
+            onboarding.status = 'needs_revision'
+            onboarding.reviewer_note = note
+            onboarding.reviewed_at = datetime.utcnow()
+
+            from models import ApplicantNotification
+            db.session.add(ApplicantNotification(
+                applicant_id=application.applicant_id,
+                type='employment_docs',
+                message=(
+                    f"Your employment documents for <strong>{job.title}</strong> require revision."
+                    + (f" Note: {note}" if note else "")
+                ),
+                application_id=app_id,
+                job_id=job.id,
+            ))
+            db.session.commit()
+            flash("Revision requested.", "warning")
+
+        return redirect(url_for('employment.review_documents', app_id=app_id))
+
+    # ── GET ──
+    from models import EmploymentOnboarding
+
     requirements    = EmploymentRequirement.query.filter_by(job_id=job.id).all()
     submissions     = EmploymentSubmission.query.filter_by(application_id=app_id).all()
     submissions_map = {s.requirement_id: s for s in submissions}
     existing_emp    = Employee.query.filter_by(application_id=app_id).first()
     applicant       = User.query.get(application.applicant_id)
 
-    # FIXED: use sub.notes == 'approved' instead of sub.review_status
-    all_required_approved = all(
-        submissions_map.get(r.id) and submissions_map[r.id].notes == 'approved'
-        for r in requirements if r.is_required
-    )
+    # ── Fetch onboarding so the sidebar shows correct status ──
+    onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
 
     return render_template(
         'employment/review_documents.html',
@@ -314,60 +393,10 @@ def review_documents(app_id):
         applicant=applicant,
         requirements=requirements,
         submissions_map=submissions_map,
+        existing=submissions_map,
         existing_emp=existing_emp,
-        all_required_approved=all_required_approved,
+        onboarding=onboarding,      # ← this was missing
     )
-
-
-@employment_bp.route('/review/doc/<int:sub_id>', methods=['POST'])
-@login_required
-def review_single_doc(sub_id):
-    if current_user.role not in ('recruiter', 'hr'):
-        return jsonify({'success': False, 'error': 'Access denied'}), 403
-
-    sub         = EmploymentSubmission.query.get_or_404(sub_id)
-    application = Application.query.get_or_404(sub.application_id)
-    job         = application.job
-
-    if current_user.role == 'recruiter' and job.company_id != current_user.id:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
-
-    if current_user.role == 'hr':
-        from models import JobTeamMember
-        if not JobTeamMember.query.filter_by(job_id=job.id, hr_id=current_user.id).first():
-            return jsonify({'success': False, 'error': 'Not assigned'}), 403
-
-    action = request.form.get('action')  # 'approve' | 'reject'
-    note   = request.form.get('note', '').strip()
-
-    if action == 'approve':
-        sub.notes = 'approved'   # FIXED: use notes column
-    elif action == 'reject':
-        sub.notes = 'rejected'   # FIXED: use notes column
-    else:
-        flash("Invalid action.", "danger")
-        return redirect(url_for('employment.review_documents', app_id=sub.application_id))
-
-    # REMOVED: sub.review_note, sub.reviewed_by, sub.reviewed_at — columns don't exist
-    db.session.commit()
-
-    req  = EmploymentRequirement.query.get(sub.requirement_id)
-    verb = "approved" if action == 'approve' else "rejected"
-    db.session.add(ApplicantNotification(
-        applicant_id=application.applicant_id,
-        type='employment_docs',
-        message=(
-            f"Your document <strong>{req.title}</strong> for "   # FIXED: req.title
-            f"<strong>{job.title}</strong> has been <strong>{verb}</strong>."
-            + (f" Note: {note}" if note else "")
-        ),
-        application_id=application.id,
-        job_id=job.id,
-    ))
-    db.session.commit()
-
-    flash(f"Document {verb}.", "success")
-    return redirect(url_for('employment.review_documents', app_id=sub.application_id))
 
 
 # ================================================================
