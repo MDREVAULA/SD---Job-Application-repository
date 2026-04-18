@@ -663,6 +663,30 @@
     background: var(--bg-hover);
 }
 
+.action-btn-employee {
+    background: #EAF3DE !important;
+    border-color: #9DC88D !important;
+    color: #164A41 !important;
+}
+ 
+.action-btn-onboard {
+    background: #FAEEDA !important;
+    border-color: #FAC775 !important;
+    color: #92400e !important;
+}
+ 
+.onboard-pending {
+    background: rgba(59,130,246,0.1) !important;
+    border-color: rgba(59,130,246,0.3) !important;
+    color: #1e40af !important;
+}
+ 
+.onboard-revision {
+    background: rgba(239,68,68,0.1) !important;
+    border-color: rgba(239,68,68,0.3) !important;
+    color: #c0392b !important;
+}
+
 @keyframes slideUp {
     from {
         opacity: 0;

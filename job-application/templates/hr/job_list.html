@@ -157,8 +157,9 @@
                         <td class="job-title-cell">
                             <div class="job-title-wrapper">
                                 <div class="company-logo">
-                                    {% if job.recruiter and job.recruiter.recruiter_profile and job.recruiter.recruiter_profile.company_logo %}
-                                    <img src="{{ url_for('static', filename='uploads/company_logos/' + job.recruiter.recruiter_profile.company_logo) }}" alt="Logo">
+                                    {% set job_owner_profile = job.company_id | get_recruiter_profile %}
+                                    {% if job_owner_profile and job_owner_profile.company_logo %}
+                                    <img src="{{ url_for('static', filename='uploads/company_logos/' + job_owner_profile.company_logo) }}" alt="Logo">
                                     {% else %}
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -177,7 +178,8 @@
                         </td>
                         
                         <td class="company-name">
-                            {{ job.recruiter.recruiter_profile.company_name if job.recruiter and job.recruiter.recruiter_profile else 'N/A' }}
+                            {% set job_owner_profile = job.company_id | get_recruiter_profile %}
+                            {{ job_owner_profile.company_name if job_owner_profile else 'N/A' }}
                         </td>
                         
                         <td class="department">

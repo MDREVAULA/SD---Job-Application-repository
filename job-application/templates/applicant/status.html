@@ -231,6 +231,30 @@
                                         <circle cx="12" cy="12" r="3"/>
                                     </svg>
                                 </button>
+                                {% if app.status|lower == 'accepted' %}
+                                    {% if app.employee_record %}
+                                        {% if app.employee_record.employment_status == 'active' %}
+                                        <a href="{{ url_for('employment.my_employment') }}"
+                                        class="action-btn action-btn-employee" title="View Employment">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                                <circle cx="12" cy="7" r="4"/>
+                                            </svg>
+                                        </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <a href="{{ url_for('employment.submit_documents', app_id=app.id) }}"
+                                        class="action-btn action-btn-onboard"
+                                        title="Submit Employment Documents">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                                <polyline points="14 2 14 8 20 8"/>
+                                                <line x1="12" y1="18" x2="12" y2="12"/>
+                                                <line x1="9" y1="15" x2="15" y2="15"/>
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
                                 <!-- Online Meeting (only show if interview scheduled) -->
                                 {% if app.status|lower == 'interview' and app.meeting_link %}
                                 <a href="{{ app.meeting_link }}" target="_blank" class="action-btn action-btn-meeting" title="Join Online Meeting">

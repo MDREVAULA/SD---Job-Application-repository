@@ -19,7 +19,6 @@ connection = pymysql.connect(
     user="root",
     password=""
 )
-
 cursor = connection.cursor()
 cursor.execute("CREATE DATABASE IF NOT EXISTS job_portal")
 connection.close()
@@ -27,7 +26,6 @@ connection.close()
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# ── Filter out static file requests from logs ──
 class NoStaticFilter(logging.Filter):
     def filter(self, record):
         return '/static/' not in record.getMessage()
@@ -36,20 +34,14 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.INFO)
 log.addFilter(NoStaticFilter())
 
-# Upload folder configuration
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
-
-# Initialize Database
 db.init_app(app)
 migrate = Migrate(app, db)
-
-# Initialize Mail
 mail = Mail(app)
 
-# Initialize OAuth
 oauth = OAuth(app)
 oauth.register(
     name="google",
@@ -59,7 +51,6 @@ oauth.register(
     client_kwargs={"scope": "openid email profile"},
 )
 
-# Setup Login Manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "auth.login"
@@ -70,7 +61,7 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 # ============================================================
-# JINJA2 FILTERS — registered BEFORE blueprints
+# JINJA2 FILTERS
 # ============================================================
 
 @app.template_filter('get_recruiter_profile')
@@ -79,13 +70,7 @@ def get_recruiter_profile(user_id):
         return None
     return RecruiterProfile.query.filter_by(user_id=user_id).first()
 
-
 def _parse_json(value, default=None):
-    """
-    Safe JSON parser for Jinja2 filters.
-    Returns `default` (empty list) when value is None, empty, or invalid JSON.
-    This prevents TemplateRuntimeError on jobs that have no values set yet.
-    """
     if not value:
         return default if default is not None else []
     try:
@@ -93,20 +78,16 @@ def _parse_json(value, default=None):
     except (ValueError, TypeError):
         return default if default is not None else []
 
-# Register under BOTH spellings used across templates:
-#   {{ job.why_join_us | fromjson }}   ← used in job_details.html, edit_job.html
-#   {{ job.company_values | from_json }} ← used in edit_job.html
 app.jinja_env.filters['fromjson']  = _parse_json
 app.jinja_env.filters['from_json'] = _parse_json
 
+# ============================================================
+# CONTEXT PROCESSOR
+# ============================================================
 
-# ============================================================
-# CONTEXT PROCESSOR — make now() available in all templates
-# ============================================================
 @app.context_processor
 def inject_now():
     return {'now': datetime.utcnow}
-
 
 # ============================================================
 # REGISTER BLUEPRINTS
@@ -119,6 +100,7 @@ from routes.admin import admin_bp
 from routes.chat import chat_bp
 from routes.profile_view import profile_view_bp
 from routes.settings import settings_bp
+from routes.employment import employment_bp
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(applicant_bp)
@@ -128,7 +110,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(profile_view_bp)
 app.register_blueprint(settings_bp)
-
+app.register_blueprint(employment_bp)
 
 # ============================================================
 # RUN
@@ -137,12 +119,9 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-        # ONLY run once (avoid duplicate execution from reloader)
         if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
-            # AUTO-CREATE ADMIN ACCOUNT IF NOT EXISTS
             existing_admin = User.query.filter_by(role="admin").first()
-
             if not existing_admin:
                 admin = User(
                     username="admin",
@@ -153,18 +132,15 @@ if __name__ == "__main__":
                 )
                 db.session.add(admin)
                 db.session.commit()
-
                 print("=" * 50)
                 print("Admin account created!")
                 print("Username: admin")
                 print("Password: admin123")
                 print("=" * 50)
 
-            # GENERATE ADMIN TOKEN LINK (per session)
             admin_token = secrets.token_urlsafe(32)
             app.config["ADMIN_TOKEN"] = admin_token
 
-            # CLEAN OUTPUT ORDER
             print("\n" + "=" * 50)
             print("Flask App URL:")
             print("http://127.0.0.1:5000/")

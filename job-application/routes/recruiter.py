@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from models import (
     db, Job, User, Application, JobImage, HRFeedback,
     RecruiterNotification, ApplicantNotification, RecruiterEducation,
-    JobTeamMember, HRProfile, RecruiterProfile
+    JobTeamMember, HRProfile, RecruiterProfile, Employee
 )
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
@@ -876,6 +876,10 @@ def update_application_status(app_id):
         return redirect(url_for('auth.index'))
 
     application = Application.query.get_or_404(app_id)
+    if Employee.query.filter_by(application_id=app_id).first():
+        flash("This applicant is already a confirmed employee. Status cannot be changed.", "warning")
+        return redirect(url_for('recruiter.view_job_applications', job_id=application.job_id))
+    
     job = Job.query.get_or_404(application.job_id)
 
     if job.company_id != current_user.id:

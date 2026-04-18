@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification, HREducation
+from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification, HREducation, Employee
 from werkzeug.security import generate_password_hash
 from flask import current_app
 from PIL import Image
@@ -387,6 +387,9 @@ def update_application_status(app_id):
         return redirect(url_for('auth.index'))
 
     application = Application.query.get_or_404(app_id)
+    if Employee.query.filter_by(application_id=app_id).first():
+        flash("This applicant is already a confirmed employee. Status cannot be changed.", "warning")
+        return redirect(url_for('hr.job_applications', job_id=application.job_id))
 
     new_status        = request.form.get('status')
     new_feedback      = request.form.get('hr_feedback')

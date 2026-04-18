@@ -1,10 +1,6 @@
 # ================================================================
 # EMPLOYMENT ROUTES  —  routes/employment.py
 # ================================================================
-# Register in app.py:
-#   from routes.employment import employment_bp
-#   app.register_blueprint(employment_bp)
-# ================================================================
 
 from flask import (
     Blueprint, render_template, redirect, url_for,
@@ -12,16 +8,12 @@ from flask import (
 )
 from flask_login import login_required, current_user
 from datetime import datetime
-import os, uuid, json
-from werkzeug.utils import secure_filename
-
+import os, uuid
 from models import (
     db, Job, Application, User,
     ApplicantNotification, RecruiterNotification, HRNotification,
+    EmploymentRequirement, EmploymentSubmission, Employee
 )
-
-# ── Import the new models (they live in models.py after you paste them) ──
-from models import EmploymentRequirement, EmploymentSubmission, Employee
 
 employment_bp = Blueprint('employment', __name__, url_prefix='/employment')
 
@@ -39,7 +31,6 @@ def _allowed_doc(filename):
 @employment_bp.route('/requirements/<int:job_id>', methods=['GET'])
 @login_required
 def manage_requirements(job_id):
-    """Page where recruiter sets up required documents for a job."""
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -78,7 +69,7 @@ def add_requirement(job_id):
 
     req = EmploymentRequirement(
         job_id=job_id,
-        name=name,
+        title=name,          # FIXED: model column is 'title', not 'name'
         description=description,
         is_required=is_required,
     )
@@ -112,7 +103,6 @@ def delete_requirement(req_id):
 @employment_bp.route('/submit/<int:app_id>', methods=['GET', 'POST'])
 @login_required
 def submit_documents(app_id):
-    """Applicant uploads their employment requirement documents."""
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -125,16 +115,14 @@ def submit_documents(app_id):
         flash("You can only submit documents for accepted applications.", "warning")
         return redirect(url_for('applicant.dashboard'))
 
-    # Check already an employee
     existing_emp = Employee.query.filter_by(application_id=app_id).first()
-    if existing_emp and existing_emp.status == 'active':
+    if existing_emp and existing_emp.employment_status == 'active':  # FIXED
         flash("You are already confirmed as an employee for this job.", "info")
         return redirect(url_for('applicant.dashboard'))
 
     job          = application.job
     requirements = EmploymentRequirement.query.filter_by(job_id=job.id).all()
 
-    # Build existing submissions map  req_id → submission
     submissions_map = {
         s.requirement_id: s
         for s in EmploymentSubmission.query.filter_by(application_id=app_id).all()
@@ -152,37 +140,34 @@ def submit_documents(app_id):
             if not file or file.filename == '':
                 continue
             if not _allowed_doc(file.filename):
-                flash(f"Invalid file type for {req.name}. Use PDF, JPG, or PNG.", "danger")
+                flash(f"Invalid file type for {req.title}. Use PDF, JPG, or PNG.", "danger")  # FIXED: req.title
                 continue
 
             file.seek(0, 2); size = file.tell(); file.seek(0)
             if size > 10 * 1024 * 1024:
-                flash(f"{req.name} exceeds 10 MB limit.", "danger")
+                flash(f"{req.title} exceeds 10 MB limit.", "danger")  # FIXED: req.title
                 continue
 
             ext      = os.path.splitext(file.filename.lower())[1]
             filename = f"emp_{current_user.id}_{req.id}_{uuid.uuid4().hex[:8]}{ext}"
             file.save(os.path.join(folder, filename))
 
-            # Upsert submission
             sub = submissions_map.get(req.id)
             if sub:
-                # Remove old file
                 old = os.path.join(folder, sub.file_path) if sub.file_path else None
                 if old and os.path.exists(old):
                     os.remove(old)
                 sub.file_path    = filename
-                sub.uploaded_at  = datetime.utcnow()
-                sub.review_status = 'pending'
-                sub.review_note  = None
-                sub.reviewed_by  = None
-                sub.reviewed_at  = None
+                sub.submitted_at = datetime.utcnow()  # FIXED: submitted_at not uploaded_at
+                sub.notes        = None               # FIXED: notes not review_status/review_note
+                # REMOVED: sub.review_status, sub.review_note, sub.reviewed_by, sub.reviewed_at
+                # — these columns do not exist on EmploymentSubmission
             else:
                 sub = EmploymentSubmission(
                     application_id=app_id,
                     requirement_id=req.id,
                     file_path=filename,
-                    uploaded_at=datetime.utcnow(),
+                    # submitted_at has a server default, no need to pass it
                 )
                 db.session.add(sub)
                 submissions_map[req.id] = sub
@@ -192,9 +177,7 @@ def submit_documents(app_id):
         if uploaded_any:
             db.session.commit()
 
-            # Notify recruiter + assigned HR
-            job_owner = User.query.get(job.company_id)
-            notif = RecruiterNotification(
+            db.session.add(RecruiterNotification(
                 recruiter_id=job.company_id,
                 type='employment_docs',
                 message=(
@@ -203,12 +186,11 @@ def submit_documents(app_id):
                 ),
                 application_id=app_id,
                 job_id=job.id,
-            )
-            db.session.add(notif)
+            ))
 
-            from models import JobTeamMember, HRNotification as HRN
+            from models import JobTeamMember
             for tm in job.team_members:
-                db.session.add(HRN(
+                db.session.add(HRNotification(
                     hr_id=tm.hr_id,
                     type='employment_docs',
                     message=(
@@ -240,7 +222,6 @@ def submit_documents(app_id):
 @employment_bp.route('/review/<int:app_id>', methods=['GET'])
 @login_required
 def review_documents(app_id):
-    """Recruiter or assigned HR reviews applicant's submitted employment docs."""
     if current_user.role not in ('recruiter', 'hr'):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -248,7 +229,6 @@ def review_documents(app_id):
     application = Application.query.get_or_404(app_id)
     job = application.job
 
-    # Permission check
     if current_user.role == 'recruiter' and job.company_id != current_user.id:
         flash("Unauthorized!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
@@ -262,15 +242,15 @@ def review_documents(app_id):
             flash("You are not assigned to this job.", "warning")
             return redirect(url_for('hr.job_list'))
 
-    requirements   = EmploymentRequirement.query.filter_by(job_id=job.id).all()
-    submissions    = EmploymentSubmission.query.filter_by(application_id=app_id).all()
+    requirements    = EmploymentRequirement.query.filter_by(job_id=job.id).all()
+    submissions     = EmploymentSubmission.query.filter_by(application_id=app_id).all()
     submissions_map = {s.requirement_id: s for s in submissions}
-    existing_emp   = Employee.query.filter_by(application_id=app_id).first()
-    applicant      = User.query.get(application.applicant_id)
+    existing_emp    = Employee.query.filter_by(application_id=app_id).first()
+    applicant       = User.query.get(application.applicant_id)
 
-    # Is employment confirmable?
+    # FIXED: use sub.notes == 'approved' instead of sub.review_status
     all_required_approved = all(
-        submissions_map.get(r.id) and submissions_map[r.id].review_status == 'approved'
+        submissions_map.get(r.id) and submissions_map[r.id].notes == 'approved'
         for r in requirements if r.is_required
     )
 
@@ -289,13 +269,12 @@ def review_documents(app_id):
 @employment_bp.route('/review/doc/<int:sub_id>', methods=['POST'])
 @login_required
 def review_single_doc(sub_id):
-    """Approve or reject a single submitted document."""
     if current_user.role not in ('recruiter', 'hr'):
         return jsonify({'success': False, 'error': 'Access denied'}), 403
 
-    sub = EmploymentSubmission.query.get_or_404(sub_id)
-    app = Application.query.get_or_404(sub.application_id)
-    job = app.job
+    sub         = EmploymentSubmission.query.get_or_404(sub_id)
+    application = Application.query.get_or_404(sub.application_id)
+    job         = application.job
 
     if current_user.role == 'recruiter' and job.company_id != current_user.id:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
@@ -305,34 +284,31 @@ def review_single_doc(sub_id):
         if not JobTeamMember.query.filter_by(job_id=job.id, hr_id=current_user.id).first():
             return jsonify({'success': False, 'error': 'Not assigned'}), 403
 
-    action = request.form.get('action')   # 'approve' | 'reject'
+    action = request.form.get('action')  # 'approve' | 'reject'
     note   = request.form.get('note', '').strip()
 
     if action == 'approve':
-        sub.review_status = 'approved'
+        sub.notes = 'approved'   # FIXED: use notes column
     elif action == 'reject':
-        sub.review_status = 'rejected'
+        sub.notes = 'rejected'   # FIXED: use notes column
     else:
         flash("Invalid action.", "danger")
         return redirect(url_for('employment.review_documents', app_id=sub.application_id))
 
-    sub.review_note = note
-    sub.reviewed_by = current_user.id
-    sub.reviewed_at = datetime.utcnow()
+    # REMOVED: sub.review_note, sub.reviewed_by, sub.reviewed_at — columns don't exist
     db.session.commit()
 
-    # Notify applicant
     req  = EmploymentRequirement.query.get(sub.requirement_id)
     verb = "approved" if action == 'approve' else "rejected"
     db.session.add(ApplicantNotification(
-        applicant_id=app.applicant_id,
+        applicant_id=application.applicant_id,
         type='employment_docs',
         message=(
-            f"Your document <strong>{req.name}</strong> for "
+            f"Your document <strong>{req.title}</strong> for "   # FIXED: req.title
             f"<strong>{job.title}</strong> has been <strong>{verb}</strong>."
             + (f" Note: {note}" if note else "")
         ),
-        application_id=app.id,
+        application_id=application.id,
         job_id=job.id,
     ))
     db.session.commit()
@@ -348,16 +324,12 @@ def review_single_doc(sub_id):
 @employment_bp.route('/confirm/<int:app_id>', methods=['POST'])
 @login_required
 def confirm_employment(app_id):
-    """
-    Recruiter or assigned HR confirms the applicant as an employee.
-    After this, the application status is locked — no further edits.
-    """
     if current_user.role not in ('recruiter', 'hr'):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
     application = Application.query.get_or_404(app_id)
-    job = application.job
+    job         = application.job
 
     if current_user.role == 'recruiter' and job.company_id != current_user.id:
         flash("Unauthorized!", "danger")
@@ -369,45 +341,47 @@ def confirm_employment(app_id):
             flash("You are not assigned to this job.", "warning")
             return redirect(url_for('hr.job_list'))
 
-    # Guard: already an employee
     existing = Employee.query.filter_by(application_id=app_id).first()
     if existing:
         flash("This applicant is already confirmed as an employee.", "info")
         return redirect(url_for('employment.review_documents', app_id=app_id))
 
-    # Guard: all required docs must be approved
-    requirements = EmploymentRequirement.query.filter_by(job_id=job.id).all()
+    requirements    = EmploymentRequirement.query.filter_by(job_id=job.id).all()
     submissions_map = {
         s.requirement_id: s
         for s in EmploymentSubmission.query.filter_by(application_id=app_id).all()
     }
+
     for r in requirements:
         if r.is_required:
             sub = submissions_map.get(r.id)
-            if not sub or sub.review_status != 'approved':
+            if not sub or sub.notes != 'approved':  # FIXED: sub.notes
                 flash(
-                    f"Cannot confirm: required document '{r.name}' is not yet approved.",
+                    f"Cannot confirm: required document '{r.title}' is not yet approved.",  # FIXED: r.title
                     "warning"
                 )
                 return redirect(url_for('employment.review_documents', app_id=app_id))
 
-    # Create Employee record
+    # Resolve company name safely
+    recruiter_user = User.query.get(job.company_id)
+    company_name   = None
+    if recruiter_user and recruiter_user.recruiter_profile:
+        company_name = recruiter_user.recruiter_profile.company_name
+
     employee = Employee(
         user_id=application.applicant_id,
         job_id=job.id,
         application_id=app_id,
-        recruiter_id=job.company_id,
         confirmed_by=current_user.id,
-        confirmed_at=datetime.utcnow(),
-        status='active',
+        job_title=job.title,
+        company_name=company_name,
+        employment_status='active',  # FIXED
     )
     db.session.add(employee)
 
-    # Lock the application — no further status edits allowed
     application.status = 'employed'
     db.session.flush()
 
-    # Notify applicant
     db.session.add(ApplicantNotification(
         applicant_id=application.applicant_id,
         type='employment_confirmed',
@@ -431,7 +405,6 @@ def confirm_employment(app_id):
 @employment_bp.route('/employees/<int:job_id>')
 @login_required
 def employee_list(job_id):
-    """Recruiter views all employees for a specific job."""
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -453,7 +426,6 @@ def employee_list(job_id):
 @employment_bp.route('/employees/all')
 @login_required
 def all_employees():
-    """Recruiter views all employees across all their jobs."""
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -470,7 +442,7 @@ def all_employees():
 
 
 # ================================================================
-# ── RECRUITER: Fire (terminate) an employee ──
+# ── RECRUITER: Terminate an employee ──
 # ================================================================
 
 @employment_bp.route('/terminate/<int:employee_id>', methods=['POST'])
@@ -487,15 +459,15 @@ def terminate_employee(employee_id):
         flash("Unauthorized!", "danger")
         return redirect(url_for('employment.all_employees'))
 
-    if emp.status != 'active':
+    if emp.employment_status != 'active':  # FIXED
         flash("This employee is no longer active.", "warning")
         return redirect(url_for('employment.all_employees'))
 
     reason = request.form.get('reason', '').strip()
 
-    emp.status     = 'terminated'
-    emp.ended_at   = datetime.utcnow()
-    emp.end_reason = reason
+    emp.employment_status = 'terminated'  # FIXED
+    emp.ended_at          = datetime.utcnow()
+    emp.end_reason        = reason
 
     db.session.add(ApplicantNotification(
         applicant_id=emp.user_id,
@@ -527,21 +499,19 @@ def resign(employee_id):
         id=employee_id, user_id=current_user.id
     ).first_or_404()
 
-    if emp.status != 'active':
+    if emp.employment_status != 'active':  # FIXED
         flash("You are no longer active in this job.", "warning")
         return redirect(url_for('applicant.dashboard'))
 
     reason = request.form.get('reason', '').strip()
+    job    = Job.query.get(emp.job_id)
 
-    emp.status     = 'resigned'
-    emp.ended_at   = datetime.utcnow()
-    emp.end_reason = reason
+    emp.employment_status = 'resigned'   # FIXED
+    emp.ended_at          = datetime.utcnow()
+    emp.end_reason        = reason
 
-    job = Job.query.get(emp.job_id)
-
-    # Notify recruiter
     db.session.add(RecruiterNotification(
-        recruiter_id=emp.recruiter_id,
+        recruiter_id=job.company_id,   # FIXED: was emp.recruiter_id (doesn't exist)
         type='employment_ended',
         message=(
             f"<strong>{current_user.username}</strong> has resigned from "
@@ -557,18 +527,19 @@ def resign(employee_id):
 
 
 # ================================================================
-# ── APPLICANT: View employment status / profile badge ──
+# ── APPLICANT: View employment records ──
 # ================================================================
 
 @employment_bp.route('/my-employment')
 @login_required
 def my_employment():
-    """Applicant views their current and past employment records."""
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    records = Employee.query.filter_by(user_id=current_user.id).order_by(Employee.created_at.desc()).all()
+    records = Employee.query.filter_by(
+        user_id=current_user.id
+    ).order_by(Employee.confirmed_at.desc()).all()  # FIXED: confirmed_at not created_at
 
     return render_template(
         'employment/my_employment.html',

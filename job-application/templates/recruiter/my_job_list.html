@@ -265,6 +265,21 @@
                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                                     </svg>
                                 </a>
+                                <a href="{{ url_for('employment.manage_requirements', job_id=job.id) }}" class="btn-nav">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                                        <rect x="9" y="3" width="6" height="4" rx="2"/>
+                                    </svg>
+                                    Employment Requirements
+                                </a>
+                                
+                                <a href="{{ url_for('employment.employee_list', job_id=job.id) }}" class="btn-nav">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="9" cy="7" r="4"/>
+                                    </svg>
+                                    View Employees
+                                </a>
                                 <form method="POST" action="{{ url_for('recruiter.delete_job', job_id=job.id) }}" style="display: inline;">
                                     <button type="button" class="action-btn action-btn-danger" title="Delete Job" onclick="openDeleteModal(this)">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

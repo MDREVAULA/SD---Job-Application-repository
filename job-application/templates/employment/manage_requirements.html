@@ -1,0 +1,165 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/submit_requirements.css') }}">
+
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="{{ url_for('recruiter.edit_job', job_id=job.id) }}" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">JOB MANAGEMENT</div>
+                <h1 class="job-title-main">Employment Requirements</h1>
+                <div class="job-meta">
+                    <span>{{ job.title }}</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ requirements|length }} requirement{{ 's' if requirements|length != 1 }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <a href="{{ url_for('employment.employee_list', job_id=job.id) }}" class="btn-nav">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                View Employees
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="emp-wrapper">
+    <div class="emp-layout">
+
+        <!-- REQUIREMENTS LIST -->
+        <div class="emp-main">
+            <div class="emp-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="2"/>
+                        </svg>
+                        Defined Requirements
+                    </div>
+                </div>
+
+                {% if not requirements %}
+                <div class="emp-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                        <rect x="9" y="3" width="6" height="4" rx="2"/>
+                    </svg>
+                    <p>No requirements added yet. Add the documents applicants must submit to become employees.</p>
+                </div>
+                {% else %}
+                <div class="emp-requirements-list">
+                    {% for req in requirements %}
+                    <div class="emp-req-item">
+                        <div class="emp-req-header">
+                            <div class="emp-req-info">
+                                <div class="emp-req-name">
+                                    {{ req.title }}
+                                    {% if req.is_required %}
+                                    <span class="emp-badge-required">Required</span>
+                                    {% else %}
+                                    <span class="emp-badge-optional">Optional</span>
+                                    {% endif %}
+                                </div>
+                                {% if req.description %}
+                                <div class="emp-req-desc">{{ req.description }}</div>
+                                {% endif %}
+                            </div>
+                            <form method="POST" style="margin:0;">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="req_id" value="{{ req.id }}">
+                                <button type="submit" class="emp-delete-req-btn"
+                                        onclick="return confirm('Remove this requirement?')"
+                                        title="Delete">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6l-1 14H6L5 6"/>
+                                        <path d="M10 11v6M14 11v6"/>
+                                        <path d="M9 6V4h6v2"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ADD REQUIREMENT SIDEBAR -->
+        <div class="emp-sidebar">
+            <div class="emp-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                        Add Requirement
+                    </div>
+                </div>
+                <form method="POST" class="emp-add-form">
+                    <input type="hidden" name="action" value="add">
+                    <div class="emp-form-group">
+                        <label>Document Title <span class="emp-req-star">*</span></label>
+                        <input type="text" name="title" placeholder="e.g. Government-issued ID" required>
+                    </div>
+                    <div class="emp-form-group">
+                        <label>Instructions (optional)</label>
+                        <textarea name="description" rows="3" placeholder="e.g. Upload a clear photo or scan of your ID front and back."></textarea>
+                    </div>
+                    <div class="emp-form-group emp-form-check">
+                        <label class="emp-check-label">
+                            <input type="checkbox" name="is_required" value="1" checked>
+                            Mark as required
+                        </label>
+                    </div>
+                    <button type="submit" class="emp-submit-btn" style="width:100%;justify-content:center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                        Add Requirement
+                    </button>
+                </form>
+            </div>
+
+            <div class="emp-card emp-info-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Common Requirements
+                    </div>
+                </div>
+                <ul class="emp-tips">
+                    <li>Government-issued ID (e.g. Passport, Driver's License)</li>
+                    <li>SSS / PhilHealth / Pag-IBIG number</li>
+                    <li>TIN (Tax Identification Number)</li>
+                    <li>Birth Certificate (PSA-authenticated)</li>
+                    <li>NBI or Police Clearance</li>
+                    <li>Medical Certificate</li>
+                    <li>Diploma / Transcript of Records</li>
+                    <li>2x2 ID photos</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
