@@ -404,7 +404,7 @@
 
 .admin-nav-links {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);  /* ← force 4 equal columns */
     gap: 16px;
     margin-top: 8px;
 }
@@ -1146,4 +1146,21 @@
 [data-theme="dark"] .admin-action-btn--delete:hover {
     background: #dc2626;
     color: white;
+}
+
+.rpt-dashboard-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 10px;
+    background: rgba(220,38,38,0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220,38,38,0.25);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+[data-theme="dark"] .rpt-dashboard-badge {
+    color: #f87171;
+    border-color: rgba(220,38,38,0.3);
 }

@@ -1,10 +1,7 @@
 {% extends "layout.html" %}
 
-<<<<<<< HEAD
-=======
 {% block title %}Admin Dashboard{% endblock %}
 
->>>>>>> angela-notif-debugging
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
 {% endblock %}
@@ -31,6 +28,10 @@
                             {% if banned_users %}
                                 <span class="admin-hero-badge">{{ banned_users|length }}</span>
                             {% endif %}
+                        </a>
+                        <a href="{{ url_for('admin.reports') }}" class="admin-hero-btn admin-hero-btn--outline"
+                            style="border-color:rgba(220,38,38,0.4); color:#fca5a5;">
+                                <i class="fas fa-flag"></i> Reports
                         </a>
                     </div>
                 </div>
@@ -217,8 +218,15 @@
                     <h4 class="admin-nav-card-title">Rejected Recruiters</h4>
                     <p class="admin-nav-card-desc">View all rejected recruiter accounts</p>
                 </a>
-            </div>
 
+                <a href="{{ url_for('admin.reports') }}" class="admin-nav-card">
+                    <i class="fas fa-flag admin-nav-card-icon" style="color:#dc2626;"></i>
+                    <h4 class="admin-nav-card-title">User Reports</h4>
+                    <p class="admin-nav-card-desc">Review reports submitted by users and take action</p>
+                    <!-- live pending badge -->
+                    <span id="dashReportBadge" class="rpt-dashboard-badge" style="display:none;"></span>
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -269,6 +277,24 @@ function closeRejectModal() {
 }
 document.getElementById('rejectModalOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeRejectModal();
+});
+
+// ── Live pending report count ──────────────────────────────────
+(function() {
+    fetch('/admin/reports/pending-count')
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById('dashReportBadge');
+            if (badge && data.count > 0) {
+                badge.textContent = data.count + ' pending';
+                badge.style.display = 'inline-block';
+            }
+        })
+        .catch(() => {});
+})();
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeRejectModal();
 });
 </script>
 

@@ -63,6 +63,11 @@
             <i class="fas fa-shield-alt"></i> Security
           </button>
         </li>
+        <li>
+          <button class="settings-nav-btn" data-section="blocked">
+            <i class="fas fa-ban"></i> Blocked Users
+          </button>
+        </li>
         <!-- <li>
           <button class="settings-nav-btn" data-section="language">
             <i class="fas fa-globe"></i> Language &amp; Region
@@ -622,10 +627,80 @@
         </div>
       </div>
     </section>
+<!-- ══════════════════════════════════
+         SECTION: LANGUAGE & REGION
+    ══════════════════════════════════ 
+    <section class="settings-section" id="section-language">
+      ... language section content ...
+    </section>
+    -->
 
-  </main><!-- /settings-main
+    <!-- ══════════════════════════════════
+         SECTION: BLOCKED USERS
+    ══════════════════════════════════ -->
+    <section class="settings-section" id="section-blocked">
+      <div class="section-header">
+        <i class="fas fa-ban"></i>
+        <div>
+          <h3>Blocked Users</h3>
+          <p>People you've blocked can't see your profile or message you.</p>
+        </div>
+      </div>
+
+      <div class="settings-card" data-searchable="blocked users unblock ban restrict">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap danger-icon"><i class="fas fa-user-slash"></i></div>
+          <div>
+            <h4>Your Blocked List</h4>
+            <p class="card-desc">
+              {% if blocked_users %}
+                You have blocked {{ blocked_users|length }} user{{ 's' if blocked_users|length != 1 }}.
+              {% else %}
+                You haven't blocked anyone.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <div class="settings-card-body">
+          {% if blocked_users %}
+            <div class="blocked-list">
+              {% for u in blocked_users %}
+              <div class="blocked-item" id="blocked-row-{{ u.id }}">
+                <div class="blocked-user-info">
+                  <div class="blocked-avatar">
+                    {% if u.pic %}
+                      <img src="{{ u.pic }}" alt="{{ u.username }}">
+                    {% else %}
+                      <i class="fas fa-user"></i>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <strong>{{ u.username }}</strong>
+                    <small>{{ u.role|capitalize }} &bull; Blocked on {{ u.blocked_at }}</small>
+                  </div>
+                </div>
+                <button
+                  class="btn-danger-outline"
+                  onclick="unblockUser({{ u.id }}, '{{ u.username }}')"
+                >
+                  <i class="fas fa-unlock"></i> Unblock
+                </button>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="blocked-empty">
+              <i class="fas fa-user-check"></i>
+              <p>Your blocked list is empty.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /settings-main -->
 </div><!-- /settings-wrapper -->
-
 
 <!-- ════════════════════════════════════════
      HELP CENTER MODAL

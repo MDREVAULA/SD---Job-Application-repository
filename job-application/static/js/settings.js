@@ -330,3 +330,44 @@ function saveSettings(section) {
     })
     .catch(() => showToast('Network error. Please try again.', true));
 }
+
+/* ── Unblock user ───────────────────────────────────── */
+function unblockUser(userId, username) {
+    if (!confirm(`Unblock ${username}? They will be able to see your profile and message you again.`)) return;
+
+    fetch(`/settings/unblock/${userId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the row from the UI instantly
+                const row = document.getElementById('blocked-row-' + userId);
+                if (row) row.remove();
+
+                // Update the card description count
+                const remaining = document.querySelectorAll('.blocked-item').length;
+                const desc = document.querySelector('#section-blocked .card-desc');
+                if (desc) {
+                    desc.textContent = remaining > 0
+                        ? `You have blocked ${remaining} user${remaining !== 1 ? 's' : ''}.`
+                        : "You haven't blocked anyone.";
+                }
+
+                // If list is now empty, show the empty state
+                if (remaining === 0) {
+                    const list = document.querySelector('.blocked-list');
+                    if (list) {
+                        list.outerHTML = `
+                            <div class="blocked-empty">
+                                <i class="fas fa-user-check"></i>
+                                <p>Your blocked list is empty.</p>
+                            </div>`;
+                    }
+                }
+
+                showToast(`${username} has been unblocked.`);
+            } else {
+                showToast(data.message || 'Could not unblock user.', true);
+            }
+        })
+        .catch(() => showToast('Network error. Please try again.', true));
+}

@@ -76,10 +76,8 @@ def _can_see_profile(settings, viewer_role, viewer_id, viewed_id):
         audience = settings.profile_audience
         if viewer_role and viewer_role in audience:
             return True
-        # 'follower' = viewer is following the viewed user (one-way is enough)
         if 'follower' in audience and _is_follower(viewer_id, viewed_id):
             return True
-        # keep backward-compat with old 'mutual' value in DB
         if 'mutual' in audience and _is_mutual(viewer_id, viewed_id):
             return True
     return False
@@ -114,7 +112,11 @@ def _can_message(settings, viewer_role, viewer_id, viewed_id):
 # ── SMART REDIRECT ──
 @profile_view_bp.route('/<int:user_id>')
 def view_profile(user_id):
+    from models import UserBlock
+    from sqlalchemy import or_, and_
+
     user = User.query.get_or_404(user_id)
+
     if current_user.is_authenticated and current_user.id == user_id:
         if user.role == 'applicant':
             return redirect(url_for('applicant.profile'))
@@ -122,6 +124,19 @@ def view_profile(user_id):
             return redirect(url_for('hr.profile'))
         elif user.role == 'recruiter':
             return redirect(url_for('recruiter.profile'))
+
+    # Block check — redirect if either party has blocked the other
+    if current_user.is_authenticated:
+        _block = UserBlock.query.filter(
+            or_(
+                and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == user.id),
+                and_(UserBlock.blocker_id == user.id,         UserBlock.blocked_id == current_user.id),
+            )
+        ).first()
+        if _block:
+            flash("This profile is not available.", "warning")
+            return redirect(url_for('chat.people'))
+
     if user.role == 'applicant':
         return redirect(url_for('profile_view.view_applicant_profile', user_id=user_id))
     elif user.role == 'hr':
@@ -130,7 +145,6 @@ def view_profile(user_id):
         return redirect(url_for('profile_view.view_recruiter_profile', user_id=user_id))
     else:
         abort(404)
-
 
 # ── APPLICANT PUBLIC PROFILE ──
 @profile_view_bp.route('/applicant/<int:user_id>')
@@ -151,8 +165,6 @@ def view_applicant_profile(user_id):
     show_follow_list  = _can_see_follow_list(settings)
     show_follow_count = _can_see_follow_count(settings)
     can_message       = _can_message(settings, viewer_role, viewer_id, user_id)
-
-    # Pass the raw who_can_message setting so the template can show notices
     who_can_message   = settings.who_can_message
 
     prof = ApplicantProfile.query.filter_by(user_id=user_id).first()
@@ -197,6 +209,7 @@ def view_applicant_profile(user_id):
 @profile_view_bp.route('/recruiter/<int:user_id>')
 def view_recruiter_profile(user_id):
     from models import RecruiterProfile
+
     viewed_user = User.query.get_or_404(user_id)
     if viewed_user.role != 'recruiter':
         flash("This profile is not a recruiter.", "warning")
@@ -252,6 +265,7 @@ def view_recruiter_profile(user_id):
 @profile_view_bp.route('/hr/<int:user_id>')
 def view_hr_profile(user_id):
     from models import RecruiterProfile, HRProfile, HREducation
+
     viewed_user = User.query.get_or_404(user_id)
     if viewed_user.role != 'hr':
         flash("This profile is not an HR member.", "warning")
@@ -314,7 +328,6 @@ def view_hr_profile(user_id):
 def follow_list(user_id):
     settings = _get_settings(user_id)
 
-    # Return a flag so the frontend can show the private-list notice
     list_is_private = not _can_see_follow_list(settings)
 
     if list_is_private:
