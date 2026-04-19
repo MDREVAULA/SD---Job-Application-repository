@@ -25,7 +25,6 @@ applicant_bp = Blueprint('applicant', __name__, url_prefix="/applicant")
 # HELPER — check ban on every request
 # ===============================
 def check_banned():
-    """Returns a redirect response if the user is banned, else None."""
     if current_user.is_authenticated and current_user.is_banned:
         from flask import render_template as rt
         return rt("account_banned.html", user=current_user)
@@ -34,7 +33,6 @@ def check_banned():
 
 # ===============================
 # HELPER — profile completion check
-# Minimum required: first_name, last_name, phone_number, city, country, home_address
 # ===============================
 def is_profile_complete(prof):
     if not prof:
@@ -66,18 +64,13 @@ def get_or_create_profile():
 # ================================================================
 @applicant_bp.before_request
 def gate_applicant_features():
-    """Gate access to features based on profile completion."""
     if not current_user.is_authenticated:
         return
-
     if current_user.role != 'applicant':
         return
-
-    # Already complete — full access
     if getattr(current_user, 'profile_completed', False):
         return
 
-    # Profile incomplete — only allow profile-related endpoints
     ALLOWED = {
         'applicant.profile',
         'applicant.update_personal',
@@ -184,7 +177,6 @@ def update_personal():
         except:
             pass
 
-    # ── Flip profile_completed and notify — only fires once ──
     was_complete = getattr(current_user, 'profile_completed', False)
 
     if not was_complete and is_profile_complete(prof):
@@ -277,7 +269,7 @@ def delete_experience(exp_id):
 
 
 # ===============================
-# EDUCATION — ADD  (applicant-only)
+# EDUCATION — ADD
 # ===============================
 @applicant_bp.route('/profile/add-education', methods=['POST'])
 @login_required
@@ -292,7 +284,6 @@ def add_education():
 
     prof = get_or_create_profile()
 
-    # ── Write into applicant_education, never recruiter_education ──
     edu = ApplicantEducation(
         profile_id     = prof.id,
         school         = request.form.get('school', '').strip(),
@@ -310,7 +301,7 @@ def add_education():
 
 
 # ===============================
-# EDUCATION — DELETE  (applicant-only)
+# EDUCATION — DELETE
 # ===============================
 @applicant_bp.route('/profile/delete-education/<int:edu_id>', methods=['POST'])
 @login_required
@@ -508,24 +499,24 @@ def upload_profile_picture():
 
     return redirect(url_for('applicant.profile'))
 
+
 # ===============================
-# APPLICATION STATUS PAGE (alias for dashboard)
+# APPLICATION STATUS PAGE
 # ===============================
 _ACTIVE_STATUSES   = ('pending', 'interview', 'accepted', 'employed')
 _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
- 
+
 @applicant_bp.route('/status')
 @login_required
 def status():
     banned = check_banned()
     if banned:
         return banned
- 
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
- 
-    # Active: still occupying a slot — shown in the main table
+
     applications = (
         Application.query
         .filter(
@@ -536,8 +527,7 @@ def status():
         .order_by(Application.created_at.desc())
         .all()
     )
- 
-    # Archived: slot freed — shown in the collapsed archive section
+
     archived_applications = (
         Application.query
         .filter(
@@ -548,16 +538,16 @@ def status():
         .order_by(Application.created_at.desc())
         .all()
     )
- 
+
     return render_template(
         'applicant/status.html',
         applications=applications,
         archived_applications=archived_applications,
     )
 
+
 # ===============================
 # APPLICATION DETAIL PAGE
-# Shows submitted application + recruiter/HR remarks in tabs
 # ===============================
 @applicant_bp.route('/application/<int:app_id>')
 @login_required
@@ -572,7 +562,7 @@ def application_detail(app_id):
 
     application = (
         Application.query
-        .filter_by(id=app_id, applicant_id=current_user.id)  # owns it
+        .filter_by(id=app_id, applicant_id=current_user.id)
         .options(
             joinedload(Application.job),
             joinedload(Application.hr_feedbacks),
@@ -582,7 +572,6 @@ def application_detail(app_id):
 
     job = application.job
 
-    # Recruiter profile (for company logo / name)
     recruiter        = None
     recruiter_user   = None
     if job:
@@ -598,6 +587,7 @@ def application_detail(app_id):
         recruiter_user=recruiter_user,
     )
 
+
 # ===============================
 # JOB DETAILS
 # ===============================
@@ -606,6 +596,12 @@ _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
 @applicant_bp.route('/job/<int:job_id>')
 def job_details(job_id):
     job = Job.query.get_or_404(job_id)
+
+    # Block access to taken-down jobs
+    if job.is_taken_down:
+        flash("This job posting is currently unavailable.", "warning")
+        return redirect(url_for('auth.jobs'))
+
     job_owner = User.query.get(job.company_id)
 
     saved_job_ids = set()
@@ -614,14 +610,12 @@ def job_details(job_id):
         saved_job_ids = {
             s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
         }
-        # Only show "Applied" badge for active statuses; resigned/fired/rejected can re-apply
         existing_application = Application.query.filter(
             Application.applicant_id == current_user.id,
             Application.job_id == job_id,
             Application.status.in_(_ACTIVE_STATUSES)
         ).first()
 
-    # Active slot count (excludes rejected/resigned/fired)
     active_application_count = Application.query.filter(
         Application.job_id == job_id,
         Application.status.in_(_ACTIVE_STATUSES)
@@ -635,6 +629,7 @@ def job_details(job_id):
         existing_application=existing_application,
         active_application_count=active_application_count,
     )
+
 
 # ===============================
 # APPLY FOR JOB
@@ -656,6 +651,11 @@ def apply_job(job_id):
 
     job = Job.query.get_or_404(job_id)
 
+    # Block applying to taken-down jobs
+    if job.is_taken_down:
+        flash("This job posting is currently unavailable.", "warning")
+        return redirect(url_for('auth.jobs'))
+
     _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
     existing = Application.query.filter(
         Application.applicant_id == current_user.id,
@@ -667,8 +667,6 @@ def apply_job(job_id):
         flash("You already applied for this job!", "warning")
         return redirect(url_for('applicant.job_details', job_id=job_id))
 
-    # quota check
-    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
     if job.max_applications is not None:
         current_count = Application.query.filter(
             Application.job_id == job_id,
@@ -702,7 +700,6 @@ def apply_job(job_id):
         db.session.add(application)
         db.session.commit()
 
-        # Notify recruiter
         job_owner = Job.query.get(application.job_id)
         notif = RecruiterNotification(
             recruiter_id=job_owner.company_id,
@@ -713,7 +710,6 @@ def apply_job(job_id):
         )
         db.session.add(notif)
 
-        # Notify HR
         hr_users = User.query.filter_by(
             created_by=job_owner.company_id,
             role='hr'
@@ -729,7 +725,6 @@ def apply_job(job_id):
             )
             db.session.add(hr_notif)
 
-        # Notify applicant
         app_notif = ApplicantNotification(
             applicant_id=current_user.id,
             type='job_update',
@@ -738,11 +733,9 @@ def apply_job(job_id):
             job_id=job_id
         )
         db.session.add(app_notif)
-
         db.session.commit()
 
         flash("Application submitted successfully!", "success")
-        # ── Redirect back to the job's detail page ──
         return redirect(url_for('applicant.job_details', job_id=job_id))
 
     return render_template("applicant/apply_job.html", job=job)
@@ -1066,7 +1059,9 @@ def saved_jobs():
         applicant_id=current_user.id
     ).order_by(SavedJob.created_at.desc()).all()
 
-    # Get the IDs of all saved jobs for the bookmark check
+    # Filter out taken-down jobs
+    saved = [s for s in saved if s.job and not s.job.is_taken_down]
+
     saved_job_ids = {s.job_id for s in saved}
 
     return render_template(
@@ -1074,4 +1069,3 @@ def saved_jobs():
         saved=saved,
         saved_job_ids=saved_job_ids
     )
-

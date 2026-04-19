@@ -53,7 +53,6 @@ def redirect_by_role(user):
 # SEND VERIFICATION EMAIL
 # =========================
 def send_verification_email(user):
-    """Send verification email to recruiters after admin approval."""
     try:
         from app import mail
 
@@ -93,13 +92,14 @@ def index():
 @auth_bp.route("/jobs")
 def jobs():
     from models import SavedJob
-    
+
     try:
         jobs = Job.query.filter(
+            Job.is_taken_down == False,
             (Job.expiration_date == None) | (Job.expiration_date >= date.today())
         ).all()
     except:
-        jobs = Job.query.all()
+        jobs = Job.query.filter(Job.is_taken_down == False).all()
 
     saved_job_ids = set()
     if current_user.is_authenticated and current_user.role == 'applicant':
@@ -118,6 +118,7 @@ def help_page():
 def about():
     return render_template("about.html")
 
+
 # =========================
 # LOGIN
 # =========================
@@ -135,12 +136,10 @@ def login():
             flash("Invalid email or password", "info")
             return redirect(url_for("auth.login"))
 
-        # Block admin from using the public login page
         if user.role == "admin":
             flash("Invalid email or password", "info")
             return redirect(url_for("auth.login"))
 
-        # Google-only account trying to use password login
         if user.google_id and not user.password:
             flash("This account uses Google sign-in. Please use the 'Sign in with Google' button.", "info")
             return redirect(url_for("auth.login"))
@@ -149,11 +148,9 @@ def login():
             flash("Invalid email or password", "login_error")
             return redirect(url_for("auth.login"))
 
-        # ── Ban check (all roles) ──
         if user.is_banned:
             return render_template("account_banned.html", user=user)
 
-        # ── RECRUITERS: pending/rejected checks ──
         if user.role == "recruiter":
             profile = user.recruiter_profile
             if profile and profile.submitted_for_review and user.verification_status == "Pending":
@@ -164,7 +161,6 @@ def login():
 
         login_user(user)
 
-        # HR temporary password check
         if user.role == "hr" and user.must_change_password:
             flash("You must change your temporary password.", "hr_password_notice")
             return redirect(url_for("hr.change_password"))
@@ -209,7 +205,6 @@ def google_callback():
         user = User.query.filter_by(email=email).first()
 
         if user:
-            # Existing account — link Google to it
             if user.role == "admin":
                 flash("Invalid login method.", "login_error")
                 return redirect(url_for("auth.login"))
@@ -220,7 +215,6 @@ def google_callback():
             db.session.commit()
 
         else:
-            # Brand new Google user — ask for role selection
             session["google_id"] = google_id
             session["google_email"] = email
             session["google_name"] = name
@@ -232,11 +226,9 @@ def google_callback():
         flash("Invalid login method.", "login_error")
         return redirect(url_for("auth.login"))
 
-    # ── Ban check ──
     if user.is_banned:
         return render_template("account_banned.html", user=user)
 
-    # ── Recruiter checks ──
     if user.role == "recruiter":
         profile = user.recruiter_profile
         if profile and profile.submitted_for_review and user.verification_status == "Pending":
@@ -271,7 +263,6 @@ def google_role_select():
             flash("Please select a valid role.", "error")
             return redirect(url_for("auth.google_role_select"))
 
-        # Save role to session — don't create user yet
         session["google_role"] = role
 
         if role == "recruiter":
@@ -301,7 +292,6 @@ def google_applicant_profile():
         google_picture = session.pop("google_picture", None)
         session.pop("google_role", None)
 
-        # Create user
         user = User(
             username=name,
             email=email,
@@ -372,7 +362,6 @@ def google_recruiter_profile():
         google_picture = session.pop("google_picture", None)
         session.pop("google_role", None)
 
-        # Create user
         user = User(
             username=name,
             email=email,

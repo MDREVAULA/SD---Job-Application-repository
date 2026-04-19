@@ -195,3 +195,26 @@
         font-size: 22px;
     }
 }
+
+/* ── Ban duration badge ── */
+.banned-duration-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.banned-duration-badge--temp {
+    background: rgba(241, 178, 74, 0.12);
+    border: 1px solid rgba(241, 178, 74, 0.3);
+    color: #F1B24A;
+}
+
+.banned-duration-badge--permanent {
+    background: rgba(220, 38, 38, 0.10);
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    color: #f87171;
+}
