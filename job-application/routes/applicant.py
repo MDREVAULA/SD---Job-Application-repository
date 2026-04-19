@@ -552,41 +552,130 @@ def dashboard():
 # ===============================
 # APPLICATION STATUS PAGE (alias for dashboard)
 # ===============================
+_ACTIVE_STATUSES   = ('pending', 'interview', 'accepted', 'employed')
+_ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
+ 
 @applicant_bp.route('/status')
 @login_required
 def status():
     banned = check_banned()
     if banned:
         return banned
+ 
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+ 
+    # Active: still occupying a slot — shown in the main table
+    applications = (
+        Application.query
+        .filter(
+            Application.applicant_id == current_user.id,
+            Application.status.in_(_ACTIVE_STATUSES)
+        )
+        .options(joinedload(Application.job))
+        .order_by(Application.created_at.desc())
+        .all()
+    )
+ 
+    # Archived: slot freed — shown in the collapsed archive section
+    archived_applications = (
+        Application.query
+        .filter(
+            Application.applicant_id == current_user.id,
+            Application.status.in_(_ARCHIVED_STATUSES)
+        )
+        .options(joinedload(Application.job))
+        .order_by(Application.created_at.desc())
+        .all()
+    )
+ 
+    return render_template(
+        'applicant/status.html',
+        applications=applications,
+        archived_applications=archived_applications,
+    )
 
-    return render_template('applicant/status.html')
+# ===============================
+# APPLICATION DETAIL PAGE
+# Shows submitted application + recruiter/HR remarks in tabs
+# ===============================
+@applicant_bp.route('/application/<int:app_id>')
+@login_required
+def application_detail(app_id):
+    banned = check_banned()
+    if banned:
+        return banned
+
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    application = (
+        Application.query
+        .filter_by(id=app_id, applicant_id=current_user.id)  # owns it
+        .options(
+            joinedload(Application.job),
+            joinedload(Application.hr_feedbacks),
+        )
+        .first_or_404()
+    )
+
+    job = application.job
+
+    # Recruiter profile (for company logo / name)
+    recruiter        = None
+    recruiter_user   = None
+    if job:
+        from models import RecruiterProfile
+        recruiter      = RecruiterProfile.query.filter_by(user_id=job.company_id).first()
+        recruiter_user = User.query.get(job.company_id)
+
+    return render_template(
+        'applicant/application_detail.html',
+        application=application,
+        job=job,
+        recruiter=recruiter,
+        recruiter_user=recruiter_user,
+    )
 
 # ===============================
 # JOB DETAILS
 # ===============================
+_ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
+
 @applicant_bp.route('/job/<int:job_id>')
 def job_details(job_id):
     job = Job.query.get_or_404(job_id)
     job_owner = User.query.get(job.company_id)
 
     saved_job_ids = set()
-    existing_application = None  # ← add this
+    existing_application = None
     if current_user.is_authenticated and current_user.role == 'applicant':
         saved_job_ids = {
             s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
         }
-        existing_application = Application.query.filter_by(  # ← add this
-            applicant_id=current_user.id, job_id=job_id
+        # Only show "Applied" badge for active statuses; resigned/fired/rejected can re-apply
+        existing_application = Application.query.filter(
+            Application.applicant_id == current_user.id,
+            Application.job_id == job_id,
+            Application.status.in_(_ACTIVE_STATUSES)
         ).first()
+
+    # Active slot count (excludes rejected/resigned/fired)
+    active_application_count = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ACTIVE_STATUSES)
+    ).count()
 
     return render_template(
         "applicant/job_details.html",
         job=job,
         job_owner=job_owner,
         saved_job_ids=saved_job_ids,
-        existing_application=existing_application,  # ← add this
+        existing_application=existing_application,
+        active_application_count=active_application_count,
     )
-
 
 # ===============================
 # APPLY FOR JOB
@@ -608,9 +697,11 @@ def apply_job(job_id):
 
     job = Job.query.get_or_404(job_id)
 
-    existing = Application.query.filter_by(
-        applicant_id=current_user.id,
-        job_id=job_id
+    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
+    existing = Application.query.filter(
+        Application.applicant_id == current_user.id,
+        Application.job_id == job_id,
+        Application.status.in_(_ACTIVE_STATUSES)
     ).first()
 
     if existing:
@@ -618,8 +709,12 @@ def apply_job(job_id):
         return redirect(url_for('applicant.job_details', job_id=job_id))
 
     # quota check
+    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
     if job.max_applications is not None:
-        current_count = Application.query.filter_by(job_id=job_id).count()
+        current_count = Application.query.filter(
+            Application.job_id == job_id,
+            Application.status.in_(_ACTIVE_STATUSES)
+        ).count()
         if current_count >= job.max_applications:
             flash("This job has reached its application quota.", "warning")
             return redirect(url_for('applicant.job_details', job_id=job_id))
@@ -1020,3 +1115,4 @@ def saved_jobs():
         saved=saved,
         saved_job_ids=saved_job_ids
     )
+

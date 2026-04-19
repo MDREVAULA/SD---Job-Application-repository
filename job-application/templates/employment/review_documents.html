@@ -1,0 +1,246 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/submit_requirements.css') }}">
+
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="{{ url_for('employment.employee_list', job_id=job.id) }}" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">EMPLOYMENT REVIEW</div>
+                <h1 class="job-title-main">Review Documents</h1>
+                <div class="job-meta">
+                    <span>{{ applicant.username }}</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ job.title }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="emp-wrapper">
+
+    <!-- APPLICANT HEADER -->
+    <div class="emp-applicant-card">
+        <div class="emp-applicant-avatar">
+            {% if applicant.profile_picture %}
+                {% if applicant.profile_picture.startswith('http') %}
+                    <img src="{{ applicant.profile_picture }}" alt="{{ applicant.username }}">
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + applicant.profile_picture) }}" alt="{{ applicant.username }}">
+                {% endif %}
+            {% else %}
+            <div class="emp-applicant-initial">{{ applicant.username[0]|upper }}</div>
+            {% endif %}
+        </div>
+        <div class="emp-applicant-info">
+            <div class="emp-applicant-name">{{ applicant.username }}</div>
+            <div class="emp-applicant-email">{{ applicant.email }}</div>
+            <div class="emp-applicant-meta">
+                {% if onboarding %}
+                    {% if onboarding.status == 'submitted' %}
+                    <span class="emp-status-chip chip-info">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Awaiting Review
+                    </span>
+                    {% elif onboarding.status == 'needs_revision' %}
+                    <span class="emp-status-chip chip-warning">Revision Requested</span>
+                    {% elif onboarding.status == 'confirmed' %}
+                    <span class="emp-status-chip chip-done">Confirmed</span>
+                    {% else %}
+                    <span class="emp-status-chip chip-pending">Not Submitted</span>
+                    {% endif %}
+                {% else %}
+                <span class="emp-status-chip chip-pending">No Submission</span>
+                {% endif %}
+                <span class="emp-applicant-date">Applied {{ application.created_at.strftime('%b %d, %Y') if application.created_at else '' }}</span>
+            </div>
+        </div>
+        <a href="{{ url_for('profile_view.view_applicant_profile', user_id=applicant.id) }}"
+           target="_blank" class="btn-apply-nav" style="font-size:13px;padding:8px 14px;">
+            View Profile
+        </a>
+    </div>
+
+    <div class="emp-layout">
+
+        <!-- DOCUMENT SUBMISSIONS -->
+        <div class="emp-main">
+            <div class="emp-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        Submitted Documents
+                    </div>
+                    {% if onboarding and onboarding.submitted_at %}
+                    <span class="emp-req-count">Submitted {{ onboarding.submitted_at.strftime('%b %d, %Y') }}</span>
+                    {% endif %}
+                </div>
+
+                {% if not requirements %}
+                <div class="emp-empty">
+                    <p>No employment requirements defined for this job yet.</p>
+                    <a href="{{ url_for('employment.manage_requirements', job_id=job.id) }}" class="emp-submit-btn" style="display:inline-flex;text-decoration:none;margin-top:12px;">
+                        Define Requirements
+                    </a>
+                </div>
+                {% else %}
+                <div class="emp-requirements-list">
+                    {% set all_submitted = namespace(val=true) %}
+                    {% for req in requirements %}
+                    {% set sub = existing.get(req.id) %}
+                    {% if req.is_required and not (sub and sub.file_path) %}{% set all_submitted.val = false %}{% endif %}
+                    <div class="emp-req-item {% if sub and sub.file_path %}req-done{% else %}req-missing{% endif %}">
+                        <div class="emp-req-header">
+                            <div class="emp-req-info">
+                                <div class="emp-req-name">
+                                    {{ req.title }}
+                                    {% if req.is_required %}<span class="emp-badge-required">Required</span>
+                                    {% else %}<span class="emp-badge-optional">Optional</span>{% endif %}
+                                </div>
+                                {% if req.description %}<div class="emp-req-desc">{{ req.description }}</div>{% endif %}
+                            </div>
+                            <div class="emp-req-status">
+                                {% if sub and sub.file_path %}
+                                <span class="emp-status-chip chip-done">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Submitted
+                                </span>
+                                {% else %}
+                                <span class="emp-status-chip chip-pending">Not Submitted</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if sub and sub.file_path %}
+                        <div class="emp-existing-file">
+                            <div class="emp-file-icon">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                </svg>
+                            </div>
+                            <div class="emp-file-meta">
+                                <span class="emp-file-name">{{ sub.file_path }}</span>
+                                {% if sub.notes %}<span class="emp-file-date">Note: {{ sub.notes }}</span>{% endif %}
+                            </div>
+                            <a href="{{ url_for('static', filename='uploads/employment_docs/' + sub.file_path) }}"
+                               target="_blank" class="emp-view-btn">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                Open File
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- REVIEW ACTIONS SIDEBAR -->
+        <div class="emp-sidebar">
+            {% if onboarding and onboarding.status == 'submitted' %}
+            <div class="emp-card emp-review-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                        Review Decision
+                    </div>
+                </div>
+
+                <!-- CONFIRM -->
+                <div class="emp-review-section">
+                    <div class="emp-review-section-title">✅ Approve &amp; Confirm Employment</div>
+                    <p class="emp-review-hint">All documents look good? Confirm to make {{ applicant.username }} an official employee.</p>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="confirm">
+                        <button type="submit" class="emp-confirm-btn"
+                                onclick="return confirm('Confirm {{ applicant.username }} as an employee? This cannot be undone.')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Confirm Employment
+                        </button>
+                    </form>
+                </div>
+
+                <div class="emp-review-divider"></div>
+
+                <!-- REQUEST REVISION -->
+                <div class="emp-review-section">
+                    <div class="emp-review-section-title">🔄 Request Revision</div>
+                    <p class="emp-review-hint">Something missing or incorrect? Send it back with a note.</p>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="request_revision">
+                        <textarea name="reviewer_note" rows="3"
+                                  class="emp-review-textarea"
+                                  placeholder="Explain what needs to be corrected or re-uploaded..."></textarea>
+                        <button type="submit" class="emp-revision-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="1 4 1 10 7 10"/>
+                                <path d="M3.51 15a9 9 0 1 0 .49-3.1"/>
+                            </svg>
+                            Request Revision
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% elif onboarding and onboarding.status == 'needs_revision' %}
+            <div class="emp-card emp-info-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title" style="color:#d97706;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Revision Requested
+                    </div>
+                </div>
+                <div style="padding:16px 20px;font-size:0.84rem;color:var(--text-secondary);">
+                    {% if onboarding.reviewer_note %}
+                    <strong>Your note:</strong> {{ onboarding.reviewer_note }}<br><br>
+                    {% endif %}
+                    Waiting for {{ applicant.username }} to resubmit.
+                </div>
+            </div>
+            {% elif not onboarding or onboarding.status == 'pending_submission' %}
+            <div class="emp-card emp-info-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">Status</div>
+                </div>
+                <div style="padding:16px 20px;font-size:0.84rem;color:var(--text-secondary);">
+                    The applicant has not submitted their employment documents yet.
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="emp-card emp-info-card" style="margin-top:0;">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Notes
+                    </div>
+                </div>
+                <ul class="emp-tips">
+                    <li>Confirming creates a permanent employee record</li>
+                    <li>Application status can no longer be changed after confirmation</li>
+                    <li>The applicant will receive an immediate notification</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

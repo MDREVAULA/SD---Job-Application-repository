@@ -1757,56 +1757,49 @@ textarea {
 /* ── Value editor rows ── */
 .value-editor-row {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;    /* inputs take all space, × is fixed-width */
+  grid-template-rows: auto auto;       /* title row, desc row */
+  column-gap: 10px;
+  row-gap: 8px;
+  align-items: start;
+  margin-bottom: 12px;
+  padding: 14px 16px;
   background: var(--bg-surface-alt, #f9fafb);
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 10px;
   transition: border-color 0.2s;
 }
+ 
 .value-editor-row:hover {
   border-color: #14b8a6;
 }
- 
-/* Icon picker strip */
-.value-editor-icon-picker {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+
+/* Description input spans column 1, row 2 */
+.value-editor-row .value-desc-input {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0 !important;
+  display: block;
+  width: 100%;
 }
-.value-icon-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: 2px solid var(--border-color, #e5e7eb);
-  background: var(--bg-surface, #fff);
-  cursor: pointer;
-  font-size: 16px;
+ 
+/* × button spans both rows in column 2, vertically centred */
+.value-editor-row .btn-remove-value {
+  grid-column: 2;
+  grid-row: 1 / span 2;           /* spans both input rows */
+  position: static !important;    /* override any absolute positioning */
+  align-self: center;
+  justify-self: center;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
   padding: 0;
-  line-height: 1;
-}
-.value-icon-btn:hover {
-  border-color: #14b8a6;
-  background: rgba(20,184,166,0.08);
-  transform: scale(1.1);
-}
-.value-icon-btn.active {
-  border-color: #14b8a6;
-  background: rgba(20,184,166,0.15);
-  box-shadow: 0 0 0 2px rgba(20,184,166,0.3);
-}
- 
-.value-editor-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  font-size: 18px;
+  border-radius: 6px;
+  flex-shrink: 0;
 }
  
 /* ── Benefit editor rows ── */

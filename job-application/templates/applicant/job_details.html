@@ -194,7 +194,7 @@
             <div class="detail-item">
               <div class="detail-label">Recruitment Quota</div>
               <div class="detail-value">
-                {% set current = job.applications|length if job.applications else 0 %}
+                {% set current = active_application_count %}
                 {% set max = job.max_applications %}
 
                 {% if not max %}
@@ -243,7 +243,7 @@
             <!-- Apply Button in Sidebar -->
             <div class="sidebar-apply-section">
               {% if current_user.is_authenticated and current_user.role == "applicant" %}
-                {% set quota_full = job.max_applications is not none and job.applications|length >= job.max_applications %}
+                {% set quota_full = job.max_applications is not none and active_application_count >= job.max_applications %}
                 {% if existing_application %}
                   <div class="btn-sidebar-apply" style="background:#0f9488;cursor:default;justify-content:center;display:flex;align-items:center;gap:8px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

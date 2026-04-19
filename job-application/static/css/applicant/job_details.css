@@ -132,21 +132,21 @@
 }
 
 .btn-apply-nav {
-  background: #14b8a6;
-  border-color: #14b8a6;
+  background: var(--brand-green-dark);
+  border-color: var(--brand-green-dark);
   color: white;
 }
 
 .btn-apply-nav:hover {
-  background: #0f9488;
-  border-color: #0f9488;
+  background: #39583a;
+  border-color: #39583a;
   color: white;
 }
 
 .btn-applied-nav {
-  background: rgba(20, 184, 166, 0.1);
-  color: #0f9488;
-  border-color: #0f9488;
+  background: rgba(77, 119, 78, 0.1);
+  color: #39583a;
+  border-color: #39583a;
   cursor: default;
   pointer-events: none;
 }
@@ -187,8 +187,8 @@
 }
 
 .tab-btn.active {
-  color: #14b8a6;
-  border-bottom-color: #14b8a6;
+  color: var(--brand-green-dark);
+  border-bottom-color: var(--brand-green-dark);
 }
 
 /* Tab Content */
@@ -389,7 +389,7 @@
 }
 
 .detail-salary {
-  color: #14b8a6;
+  color: var(--brand-green-dark);
   font-weight: 600;
 }
 
@@ -412,7 +412,7 @@
   justify-content: center;
   gap: 10px;
   padding: 14px 24px;
-  background: #14b8a6;
+  background: var(--brand-green-dark);
   color: white;
   border: none;
   border-radius: 8px;
@@ -425,7 +425,7 @@
 }
 
 .btn-sidebar-apply:hover {
-  background: #0f9488;
+  background: #39583a;
   color: white;
 }
 
@@ -490,7 +490,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #14b8a6;
+  color: var(--brand-green-dark);
   flex-shrink: 0;
 }
 
@@ -538,7 +538,7 @@
 }
 
 .skills-subtitle svg {
-  color: #14b8a6;
+  color: var(--brand-green-dark);
 }
 
 .skills-tags {
@@ -557,9 +557,9 @@
 }
 
 .skill-required {
-  background: rgba(20, 184, 166, 0.1);
-  color: #0f9488;
-  border: 1px solid rgba(20, 184, 166, 0.3);
+  background: rgba(77, 119, 78, 0.1);
+  color: #39583a;
+  border: 1px solid rgba(77, 119, 78, 0.3);
 }
 
 .skill-preferred {
@@ -643,8 +643,8 @@
 
 .gallery-nav-btn:hover {
   background: var(--bg-hover);
-  border-color: #14b8a6;
-  color: #14b8a6;
+  border-color: var(--brand-green-dark);
+  color: var(--brand-green-dark);
   transform: translateY(-50%) scale(1.1);
 }
 
@@ -716,8 +716,8 @@
 }
 
 .thumbnail-btn.active {
-  border-color: #14b8a6;
-  box-shadow: 0 0 0 1px #14b8a6;
+  border-color: var(--brand-green-dark);
+  box-shadow: 0 0 0 1px var(--brand-green-dark);
 }
 
 /* ========================================
@@ -806,7 +806,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #14b8a6;
+  color: var(--brand-green-dark);
   flex-shrink: 0;
 }
 
@@ -833,7 +833,7 @@
 }
 
 .recruiter-link {
-  color: #14b8a6;
+  color: var(--brand-green-dark);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -842,7 +842,7 @@
 }
 
 .recruiter-link:hover {
-  color: #0f9488;
+  color: #39583a;
 }
 
 /* Recruiter Profile Card */
@@ -916,8 +916,8 @@
 
 .btn-view-profile:hover {
   background: var(--bg-hover);
-  border-color: #14b8a6;
-  color: #14b8a6;
+  border-color: var(--brand-green-dark);
+  color: var(--brand-green-dark);
 }
 
 /* Empty State */
@@ -977,14 +977,14 @@
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #14b8a6;
+  color: var(--brand-green-dark);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-toggle-description:hover {
   background: var(--bg-hover);
-  border-color: #14b8a6;
+  border-color: var(--brand-green-dark);
 }
 
 .btn-toggle-description svg {
@@ -1004,7 +1004,7 @@
 }
 
 .company-header-banner {
-  background: linear-gradient(135deg, #14b8a6 0%, #0f9488 100%);
+  background: var(--brand-green-dark);
   padding: 40px 32px;
   position: relative;
   overflow: hidden;
@@ -1061,7 +1061,7 @@
 }
 
 .company-logo-placeholder-header {
-  color: #14b8a6;
+  color: var(--brand-green-dark);
 }
 
 .company-header-info {
@@ -1099,7 +1099,7 @@
 }
 
 .company-info-box:hover {
-  border-color: #14b8a6;
+  border-color: var(--brand-green-dark);
   background: var(--bg-hover);
   transform: translateY(-2px);
 }
@@ -1115,11 +1115,11 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: rgba(20, 184, 166, 0.1);
+  background: rgba(77, 119, 78, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #14b8a6;
+  color: var(--brand-green-dark);
 }
 
 .info-box-title {
@@ -1173,7 +1173,7 @@
 
 .value-item:hover {
   background: var(--bg-hover);
-  border-color: #14b8a6;
+  border-color: var(--brand-green-dark);
   transform: translateX(4px);
 }
 
@@ -1181,7 +1181,7 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #14b8a6 0%, #0f9488 100%);
+  background: var(--brand-green-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1302,8 +1302,8 @@
 
 .btn-manager-profile:hover {
   background: var(--bg-hover);
-  border-color: #14b8a6;
-  color: #14b8a6;
+  border-color: var(--brand-green-dark);
+  color: var(--brand-green-dark);
   transform: translateY(-2px);
 }
 
@@ -1311,8 +1311,8 @@
    WHY JOIN US / HIGHLIGHT CARD
    ======================================== */
 .highlight-card {
-  background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(15, 148, 136, 0.05) 100%);
-  border-color: #14b8a6;
+  background: rgba(77, 119, 78, 0.05);
+  border-color: var(--brand-green-dark);
 }
 
 .highlight-header {
@@ -1323,7 +1323,7 @@
 }
 
 .highlight-header svg {
-  color: #14b8a6;
+  color: var(--brand-green-dark);
   flex-shrink: 0;
 }
 
@@ -1350,7 +1350,7 @@
 }
 
 .benefit-item svg {
-  color: #14b8a6;
+  color: var(--brand-green-dark);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -1367,7 +1367,7 @@
   margin-left: 6px;
 }
 
-.quota-ok   { background: rgba(20,184,166,0.12); color: #0f9488; }
+.quota-ok   { background: rgba(77,119,78,0.12); color: #39583a; }
 .quota-full { background: rgba(239,68,68,0.12);  color: #dc2626; }
 .quota-low  { background: rgba(245,158,11,0.12); color: #d97706; }
 
@@ -1408,8 +1408,8 @@
   gap: 10px;
   padding: 12px 20px;
   background: var(--bg-secondary, #fff);
-  border: 1px solid #14b8a6;
-  border-left: 4px solid #14b8a6;
+  border: 1px solid var(--brand-green-dark);
+  border-left: 4px solid var(--brand-green-dark);
   border-radius: 10px;
   font-size: 13px;
   color: var(--text-primary, #111);

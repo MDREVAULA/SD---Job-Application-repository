@@ -1,202 +1,219 @@
-/* ============================================================
-   APPLICANT DASHBOARD — Application Status JS
-   Mirrors recruiter/applicants_filtering.js logic.
-   Features: collapsible cards, filter by status,
-             search by job title/company, sort
-   ============================================================ */
+// ================================
+// APPLICANT STATUS - JavaScript
+// Filter, Search, and Sort functionality
+// ================================
 
-let currentSort   = 'date-desc';
-let currentStatus = 'all';
+// ===== GLOBAL STATE =====
+let allJobRows = [];
+let currentSort = 'newest';
 
-// ── Card collapse / expand ──────────────────────────────────
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', function() {
+    const tbody = document.getElementById('jobTableBody');
+    if (tbody) {
+        allJobRows = Array.from(tbody.querySelectorAll('.job-row'));
+    }
+    
+    // Set initial sort
+    applySort();
+});
 
-function toggleCard(headerEl) {
-    const card = headerEl.closest('.app-card');
-    const body = card.querySelector('.app-card-body');
-    const isOpen = card.classList.contains('card-open');
+// ===== SEARCH FUNCTION =====
+function applySearch() {
+    const searchInput = document.getElementById('jobSearchInput');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    allJobRows.forEach(row => {
+        const title = row.dataset.title || '';
+        const company = row.dataset.company || '';
+        const field = row.dataset.field || '';
+        
+        const matchesSearch = !searchTerm || 
+            title.includes(searchTerm) || 
+            company.includes(searchTerm) || 
+            field.includes(searchTerm);
+        
+        if (matchesSearch) {
+            row.classList.remove('hidden');
+        } else {
+            row.classList.add('hidden');
+        }
+    });
+    
+    // Update row numbers
+    updateRowNumbers();
+}
 
-    if (isOpen) {
-        // Collapse
-        body.style.maxHeight = body.scrollHeight + 'px';
-        requestAnimationFrame(() => {
-            body.style.maxHeight = '0';
-            body.style.opacity   = '0';
+// ===== SORT FUNCTION =====
+function applySort() {
+    const sortSelect = document.getElementById('sortSelect');
+    if (!sortSelect) return;
+    
+    currentSort = sortSelect.value;
+    
+    // Sort the rows
+    allJobRows.sort((a, b) => {
+        switch(currentSort) {
+            case 'newest':
+                // Sort by date descending (newest first)
+                return b.dataset.date.localeCompare(a.dataset.date);
+            
+            case 'oldest':
+                // Sort by date ascending (oldest first)
+                return a.dataset.date.localeCompare(b.dataset.date);
+            
+            case 'a-z':
+                // Sort by company A-Z
+                return a.dataset.company.localeCompare(b.dataset.company);
+            
+            case 'z-a':
+                // Sort by company Z-A
+                return b.dataset.company.localeCompare(a.dataset.company);
+            
+            case 'status':
+                // Sort by status (pending > interview > accepted > rejected)
+                const statusOrder = { 'pending': 1, 'interview': 2, 'accepted': 3, 'rejected': 4 };
+                const aStatus = statusOrder[a.dataset.status] || 5;
+                const bStatus = statusOrder[b.dataset.status] || 5;
+                return aStatus - bStatus;
+            
+            default:
+                return 0;
+        }
+    });
+    
+    // Re-append sorted rows to table body
+    const tbody = document.getElementById('jobTableBody');
+    if (tbody) {
+        allJobRows.forEach(row => {
+            tbody.appendChild(row);
         });
-        card.classList.remove('card-open');
-    } else {
-        // Expand
-        body.style.maxHeight = body.scrollHeight + 'px';
-        body.style.opacity   = '1';
-        card.classList.add('card-open');
+    }
+    
+    // Update row numbers
+    updateRowNumbers();
+}
 
-        body.addEventListener('transitionend', function onEnd() {
-            if (card.classList.contains('card-open')) {
-                body.style.maxHeight = 'none'; // allow dynamic content
+// ===== UPDATE ROW NUMBERS =====
+function updateRowNumbers() {
+    let visibleIndex = 1;
+    allJobRows.forEach(row => {
+        const rowNumber = row.querySelector('.row-number');
+        if (rowNumber) {
+            if (row.classList.contains('hidden')) {
+                rowNumber.style.opacity = '0';
+            } else {
+                rowNumber.textContent = visibleIndex;
+                rowNumber.style.opacity = '1';
+                visibleIndex++;
             }
-            body.removeEventListener('transitionend', onEnd);
-        });
-    }
-}
-
-// ── Status filter tabs ──────────────────────────────────────
-
-function filterByStatus(status) {
-    currentStatus = status;
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.getAttribute('data-status') === status);
-    });
-    applyFilters();
-}
-
-// ── Search clear ────────────────────────────────────────────
-
-function clearSearch() {
-    const input = document.getElementById('applicantSearch');
-    if (input) input.value = '';
-    const clearBtn = document.getElementById('searchClear');
-    if (clearBtn) clearBtn.style.display = 'none';
-    applyFilters();
-}
-
-// ── Sort ────────────────────────────────────────────────────
-
-function setSort(sortKey) {
-    currentSort = sortKey;
-    document.querySelectorAll('.sort-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('data-sort') === sortKey);
-    });
-    applyFilters();
-}
-
-// ── Core: filter + sort + render ───────────────────────────
-
-function applyFilters() {
-    const searchInput = document.getElementById('applicantSearch');
-    const searchVal   = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-    // Toggle clear button
-    const clearBtn = document.getElementById('searchClear');
-    if (clearBtn) clearBtn.style.display = searchVal ? 'flex' : 'none';
-
-    const container = document.getElementById('applicationsContainer');
-    if (!container) return;
-
-    // Remove previous no-results block
-    const existing = container.querySelector('.no-results-state');
-    if (existing) existing.remove();
-
-    const cards = Array.from(document.querySelectorAll('.app-card'));
-    let visibleCards = [];
-
-    cards.forEach(card => {
-        const cardStatus  = (card.getAttribute('data-status')  || '').toLowerCase();
-        const cardName    = (card.getAttribute('data-name')    || '').toLowerCase();
-        const cardCompany = (card.getAttribute('data-company') || '').toLowerCase();
-
-        const statusMatch = currentStatus === 'all' || cardStatus === currentStatus;
-        const searchMatch = !searchVal || cardName.includes(searchVal) || cardCompany.includes(searchVal);
-
-        if (statusMatch && searchMatch) {
-            card.style.display = '';
-            visibleCards.push(card);
-        } else {
-            card.style.display = 'none';
         }
     });
+}
 
-    // Sort visible cards
-    visibleCards.sort((a, b) => {
-        if (currentSort === 'date-desc') {
-            return (b.getAttribute('data-date') || '0').localeCompare(a.getAttribute('data-date') || '0');
-        } else if (currentSort === 'date-asc') {
-            return (a.getAttribute('data-date') || '0').localeCompare(b.getAttribute('data-date') || '0');
-        } else if (currentSort === 'name-asc') {
-            return (a.getAttribute('data-name') || '').localeCompare(b.getAttribute('data-name') || '');
-        } else if (currentSort === 'name-desc') {
-            return (b.getAttribute('data-name') || '').localeCompare(a.getAttribute('data-name') || '');
-        }
-        return 0;
-    });
+// ===== VIEW APPLICATION MODAL =====
+function viewApplication(appId) {
+    const modal = document.getElementById('applicationModal');
+    const content = document.getElementById('applicationContent');
+    
+    // You can fetch application details via AJAX or use data attributes
+    content.innerHTML = `
+        <div style="padding: 10px;">
+            <p><strong>Application ID:</strong> ${appId}</p>
+            <p><strong>Status:</strong> Loading...</p>
+            <p style="color: var(--text-secondary); font-size: 13px;">
+                Fetching application details...
+            </p>
+        </div>
+    `;
+    
+    modal.classList.add('active');
+    
+    // Optional: Fetch details via AJAX
+    // fetch('/applicant/application/' + appId)
+    //     .then(r => r.json())
+    //     .then(data => {
+    //         content.innerHTML = `...`;
+    //     });
+}
 
-    // Re-append in sorted order
-    visibleCards.forEach(card => container.appendChild(card));
+function closeApplicationModal() {
+    document.getElementById('applicationModal').classList.remove('active');
+}
 
-    // Results count label
-    const resultsEl = document.getElementById('resultsCount');
-    if (resultsEl) {
-        if (searchVal) {
-            resultsEl.textContent = visibleCards.length === 0
-                ? 'No results'
-                : `${visibleCards.length} result${visibleCards.length !== 1 ? 's' : ''}`;
-        } else {
-            resultsEl.textContent = '';
+// ===== VIEW REMARKS MODAL =====
+function viewRemarks(appId) {
+    const modal = document.getElementById('remarksModal');
+    const content = document.getElementById('remarksContent');
+    
+    content.innerHTML = `
+        <div style="padding: 10px;">
+            <p><strong>Application ID:</strong> ${appId}</p>
+            <p style="color: var(--text-secondary); font-size: 13px;">
+                Loading recruiter remarks...
+            </p>
+        </div>
+    `;
+    
+    modal.classList.add('active');
+    
+    // Optional: Fetch remarks via AJAX
+    // fetch('/applicant/remarks/' + appId)
+    //     .then(r => r.json())
+    //     .then(data => {
+    //         content.innerHTML = `...`;
+    //     });
+}
+
+function closeRemarksModal() {
+    document.getElementById('remarksModal').classList.remove('active');
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown', function(e) {
+    // Focus search on Ctrl+F or Cmd+F
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.getElementById('jobSearchInput');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
         }
     }
-
-    // Empty state message
-    if (visibleCards.length === 0) {
-        const messages = {
-            all:       { icon: 'fa-search',        title: 'No Matching Applications',  msg: 'No applications match your search.' },
-            pending:   { icon: 'fa-clock',          title: 'No Pending Applications',   msg: 'You have no applications with pending status.' },
-            interview: { icon: 'fa-calendar-check', title: 'No Interview Scheduled',    msg: 'You have no applications scheduled for interview.' },
-            accepted:  { icon: 'fa-check-circle',   title: 'No Accepted Applications',  msg: 'You have no accepted applications yet.' },
-            rejected:  { icon: 'fa-times-circle',   title: 'No Rejected Applications',  msg: 'You have no rejected applications.' }
-        };
-        const m = messages[currentStatus] || messages.all;
-        const emptyEl = document.createElement('div');
-        emptyEl.className = 'no-results-state';
-        emptyEl.innerHTML = `
-            <i class="fas ${m.icon}"></i>
-            <h3>${m.title}</h3>
-            <p>${m.msg}</p>
-        `;
-        container.appendChild(emptyEl);
+    
+    // Close modals on ESC
+    if (e.key === 'Escape') {
+        closeApplicationModal();
+        closeRemarksModal();
     }
-}
+});
 
-// ── Tab counts ──────────────────────────────────────────────
-
-function countApplications() {
-    const cards = document.querySelectorAll('.app-card');
-    const counts = { pending: 0, interview: 0, accepted: 0, rejected: 0 };
-
-    cards.forEach(card => {
-        const s = (card.getAttribute('data-status') || '').toLowerCase();
-        if (counts.hasOwnProperty(s)) counts[s]++;
-    });
-
-    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    set('tabPendingCount',   counts.pending);
-    set('tabInterviewCount', counts.interview);
-    set('tabAcceptedCount',  counts.accepted);
-    set('tabRejectedCount',  counts.rejected);
-}
-
-// ── Init ────────────────────────────────────────────────────
-
-document.addEventListener('DOMContentLoaded', function () {
-    countApplications();
-
-    // Initialise all cards: collapsed + staggered entrance animation
-    document.querySelectorAll('.app-card').forEach((card, index) => {
-        const body = card.querySelector('.app-card-body');
-        if (body) {
-            body.style.maxHeight  = '0';
-            body.style.opacity    = '0';
-            body.style.overflow   = 'hidden';
-            body.style.transition = 'max-height 0.35s ease, opacity 0.25s ease';
-        }
-
-        // Staggered entrance
-        card.style.opacity   = '0';
-        card.style.transform = 'translateY(20px)';
+// ===== ANIMATION ON LOAD =====
+window.addEventListener('load', function() {
+    const rows = document.querySelectorAll('.job-row');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(10px)';
+        
         setTimeout(() => {
-            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease, box-shadow 0.2s, border-color 0.2s';
-            card.style.opacity    = '1';
-            card.style.transform  = 'translateY(0)';
-        }, 80 * index);
+            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 30);
     });
+});
 
-    // Run initial filter pass
-    applyFilters();
+// ===== CLOSE MODAL ON OUTSIDE CLICK =====
+document.addEventListener('click', function(e) {
+    const appModal = document.getElementById('applicationModal');
+    const remarksModal = document.getElementById('remarksModal');
+    
+    if (e.target === appModal) {
+        closeApplicationModal();
+    }
+    if (e.target === remarksModal) {
+        closeRemarksModal();
+    }
 });

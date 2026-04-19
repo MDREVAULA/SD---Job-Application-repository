@@ -463,6 +463,103 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+# =========================
+# EMPLOYMENT REQUIREMENT TABLE
+# Recruiter defines which documents the applicant must submit
+# =========================
+class EmploymentRequirement(db.Model):
+    """Documents/requirements the recruiter defines per job for onboarding."""
+    __tablename__ = 'employment_requirement'
+ 
+    id          = db.Column(db.Integer, primary_key=True)
+    job_id      = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='CASCADE'), nullable=False)
+    title       = db.Column(db.String(200), nullable=False)   # e.g. "Government-issued ID"
+    description = db.Column(db.Text, nullable=True)           # optional instructions
+    is_required = db.Column(db.Boolean, default=True)
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+ 
+    job = db.relationship('Job', backref=db.backref('employment_requirements', cascade='all, delete-orphan', lazy=True))
+ 
+ 
+# =========================
+# EMPLOYMENT SUBMISSION TABLE
+# Applicant submits one file per requirement
+# =========================
+class EmploymentSubmission(db.Model):
+    """One submitted file from the applicant for an EmploymentRequirement."""
+    __tablename__ = 'employment_submission'
+ 
+    id             = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id', ondelete='CASCADE'), nullable=False)
+    requirement_id = db.Column(db.Integer, db.ForeignKey('employment_requirement.id', ondelete='CASCADE'), nullable=False)
+    file_path      = db.Column(db.String(300), nullable=True)   # uploaded file path
+    notes          = db.Column(db.Text, nullable=True)           # optional note from applicant
+    submitted_at   = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at     = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+ 
+    application = db.relationship('Application', backref=db.backref('employment_submissions', cascade='all, delete-orphan', lazy=True))
+    requirement = db.relationship('EmploymentRequirement', backref=db.backref('submissions', lazy=True))
+ 
+ 
+# =========================
+# EMPLOYEE TABLE
+# Created when recruiter/HR confirms employment after reviewing submissions
+# =========================
+class Employee(db.Model):
+    """
+    Marks an applicant as a confirmed employee for a specific job.
+    Created only after recruiter/HR reviews and confirms all submissions.
+    Once created, application status can no longer be changed.
+    """
+    __tablename__ = 'employee'
+ 
+    id             = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id', ondelete='CASCADE'), nullable=False, unique=True)
+    job_id         = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='SET NULL'), nullable=True)
+    user_id        = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)  # the applicant
+    confirmed_by   = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # recruiter or HR who confirmed
+    start_date     = db.Column(db.Date, nullable=True)
+    job_title      = db.Column(db.String(200), nullable=True)  # snapshot of the job title at confirmation
+    company_name   = db.Column(db.String(200), nullable=True)  # snapshot of company name
+ 
+    # Employment status: active | resigned | fired
+    employment_status = db.Column(db.String(20), default='active', nullable=False)
+    ended_at          = db.Column(db.DateTime, nullable=True)
+    end_reason        = db.Column(db.Text, nullable=True)  # reason for firing or resignation note
+ 
+    confirmed_at = db.Column(db.DateTime, default=datetime.utcnow)
+ 
+    # Relationships
+    application  = db.relationship('Application', backref=db.backref('employee_record', uselist=False))
+    job          = db.relationship('Job', foreign_keys=[job_id], backref=db.backref('employees', lazy=True))
+    user         = db.relationship('User', foreign_keys=[user_id], backref=db.backref('employment_records', lazy=True))
+    confirmer    = db.relationship('User', foreign_keys=[confirmed_by])
+ 
+ 
+# =========================
+# EMPLOYMENT SUBMISSION STATUS (per-application onboarding state)
+# Tracks the overall onboarding review state for an application
+# =========================
+class EmploymentOnboarding(db.Model):
+    """
+    Tracks the overall onboarding state for an accepted application.
+    States:
+      pending_submission  – applicant hasn't submitted requirements yet
+      submitted           – applicant submitted, waiting for review
+      needs_revision      – reviewer sent back for corrections
+      confirmed           – recruiter/HR confirmed, Employee record created
+    """
+    __tablename__ = 'employment_onboarding'
+ 
+    id             = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id', ondelete='CASCADE'), nullable=False, unique=True)
+    status         = db.Column(db.String(30), default='pending_submission', nullable=False)
+    reviewer_note  = db.Column(db.Text, nullable=True)   # note when sending back for revision
+    submitted_at   = db.Column(db.DateTime, nullable=True)
+    reviewed_at    = db.Column(db.DateTime, nullable=True)
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+ 
+    application = db.relationship('Application', backref=db.backref('onboarding', uselist=False))
 
 # =========================
 # HR TEAM MEMBERS

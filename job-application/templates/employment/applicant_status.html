@@ -1,0 +1,246 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/submit_requirements.css') }}">
+
+<!-- NAV -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="{{ url_for('applicant.status') }}" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">MY EMPLOYMENT</div>
+                <h1 class="job-title-main">
+                    {% if employee_record and employee_record.employment_status == 'active' %}
+                        Active Employee
+                    {% elif employee_record %}
+                        Employment Ended
+                    {% else %}
+                        Onboarding Status
+                    {% endif %}
+                </h1>
+                <div class="job-meta">
+                    <span>{{ job.title }}</span>
+                    {% if recruiter_profile and recruiter_profile.company_name %}
+                    <span class="meta-dot">•</span>
+                    <span>{{ recruiter_profile.company_name }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% if onboarding and onboarding.status in ('pending_submission', 'needs_revision') %}
+        <div class="nav-right">
+            <a href="{{ url_for('employment.submit_requirements', app_id=application.id) }}" class="btn-apply-nav">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Upload Documents
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="emp-wrapper">
+
+    <!-- CONFIRMED EMPLOYEE CARD -->
+    {% if employee_record %}
+    <div class="emp-employee-hero {% if employee_record.employment_status == 'active' %}hero-active{% elif employee_record.employment_status == 'resigned' %}hero-resigned{% else %}hero-fired{% endif %}">
+        <div class="emp-hero-icon">
+            {% if employee_record.employment_status == 'active' %}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+            {% elif employee_record.employment_status == 'resigned' %}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            {% else %}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            {% endif %}
+        </div>
+        <div class="emp-hero-info">
+            <div class="emp-hero-title">
+                {% if employee_record.employment_status == 'active' %}
+                    🎉 You are an active employee!
+                {% elif employee_record.employment_status == 'resigned' %}
+                    You have resigned from this position.
+                {% else %}
+                    Your employment has ended.
+                {% endif %}
+            </div>
+            <div class="emp-hero-meta">
+                <span><strong>Role:</strong> {{ employee_record.job_title }}</span>
+                <span><strong>Company:</strong> {{ employee_record.company_name }}</span>
+                <span><strong>Since:</strong> {{ employee_record.start_date.strftime('%B %d, %Y') if employee_record.start_date else 'N/A' }}</span>
+                {% if employee_record.ended_at %}
+                <span><strong>Ended:</strong> {{ employee_record.ended_at.strftime('%B %d, %Y') }}</span>
+                {% endif %}
+            </div>
+            {% if employee_record.end_reason %}
+            <div class="emp-hero-reason">{{ employee_record.end_reason }}</div>
+            {% endif %}
+        </div>
+
+        <!-- RESIGN BUTTON -->
+        {% if employee_record.employment_status == 'active' %}
+        <button class="emp-resign-btn" onclick="document.getElementById('resignModal').style.display='flex'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Resign
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- RESIGN MODAL -->
+    {% if employee_record.employment_status == 'active' %}
+    <div class="emp-modal-backdrop" id="resignModal" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+        <div class="emp-modal">
+            <div class="emp-modal-icon emp-modal-icon-warn">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <h3 class="emp-modal-title">Confirm Resignation</h3>
+            <p class="emp-modal-text">Are you sure you want to resign from <strong>{{ employee_record.job_title }}</strong> at <strong>{{ employee_record.company_name }}</strong>? This action cannot be undone.</p>
+            <form method="POST" action="{{ url_for('employment.resign', employee_id=employee_record.id) }}">
+                <textarea name="resignation_note" rows="3" placeholder="Optional: add a note for your resignation..." class="emp-modal-textarea"></textarea>
+                <div class="emp-modal-actions">
+                    <button type="button" class="emp-modal-cancel" onclick="document.getElementById('resignModal').style.display='none'">Cancel</button>
+                    <button type="submit" class="emp-modal-confirm">Yes, Resign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+
+    <!-- ONBOARDING STATUS CARD (not yet employee) -->
+    <div class="emp-card emp-onboarding-status-card">
+        <div class="emp-card-header">
+            <div class="emp-card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                Onboarding Progress
+            </div>
+        </div>
+        <div class="emp-onboard-body">
+            {% if not onboarding %}
+            <div class="emp-alert emp-alert-info">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Your application was accepted! Please submit your employment documents to proceed.
+            </div>
+            <a href="{{ url_for('employment.submit_requirements', app_id=application.id) }}" class="emp-submit-btn" style="display:inline-flex;text-decoration:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Upload Documents
+            </a>
+            {% else %}
+                {% if onboarding.status == 'pending_submission' %}
+                <div class="emp-alert emp-alert-info">Upload your employment documents to proceed.</div>
+                <a href="{{ url_for('employment.submit_requirements', app_id=application.id) }}" class="emp-submit-btn" style="display:inline-flex;text-decoration:none;">Upload Documents</a>
+                {% elif onboarding.status == 'submitted' %}
+                <div class="emp-alert emp-alert-info">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Documents submitted on {{ onboarding.submitted_at.strftime('%B %d, %Y') if onboarding.submitted_at else '' }}. Waiting for review.
+                </div>
+                {% elif onboarding.status == 'needs_revision' %}
+                <div class="emp-alert emp-alert-warning">
+                    Revision required{% if onboarding.reviewer_note %}: {{ onboarding.reviewer_note }}{% endif %}
+                </div>
+                <a href="{{ url_for('employment.submit_requirements', app_id=application.id) }}" class="emp-submit-btn" style="display:inline-flex;text-decoration:none;">Resubmit Documents</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- DOCUMENT SUBMISSIONS LIST -->
+    {% if requirements %}
+    <div class="emp-card" style="margin-top:16px;">
+        <div class="emp-card-header">
+            <div class="emp-card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Submitted Documents
+            </div>
+        </div>
+        <div class="emp-requirements-list">
+            {% for req in requirements %}
+            {% set sub = existing.get(req.id) %}
+            <div class="emp-req-item {% if sub and sub.file_path %}req-done{% endif %}">
+                <div class="emp-req-header">
+                    <div class="emp-req-info">
+                        <div class="emp-req-name">
+                            {{ req.title }}
+                            {% if req.is_required %}<span class="emp-badge-required">Required</span>
+                            {% else %}<span class="emp-badge-optional">Optional</span>{% endif %}
+                        </div>
+                        {% if req.description %}<div class="emp-req-desc">{{ req.description }}</div>{% endif %}
+                    </div>
+                    <div class="emp-req-status">
+                        {% if sub and sub.file_path %}
+                        <span class="emp-status-chip chip-done">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Uploaded
+                        </span>
+                        {% else %}
+                        <span class="emp-status-chip chip-pending">Missing</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if sub and sub.file_path %}
+                <div class="emp-existing-file">
+                    <div class="emp-file-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                    </div>
+                    <div class="emp-file-meta">
+                        <span class="emp-file-name">{{ sub.file_path }}</span>
+                        {% if sub.notes %}<span class="emp-file-date">Note: {{ sub.notes }}</span>{% endif %}
+                    </div>
+                    <a href="{{ url_for('static', filename='uploads/employment_docs/' + sub.file_path) }}"
+                       target="_blank" class="emp-view-btn">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        View
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

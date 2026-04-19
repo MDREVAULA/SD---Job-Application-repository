@@ -114,6 +114,9 @@ def jobs():
 def help_page():
     return render_template("help.html")
 
+@auth_bp.route("/about")
+def about():
+    return render_template("about.html")
 
 # =========================
 # LOGIN

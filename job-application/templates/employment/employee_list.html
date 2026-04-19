@@ -1,0 +1,319 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/submit_requirements.css') }}">
+
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            {% if current_user.role == 'recruiter' %}
+            <a href="{{ url_for('recruiter.my_job_list') }}" class="back-btn">
+            {% else %}
+            <a href="{{ url_for('hr.job_list') }}" class="back-btn">
+            {% endif %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">EMPLOYEE MANAGEMENT</div>
+                <h1 class="job-title-main">Employees — {{ job.title }}</h1>
+                <div class="job-meta">
+                    <span>{{ employees|selectattr('employment_status','equalto','active')|list|length }} Active</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ pending_onboardings|length + no_onboarding_apps|length }} Pending</span>
+                </div>
+            </div>
+        </div>
+        {% if current_user.role == 'recruiter' %}
+        <div class="nav-right">
+            <a href="{{ url_for('employment.manage_requirements', job_id=job.id) }}" class="btn-nav">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="2"/>
+                </svg>
+                Requirements
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="emp-wrapper">
+
+    <!-- STATS ROW -->
+    <div class="emp-stats-row">
+        <div class="emp-stat-pill emp-stat-active">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <div>
+                <span class="emp-stat-val">{{ employees|selectattr('employment_status','equalto','active')|list|length }}</span>
+                <span class="emp-stat-lbl">Active Employees</span>
+            </div>
+        </div>
+        <div class="emp-stat-pill emp-stat-pending">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <div>
+                <span class="emp-stat-val">{{ pending_onboardings|selectattr('0.status','equalto','submitted')|list|length }}</span>
+                <span class="emp-stat-lbl">Awaiting Review</span>
+            </div>
+        </div>
+        <div class="emp-stat-pill emp-stat-ended">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            <div>
+                <span class="emp-stat-val">{{ employees|rejectattr('employment_status','equalto','active')|list|length }}</span>
+                <span class="emp-stat-lbl">Ended Employments</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- PENDING ONBOARDING -->
+    {% set pending_review = pending_onboardings|selectattr('0.status','equalto','submitted')|list %}
+    {% if pending_review or no_onboarding_apps %}
+    <div class="emp-card" style="margin-bottom:16px;">
+        <div class="emp-card-header">
+            <div class="emp-card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Pending Onboarding
+                {% if pending_review %}
+                <span class="emp-notif-dot">{{ pending_review|length }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="emp-onboard-table-wrap">
+            <table class="emp-table">
+                <thead>
+                    <tr>
+                        <th>Applicant</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for onboard, app in pending_onboardings %}
+                    <tr>
+                        <td class="emp-table-user">
+                            <div class="emp-avatar-sm">
+                                {% if app.user.profile_picture %}
+                                    {% if app.user.profile_picture.startswith('http') %}
+                                        <img src="{{ app.user.profile_picture }}" alt="">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + app.user.profile_picture) }}" alt="">
+                                    {% endif %}
+                                {% else %}
+                                <span>{{ app.user.username[0]|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="emp-table-user-info">
+                                <div class="emp-table-user-name">{{ app.user.username }}</div>
+                                <div class="emp-table-user-email">{{ app.user.email }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if onboard.status == 'submitted' %}
+                            <span class="emp-status-chip chip-info">Awaiting Review</span>
+                            {% elif onboard.status == 'needs_revision' %}
+                            <span class="emp-status-chip chip-warning">Revision Requested</span>
+                            {% else %}
+                            <span class="emp-status-chip chip-pending">Not Submitted</span>
+                            {% endif %}
+                        </td>
+                        <td class="emp-table-date">
+                            {{ onboard.submitted_at.strftime('%b %d, %Y') if onboard.submitted_at else '—' }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('employment.review_submission', app_id=app.id) }}"
+                               class="emp-table-action">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    {% for app in no_onboarding_apps %}
+                    <tr>
+                        <td class="emp-table-user">
+                            <div class="emp-avatar-sm">
+                                {% if app.user.profile_picture %}
+                                    {% if app.user.profile_picture.startswith('http') %}
+                                        <img src="{{ app.user.profile_picture }}" alt="">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + app.user.profile_picture) }}" alt="">
+                                    {% endif %}
+                                {% else %}
+                                <span>{{ app.user.username[0]|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="emp-table-user-info">
+                                <div class="emp-table-user-name">{{ app.user.username }}</div>
+                                <div class="emp-table-user-email">{{ app.user.email }}</div>
+                            </div>
+                        </td>
+                        <td><span class="emp-status-chip chip-pending">Not Submitted</span></td>
+                        <td class="emp-table-date">—</td>
+                        <td>
+                            <a href="{{ url_for('employment.review_submission', app_id=app.id) }}"
+                               class="emp-table-action">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ACTIVE EMPLOYEES -->
+    <div class="emp-card">
+        <div class="emp-card-header">
+            <div class="emp-card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Employees
+            </div>
+        </div>
+
+        {% if not employees %}
+        <div class="emp-empty">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+            </svg>
+            <p>No employees confirmed yet. Review submitted documents above to confirm employment.</p>
+        </div>
+        {% else %}
+        <div class="emp-onboard-table-wrap">
+            <table class="emp-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>Confirmed By</th>
+                        {% if current_user.role == 'recruiter' %}<th>Action</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr class="{% if emp.employment_status != 'active' %}emp-row-ended{% endif %}">
+                        <td class="emp-table-num">{{ loop.index }}</td>
+                        <td class="emp-table-user">
+                            <div class="emp-avatar-sm">
+                                {% if emp.user.profile_picture %}
+                                    {% if emp.user.profile_picture.startswith('http') %}
+                                        <img src="{{ emp.user.profile_picture }}" alt="">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + emp.user.profile_picture) }}" alt="">
+                                    {% endif %}
+                                {% else %}
+                                <span>{{ emp.user.username[0]|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="emp-table-user-info">
+                                <div class="emp-table-user-name">{{ emp.user.username }}</div>
+                                <div class="emp-table-user-email">{{ emp.user.email }}</div>
+                            </div>
+                        </td>
+                        <td class="emp-table-role">{{ emp.job_title }}</td>
+                        <td>
+                            {% if emp.employment_status == 'active' %}
+                            <span class="emp-status-chip chip-done">Active</span>
+                            {% elif emp.employment_status == 'resigned' %}
+                            <span class="emp-status-chip chip-warning">Resigned</span>
+                            {% else %}
+                            <span class="emp-status-chip chip-error">Fired</span>
+                            {% endif %}
+                        </td>
+                        <td class="emp-table-date">
+                            {{ emp.start_date.strftime('%b %d, %Y') if emp.start_date else '—' }}
+                        </td>
+                        <td class="emp-table-date">
+                            {{ emp.confirmer.username if emp.confirmer else '—' }}
+                        </td>
+                        {% if current_user.role == 'recruiter' %}
+                        <td>
+                            {% if emp.employment_status == 'active' %}
+                            <button class="emp-fire-btn"
+                                    onclick="document.getElementById('fireModal-{{ emp.id }}').style.display='flex'"
+                                    title="Terminate Employment">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="15" y1="9" x2="9" y2="15"/>
+                                    <line x1="9" y1="9" x2="15" y2="15"/>
+                                </svg>
+                                Fire
+                            </button>
+                            {% else %}
+                            <span style="font-size:12px;color:var(--text-muted);">—</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+
+                    <!-- FIRE MODAL -->
+                    {% if emp.employment_status == 'active' and current_user.role == 'recruiter' %}
+                    <div class="emp-modal-backdrop" id="fireModal-{{ emp.id }}" style="display:none;"
+                         onclick="if(event.target===this)this.style.display='none'">
+                        <div class="emp-modal">
+                            <div class="emp-modal-icon emp-modal-icon-error">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="15" y1="9" x2="9" y2="15"/>
+                                    <line x1="9" y1="9" x2="15" y2="15"/>
+                                </svg>
+                            </div>
+                            <h3 class="emp-modal-title">Terminate Employment</h3>
+                            <p class="emp-modal-text">You are about to terminate <strong>{{ emp.user.username }}</strong>'s employment as <strong>{{ emp.job_title }}</strong>. This cannot be undone.</p>
+                            <form method="POST" action="{{ url_for('employment.fire_employee', employee_id=emp.id) }}">
+                                <textarea name="fire_reason" rows="3" class="emp-modal-textarea"
+                                          placeholder="Reason for termination (optional)..."></textarea>
+                                <div class="emp-modal-actions">
+                                    <button type="button" class="emp-modal-cancel"
+                                            onclick="document.getElementById('fireModal-{{ emp.id }}').style.display='none'">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="emp-modal-confirm emp-modal-fire">Terminate</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

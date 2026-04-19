@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification, HREducation
+from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification, HREducation, Employee
 from werkzeug.security import generate_password_hash
 from flask import current_app
 from PIL import Image
@@ -364,16 +364,27 @@ def job_applications(job_id):
         return redirect(url_for('hr.job_list'))
 
     job = Job.query.get_or_404(job_id)
-    applications = Application.query.filter_by(job_id=job_id).all()
-    recruiter_user = User.query.get(job.company_id)
+
+    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
+    _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
+
+    applications = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ACTIVE_STATUSES)
+    ).all()
+
+    archived_applications = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ARCHIVED_STATUSES)
+    ).all()
 
     return render_template(
         "hr/job_applications.html",
         job=job,
         applications=applications,
-        recruiter_user=recruiter_user
+        archived_applications=archived_applications,
+        recruiter_user=recruiter_user,
     )
-
 
 # ===============================
 # HR UPDATE APPLICATION STATUS
@@ -387,6 +398,9 @@ def update_application_status(app_id):
         return redirect(url_for('auth.index'))
 
     application = Application.query.get_or_404(app_id)
+    if Employee.query.filter_by(application_id=app_id).first():
+        flash("This applicant is already a confirmed employee. Status cannot be changed.", "warning")
+        return redirect(url_for('hr.job_applications', job_id=application.job_id))
 
     new_status        = request.form.get('status')
     new_feedback      = request.form.get('hr_feedback')
