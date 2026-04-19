@@ -14,55 +14,125 @@
         <!-- HEADER HERO -->
         <div class="admin-dashboard-header">
             <div class="admin-dashboard-header-inner">
-                <div class="admin-dashboard-header-top">
-                    <div>
-                        <h2><i class="fas fa-shield-alt"></i> Admin Dashboard</h2>
-                        <p class="admin-dashboard-subtitle">Manage and verify user accounts</p>
-                    </div>
-                    <div class="admin-header-actions">
-                        <a href="{{ url_for('admin.all_users') }}" class="admin-hero-btn admin-hero-btn--outline">
-                            <i class="fas fa-users"></i> All Users
-                        </a>
-                        <a href="{{ url_for('admin.banned_users') }}" class="admin-hero-btn admin-hero-btn--danger">
-                            <i class="fas fa-ban"></i> Banned
-                            {% if banned_users %}
-                                <span class="admin-hero-badge">{{ banned_users|length }}</span>
-                            {% endif %}
-                        </a>
-                        <a href="{{ url_for('admin.reports') }}" class="admin-hero-btn admin-hero-btn--outline"
-                            style="border-color:rgba(220,38,38,0.4); color:#fca5a5;">
-                                <i class="fas fa-flag"></i> Reports
-                        </a>
-                    </div>
+                <div class="admin-dashboard-header-left">
+                    <h2><i class="fas fa-shield-alt"></i> Admin Dashboard</h2>
+                    <p class="admin-dashboard-subtitle">Manage and verify user accounts</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- STATS STRIP -->
-        <!-- FIX 4: Changed "Pending Recruiters" to "All Recruiters" -->
-        <div class="admin-stats-grid">
-            <div class="admin-stat-card">
-                <i class="fas fa-building admin-stat-icon"></i>
-                <div class="admin-stat-number">{{ total_recruiters }}</div>
-                <div class="admin-stat-label">Total Recruiters</div>
-            </div>
-            <div class="admin-stat-card">
-                <i class="fas fa-users admin-stat-icon"></i>
-                <div class="admin-stat-number">{{ total_applicants }}</div>
-                <div class="admin-stat-label">Total Applicants</div>
-            </div>
-            <div class="admin-stat-card">
-                <i class="fas fa-ban admin-stat-icon admin-stat-icon--danger"></i>
-                <div class="admin-stat-number">{{ banned_users|length }}</div>
-                <div class="admin-stat-label">Banned Users</div>
+                <div class="admin-header-actions">
+                    <a href="{{ url_for('admin.all_users') }}" class="admin-hero-btn admin-hero-btn--outline">
+                        <i class="fas fa-users"></i> All Users
+                    </a>
+                    <a href="{{ url_for('admin.banned_users') }}" class="admin-hero-btn admin-hero-btn--danger">
+                        <i class="fas fa-ban"></i> Banned
+                        {% if banned_users %}
+                            <span class="admin-hero-badge">{{ banned_users|length }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('admin.reports') }}" class="admin-hero-btn admin-hero-btn--outline"
+                        style="border-color:rgba(220,38,38,0.4); color:#fca5a5;">
+                            <i class="fas fa-flag"></i> Reports
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- MAIN CONTENT -->
         <div class="admin-content-area">
 
+            <!-- STATS STRIP -->
+            <div class="admin-stats-grid">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div>
+                        <div class="admin-stat-number">{{ total_recruiters }}</div>
+                        <div class="admin-stat-label">Total Recruiters</div>
+                    </div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="admin-stat-number">{{ total_applicants }}</div>
+                        <div class="admin-stat-label">Total Applicants</div>
+                    </div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon admin-stat-icon--danger">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <div>
+                        <div class="admin-stat-number">{{ banned_users|length }}</div>
+                        <div class="admin-stat-label">Banned Users</div>
+                    </div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <div class="admin-stat-number">{{ pending_recruiters|length }}</div>
+                        <div class="admin-stat-label">Pending Reviews</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Overview -->
+            <div class="admin-grid-layout" style="margin-top: 24px;">
+                <div class="admin-col-span-8">
+                    <div class="admin-visualization">
+                        <h3>
+                            <i class="fas fa-chart-line"></i>
+                            Activity Overview (Last 7 Days)
+                        </h3>
+                        <div style="width: 100%; height: 280px; position: relative;">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-col-span-4">
+                    <div class="admin-section">
+                        <h3>
+                            <i class="fas fa-tasks"></i>
+                            Quick Stats
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div style="padding: 14px; background: var(--bg-surface-alt); border-radius: 10px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 500;">Active Recruiters</span>
+                                    <span style="font-size: 1.125rem; font-weight: 700; color: #4D774E;">{{ total_recruiters }}</span>
+                                </div>
+                                <div style="width: 100%; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                                    <div style="width: 75%; height: 100%; background: #4D774E; border-radius: 2px;"></div>
+                                </div>
+                            </div>
+                            <div style="padding: 14px; background: var(--bg-surface-alt); border-radius: 10px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 500;">Active Applicants</span>
+                                    <span style="font-size: 1.125rem; font-weight: 700; color: #4D774E;">{{ total_applicants }}</span>
+                                </div>
+                                <div style="width: 100%; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                                    <div style="width: 85%; height: 100%; background: #4D774E; border-radius: 2px;"></div>
+                                </div>
+                            </div>
+                            <div style="padding: 14px; background: var(--bg-surface-alt); border-radius: 10px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 0.8125rem; color: var(--text-muted); font-weight: 500;">Pending Reviews</span>
+                                    <span style="font-size: 1.125rem; font-weight: 700; color: #F1B24A;">{{ pending_recruiters|length }}</span>
+                                </div>
+                                <div style="width: 100%; height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden;">
+                                    <div style="width: 35%; height: 100%; background: #F1B24A; border-radius: 2px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Recruiter Verification Queue -->
-            <!-- FIX 1: Queue now correctly reflects submitted recruiters via backend fix -->
             <div class="admin-section">
                 <h3>
                     <i class="fas fa-user-tie"></i>
@@ -187,7 +257,6 @@
                                     <i class="fas fa-unlock"></i> Unban
                                 </button>
                             </form>
-                            <!-- FIX 5: Delete button -->
                             <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
                                   onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
                                 <button type="submit" class="admin-action-btn admin-action-btn--delete">
@@ -202,30 +271,52 @@
             {% endif %}
 
             <!-- Navigation Cards -->
-            <div class="admin-nav-links">
-                <a href="{{ url_for('admin.all_users') }}" class="admin-nav-card">
-                    <i class="fas fa-users admin-nav-card-icon"></i>
-                    <h4 class="admin-nav-card-title">All Users</h4>
-                    <p class="admin-nav-card-desc">Browse, filter, ban or unban all users</p>
-                </a>
-                <a href="{{ url_for('admin.banned_users') }}" class="admin-nav-card">
-                    <i class="fas fa-ban admin-nav-card-icon"></i>
-                    <h4 class="admin-nav-card-title">Banned Users</h4>
-                    <p class="admin-nav-card-desc">View and manage all banned accounts</p>
-                </a>
-                <a href="{{ url_for('admin.scammers') }}" class="admin-nav-card">
-                    <i class="fas fa-times-circle admin-nav-card-icon"></i>
-                    <h4 class="admin-nav-card-title">Rejected Recruiters</h4>
-                    <p class="admin-nav-card-desc">View all rejected recruiter accounts</p>
-                </a>
-
-                <a href="{{ url_for('admin.reports') }}" class="admin-nav-card">
-                    <i class="fas fa-flag admin-nav-card-icon" style="color:#dc2626;"></i>
-                    <h4 class="admin-nav-card-title">User Reports</h4>
-                    <p class="admin-nav-card-desc">Review reports submitted by users and take action</p>
-                    <!-- live pending badge -->
-                    <span id="dashReportBadge" class="rpt-dashboard-badge" style="display:none;"></span>
-                </a>
+            <div class="admin-grid-layout">
+                <div class="admin-col-span-6">
+                    <a href="{{ url_for('admin.all_users') }}" class="admin-nav-card">
+                        <div class="admin-nav-card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <h4 class="admin-nav-card-title">All Users</h4>
+                            <p class="admin-nav-card-desc">Browse, filter, ban or unban all users</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="admin-col-span-6">
+                    <a href="{{ url_for('admin.banned_users') }}" class="admin-nav-card">
+                        <div class="admin-nav-card-icon">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <div>
+                            <h4 class="admin-nav-card-title">Banned Users</h4>
+                            <p class="admin-nav-card-desc">View and manage all banned accounts</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="admin-col-span-6">
+                    <a href="{{ url_for('admin.scammers') }}" class="admin-nav-card">
+                        <div class="admin-nav-card-icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div>
+                            <h4 class="admin-nav-card-title">Rejected Recruiters</h4>
+                            <p class="admin-nav-card-desc">View all rejected recruiter accounts</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="admin-col-span-6">
+                    <a href="{{ url_for('admin.reports') }}" class="admin-nav-card">
+                        <div class="admin-nav-card-icon" style="background: rgba(220, 38, 38, 0.12); color: #dc2626;">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                        <div>
+                            <h4 class="admin-nav-card-title">User Reports</h4>
+                            <p class="admin-nav-card-desc">Review reports submitted by users and take action</p>
+                            <span id="dashReportBadge" class="rpt-dashboard-badge" style="display:none; margin-top: 6px;"></span>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -296,6 +387,141 @@ document.getElementById('rejectModalOverlay').addEventListener('click', function
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeRejectModal();
 });
+</script>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- Activity Chart Script -->
+<script>
+(function() {
+    const ctx = document.getElementById('activityChart');
+    if (!ctx) return;
+
+    // Get data from Flask template
+    const labels = {{ chart_labels | tojson }};
+    const applicationsData = {{ chart_applications | tojson }};
+    const signupsData = {{ chart_signups | tojson }};
+    const jobsData = {{ chart_jobs | tojson }};
+
+    // Detect theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#cccccc' : '#374151';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Applications',
+                    data: applicationsData,
+                    borderColor: '#4D774E',
+                    backgroundColor: 'rgba(77, 119, 78, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#4D774E',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                },
+                {
+                    label: 'New Users',
+                    data: signupsData,
+                    borderColor: '#F1B24A',
+                    backgroundColor: 'rgba(241, 178, 74, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#F1B24A',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                },
+                {
+                    label: 'Jobs Posted',
+                    data: jobsData,
+                    borderColor: '#9DC88D',
+                    backgroundColor: 'rgba(157, 200, 141, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#9DC88D',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        color: textColor,
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 12,
+                            weight: '500'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#2c2f31' : '#ffffff',
+                    titleColor: textColor,
+                    bodyColor: textColor,
+                    borderColor: gridColor,
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: textColor,
+                        precision: 0,
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: textColor,
+                        font: { size: 11 }
+                    },
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    }
+                }
+            }
+        }
+    });
+})();
 </script>
 
 {% endblock %}
