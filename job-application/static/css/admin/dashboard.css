@@ -28,7 +28,6 @@
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
     position: relative;
-    z-index: 2;
     box-shadow: 0 1px 3px var(--shadow-color);
 }
 
@@ -82,8 +81,9 @@
 .admin-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 28px;
+    gap: 20px;
     max-width: 1240px;
+    margin: 0 auto;
     padding: 0 24px 0;
 }
 
