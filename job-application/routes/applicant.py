@@ -508,47 +508,6 @@ def upload_profile_picture():
 
     return redirect(url_for('applicant.profile'))
 
-
-# ===============================
-# APPLICANT DASHBOARD
-# ===============================
-@applicant_bp.route('/dashboard')
-@login_required
-def dashboard():
-    banned = check_banned()
-    if banned:
-        return banned
-
-    if current_user.role != 'applicant':
-        flash("Access denied!", "danger")
-        return redirect(url_for('auth.index'))
-
-    applications = (
-        Application.query
-        .filter_by(applicant_id=current_user.id)
-        .options(
-            joinedload(Application.job),
-            joinedload(Application.hr_feedbacks)
-        )
-        .order_by(Application.created_at.desc())
-        .all()
-    )
-
-    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
-    profile_complete = is_profile_complete(prof)
-
-    saved_job_ids = {
-        s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
-    }
-
-    return render_template(
-        'applicant/dashboard.html',
-        applications=applications,
-        profile_complete=profile_complete,
-        saved_job_ids=saved_job_ids,
-    )
-
-
 # ===============================
 # APPLICATION STATUS PAGE (alias for dashboard)
 # ===============================
