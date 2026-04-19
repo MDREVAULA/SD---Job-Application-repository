@@ -1503,3 +1503,565 @@
     height: 40px;
   }
 }
+/* ================================================================
+   ADMIN RIBBON  — themed to match the app's CSS variables
+   ================================================================ */
+
+/* ── Persistent re-open tab (always visible even when collapsed) ── */
+.adm-job-ribbon-tab {
+    position: fixed;
+    bottom: 0;
+    right: 32px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 18px 5px;
+    background: var(--brand-green-dark);
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    z-index: 9901;
+    box-shadow: 0 -2px 10px var(--shadow-color);
+    transition: background 0.18s;
+    /* hidden by default; shown via JS when ribbon is collapsed */
+    display: none;
+}
+.adm-job-ribbon-tab:hover { background: #39583a; }
+
+/* ── Main ribbon ── */
+.adm-job-ribbon {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border-top: 2px solid var(--brand-green-dark);
+    z-index: 9900;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    box-shadow: 0 -4px 20px var(--shadow-color);
+    transition: transform 0.25s ease;
+}
+
+/* When collapsed, slide the ribbon fully off-screen
+   (the tab above acts as the re-open handle) */
+.adm-job-ribbon.collapsed {
+    transform: translateY(100%);
+}
+
+.adm-job-ribbon-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    flex-wrap: wrap;
+}
+
+.adm-job-ribbon-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--brand-green-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 6px;
+}
+
+.adm-job-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+}
+
+.adm-job-status--down {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.adm-job-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s ease;
+    text-decoration: none;
+}
+
+.adm-job-btn--takedown {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+.adm-job-btn--takedown:hover {
+    background: #dc2626;
+    color: white;
+    border-color: #dc2626;
+}
+
+.adm-job-btn--restore {
+    background: rgba(77, 119, 78, 0.12);
+    color: var(--brand-green-dark);
+    border: 1px solid rgba(77, 119, 78, 0.3);
+}
+.adm-job-btn--restore:hover {
+    background: var(--brand-green-dark);
+    color: white;
+    border-color: var(--brand-green-dark);
+}
+
+.adm-job-btn--view {
+    background: var(--bg-surface-alt);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+.adm-job-btn--view:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.adm-job-ribbon-toggle {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.82rem;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.adm-job-ribbon-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--brand-green-dark);
+    border-color: var(--brand-green-dark);
+}
+
+.adm-job-reason {
+    padding: 6px 20px 10px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border-top: 1px solid var(--border-color);
+}
+.adm-job-reason i   { color: var(--brand-green-dark); }
+.adm-job-reason strong { color: var(--text-primary); }
+
+/* ── Takedown modal overlay ── */
+.adm-td-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    z-index: 9950;
+    align-items: center;      /* ← moved here so they apply when display:flex */
+    justify-content: center;
+}
+.adm-td-overlay.open {
+    display: flex;            /* ← single rule, no duplicate */
+}
+
+.adm-td-modal {
+    display: none;
+    flex-direction: column;
+    position: relative;
+    width: 92%;
+    max-width: 440px;         /* ← reduced from 520px */
+    max-height: 80vh;         /* ← reduced from 88vh */
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-top: 3px solid var(--brand-green-dark);
+    border-radius: 14px;
+    box-shadow: 0 24px 60px var(--shadow-color);
+    z-index: 9960;
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease;
+}
+.adm-td-modal.open {
+    display: flex;
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+
+.adm-td-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+.adm-td-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.adm-td-header h3 i { color: #dc2626; }
+
+.adm-td-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+.adm-td-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.adm-td-body { padding: 18px 20px; }
+
+.adm-td-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 18px;
+    line-height: 1.55;
+}
+.adm-td-desc strong { color: var(--text-primary); }
+
+.adm-td-field { margin-bottom: 16px; }
+
+.adm-td-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+.adm-td-label i { color: var(--brand-green-dark); }
+
+.adm-td-optional {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-tertiary);
+    margin-left: 3px;
+}
+
+.adm-td-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 12px;
+}
+.adm-td-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 13px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-surface-alt);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    font-family: inherit;
+}
+.adm-td-chip input[type="radio"] { display: none; }
+.adm-td-chip:hover {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.07);
+}
+.adm-td-chip:has(input:checked) {
+    border-color: #dc2626;
+    background: #dc2626;
+    color: white;
+}
+.adm-td-chip--perm:has(input:checked) {
+    border-color: #b91c1c;
+    background: #b91c1c;
+    color: white;
+}
+
+.adm-td-preview {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.adm-td-preview i { font-size: 0.9rem; flex-shrink: 0; }
+
+.adm-td-preview--perm {
+    background: rgba(185, 28, 28, 0.08);
+    border: 1px solid rgba(185, 28, 28, 0.25);
+    color: #dc2626;
+}
+.adm-td-preview--timed {
+    background: rgba(77, 119, 78, 0.08);
+    border: 1px solid rgba(77, 119, 78, 0.25);
+    color: var(--brand-green-dark);
+}
+
+.adm-td-textarea {
+    width: 100%;
+    padding: 10px 13px;
+    background: var(--bg-surface-alt);
+    border: 1.5px solid var(--border-color);
+    border-radius: 9px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.875rem;
+    resize: vertical;
+    transition: border-color 0.18s;
+    box-sizing: border-box;
+    line-height: 1.55;
+}
+.adm-td-textarea::placeholder { color: var(--text-muted); }
+.adm-td-textarea:focus {
+    outline: none;
+    border-color: var(--brand-green-dark);
+}
+
+.adm-td-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--border-color);
+}
+.adm-td-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s ease;
+}
+.adm-td-btn--cancel {
+    background: var(--bg-surface-alt);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+.adm-td-btn--cancel:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.adm-td-btn--confirm {
+    background: #dc2626;
+    color: white;
+}
+.adm-td-btn--confirm:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.job-view-wrapper { padding-bottom: 56px; }
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+
+[data-theme="dark"] .skill-required {
+  background: rgba(77, 119, 78, 0.2);
+  color: #7fbf80;
+  border-color: rgba(77, 119, 78, 0.4);
+}
+
+[data-theme="dark"] .btn-applied-nav {
+  background: rgba(77, 119, 78, 0.15);
+  color: #7fbf80;
+  border-color: #4d774e;
+}
+
+[data-theme="dark"] .quota-ok {
+  background: rgba(77, 119, 78, 0.2);
+  color: #7fbf80;
+}
+
+[data-theme="dark"] .quota-full {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+[data-theme="dark"] .quota-low {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .highlight-card {
+  background: rgba(77, 119, 78, 0.08);
+  border-color: rgba(77, 119, 78, 0.4);
+}
+
+[data-theme="dark"] .info-box-icon {
+  background: rgba(77, 119, 78, 0.2);
+}
+
+[data-theme="dark"] .adm-job-status--down {
+  background: rgba(220, 38, 38, 0.2);
+  color: #f87171;
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+[data-theme="dark"] .adm-job-btn--takedown {
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+  border-color: rgba(220, 38, 38, 0.35);
+}
+[data-theme="dark"] .adm-job-btn--takedown:hover {
+  background: #dc2626;
+  color: white;
+}
+
+[data-theme="dark"] .adm-job-btn--restore {
+  background: rgba(77, 119, 78, 0.2);
+  color: #7fbf80;
+  border-color: rgba(77, 119, 78, 0.4);
+}
+
+[data-theme="dark"] .adm-td-chip {
+  background: var(--bg-surface-alt);
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .adm-td-chip:hover {
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+  border-color: #f87171;
+}
+[data-theme="dark"] .adm-td-chip:has(input:checked) {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+[data-theme="dark"] .adm-td-preview--perm {
+  background: rgba(185, 28, 28, 0.15);
+  border-color: rgba(220, 38, 38, 0.35);
+  color: #f87171;
+}
+[data-theme="dark"] .adm-td-preview--timed {
+  background: rgba(77, 119, 78, 0.15);
+  border-color: rgba(77, 119, 78, 0.35);
+  color: #7fbf80;
+}
+
+[data-theme="dark"] .adm-td-btn--confirm {
+  background: #dc2626;
+}
+[data-theme="dark"] .adm-td-btn--confirm:hover {
+  background: #ef4444;
+}
+
+[data-theme="dark"] .gallery-counter {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .company-header-banner {
+  background: #2a3f2b;
+}
+
+[data-theme="dark"] .description-fade {
+  background: linear-gradient(to bottom, transparent, var(--bg-secondary));
+}
+
+[data-theme="dark"] .save-toast {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .value-item:hover,
+[data-theme="dark"] .company-info-box:hover {
+  background: var(--bg-hover);
+  border-color: rgba(77, 119, 78, 0.5);
+}
+
+[data-theme="dark"] .btn-manager-profile:hover,
+[data-theme="dark"] .btn-view-profile:hover {
+  border-color: rgba(77, 119, 78, 0.6);
+  color: #7fbf80;
+}
+
+[data-theme="dark"] .tab-btn.active {
+  color: #7fbf80;
+  border-bottom-color: #7fbf80;
+}
+
+[data-theme="dark"] .btn-toggle-description {
+  color: #7fbf80;
+}
+[data-theme="dark"] .btn-toggle-description:hover {
+  border-color: #7fbf80;
+}
+
+[data-theme="dark"] .detail-salary {
+  color: #7fbf80;
+}
+
+[data-theme="dark"] .btn-apply-nav,
+[data-theme="dark"] .btn-sidebar-apply {
+  background: #4d774e;
+  border-color: #4d774e;
+}
+[data-theme="dark"] .btn-apply-nav:hover,
+[data-theme="dark"] .btn-sidebar-apply:hover {
+  background: #5a8a5b;
+  border-color: #5a8a5b;
+}
+
+[data-theme="dark"] .btn-save-nav.saved,
+[data-theme="dark"] .btn-sidebar-save.saved {
+  color: #7fbf80;
+  border-color: #4d774e;
+}
+
+[data-theme="dark"] .requirement-icon,
+[data-theme="dark"] .detail-box-icon {
+  background: var(--bg-surface);
+}
+
+[data-theme="dark"] .adm-job-ribbon-tab {
+  background: #4d774e;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .adm-job-ribbon-tab:hover {
+  background: #5a8a5b;
+}

@@ -2,8 +2,82 @@
    admin/reports.css
    ================================================================ */
 
-/* ── Tab badge ─────────────────────────────────────────────────── */
-.rpt-tab-badge {
+/* ── Page header count pill ────────────────────────────────────── */
+.rpt-pending-count-pill {
+    font-size: 1rem;
+    font-weight: 700;
+    background: rgba(220,38,38,0.1);
+    color: #f87171;
+    border: 1px solid rgba(220,38,38,0.25);
+    border-radius: 20px;
+    padding: 2px 12px;
+    margin-left: 6px;
+}
+
+/* ── Stats row ─────────────────────────────────────────────────── */
+.rpt-stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.rpt-stat-card {
+    flex: 1;
+    min-width: 120px;
+    padding: 18px 20px;
+    text-align: center;
+}
+
+.rpt-stat-icon {
+    font-size: 1.4rem;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.rpt-stat-icon--pending   { color: #d97706; }
+.rpt-stat-icon--reviewed  { color: #9DC88D; }
+.rpt-stat-icon--dismissed { color: #6b7280; }
+
+.rpt-stat-number {
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.rpt-stat-number--pending   { color: #d97706; }
+.rpt-stat-number--reviewed  { color: #9DC88D; }
+.rpt-stat-number--dismissed { color: #6b7280; }
+
+.rpt-stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ── Filter row ────────────────────────────────────────────────── */
+.rpt-filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.rpt-filter-row a {
+    text-decoration: none;
+}
+
+/* Fix: light mode active filter tab text becomes white — override */
+[data-theme="light"] .btn-restore--active {
+    background: rgba(77,119,78,0.15);
+    border-color: #4D774E;
+    color: #2d5a2e;
+}
+
+/* ── Tab count pill (inside filter button) ─────────────────────── */
+.rpt-tab-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -11,12 +85,11 @@
     height: 18px;
     padding: 0 5px;
     background: #dc2626;
-    color: white;
+    color: #fff;
     border-radius: 20px;
     font-size: 10px;
     font-weight: 700;
-    margin-left: 4px;
-    vertical-align: middle;
+    margin-left: 2px;
 }
 
 /* ── Report list ───────────────────────────────────────────────── */
@@ -101,6 +174,8 @@
     gap: 7px;
     flex-wrap: wrap;
 }
+
+.rpt-meta-row--ban { margin-top: 6px; }
 
 .rpt-label {
     font-size: 0.7rem;
@@ -193,7 +268,7 @@
 }
 
 .rpt-status--pending   { background: rgba(245,158,11,0.1);  color: #d97706; border: 1px solid rgba(245,158,11,0.25); }
-.rpt-status--reviewed  { background: rgba(77,119,78,0.08);   color: #3a6b3b; border: 1px solid rgba(77,119,78,0.2); }
+.rpt-status--reviewed  { background: rgba(77,119,78,0.08);  color: #3a6b3b; border: 1px solid rgba(77,119,78,0.2); }
 .rpt-status--dismissed { background: rgba(107,114,128,0.1); color: #6b7280; border: 1px solid rgba(107,114,128,0.2); }
 
 /* ── Description ───────────────────────────────────────────────── */
@@ -218,6 +293,46 @@
     color: #9ca3af;
 }
 
+/* ── Evidence ──────────────────────────────────────────────────── */
+.rpt-evidence {
+    margin-bottom: 8px;
+    font-style: normal;
+}
+
+.rpt-evidence-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.rpt-evidence-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.rpt-evidence-file {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: rgba(77,119,78,0.1);
+    color: #4D774E;
+    border: 1px solid rgba(77,119,78,0.25);
+    transition: all 0.15s;
+}
+
+.rpt-evidence-file:hover {
+    background: rgba(77,119,78,0.2);
+    color: #2d5a2e;
+}
+
+[data-theme="dark"] .rpt-evidence-file { color: #9DC88D; }
+
 /* ── Footer ────────────────────────────────────────────────────── */
 .rpt-card-footer {
     display: flex;
@@ -229,8 +344,22 @@
     border-top: 1px solid var(--border-color, #f3f4f6);
 }
 
-.rpt-date { font-size: 0.8rem; color: var(--text-muted, #9ca3af); display: flex; align-items: center; gap: 5px; }
-.rpt-admin-note { font-size: 0.8rem; color: var(--text-muted, #6b7280); display: flex; align-items: center; gap: 5px; font-style: italic; }
+.rpt-date {
+    font-size: 0.8rem;
+    color: var(--text-muted, #9ca3af);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.rpt-admin-note {
+    font-size: 0.8rem;
+    color: var(--text-muted, #6b7280);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-style: italic;
+}
 
 /* ── Actions ───────────────────────────────────────────────────── */
 .rpt-actions {
@@ -273,7 +402,29 @@
     border: 1.5px solid var(--border-color, #e5e7eb);
 }
 
-.rpt-btn--dismiss:hover { border-color: #9DC88D; color: var(--text-primary, #111827); }
+.rpt-btn--dismiss:hover {
+    border-color: #9DC88D;
+    color: var(--text-primary, #111827);
+}
+
+/* ── Empty state ───────────────────────────────────────────────── */
+.rpt-empty-card {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-muted);
+}
+
+.rpt-empty-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 12px;
+    opacity: 0.35;
+}
+
+.rpt-empty-text {
+    margin: 0;
+    font-size: 1rem;
+}
 
 /* ── Dark mode cards ───────────────────────────────────────────── */
 [data-theme="dark"] .rpt-card {
@@ -286,21 +437,20 @@
     border-color: var(--border-color);
 }
 
-[data-theme="dark"] .rpt-role-pill          { color: #9DC88D; }
+[data-theme="dark"] .rpt-role-pill           { color: #9DC88D; }
 [data-theme="dark"] .rpt-role-pill--reported { color: #f87171; }
-[data-theme="dark"] .rpt-reason-badge       { color: #f87171; }
-[data-theme="dark"] .rpt-status--reviewed   { color: #9DC88D; }
-[data-theme="dark"] .rpt-status--pending    { color: #fbbf24; }
+[data-theme="dark"] .rpt-reason-badge        { color: #f87171; }
+[data-theme="dark"] .rpt-status--reviewed    { color: #9DC88D; }
+[data-theme="dark"] .rpt-status--pending     { color: #fbbf24; }
 
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-    .rpt-card-top   { flex-direction: column; }
-    .rpt-badges     { flex-direction: row; align-items: flex-start; }
-    .rpt-actions    { flex-direction: column; }
-    .rpt-btn        { width: 100%; justify-content: center; }
+    .rpt-card-top  { flex-direction: column; }
+    .rpt-badges    { flex-direction: row; align-items: flex-start; }
+    .rpt-actions   { flex-direction: column; }
+    .rpt-btn       { width: 100%; justify-content: center; }
     .ban-duration-grid { gap: 6px; }
 }
-
 
 /* ================================================================
    BAN MODAL — duration chips & preview
@@ -409,15 +559,14 @@
     color: var(--text-secondary);
 }
 
-
 /* ================================================================
-   SHARED ADMIN MODAL STYLES  (ported from admin.css)
+   SHARED ADMIN MODAL STYLES
    ================================================================ */
 
 .admin-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0,0,0,0.6);
     backdrop-filter: blur(4px);
     z-index: 9998;
     display: flex;
@@ -432,14 +581,14 @@
     border-radius: 16px;
     width: 100%;
     max-width: 480px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
     animation: modalIn 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
     overflow: hidden;
 }
 
 @keyframes modalIn {
     from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to   { opacity: 1; transform: scale(1)    translateY(0); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .admin-modal-header {
@@ -479,7 +628,7 @@
 }
 
 .admin-modal-close:hover {
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(255,255,255,0.07);
     color: var(--text-primary, #fff);
 }
 
@@ -528,7 +677,7 @@
 .admin-modal-textarea:focus {
     outline: none;
     border-color: #9DC88D;
-    box-shadow: 0 0 0 3px rgba(157, 200, 141, 0.1);
+    box-shadow: 0 0 0 3px rgba(157,200,141,0.1);
 }
 
 .admin-modal-footer {
@@ -570,56 +719,8 @@
 .admin-modal-btn--danger:hover {
     background: #b91c1c;
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+    box-shadow: 0 4px 14px rgba(220,38,38,0.35);
 }
-
-/* ── Filter tabs ───────────────────────────────────────────────── */
-.admin-filter-tabs {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.admin-filter-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    text-decoration: none;
-    color: var(--text-secondary, #ccc);
-    background: var(--bg-surface-alt, #313638);
-    border: 1.5px solid var(--border-color, rgba(255,255,255,0.08));
-    transition: all 0.15s ease;
-    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-}
-
-.admin-filter-tab:hover { border-color: #9DC88D; color: #9DC88D; }
-
-.admin-filter-tab.active {
-    background: rgba(157, 200, 141, 0.12);
-    border-color: #9DC88D;
-    color: #9DC88D;
-    font-weight: 700;
-}
-
-/* ── Empty state ───────────────────────────────────────────────── */
-.admin-empty-state {
-    text-align: center;
-    padding: 60px 24px;
-    color: var(--text-muted, #6b7280);
-}
-
-.admin-empty-state i {
-    font-size: 2.5rem;
-    display: block;
-    margin-bottom: 12px;
-    opacity: 0.35;
-}
-
-.admin-empty-state p { font-size: 1rem; margin: 0; }
 
 /* ── Light mode overrides ──────────────────────────────────────── */
 [data-theme="light"] .admin-modal {
@@ -642,19 +743,11 @@
     border-color: #e5e7eb;
 }
 
-[data-theme="light"] .admin-filter-tab {
-    background: #f9fafb;
-    border-color: #e5e7eb;
-    color: #374151;
-}
-
-[data-theme="light"] .admin-filter-tab.active {
-    background: rgba(77,119,78,0.08);
-    border-color: #4D774E;
-    color: #4D774E;
-}
-
 [data-theme="light"] .admin-modal-close:hover {
     background: #f3f4f6;
     color: #374151;
+}
+
+[data-theme="light"] .btn-restore:hover {
+    color: #2d5a2e;
 }
