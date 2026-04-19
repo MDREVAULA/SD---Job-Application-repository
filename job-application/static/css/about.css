@@ -1,18 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Sora:wght@600;700;800&display=swap');
 
-/* ================================
-   BASE
-   ================================ */
-
 .about-page {
     min-height: 100vh;
     background: var(--bg-primary);
     font-family: 'DM Sans', sans-serif;
 }
-
-/* ================================
-   HERO
-   ================================ */
 
 .about-hero {
     position: relative;
@@ -72,10 +64,6 @@
     font-weight: 500;
 }
 
-/* ================================
-   STRIPS (alternating sections)
-   ================================ */
-
 .about-strip {
     padding: 100px 80px;
 }
@@ -97,17 +85,12 @@
     align-items: center;
 }
 
-/* Reverse: image on left, text on right */
 .strip-inner--reverse {
     direction: rtl;
 }
 .strip-inner--reverse > * {
     direction: ltr;
 }
-
-/* ================================
-   TEXT SIDE
-   ================================ */
 
 .strip-text {
     display: flex;
@@ -143,7 +126,6 @@
     margin: 0;
 }
 
-/* Section icons */
 .section-icon {
     width: 48px;
     height: 48px;
@@ -167,10 +149,6 @@
     background: rgba(241, 178, 74, 0.15);
 }
 .section-icon--orange i { color: var(--brand-accent); }
-
-/* ================================
-   IMAGE PANEL
-   ================================ */
 
 .strip-image {
     display: flex;
@@ -213,10 +191,6 @@
     z-index: 1;
     display: block;
 }
-
-/* ================================
-   TEAM SECTION
-   ================================ */
 
 .team-container {
     max-width: 900px;
@@ -322,10 +296,6 @@
     background: var(--brand-green-dark);
     color: white;
 }
-
-/* ================================
-   RESPONSIVE
-   ================================ */
 
 @media (max-width: 960px) {
     .about-strip {
