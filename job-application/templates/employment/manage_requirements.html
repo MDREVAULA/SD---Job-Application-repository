@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/submit_requirements.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/manage_requirements.css') }}">
 
 <div class="job-view-nav">
     <div class="nav-container">
         <div class="nav-left">
-            <a href="{{ url_for('recruiter.edit_job', job_id=job.id) }}" class="back-btn">
+            <a href="{{ url_for('recruiter.my_job_list', job_id=job.id) }}" class="back-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>

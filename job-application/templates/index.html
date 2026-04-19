@@ -6,20 +6,18 @@
 <div class="job-board-container">
 
     <!-- TOP NAVIGATION BAR -->
-    <div class="jb-nav">
-        <div class="jb-nav-container">
-
-            <!-- Left: Title -->
-            <div class="jb-nav-left">
-                <div class="jb-title-section">
-                    <div class="jb-category-label">JOB BOARD</div>
-                    <h1 class="jb-title-main">Browse Jobs</h1>
-                    <div class="jb-meta">
+    <div class="job-view-nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="job-title-section">
+                    <div class="job-category">JOB BOARD</div>
+                    <h1 class="job-title-main">Browse Jobs</h1>
+                    <div class="job-meta">
                         <span id="jobsCount">{{ jobs|length }}</span> jobs found
                     </div>
                 </div>
             </div>
-
+            
             <!-- Center: Search only -->
             <div class="jb-nav-filters">
                 <div class="jb-search-wrap">
@@ -36,7 +34,6 @@
             <div class="jb-nav-right"></div>
         </div>
     </div>
-
     <!-- MAIN CONTENT - TWO COLUMN GRID -->
     <div class="job-board-content">
         <div class="two-column-layout">
@@ -222,7 +219,7 @@
                                     </p>
 
                                     <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-apply">
-                                        View & Apply
+                                        View Details
                                     </a>
                                 </div>
                             </div>

@@ -3,44 +3,46 @@
    with Light/Dark Mode Support
    (Matches HR Job List Design)
    ================================ */
-
+body {
+    position: relative;
+}
 /* ===== CSS VARIABLES ===== */
 :root[data-theme="light"] {
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
-    
-    --accent-primary: #4f46e5;
-    --accent-hover: #4338ca;
-    --accent-light: #eef2ff;
-    
-    --success: #10b981;
-    --success-light: #d1fae5;
-    --warning: #f59e0b;
-    --warning-light: #fef3c7;
-    --info: #3b82f6;
-    --info-light: #dbeafe;
-    --danger: #ef4444;
-    --danger-light: #fee2e2;
+
+    --accent-primary: #4D774E;
+    --accent-hover: #9DC88D;
+    --accent-light: rgba(157, 200, 141, 0.12);
+
+    --success: #9DC88D;
+    --success-light: rgba(157, 200, 141, 0.15);
+    --warning: #F1B24A;
+    --warning-light: rgba(241, 178, 74, 0.15);
+    --info: #64b5f6;
+    --info-light: rgba(100, 181, 246, 0.12);
+    --danger: #ff6b6b;
+    --danger-light: rgba(255, 107, 107, 0.15);
 }
 
 :root[data-theme="dark"] {
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-    
-    --accent-primary: #6366f1;
-    --accent-hover: #818cf8;
-    --accent-light: #312e81;
-    
-    --success: #34d399;
-    --success-light: #065f46;
+
+    --accent-primary: #9DC88D;
+    --accent-hover: #ade09b;
+    --accent-light: rgba(157, 200, 141, 0.18);
+
+    --success: #81c784;
+    --success-light: rgba(129, 199, 132, 0.12);
     --warning: #fbbf24;
-    --warning-light: #78350f;
+    --warning-light: rgba(241, 178, 74, 0.12);
     --info: #60a5fa;
-    --info-light: #1e3a8a;
-    --danger: #f87171;
-    --danger-light: #7f1d1d;
+    --info-light: rgba(100, 181, 246, 0.12);
+    --danger: #e57373;
+    --danger-light: rgba(229, 115, 115, 0.12);
 }
 
 /* ===== GLOBAL STYLES ===== */
@@ -184,15 +186,15 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    background: #14b8a6;
-    border: 1px solid #14b8a6;
+    background: var(--brand-accent);
+    border: 1px var(--brand-accent);
     color: white;
     text-decoration: none;
 }
 
 .btn-apply-nav:hover {
-    background: #0f9488;
-    border-color: #0f9488;
+    background: var(--brand-accent-dark);
+    border: 1px var(--brand-accent-dark);
     color: white;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
@@ -296,6 +298,7 @@
     border-radius: 16px;
     padding: 24px;
     box-shadow: var(--shadow-sm);
+    overflow: visible;  /* this is fine, border-radius still shows */
 }
 
 .section-header {
@@ -537,7 +540,9 @@
     border-radius: 16px;
     padding: 24px;
     box-shadow: var(--shadow-sm);
+    overflow: visible;  /* this is fine, border-radius still shows */
 }
+
 
 .section-header {
     display: flex;
@@ -654,13 +659,19 @@
 
 /* ===== JOBS TABLE ===== */
 .jobs-table-wrapper {
-    overflow-x: auto;
+    overflow: visible;
+}
+
+.jobs-table td.actions {
+    padding: 0 16px;
+    position: relative;
+    overflow: visible;
+    vertical-align: middle;
 }
 
 .jobs-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    min-width: unset;  /* make sure no min-width is set */
 }
 
 .jobs-table thead {
@@ -689,6 +700,14 @@
 .job-row {
     transition: all 0.2s ease;
     border-bottom: 1px solid var(--border-light);
+}
+
+.job-row td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.job-row:last-child td {
+    border-bottom: none;
 }
 
 .job-row:hover {
@@ -859,12 +878,22 @@
 
 .actions {
     text-align: center;
+    overflow: visible;
+    position: relative;
 }
 
 .action-buttons {
     display: flex;
     gap: 8px;
     justify-content: center;
+    align-items: center;
+    overflow: visible;
+}
+
+.action-dropdown {
+    position: relative !important;  /* Force relative positioning */
+    display: inline-flex;
+    align-items: center;
 }
 
 .action-btn {
@@ -904,6 +933,213 @@
     opacity: 0.4;
     cursor: not-allowed;
 }
+
+/* ===== ACTION DROPDOWN ===== */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;  /* Align to the right edge of the button */
+    top: 100%;  /* Position below the button */
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    z-index: 9999;  /* High z-index to appear above everything */
+    padding: 6px;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+
+.dropdown-menu.open {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: background 0.15s;
+}
+
+.dropdown-item:hover {
+    background: var(--bg-hover);
+}
+
+.dropdown-item svg {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.dropdown-item-danger {
+    color: var(--danger);
+}
+
+.dropdown-item-danger svg {
+    color: var(--danger);
+}
+
+.dropdown-item-danger:hover {
+    background: var(--danger-light);
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+}
+
+/* Original menus stay hidden - floating menu handles display */
+.action-dropdown .dropdown-menu {
+    display: none !important;
+}
+
+/* Floating portal menu styling */
+#floatingDropdownMenu {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+#floatingDropdownMenu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: background 0.15s;
+    box-sizing: border-box;
+}
+
+#floatingDropdownMenu .dropdown-item:hover {
+    background: var(--bg-hover);
+}
+
+#floatingDropdownMenu .dropdown-item svg {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+#floatingDropdownMenu .dropdown-item-danger {
+    color: var(--danger);
+}
+
+#floatingDropdownMenu .dropdown-item-danger svg {
+    color: var(--danger);
+}
+
+#floatingDropdownMenu .dropdown-item-danger:hover {
+    background: var(--danger-light);
+}
+
+#floatingDropdownMenu .dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+}
+
+/* ===== FILTER SELECT — DARK MODE FIX ===== */
+.date-filter select {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    /* Prevent the OS from overriding the background in dark mode */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Inline caret so we don't lose the arrow after removing appearance */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 2px center;
+    padding-right: 18px;
+}
+ 
+/* Explicitly override the system colour scheme on the native select widget */
+.date-filter select option {
+    background: var(--bg-secondary, #1e1e1e);
+    color: var(--text-primary, #f0f0f0);
+}
+ 
+/* Keep the wrapper itself themed */
+.date-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+ 
+.date-filter:hover {
+    border-color: var(--accent-primary);
+}
+ 
+.date-filter svg {
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+ 
+/* ===== SEARCH INPUT — DARK MODE =====
+   (already works via --bg-tertiary but added here for completeness) */
+.search-box-inline input {
+    padding: 8px 12px 8px 36px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-primary);
+    min-width: 200px;
+    transition: all 0.2s ease;
+    /* Prevent white autofill background in dark mode (Chrome) */
+    color-scheme: inherit;
+}
+ 
+.search-box-inline input:-webkit-autofill,
+.search-box-inline input:-webkit-autofill:hover,
+.search-box-inline input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-primary);
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-tertiary) inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+ 
+.search-box-inline input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-light);
+}
+ 
+.search-box-inline input::placeholder {
+    color: var(--text-tertiary);
+}
+
 
 /* ===== EMPTY STATE ===== */
 .empty-state {
@@ -1162,4 +1398,18 @@
 
 .jobs-table-wrapper::-webkit-scrollbar-thumb:hover {
     background: var(--text-tertiary);
+}
+
+.jobs-table thead tr th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.jobs-table thead tr th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.jobs-table {
+    overflow: visible;
+    border-collapse: separate;
+    border-spacing: 0;
 }

@@ -670,11 +670,11 @@ setInterval(updateUnreadBadge, 10000);
             if (ROLE === 'hr')        return '/hr/job-applications/' + n.job_id;
         }
         if ((n.type === 'application_status' || n.type === 'interview_scheduled') && n.application_id) {
-            return '/applicant/dashboard';
+            return '/applicant/status';
         }
         if (n.type === 'job_update' && n.job_id) return '/jobs/' + n.job_id;
         if (n.type === 'profile_complete') {
-            if (ROLE === 'applicant') return '/applicant/dashboard';
+            if (ROLE === 'applicant') return '/applicant/status';
         }
         return '#';
     }

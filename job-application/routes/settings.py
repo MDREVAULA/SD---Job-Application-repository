@@ -46,7 +46,26 @@ def settings_page():
     else:
         user_settings.profile_audience = []
 
-    return render_template('settings.html', settings=user_settings)
+    # Load blocked users for the Blocked tab
+    from models import UserBlock, User
+    blocked_rows = UserBlock.query.filter_by(blocker_id=current_user.id).all()
+    blocked_users = []
+    for row in blocked_rows:
+        u = User.query.get(row.blocked_id)
+        if u:
+            pic = None
+            if u.profile_picture:
+                pic = u.profile_picture if u.profile_picture.startswith('http') \
+                      else '/static/uploads/profile_pictures/' + u.profile_picture
+            blocked_users.append({
+                'id':          u.id,
+                'username':    u.username,
+                'role':        u.role,
+                'pic':         pic,
+                'blocked_at':  row.created_at.strftime('%b %d, %Y'),
+            })
+
+    return render_template('settings.html', settings=user_settings, blocked_users=blocked_users)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -139,6 +158,23 @@ def save_settings():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': 'Database error. Please try again.'}), 500
+
+
+# ─────────────────────────────────────────────────────────────
+#  POST /settings/unblock/<id>
+# ─────────────────────────────────────────────────────────────
+@settings_bp.route('/unblock/<int:target_id>', methods=['POST'])
+@login_required
+def unblock_user(target_id):
+    from models import UserBlock
+    block = UserBlock.query.filter_by(
+        blocker_id=current_user.id, blocked_id=target_id
+    ).first()
+    if block:
+        db.session.delete(block)
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Block not found.'}), 404
 
 
 # ─────────────────────────────────────────────────────────────

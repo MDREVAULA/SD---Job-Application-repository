@@ -378,12 +378,47 @@ def job_applications(job_id):
         Application.status.in_(_ARCHIVED_STATUSES)
     ).all()
 
+    recruiter_user = User.query.get(job.company_id)
+
     return render_template(
         "hr/job_applications.html",
         job=job,
         applications=applications,
         archived_applications=archived_applications,
         recruiter_user=recruiter_user,
+    )
+
+@hr_bp.route('/job-applications/<int:job_id>/archived')
+@login_required
+def archived_applications(job_id):
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+ 
+    from models import JobTeamMember
+ 
+    is_assigned = JobTeamMember.query.filter_by(
+        job_id=job_id,
+        hr_id=current_user.id
+    ).first()
+ 
+    if not is_assigned:
+        flash("You are not assigned to review this job.", "warning")
+        return redirect(url_for('hr.job_list'))
+ 
+    job = Job.query.get_or_404(job_id)
+ 
+    _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
+    archived_applications = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ARCHIVED_STATUSES)
+    ).order_by(Application.created_at.desc()).all()
+ 
+    return render_template(
+        "shared/archived_applications.html",   # put the template in templates/shared/
+        job=job,
+        archived_applications=archived_applications,
+        back_url=url_for('hr.job_applications', job_id=job_id),
     )
 
 # ===============================

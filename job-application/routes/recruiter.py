@@ -872,10 +872,34 @@ def view_job_applications(job_id):
         archived_applications=archived_applications,
     )
 
+@recruiter_bp.route('/job-applications/<int:job_id>/archived')
+@login_required
+def archived_applications(job_id):
+    banned = check_banned()
+    if banned:
+        return banned
+ 
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+ 
+    job = Job.query.get_or_404(job_id)
+ 
+    if job.company_id != current_user.id:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('recruiter.my_job_list'))
+ 
+    _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
+    archived_applications = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ARCHIVED_STATUSES)
+    ).order_by(Application.created_at.desc()).all()
+ 
     return render_template(
-        "recruiter/job_applications.html",
+        "shared/archived_applications.html",   # put the template in templates/shared/
         job=job,
-        applications=applications
+        archived_applications=archived_applications,
+        back_url=url_for('recruiter.view_job_applications', job_id=job_id),
     )
 
 
@@ -888,36 +912,59 @@ def update_application_status(app_id):
     banned = check_banned()
     if banned:
         return banned
-
+ 
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
-
+ 
     application = Application.query.get_or_404(app_id)
     if Employee.query.filter_by(application_id=app_id).first():
         flash("This applicant is already a confirmed employee. Status cannot be changed.", "warning")
         return redirect(url_for('recruiter.view_job_applications', job_id=application.job_id))
-    
+ 
     job = Job.query.get_or_404(application.job_id)
-
+ 
     if job.company_id != current_user.id:
         flash("Unauthorized action!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
-
-    new_status = request.form.get('status')
-    new_remarks = request.form.get('recruiter_remarks')
-
+ 
+    new_status         = request.form.get('status')
+    new_remarks        = request.form.get('recruiter_remarks')
+    interview_date_str = request.form.get('interview_date')
+    interview_session  = request.form.get('interview_session')
+    meeting_type_val   = request.form.get('meeting_type')
+    meeting_link_val   = request.form.get('meeting_link')
+ 
     if new_status:
         application.status = new_status
-
+ 
     if new_remarks is not None:
         application.recruiter_remarks = new_remarks
+ 
+    if new_status == 'interview':
+        if interview_date_str:
+            application.interview_date = datetime.strptime(interview_date_str, "%Y-%m-%dT%H:%M")
 
+        if interview_session == 'online':
+            application.meeting_type = meeting_type_val or None
+            application.meeting_link = meeting_link_val or None
+        elif interview_session == 'face-to-face':
+            application.meeting_type = 'face-to-face'
+            application.meeting_link = None
+        elif not interview_session:
+            # No session type submitted — don't overwrite existing values
+            pass
+ 
+    elif new_status in ('accepted', 'rejected', 'pending'):
+        application.interview_date = None
+        application.meeting_type   = None
+        application.meeting_link   = None
+ 
     db.session.commit()
-
+ 
     applicant_user = User.query.get(application.applicant_id)
-    job_for_notif = Job.query.get(application.job_id)
-
+    job_for_notif  = Job.query.get(application.job_id)
+ 
     if new_status:
         notif = RecruiterNotification(
             recruiter_id=current_user.id,
@@ -927,7 +974,7 @@ def update_application_status(app_id):
             job_id=application.job_id
         )
         db.session.add(notif)
-
+ 
         app_notif = ApplicantNotification(
             applicant_id=application.applicant_id,
             type='application_status',
@@ -937,7 +984,7 @@ def update_application_status(app_id):
         )
         db.session.add(app_notif)
         db.session.commit()
-
+ 
     flash("Application status updated!", "success")
     return redirect(url_for('recruiter.view_job_applications', job_id=job.id))
 
@@ -1384,15 +1431,60 @@ def force_delete_job(job_id):
     try:
         from sqlalchemy import text
 
-        # 1. Delete applicant notifications tied to this job's applications
+        # 1. Delete resignation requests tied to employees of this job
         db.session.execute(text("""
-            DELETE FROM applicant_notification
+            DELETE FROM resignation_request
+            WHERE job_id = :job_id
+            OR employee_id IN (
+                SELECT id FROM employee WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 2. Delete employees tied to this job's applications
+        db.session.execute(text("""
+            DELETE FROM employee
+            WHERE job_id = :job_id
+            OR application_id IN (
+                SELECT id FROM application WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 3. Delete employment onboarding records
+        db.session.execute(text("""
+            DELETE FROM employment_onboarding
             WHERE application_id IN (
                 SELECT id FROM application WHERE job_id = :job_id
             )
         """), {"job_id": job_id})
+        db.session.flush()
 
-        # 2. Delete recruiter notifications tied to this job
+        # 4. Delete employment submissions
+        db.session.execute(text("""
+            DELETE FROM employment_submission
+            WHERE application_id IN (
+                SELECT id FROM application WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 5. Delete employment requirements
+        db.session.execute(text("""
+            DELETE FROM employment_requirement WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 6. Delete applicant notifications
+        db.session.execute(text("""
+            DELETE FROM applicant_notification
+            WHERE job_id = :job_id
+            OR application_id IN (
+                SELECT id FROM application WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+
+        # 7. Delete recruiter notifications
         db.session.execute(text("""
             DELETE FROM recruiter_notification
             WHERE job_id = :job_id
@@ -1401,7 +1493,7 @@ def force_delete_job(job_id):
             )
         """), {"job_id": job_id})
 
-        # 3. Delete HR notifications tied to this job
+        # 8. Delete HR notifications
         db.session.execute(text("""
             DELETE FROM hr_notification
             WHERE job_id = :job_id
@@ -1409,10 +1501,21 @@ def force_delete_job(job_id):
                 SELECT id FROM application WHERE job_id = :job_id
             )
         """), {"job_id": job_id})
-
         db.session.flush()
 
-        # 4. Remove gallery images from disk
+        # 9. Delete job team members
+        db.session.execute(text("""
+            DELETE FROM job_team_member WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 10. Delete saved jobs
+        db.session.execute(text("""
+            DELETE FROM saved_job WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 11. Remove gallery images from disk
         for image in job.images:
             file_path = os.path.join(
                 current_app.root_path, "static", "uploads", "job_posters", image.image_path
@@ -1421,13 +1524,27 @@ def force_delete_job(job_id):
                 os.remove(file_path)
             db.session.delete(image)
 
-        # 5. Remove cover photo from disk
+        # 12. Remove cover photo from disk
         if job.cover_photo:
             cover_path = os.path.join(
                 current_app.root_path, "static", "uploads", "job_covers", job.cover_photo
             )
             if os.path.exists(cover_path):
                 os.remove(cover_path)
+
+        # 13. Delete HR feedback tied to this job's applications
+        db.session.execute(text("""
+            DELETE FROM hr_feedback
+            WHERE application_id IN (
+                SELECT id FROM application WHERE job_id = :job_id
+            )
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 14. Delete applications, then the job itself
+        db.session.execute(text("""
+            DELETE FROM application WHERE job_id = :job_id
+        """), {"job_id": job_id})
 
         db.session.delete(job)
         db.session.commit()

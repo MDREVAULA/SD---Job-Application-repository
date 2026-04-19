@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/submit_requirements.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/review_documents.css') }}">
 
 <div class="job-view-nav">
     <div class="nav-container">
@@ -165,7 +165,7 @@
 
                 <!-- CONFIRM -->
                 <div class="emp-review-section">
-                    <div class="emp-review-section-title">✅ Approve &amp; Confirm Employment</div>
+                    <div class="emp-review-section-title">Approve &amp; Confirm Employment</div>
                     <p class="emp-review-hint">All documents look good? Confirm to make {{ applicant.username }} an official employee.</p>
                     <form method="POST">
                         <input type="hidden" name="action" value="confirm">

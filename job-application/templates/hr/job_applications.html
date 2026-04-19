@@ -28,6 +28,17 @@
         </div>
 
         <div class="nav-right">
+            {% if archived_applications %}
+            <a href="{{ url_for('hr.archived_applications', job_id=job.id) }}" class="btn-nav btn-archive">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="21 8 21 21 3 21 3 8"/>
+                    <rect x="1" y="3" width="22" height="5"/>
+                    <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+                View Archives
+                <span class="archive-count-badge">{{ archived_applications|length }}</span>
+            </a>
+            {% endif %}
             <a href="{{ url_for('hr.job_list') }}" class="btn-nav">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -40,17 +51,6 @@
 </div>
 
 <div class="applications-wrapper">
-
-    <!-- PAGE TITLE -->
-    <div class="page-title-section">
-        <a href="{{ url_for('hr.job_list') }}" class="back-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-            Back to Job List
-        </a>
-        <h1 class="page-title">{{ job.title }}</h1>
-    </div>
 
     <!-- STATS CARDS -->
     {%- set total_apps    = applications|length -%}
@@ -148,19 +148,19 @@
                 {%- set rejected_count  = applications|selectattr('status','equalto','rejected')|list|length -%}
 
                 <div class="status-filter-tabs">
-                    <button class="status-filter-btn active" data-filter="all"       onclick="filterByStatus(this,'all')">
+                    <button class="status-filter-btn active" data-filter="all" onclick="filterByStatus(this,'all')">
                         All <span class="tab-count">{{ applications|length }}</span>
                     </button>
-                    <button class="status-filter-btn" data-filter="pending"   onclick="filterByStatus(this,'pending')">
+                    <button class="status-filter-btn" data-filter="pending" onclick="filterByStatus(this,'pending')">
                         Pending <span class="tab-count">{{ pending_count }}</span>
                     </button>
                     <button class="status-filter-btn" data-filter="interview" onclick="filterByStatus(this,'interview')">
                         Interview <span class="tab-count">{{ interview_count }}</span>
                     </button>
-                    <button class="status-filter-btn" data-filter="accepted"  onclick="filterByStatus(this,'accepted')">
+                    <button class="status-filter-btn" data-filter="accepted" onclick="filterByStatus(this,'accepted')">
                         Accepted <span class="tab-count">{{ accepted_count }}</span>
                     </button>
-                    <button class="status-filter-btn" data-filter="rejected"  onclick="filterByStatus(this,'rejected')">
+                    <button class="status-filter-btn" data-filter="rejected" onclick="filterByStatus(this,'rejected')">
                         Rejected <span class="tab-count">{{ rejected_count }}</span>
                     </button>
                 </div>
@@ -275,7 +275,6 @@
                     {% if app.status == 'interview' and app.interview_date %}
                     {% set has_interviews.found = true %}
 
-                    {# Determine platform label and css class from stored value #}
                     {%- set platform_val = app.meeting_type if app.meeting_type else 'face-to-face' -%}
                     {%- if platform_val == 'google-meet' -%}
                         {%- set platform_label = 'Google Meet' -%}
@@ -344,7 +343,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- shown when search has no results -->
                     <div class="empty-state-small" id="upcomingNoResults" style="display:none;">
                         <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -436,31 +434,17 @@
                             </div>
                         </div>
 
-                        <!-- {% if app.meeting_type %}
-                        <div class="info-item">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                            </svg>
-                            <div>
-                                <span class="info-label">Platform</span>
-                                <span class="info-value">
-                                    {% if app.meeting_type == 'google-meet' %}Google Meet
-                                    {% elif app.meeting_type == 'zoom' %}Zoom
-                                    {% elif app.meeting_type == 'microsoft-teams' %}Microsoft Teams
-                                    {% else %}Face to Face{% endif %}
-                                </span>
-                            </div>
-                        </div>
-                        {% endif %} -->
-
-                        <!-- {% if app.meeting_link %}
+                        {% if app.meeting_link %}
                         <div class="info-item">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                             </svg>
                             <div>
-                                <span class="info-label">Meeting Link</span>
+                                <span class="info-label"> {% if app.meeting_type == 'google-meet' %}Google Meet
+                                    {% elif app.meeting_type == 'zoom' %}Zoom
+                                    {% elif app.meeting_type == 'microsoft-teams' %}Microsoft Teams
+                                    {% else %}Face to Face{% endif %} Meeting Link</span>
                                 <a href="{{ app.meeting_link }}" target="_blank" class="info-link">
                                     Join Meeting
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -470,7 +454,7 @@
                                 </a>
                             </div>
                         </div>
-                        {% endif %} -->
+                        {% endif %}
                         {% endif %}
 
                         {% if app.resume %}
@@ -574,14 +558,14 @@
                                         name="interview_session"
                                         class="form-select"
                                         onchange="toggleMeetingLink(this, {{ app.id }})">
-                                <option value="face-to-face"
-                                    {% if app.meeting_type in (none, 'face-to-face') %}selected{% endif %}>
-                                    Face to Face
-                                </option>
-                                <option value="online"
-                                    {% if app.meeting_type in ('google-meet', 'zoom', 'microsoft-teams') %}selected{% endif %}>
-                                    Online
-                                </option>
+                                    <option value="face-to-face"
+                                        {% if app.meeting_type in (none, 'face-to-face') %}selected{% endif %}>
+                                        Face to Face
+                                    </option>
+                                    <option value="online"
+                                        {% if app.meeting_type in ('google-meet', 'zoom', 'microsoft-teams') %}selected{% endif %}>
+                                        Online
+                                    </option>
                                 </select>
                             </div>
 
@@ -646,95 +630,6 @@
 
     </div>
 </div>
-
-<!-- ═══════════════════════════════════════
-     ARCHIVED APPLICATIONS
-     (rejected / resigned / fired)
-═══════════════════════════════════════ -->
-{% if archived_applications %}
-<div class="section-card" style="margin-top: 24px;">
-    <div class="section-header">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-secondary)">
-                <polyline points="21 8 21 21 3 21 3 8"/>
-                <rect x="1" y="3" width="22" height="5"/>
-                <line x1="10" y1="12" x2="14" y2="12"/>
-            </svg>
-            <h2 class="section-title">Archived Applicants</h2>
-            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;font-size:11px;font-weight:700;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border-color);">
-                {{ archived_applications|length }}
-            </span>
-        </div>
-        <span style="font-size:12px;color:var(--text-muted);font-style:italic;">
-            Rejected, resigned, or terminated — slot released
-        </span>
-    </div>
-
-    <div style="overflow-x:auto;">
-        <table style="width:100%;border-collapse:separate;border-spacing:0;opacity:0.85;">
-            <thead>
-                <tr style="background:var(--bg-primary);">
-                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border-color);">Applicant</th>
-                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border-color);">Reason</th>
-                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border-color);">Applied Date</th>
-                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border-color);">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for app in archived_applications %}
-                <tr style="border-bottom:1px solid var(--border-color);">
-                    <td style="padding:14px;">
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:var(--bg-primary);border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--text-secondary);flex-shrink:0;">
-                                {% if app.user.profile_picture %}
-                                    {% if app.user.profile_picture.startswith('http') %}
-                                    <img src="{{ app.user.profile_picture }}" style="width:100%;height:100%;object-fit:cover;">
-                                    {% else %}
-                                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + app.user.profile_picture) }}" style="width:100%;height:100%;object-fit:cover;">
-                                    {% endif %}
-                                {% else %}
-                                {{ app.user.username[0]|upper }}
-                                {% endif %}
-                            </div>
-                            <div>
-                                <div style="font-weight:600;font-size:13px;color:var(--text-primary);">{{ app.user.username }}</div>
-                                <div style="font-size:11px;color:var(--text-muted);">{{ app.user.email }}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td style="padding:14px;">
-                        {% set s = app.status|lower %}
-                        {% if s == 'rejected' %}
-                        <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#FCEBEB;color:#791F1F;border:1px solid #F7C1C1;">
-                            Rejected
-                        </span>
-                        {% elif s == 'resigned' %}
-                        <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#F1EFE8;color:#5F5E5A;border:1px solid var(--border-color);">
-                            Resigned
-                        </span>
-                        {% elif s == 'fired' %}
-                        <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#FCEBEB;color:#791F1F;border:1px solid #F7C1C1;">
-                            Terminated
-                        </span>
-                        {% endif %}
-                    </td>
-                    <td style="padding:14px;font-size:12px;color:var(--text-muted);">
-                        {{ app.created_at.strftime('%b %d, %Y') if app.created_at else 'N/A' }}
-                    </td>
-                    <td style="padding:14px;">
-                        <a href="{{ url_for('profile_view.view_applicant_profile', user_id=app.user.id) }}"
-                           target="_blank"
-                           style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border-color);">
-                            View Profile
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% endif %}
 
 <script src="{{ url_for('static', filename='js/hr/job_application.js') }}"></script>
 {% endblock %}

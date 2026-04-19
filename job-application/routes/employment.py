@@ -7,21 +7,27 @@ from flask import (
     flash, request, current_app, jsonify
 )
 from flask_login import login_required, current_user
-from datetime import datetime
+from datetime import datetime, date as date_type
 import os, uuid
 from models import (
     db, Job, Application, User,
     ApplicantNotification, RecruiterNotification, HRNotification,
-    EmploymentRequirement, EmploymentSubmission, Employee
+    EmploymentRequirement, EmploymentSubmission, Employee,
+    ResignationRequest,
 )
 
 employment_bp = Blueprint('employment', __name__, url_prefix='/employment')
 
-ALLOWED_DOC_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png'}
+ALLOWED_DOC_EXTENSIONS    = {'.pdf', '.jpg', '.jpeg', '.png'}
+ALLOWED_LETTER_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'}
 
 
 def _allowed_doc(filename):
     return os.path.splitext(filename.lower())[1] in ALLOWED_DOC_EXTENSIONS
+
+
+def _allowed_letter(filename):
+    return os.path.splitext(filename.lower())[1] in ALLOWED_LETTER_EXTENSIONS
 
 
 # ================================================================
@@ -31,16 +37,29 @@ def _allowed_doc(filename):
 @employment_bp.route('/requirements/<int:job_id>', methods=['GET', 'POST'])
 @login_required
 def manage_requirements(job_id):
-    if current_user.role != 'recruiter':
+    if current_user.role not in ('recruiter', 'hr'):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
     job = Job.query.get_or_404(job_id)
-    if job.company_id != current_user.id:
+
+    # Recruiters must own the job
+    if current_user.role == 'recruiter' and job.company_id != current_user.id:
         flash("Unauthorized!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
 
+    # HR: only assigned HR can POST, but any HR under that recruiter can GET
+    if current_user.role == 'hr':
+        from models import JobTeamMember
+        is_assigned = JobTeamMember.query.filter_by(
+            job_id=job.id, hr_id=current_user.id
+        ).first()
+        if request.method == 'POST' and not is_assigned:
+            flash("You are not assigned to manage this job.", "warning")
+            return redirect(url_for('hr.job_list'))
+
     if request.method == 'POST':
+        # ... keep existing POST logic unchanged ...
         action = request.form.get('action')
 
         if action == 'add':
@@ -66,6 +85,7 @@ def manage_requirements(job_id):
             req_id = request.form.get('req_id', type=int)
             req = EmploymentRequirement.query.get_or_404(req_id)
             if req.job_id == job_id:
+                EmploymentSubmission.query.filter_by(requirement_id=req_id).delete()
                 db.session.delete(req)
                 db.session.commit()
                 flash("Requirement removed.", "success")
@@ -74,7 +94,6 @@ def manage_requirements(job_id):
 
         return redirect(url_for('employment.manage_requirements', job_id=job_id))
 
-    # GET
     requirements = EmploymentRequirement.query.filter_by(job_id=job_id).all()
     return render_template(
         'employment/manage_requirements.html',
@@ -103,7 +122,7 @@ def add_requirement(job_id):
 
     req = EmploymentRequirement(
         job_id=job_id,
-        title=name,          # FIXED: model column is 'title', not 'name'
+        title=name,
         description=description,
         is_required=is_required,
     )
@@ -124,10 +143,13 @@ def delete_requirement(req_id):
     if job.company_id != current_user.id:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
 
+    job_id = req.job_id  # save before delete
+    # Delete related submissions first
+    EmploymentSubmission.query.filter_by(requirement_id=req_id).delete()
     db.session.delete(req)
     db.session.commit()
     flash("Requirement removed.", "success")
-    return redirect(url_for('employment.manage_requirements', job_id=req.job_id))
+    return redirect(url_for('employment.manage_requirements', job_id=job_id))
 
 
 # ================================================================
@@ -211,7 +233,6 @@ def submit_documents(app_id):
             from models import EmploymentOnboarding
             onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
             if onboarding:
-                # Allow re-submission from needs_revision OR already submitted
                 if onboarding.status in ('pending_submission', 'needs_revision', 'submitted'):
                     onboarding.status = 'submitted'
                     onboarding.submitted_at = datetime.utcnow()
@@ -308,7 +329,6 @@ def review_documents(app_id):
             flash("You are not assigned to this job.", "warning")
             return redirect(url_for('hr.job_list'))
 
-    # ── Handle POST actions (confirm / request_revision) ──
     if request.method == 'POST':
         from models import EmploymentOnboarding
         action = request.form.get('action')
@@ -341,7 +361,7 @@ def review_documents(app_id):
                     applicant_id=application.applicant_id,
                     type='employment_confirmed',
                     message=(
-                        f"🎉 Congratulations! You have been officially confirmed as an employee "
+                        f"Congratulations! You have been officially confirmed as an employee "
                         f"for <strong>{job.title}</strong>."
                     ),
                     application_id=app_id,
@@ -382,9 +402,7 @@ def review_documents(app_id):
     submissions_map = {s.requirement_id: s for s in submissions}
     existing_emp    = Employee.query.filter_by(application_id=app_id).first()
     applicant       = User.query.get(application.applicant_id)
-
-    # ── Fetch onboarding so the sidebar shows correct status ──
-    onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
+    onboarding      = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
 
     return render_template(
         'employment/review_documents.html',
@@ -395,7 +413,7 @@ def review_documents(app_id):
         submissions_map=submissions_map,
         existing=submissions_map,
         existing_emp=existing_emp,
-        onboarding=onboarding,      # ← this was missing
+        onboarding=onboarding,
     )
 
 
@@ -437,14 +455,13 @@ def confirm_employment(app_id):
     for r in requirements:
         if r.is_required:
             sub = submissions_map.get(r.id)
-            if not sub or sub.notes != 'approved':  # FIXED: sub.notes
+            if not sub or sub.notes != 'approved':
                 flash(
-                    f"Cannot confirm: required document '{r.title}' is not yet approved.",  # FIXED: r.title
+                    f"Cannot confirm: required document '{r.title}' is not yet approved.",
                     "warning"
                 )
                 return redirect(url_for('employment.review_documents', app_id=app_id))
 
-    # Resolve company name safely
     recruiter_user = User.query.get(job.company_id)
     company_name   = None
     if recruiter_user and recruiter_user.recruiter_profile:
@@ -457,7 +474,7 @@ def confirm_employment(app_id):
         confirmed_by=current_user.id,
         job_title=job.title,
         company_name=company_name,
-        employment_status='active',  # FIXED
+        employment_status='active',
     )
     db.session.add(employee)
 
@@ -487,21 +504,58 @@ def confirm_employment(app_id):
 @employment_bp.route('/employees/<int:job_id>')
 @login_required
 def employee_list(job_id):
-    if current_user.role != 'recruiter':
+    if current_user.role not in ('recruiter', 'hr'):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
     job = Job.query.get_or_404(job_id)
-    if job.company_id != current_user.id:
+
+    if current_user.role == 'recruiter' and job.company_id != current_user.id:
         flash("Unauthorized!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
 
+    # HR: allow all HR under the same recruiter to view, 
+    # but only assigned HR can take actions
+    if current_user.role == 'hr':
+        if job.company_id != current_user.created_by:
+            flash("You do not have access to this job.", "warning")
+            return redirect(url_for('hr.job_list'))
+
+    from models import JobTeamMember
+    is_assigned = JobTeamMember.query.filter_by(
+        job_id=job_id, hr_id=current_user.id
+    ).first() if current_user.role == 'hr' else True
+
     employees = Employee.query.filter_by(job_id=job_id).all()
+
+    from models import EmploymentOnboarding
+    pending_onboardings = []
+    no_onboarding_apps  = []
+
+    _ACCEPTED_STATUSES = ('accepted', 'employed')
+    accepted_apps = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ACCEPTED_STATUSES)
+    ).all()
+
+    confirmed_app_ids = {e.application_id for e in employees}
+
+    for app in accepted_apps:
+        if app.id in confirmed_app_ids:
+            continue
+        ob = EmploymentOnboarding.query.filter_by(application_id=app.id).first()
+        if ob:
+            pending_onboardings.append((ob, app))
+        else:
+            no_onboarding_apps.append(app)
 
     return render_template(
         'employment/employee_list.html',
         job=job,
         employees=employees,
+        pending_onboardings=pending_onboardings,
+        no_onboarding_apps=no_onboarding_apps,
+        is_assigned=is_assigned,  # pass this to template
     )
 
 
@@ -541,20 +595,31 @@ def fire_employee(employee_id):
         flash("Unauthorized!", "danger")
         return redirect(url_for('employment.all_employees'))
 
-    if emp.employment_status != 'active':
-        flash("This employee is no longer active.", "warning")
-        return redirect(url_for('employment.all_employees'))
+    # Block firing someone who is in rendering period
+    if emp.employment_status == 'rendering':
+        flash("This employee is in their rendering period and cannot be terminated.", "warning")
+        return redirect(url_for('employment.employee_list', job_id=job.id))
 
-    reason = request.form.get('reason', '').strip()
+    if emp.employment_status not in ('active', 'resignation_pending'):
+        flash("This employee is no longer active.", "warning")
+        return redirect(url_for('employment.employee_list', job_id=job.id))
+
+    reason = request.form.get('fire_reason', '').strip()
 
     emp.employment_status = 'fired'
     emp.ended_at          = datetime.utcnow()
     emp.end_reason        = reason
 
-    # ── FIX: reset application status so slot is freed
     application = Application.query.get(emp.application_id)
     if application:
         application.status = 'fired'
+
+    # If there was a pending resignation, mark it rejected
+    if emp.resignation_request:
+        emp.resignation_request.status = 'rejected'
+        emp.resignation_request.reviewer_note = 'Employment terminated by recruiter.'
+        emp.resignation_request.reviewed_by   = current_user.id
+        emp.resignation_request.reviewed_at   = datetime.utcnow()
 
     db.session.add(ApplicantNotification(
         applicant_id=emp.user_id,
@@ -570,8 +635,353 @@ def fire_employee(employee_id):
     flash("Employee has been terminated.", "success")
     return redirect(url_for('employment.employee_list', job_id=job.id))
 
+
 # ================================================================
-# ── APPLICANT: View employment status & resign ──
+# ── RECRUITER / HR: Review a resignation request ──
+# ================================================================
+
+@employment_bp.route('/resign/review/<int:resignation_id>', methods=['GET', 'POST'])
+@login_required
+def review_resignation(resignation_id):
+    if current_user.role not in ('recruiter', 'hr'):
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    resignation = ResignationRequest.query.get_or_404(resignation_id)
+    emp  = resignation.employee
+    job  = resignation.job
+
+    if current_user.role == 'recruiter' and job.company_id != current_user.id:
+        flash("Unauthorized!", "danger")
+        return redirect(url_for('recruiter.my_job_list'))
+
+    if current_user.role == 'hr':
+        # Must be under the same recruiter
+        if job.company_id != current_user.created_by:
+            flash("You do not have access to this job.", "warning")
+            return redirect(url_for('hr.job_list'))
+        
+        from models import JobTeamMember
+        is_assigned = JobTeamMember.query.filter_by(
+            job_id=job.id, hr_id=current_user.id
+        ).first()
+        
+        # Block POST actions for non-assigned HR
+        if request.method == 'POST' and not is_assigned:
+            flash("You are not assigned to take actions on this job.", "warning")
+            return redirect(url_for('employment.review_resignation', resignation_id=resignation_id))
+
+    # ... keep rest of POST logic unchanged ...
+    if request.method == 'POST':
+        from models import EmploymentOnboarding
+        action = request.form.get('action')
+        reviewer_note = request.form.get('reviewer_note', '').strip()
+
+        if action == 'approve':
+            resignation.status        = 'approved'
+            resignation.reviewer_note = reviewer_note or None
+            resignation.reviewed_by   = current_user.id
+            resignation.reviewed_at   = datetime.utcnow()
+            emp.employment_status = 'rendering'
+            emp.end_reason        = resignation.reason
+            db.session.add(ApplicantNotification(
+                applicant_id = emp.user_id,
+                type         = 'resignation_approved',
+                message      = (
+                    f"Your resignation from <strong>{job.title}</strong> has been approved. "
+                    f"Your last day of work is <strong>{resignation.intended_last_day.strftime('%B %d, %Y')}</strong>."
+                ),
+                job_id = job.id,
+            ))
+            flash(f"Resignation approved.", "success")
+
+        elif action == 'reject':
+            if not reviewer_note:
+                flash("Please provide a reason for rejecting the resignation.", "danger")
+                return redirect(url_for('employment.review_resignation', resignation_id=resignation_id))
+            resignation.status        = 'rejected'
+            resignation.reviewer_note = reviewer_note
+            resignation.reviewed_by   = current_user.id
+            resignation.reviewed_at   = datetime.utcnow()
+            emp.employment_status = 'active'
+            db.session.add(ApplicantNotification(
+                applicant_id = emp.user_id,
+                type         = 'resignation_rejected',
+                message      = f"Your resignation from <strong>{job.title}</strong> has been rejected." + (f" Reason: {reviewer_note}" if reviewer_note else ""),
+                job_id = job.id,
+            ))
+            flash("Resignation rejected.", "warning")
+
+        elif action == 'request_revision':
+            if not reviewer_note:
+                flash("Please provide a note explaining what needs to be changed.", "danger")
+                return redirect(url_for('employment.review_resignation', resignation_id=resignation_id))
+            resignation.status        = 'revision_requested'
+            resignation.reviewer_note = reviewer_note
+            resignation.reviewed_by   = current_user.id
+            resignation.reviewed_at   = datetime.utcnow()
+            emp.employment_status = 'active'
+            db.session.add(ApplicantNotification(
+                applicant_id = emp.user_id,
+                type         = 'resignation_revision',
+                message      = f"Your resignation request for <strong>{job.title}</strong> requires revision." + (f" Note: {reviewer_note}" if reviewer_note else ""),
+                job_id = job.id,
+            ))
+            flash("Revision requested.", "info")
+
+        db.session.commit()
+        return redirect(url_for('employment.review_resignation', resignation_id=resignation_id))
+
+    from models import JobTeamMember
+    is_assigned = JobTeamMember.query.filter_by(
+        job_id=job.id, hr_id=current_user.id
+    ).first() if current_user.role == 'hr' else True
+
+    applicant = User.query.get(emp.user_id)
+    return render_template(
+        'employment/review_resignation.html',
+        resignation=resignation,
+        emp=emp,
+        job=job,
+        applicant=applicant,
+        today=date_type.today(),
+        is_assigned=is_assigned,
+    )
+
+
+# ================================================================
+# ── APPLICANT: Submit formal resignation request ──
+# ================================================================
+
+@employment_bp.route('/resign/submit/<int:employee_id>', methods=['GET', 'POST'])
+@login_required
+def submit_resignation(employee_id):
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    emp = Employee.query.filter_by(
+        id=employee_id, user_id=current_user.id
+    ).first_or_404()
+
+    if emp.employment_status not in ('active', 'revision_requested'):
+        if emp.employment_status == 'resignation_pending':
+            flash("You already have a resignation request pending review.", "info")
+        elif emp.employment_status == 'rendering':
+            flash("Your resignation has already been approved. You are in your rendering period.", "info")
+        else:
+            flash("You are no longer active in this job.", "warning")
+        return redirect(url_for('employment.my_employment'))
+
+    existing = ResignationRequest.query.filter_by(employee_id=employee_id).first()
+
+    # Block if an active pending/approved request already exists
+    if existing and existing.status in ('pending', 'approved'):
+        flash("You already have a resignation request in progress.", "info")
+        return redirect(url_for('employment.my_employment'))
+
+    job   = Job.query.get(emp.job_id)
+    today = date_type.today()
+
+    if request.method == 'POST':
+        reason        = request.form.get('reason', '').strip()
+        last_day_str  = request.form.get('intended_last_day', '').strip()
+        letter_file_up = request.files.get('letter_file')
+
+        # ── Validation ──
+        if not reason:
+            flash("Please provide a reason for your resignation.", "danger")
+            return redirect(url_for('employment.submit_resignation', employee_id=employee_id))
+
+        if not last_day_str:
+            flash("Please provide your intended last day of work.", "danger")
+            return redirect(url_for('employment.submit_resignation', employee_id=employee_id))
+
+        try:
+            last_day = datetime.strptime(last_day_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash("Invalid date format for last day.", "danger")
+            return redirect(url_for('employment.submit_resignation', employee_id=employee_id))
+
+        if last_day <= today:
+            flash(
+                f"Your intended last day ({last_day.strftime('%B %d, %Y')}) must be a future date. "
+                f"Today is {today.strftime('%B %d, %Y')}.",
+                "danger"
+            )
+            return redirect(url_for('employment.submit_resignation', employee_id=employee_id))
+
+        # ── Optional letter file upload ──
+        letter_filename = None
+        if letter_file_up and letter_file_up.filename != '':
+            if not _allowed_letter(letter_file_up.filename):
+                flash("Resignation letter must be PDF, JPG, PNG, DOC, or DOCX.", "danger")
+                return redirect(url_for('employment.submit_resignation', employee_id=employee_id))
+
+            letter_file_up.seek(0, 2); size = letter_file_up.tell(); letter_file_up.seek(0)
+            if size > 10 * 1024 * 1024:
+                flash("Resignation letter file exceeds 10MB.", "danger")
+                return redirect(url_for('employment.submit_resignation', employee_id=employee_id))
+
+            folder = os.path.join(
+                current_app.root_path, 'static', 'uploads', 'resignation_letters'
+            )
+            os.makedirs(folder, exist_ok=True)
+            ext = os.path.splitext(letter_file_up.filename.lower())[1]
+            letter_filename = f"resign_{current_user.id}_{uuid.uuid4().hex[:8]}{ext}"
+            letter_file_up.save(os.path.join(folder, letter_filename))
+
+        # ── Reuse existing rejected/revision_requested record or create new ──
+        if existing and existing.status in ('rejected', 'revision_requested'):
+            existing.reason            = reason
+            existing.intended_last_day = last_day
+            existing.status            = 'pending'
+            existing.reviewer_note     = None
+            existing.reviewed_by       = None
+            existing.reviewed_at       = None
+            existing.submitted_at      = datetime.utcnow()
+            if letter_filename:
+                existing.letter_file = letter_filename
+            db.session.flush()
+        else:
+            new_res = ResignationRequest(
+                employee_id       = employee_id,
+                applicant_id      = current_user.id,
+                job_id            = emp.job_id,
+                reason            = reason,
+                intended_last_day = last_day,
+                letter_file       = letter_filename,
+                status            = 'pending',
+            )
+            db.session.add(new_res)
+            db.session.flush()
+
+        emp.employment_status = 'resignation_pending'
+
+        # Notify recruiter
+        db.session.add(RecruiterNotification(
+            recruiter_id = job.company_id,
+            type         = 'resignation_submitted',
+            message      = (
+                f"<strong>{current_user.username}</strong> has submitted a resignation request "
+                f"for <strong>{job.title}</strong>. Intended last day: "
+                f"<strong>{last_day.strftime('%B %d, %Y')}</strong>."
+            ),
+            job_id = emp.job_id,
+        ))
+
+        # Notify assigned HR
+        from models import JobTeamMember
+        for tm in job.team_members:
+            db.session.add(HRNotification(
+                hr_id   = tm.hr_id,
+                type    = 'resignation_submitted',
+                message = (
+                    f"<strong>{current_user.username}</strong> has submitted a resignation request "
+                    f"for <strong>{job.title}</strong>. Intended last day: "
+                    f"<strong>{last_day.strftime('%B %d, %Y')}</strong>."
+                ),
+                job_id = emp.job_id,
+            ))
+
+        # Confirm to applicant
+        db.session.add(ApplicantNotification(
+            applicant_id = current_user.id,
+            type         = 'resignation_submitted',
+            message      = (
+                f"Your resignation request for <strong>{job.title}</strong> has been submitted. "
+                f"Intended last day: <strong>{last_day.strftime('%B %d, %Y')}</strong>. "
+                f"Awaiting review."
+            ),
+            job_id = emp.job_id,
+        ))
+
+        db.session.commit()
+        flash("Resignation request submitted successfully. Awaiting review.", "success")
+        return redirect(url_for('employment.my_employment'))
+
+    # GET
+    from datetime import timedelta
+    
+    return render_template(
+        'employment/submit_resignation.html',
+        emp=emp,
+        job=job,
+        today=today,
+        existing=existing,
+        min_last_day=(today + timedelta(days=1)).strftime('%Y-%m-%d'),  # ← add this
+    )
+
+
+# ================================================================
+# ── BACKGROUND TASK: Process expired rendering periods ──
+# Called from app.before_request in app.py on every request.
+# ================================================================
+
+def process_expired_rendering_periods():
+    today = date_type.today()
+
+    expired = (
+        ResignationRequest.query
+        .filter(
+            ResignationRequest.status == 'approved',
+            ResignationRequest.intended_last_day <= today,
+        )
+        .all()
+    )
+
+    for res in expired:
+        emp = res.employee
+        if emp and emp.employment_status == 'rendering':
+            emp.employment_status = 'resigned'
+            emp.ended_at          = datetime.utcnow()
+
+            application = Application.query.get(emp.application_id)
+            if application:
+                application.status = 'resigned'
+
+            job = res.job
+
+            db.session.add(ApplicantNotification(
+                applicant_id = emp.user_id,
+                type         = 'employment_ended',
+                message      = (
+                    f"Your employment at <strong>{job.title if job else 'the company'}</strong> "
+                    f"has officially ended. Thank you for your service."
+                ),
+                job_id = res.job_id,
+            ))
+
+            if job:
+                db.session.add(RecruiterNotification(
+                    recruiter_id = job.company_id,
+                    type         = 'employment_ended',
+                    message      = (
+                        f"<strong>{emp.user.username}</strong>'s rendering period for "
+                        f"<strong>{job.title}</strong> has ended. "
+                        f"Employment has been officially concluded."
+                    ),
+                    job_id = job.id,
+                ))
+
+                for tm in job.team_members:
+                    db.session.add(HRNotification(
+                        hr_id   = tm.hr_id,
+                        type    = 'employment_ended',
+                        message = (
+                            f"<strong>{emp.user.username}</strong>'s rendering period for "
+                            f"<strong>{job.title}</strong> has ended. "
+                            f"Employment has been officially concluded."
+                        ),
+                        job_id = job.id,
+                    ))
+
+    if expired:
+        db.session.commit()
+
+
+# ================================================================
+# ── APPLICANT: View employment status (my-employment per app) ──
 # ================================================================
 
 @employment_bp.route('/my-employment/<int:app_id>')
@@ -589,7 +999,7 @@ def employment_status(app_id):
     job = application.job
 
     from models import EmploymentOnboarding, RecruiterProfile
-    onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
+    onboarding        = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
     recruiter_profile = RecruiterProfile.query.filter_by(user_id=job.company_id).first()
 
     requirements = EmploymentRequirement.query.filter_by(job_id=job.id).all()
@@ -607,57 +1017,12 @@ def employment_status(app_id):
         recruiter_profile=recruiter_profile,
         requirements=requirements,
         submissions_map=submissions_map,
+        today=date_type.today(), 
     )
 
-# ================================================================
-# ── APPLICANT: Resign from a job ──
-# ================================================================
-@employment_bp.route('/resign/<int:employee_id>', methods=['POST'])
-@login_required
-def resign(employee_id):
-    if current_user.role != 'applicant':
-        flash("Access denied!", "danger")
-        return redirect(url_for('auth.index'))
- 
-    emp = Employee.query.filter_by(
-        id=employee_id, user_id=current_user.id
-    ).first_or_404()
- 
-    if emp.employment_status != 'active':
-        flash("You are no longer active in this job.", "warning")
-        return redirect(url_for('applicant.status'))
- 
-    reason = request.form.get('reason', '').strip()
-    job    = Job.query.get(emp.job_id)
- 
-    # Update Employee record
-    emp.employment_status = 'resigned'
-    emp.ended_at          = datetime.utcnow()
-    emp.end_reason        = reason
- 
-    # ── CRITICAL FIX: sync Application.status so the applicant side
-    #    stops showing "Employed" and the slot is freed for quota counting
-    application = Application.query.get(emp.application_id)
-    if application:
-        application.status = 'resigned'
- 
-    db.session.add(RecruiterNotification(
-        recruiter_id=job.company_id,
-        type='employment_ended',
-        message=(
-            f"<strong>{current_user.username}</strong> has resigned from "
-            f"<strong>{job.title if job else 'the job'}</strong>."
-            + (f" Reason: {reason}" if reason else "")
-        ),
-        job_id=emp.job_id,
-    ))
- 
-    db.session.commit()
-    flash("You have successfully resigned from the job.", "success")
-    return redirect(url_for('applicant.status'))
 
 # ================================================================
-# ── APPLICANT: View employment records ──
+# ── APPLICANT: View all employment records ──
 # ================================================================
 
 @employment_bp.route('/my-employment')
@@ -669,7 +1034,7 @@ def my_employment():
 
     records = Employee.query.filter_by(
         user_id=current_user.id
-    ).order_by(Employee.confirmed_at.desc()).all()  # FIXED: confirmed_at not created_at
+    ).order_by(Employee.confirmed_at.desc()).all()
 
     return render_template(
         'employment/my_employment.html',

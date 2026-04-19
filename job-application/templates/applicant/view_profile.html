@@ -5,6 +5,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/view_profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_actions.css') }}">
 
 <div class="pview-wrapper">
 
@@ -30,18 +31,13 @@
 
                 <!-- Action buttons -->
                 <div class="pview-header-actions">
-                     <!--<div class="pview-verification-badge
-                        {% if viewed_user.verification_status == 'Approved' %}badge-verified
-                        {% elif viewed_user.verification_status == 'Pending' %}badge-pending
-                        {% else %}badge-rejected{% endif %}">
-                        {% if viewed_user.verification_status == 'Approved' %}
-                            <i class="fas fa-check-circle"></i> Verified
-                        {% elif viewed_user.verification_status == 'Pending' %}
-                            <i class="fas fa-hourglass-half"></i> Pending
-                        {% else %}
-                            <i class="fas fa-times-circle"></i> Not Verified
-                        {% endif %}
-                    </div>-->
+                <div class="pam-wrap">
+                    <button class="pam-trigger" id="pamTrigger" onclick="pamToggle()" aria-label="More options">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
 
                     {% if current_user.is_authenticated %}
                         <button
@@ -548,6 +544,7 @@
     </div>
 </div>
 
+<script>window.PROFILE_USER_ID = {{ viewed_user.id }};</script>
 <script>
 const PROFILE_USER_ID    = {{ viewed_user.id }};
 const SHOW_FOLLOW_LIST   = {{ 'true' if show_follow_list else 'false' }};
@@ -669,5 +666,5 @@ document.addEventListener('keydown', e => {
     }
 });
 </script>
-
+<script src="{{ url_for('static', filename='js/profile_actions.js') }}"></script>
 {% endblock %}
