@@ -364,16 +364,27 @@ def job_applications(job_id):
         return redirect(url_for('hr.job_list'))
 
     job = Job.query.get_or_404(job_id)
-    applications = Application.query.filter_by(job_id=job_id).all()
-    recruiter_user = User.query.get(job.company_id)
+
+    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
+    _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
+
+    applications = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ACTIVE_STATUSES)
+    ).all()
+
+    archived_applications = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ARCHIVED_STATUSES)
+    ).all()
 
     return render_template(
         "hr/job_applications.html",
         job=job,
         applications=applications,
-        recruiter_user=recruiter_user
+        archived_applications=archived_applications,
+        recruiter_user=recruiter_user,
     )
-
 
 # ===============================
 # HR UPDATE APPLICATION STATUS

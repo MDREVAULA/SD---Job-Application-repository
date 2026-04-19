@@ -1756,9 +1756,10 @@ textarea {
 
 /* ── Value editor rows ── */
 .value-editor-row {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 36px;
-  grid-template-rows: auto auto;
+  grid-template-columns: 1fr auto;    /* inputs take all space, × is fixed-width */
+  grid-template-rows: auto auto;       /* title row, desc row */
   column-gap: 10px;
   row-gap: 8px;
   align-items: start;
@@ -1768,33 +1769,26 @@ textarea {
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 10px;
   transition: border-color 0.2s;
-  /* NO position: relative — that's what breaks the grid child placement */
 }
  
 .value-editor-row:hover {
   border-color: #14b8a6;
 }
- 
-.value-editor-row .value-title-input {
-  grid-column: 1;
-  grid-row: 1;
-  margin: 0 !important;
-  width: 100%;
-  box-sizing: border-box;
-}
- 
+
+/* Description input spans column 1, row 2 */
 .value-editor-row .value-desc-input {
   grid-column: 1;
   grid-row: 2;
   margin: 0 !important;
+  display: block;
   width: 100%;
-  box-sizing: border-box;
 }
  
+/* × button spans both rows in column 2, vertically centred */
 .value-editor-row .btn-remove-value {
   grid-column: 2;
-  grid-row: 1 / span 2;
-  position: static !important;
+  grid-row: 1 / span 2;           /* spans both input rows */
+  position: static !important;    /* override any absolute positioning */
   align-self: center;
   justify-self: center;
   width: 32px;
@@ -1807,117 +1801,6 @@ textarea {
   border-radius: 6px;
   flex-shrink: 0;
 }
- 
-/* ── Benefit editor rows ── */
-.benefit-editor-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  padding: 10px 14px;
-  background: var(--bg-surface-alt, #f9fafb);
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 8px;
-  transition: border-color 0.2s;
-}
- 
-.benefit-editor-row:hover {
-  border-color: #14b8a6;
-}
- 
-.benefit-editor-row .input-text {
-  flex: 1;
-  margin: 0;
-}
- 
-.benefit-editor-row::before {
-  content: '';
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(20, 184, 166, 0.15);
-  border: 2px solid #14b8a6;
-  flex-shrink: 0;
-  display: block;
-}
- 
-/* ── Remove button (standalone, not inside .value-editor-row) ── */
-.btn-remove-value {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  color: #ef4444;
-  line-height: 1;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
- 
-.btn-remove-value:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
- 
-/* ── Add button ── */
-.btn-add-value {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: var(--bg-surface, #fff);
-  border: 1.5px dashed #14b8a6;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #14b8a6;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-weight: 500;
-}
- 
-.btn-add-value:hover {
-  background: rgba(20, 184, 166, 0.08);
-}
- 
-/* ── Edit section action buttons (Save / Cancel) ── */
-/* These were missing from job_posting.css — add them */
-.edit-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
- 
-.btn-save-section {
-  padding: 8px 20px;
-  background: #14b8a6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
- 
-.btn-save-section:hover {
-  background: #0f9488;
-}
- 
-.btn-cancel-section {
-  padding: 8px 20px;
-  background: var(--bg-surface, #f9fafb);
-  color: var(--text-secondary, #374151);
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
- 
-.btn-cancel-section:hover {
-  background: var(--bg-hover, #f3f4f6);
-}
- 
  
 /* ── Benefit editor rows ── */
 .benefit-editor-row {

@@ -147,7 +147,7 @@ def submit_documents(app_id):
 
     if application.status not in ('accepted', 'employed'):
         flash("You can only submit documents for accepted applications.", "warning")
-        return redirect(url_for('applicant.dashboard'))
+        return redirect(url_for('applicant.status'))
 
     existing_emp = Employee.query.filter_by(application_id=app_id).first()
     if existing_emp and existing_emp.employment_status == 'active':
@@ -541,15 +541,20 @@ def fire_employee(employee_id):
         flash("Unauthorized!", "danger")
         return redirect(url_for('employment.all_employees'))
 
-    if emp.employment_status != 'active':  # FIXED
+    if emp.employment_status != 'active':
         flash("This employee is no longer active.", "warning")
         return redirect(url_for('employment.all_employees'))
 
     reason = request.form.get('reason', '').strip()
 
-    emp.employment_status = 'fired' 
+    emp.employment_status = 'fired'
     emp.ended_at          = datetime.utcnow()
     emp.end_reason        = reason
+
+    # ── FIX: reset application status so slot is freed
+    application = Application.query.get(emp.application_id)
+    if application:
+        application.status = 'fired'
 
     db.session.add(ApplicantNotification(
         applicant_id=emp.user_id,
@@ -607,29 +612,35 @@ def employment_status(app_id):
 # ================================================================
 # ── APPLICANT: Resign from a job ──
 # ================================================================
-
 @employment_bp.route('/resign/<int:employee_id>', methods=['POST'])
 @login_required
 def resign(employee_id):
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
-
+ 
     emp = Employee.query.filter_by(
         id=employee_id, user_id=current_user.id
     ).first_or_404()
-
+ 
     if emp.employment_status != 'active':
         flash("You are no longer active in this job.", "warning")
-        return redirect(url_for('applicant.dashboard'))
-
+        return redirect(url_for('applicant.status'))
+ 
     reason = request.form.get('reason', '').strip()
     job    = Job.query.get(emp.job_id)
-
+ 
+    # Update Employee record
     emp.employment_status = 'resigned'
     emp.ended_at          = datetime.utcnow()
     emp.end_reason        = reason
-
+ 
+    # ── CRITICAL FIX: sync Application.status so the applicant side
+    #    stops showing "Employed" and the slot is freed for quota counting
+    application = Application.query.get(emp.application_id)
+    if application:
+        application.status = 'resigned'
+ 
     db.session.add(RecruiterNotification(
         recruiter_id=job.company_id,
         type='employment_ended',
@@ -640,10 +651,10 @@ def resign(employee_id):
         ),
         job_id=emp.job_id,
     ))
-
+ 
     db.session.commit()
     flash("You have successfully resigned from the job.", "success")
-    return redirect(url_for('applicant.profile'))
+    return redirect(url_for('applicant.status'))
 
 # ================================================================
 # ── APPLICANT: View employment records ──

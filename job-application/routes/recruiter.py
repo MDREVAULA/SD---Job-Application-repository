@@ -852,7 +852,25 @@ def view_job_applications(job_id):
         flash("Unauthorized access!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
 
-    applications = Application.query.filter_by(job_id=job_id).all()
+    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
+    _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
+
+    applications = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ACTIVE_STATUSES)
+    ).all()
+
+    archived_applications = Application.query.filter(
+        Application.job_id == job_id,
+        Application.status.in_(_ARCHIVED_STATUSES)
+    ).all()
+
+    return render_template(
+        "recruiter/job_applications.html",
+        job=job,
+        applications=applications,
+        archived_applications=archived_applications,
+    )
 
     return render_template(
         "recruiter/job_applications.html",

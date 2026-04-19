@@ -11,11 +11,11 @@
                 <div class="job-category">MY APPLICATIONS</div>
                 <h1 class="job-title-main">Application Status</h1>
                 <div class="job-meta">
-                    <span>{{ applications|length }} Total Applications</span>
+                    <span>{{ applications|length }} Active</span>
                     <span class="meta-dot">•</span>
-                    <span>
-                        {{ applications | selectattr('status', 'equalto', 'accepted') | list | length }} Accepted
-                    </span>
+                    <span>{{ archived_applications|length }} Archived</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ applications | selectattr('status', 'equalto', 'accepted') | list | length }} Accepted</span>
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-header">
-                <span class="stat-label">Total Applications</span>
+                <span class="stat-label">Active Applications</span>
                 <div class="stat-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -76,10 +76,12 @@
         </div>
     </div>
 
-    <!-- APPLICATION LIST SECTION -->
+    <!-- ═══════════════════════════════════════
+         ACTIVE APPLICATIONS TABLE
+    ═══════════════════════════════════════ -->
     <div class="job-list-section">
         <div class="section-header">
-            <h2 class="section-title">All Applications</h2>
+            <h2 class="section-title">Active Applications</h2>
 
             <div class="section-controls">
                 <!-- SEARCH -->
@@ -100,7 +102,7 @@
                         <option value="pending">Pending</option>
                         <option value="interview">Interview</option>
                         <option value="accepted">Accepted</option>
-                        <option value="rejected">Rejected</option>
+                        <option value="employed">Employed</option>
                     </select>
                 </div>
 
@@ -130,7 +132,7 @@
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                     <polyline points="14 2 14 8 20 8"/>
                 </svg>
-                <h3>No applications yet</h3>
+                <h3>No active applications</h3>
                 <p>Start applying for jobs to see your applications here</p>
             </div>
             {% else %}
@@ -190,52 +192,51 @@
                         </td>
 
                         <td class="status">
-                            {% if app.status|lower == 'pending' %}
+                            {% set s = app.status|lower %}
+                            {% if s == 'pending' %}
                             <span class="status-badge status-pending">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                 Pending
                             </span>
-                            {% elif app.status|lower == 'interview' %}
+                            {% elif s == 'interview' %}
                             <span class="status-badge status-interview">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                 Interview
                             </span>
-                            {% elif app.status|lower == 'accepted' %}
+                            {% elif s == 'accepted' %}
                             <span class="status-badge status-accepted">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                                 Accepted
                             </span>
-                            {% elif app.status|lower == 'rejected' %}
-                            <span class="status-badge status-rejected">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                Rejected
+                            {% elif s == 'employed' %}
+                            <span class="status-badge status-employed">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Employed
                             </span>
                             {% else %}
-                            <span class="status-badge status-pending">{{ app.status }}</span>
+                            <span class="status-badge status-pending">{{ app.status|capitalize }}</span>
                             {% endif %}
                         </td>
 
                         <td class="date">
-                            {% if app.created_at %}
-                                {{ app.created_at.strftime('%b %d, %Y') }}
-                            {% else %}N/A{% endif %}
+                            {% if app.created_at %}{{ app.created_at.strftime('%b %d, %Y') }}{% else %}N/A{% endif %}
                         </td>
+
                         <td class="actions">
                             <div class="action-buttons">
-                                <!-- View Submitted Application -->
-                                <button class="action-btn"
-                                        title="View Application"
+                                <button class="action-btn" title="View Application"
                                         onclick="window.location.href='{{ url_for('applicant.application_detail', app_id=app.id) }}'">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                         <circle cx="12" cy="12" r="3"/>
                                     </svg>
                                 </button>
+
                                 {% if app.status|lower == 'accepted' %}
                                     {% if app.employee_record %}
                                         {% if app.employee_record.employment_status == 'active' %}
                                         <a href="{{ url_for('employment.my_employment') }}"
-                                        class="action-btn action-btn-employee" title="View Employment">
+                                           class="action-btn action-btn-employee" title="View Employment">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                                 <circle cx="12" cy="7" r="4"/>
@@ -244,8 +245,7 @@
                                         {% endif %}
                                     {% else %}
                                         <a href="{{ url_for('employment.submit_documents', app_id=app.id) }}"
-                                        class="action-btn action-btn-onboard"
-                                        title="Submit Employment Documents">
+                                           class="action-btn action-btn-onboard" title="Submit Employment Documents">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                                                 <polyline points="14 2 14 8 20 8"/>
@@ -254,8 +254,16 @@
                                             </svg>
                                         </a>
                                     {% endif %}
+                                {% elif app.status|lower == 'employed' %}
+                                    <a href="{{ url_for('employment.my_employment') }}"
+                                       class="action-btn action-btn-employee" title="View Employment">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                    </a>
                                 {% endif %}
-                                <!-- Online Meeting (only show if interview scheduled) -->
+
                                 {% if app.status|lower == 'interview' and app.meeting_link %}
                                 <a href="{{ app.meeting_link }}" target="_blank" class="action-btn action-btn-meeting" title="Join Online Meeting">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -278,7 +286,6 @@
                 </tbody>
             </table>
 
-            <!-- No results message (hidden by default) -->
             <div id="noResults" class="empty-state" style="display:none;">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -306,9 +313,132 @@
         {% endif %}
     </div>
 
+    <!-- ═══════════════════════════════════════
+         ARCHIVED APPLICATIONS
+         (rejected / resigned / fired)
+         Slot released — record preserved
+    ═══════════════════════════════════════ -->
+    {% if archived_applications %}
+    <div class="job-list-section archive-section">
+        <div class="section-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-secondary)">
+                    <polyline points="21 8 21 21 3 21 3 8"/>
+                    <rect x="1" y="3" width="22" height="5"/>
+                    <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+                <h2 class="section-title">Archived Applications</h2>
+                <span class="archive-count-badge">{{ archived_applications|length }}</span>
+            </div>
+            <span class="archive-note">Slot released — record kept for reference</span>
+        </div>
+
+        <div class="jobs-table-wrapper">
+            <table class="jobs-table archive-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Department</th>
+                        <th>Reason</th>
+                        <th>Applied Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in archived_applications %}
+                    {% set job = app.job %}
+                    {% set recruiter = job.company_id | get_recruiter_profile if job else None %}
+                    <tr class="job-row archive-row">
+                        <td class="row-number">{{ loop.index }}</td>
+
+                        <td class="job-title-cell">
+                            <div class="job-title-wrapper">
+                                <div class="company-logo">
+                                    {% if recruiter and recruiter.company_logo %}
+                                    <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter.company_logo) }}" alt="Logo">
+                                    {% else %}
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                    </svg>
+                                    {% endif %}
+                                </div>
+                                <div class="job-info">
+                                    <div class="job-name">{{ job.title if job else 'Job Removed' }}</div>
+                                    <div class="job-meta-small">
+                                        {% if job and job.job_type %}{{ job.job_type }}{% endif %}
+                                        {% if job and job.location %} • {{ job.location }}{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="company-name">
+                            {% if recruiter and recruiter.company_name %}{{ recruiter.company_name }}{% else %}Unknown Company{% endif %}
+                        </td>
+
+                        <td class="department">
+                            <span class="department-badge">{{ job.field if job and job.field else 'General' }}</span>
+                        </td>
+
+                        <td class="status">
+                            {% set s = app.status|lower %}
+                            {% if s == 'rejected' %}
+                            <span class="status-badge status-rejected">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                Rejected
+                            </span>
+                            {% elif s == 'resigned' %}
+                            <span class="status-badge status-resigned">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                Resigned
+                            </span>
+                            {% elif s == 'fired' %}
+                            <span class="status-badge status-fired">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                Terminated
+                            </span>
+                            {% else %}
+                            <span class="status-badge status-pending">{{ app.status|capitalize }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="date">
+                            {% if app.created_at %}{{ app.created_at.strftime('%b %d, %Y') }}{% else %}N/A{% endif %}
+                        </td>
+
+                        <td class="actions">
+                            <div class="action-buttons">
+                                <button class="action-btn" title="View Application"
+                                        onclick="window.location.href='{{ url_for('applicant.application_detail', app_id=app.id) }}'">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                                {% if job and job.allow_applications %}
+                                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}"
+                                   class="action-btn action-btn-reapply" title="Re-apply for this job">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="1 4 1 10 7 10"/>
+                                        <path d="M3.51 15a9 9 0 1 0 .49-3.54"/>
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 
-<!-- Extra style for the merged view button -->
 <style>
 .view-detail-btn {
     display: inline-flex;
@@ -334,8 +464,63 @@
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
-.view-detail-btn svg { transition: color 0.2s ease; }
-.view-detail-btn:hover svg { color: white; }
+
+/* ── Archive section ── */
+.archive-section {
+    margin-top: 24px;
+    opacity: 0.9;
+    border-color: var(--border-color);
+}
+.archive-section .section-header {
+    align-items: center;
+}
+.archive-note {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+.archive-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+.archive-table { opacity: 0.82; }
+.archive-row:hover { opacity: 1; }
+
+/* ── New status badges ── */
+.status-employed {
+    background: #EAF3DE;
+    color: #27500A;
+}
+.status-resigned {
+    background: #F1EFE8;
+    color: #5F5E5A;
+}
+.status-fired {
+    background: #FCEBEB;
+    color: #791F1F;
+}
+
+/* ── Re-apply button ── */
+.action-btn-reapply {
+    background: rgba(59,130,246,0.08) !important;
+    border-color: rgba(59,130,246,0.3) !important;
+    color: #1e40af !important;
+}
+.action-btn-reapply:hover {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+}
 </style>
 
 <script src="{{ url_for('static', filename='js/applicant/application_status.js') }}"></script>
