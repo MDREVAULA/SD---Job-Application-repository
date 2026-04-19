@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from models import db, User, RecruiterProfile
+from models import db, User, RecruiterProfile, UserBlock, UserReport
 from flask_login import LoginManager
 from flask_mail import Mail
 from authlib.integrations.flask_client import OAuth
@@ -90,6 +90,27 @@ def inject_now():
     return {'now': datetime.utcnow}
 
 # ============================================================
+# AUTO-UNBAN EXPIRED TIMED BANS 
+# ============================================================
+@app.before_request
+def auto_unban_expired():
+    try:
+        expired = User.query.filter(
+            User.is_banned == True,
+            User.ban_until != None,
+            User.ban_until <= datetime.utcnow()
+        ).all()
+        if expired:
+            for u in expired:
+                u.is_banned  = False
+                u.ban_until  = None
+                u.ban_reason = None
+                u.banned_at  = None
+            db.session.commit()
+    except Exception:
+        pass  # never crash the app over this
+
+# ============================================================
 # REGISTER BLUEPRINTS
 # ============================================================
 from routes.auth import auth_bp
@@ -100,6 +121,7 @@ from routes.admin import admin_bp
 from routes.chat import chat_bp
 from routes.profile_view import profile_view_bp
 from routes.settings import settings_bp
+from routes.report_block import report_block_bp
 from routes.employment import employment_bp
 
 app.register_blueprint(auth_bp)
@@ -110,6 +132,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(profile_view_bp)
 app.register_blueprint(settings_bp)
+app.register_blueprint(report_block_bp)
 app.register_blueprint(employment_bp)
 
 # ============================================================

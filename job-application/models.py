@@ -35,7 +35,8 @@ class User(db.Model, UserMixin):
     is_banned = db.Column(db.Boolean, default=False)
     ban_reason = db.Column(db.Text, nullable=True)
     banned_at = db.Column(db.DateTime, nullable=True)
-
+    ban_until = db.Column(db.DateTime, nullable=True)  
+    
     # HR created by recruiter
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
@@ -821,3 +822,73 @@ class UserSettings(db.Model):
 
     def __repr__(self):
         return f'<UserSettings user_id={self.user_id}>'
+    
+# =========================
+# USER BLOCK TABLE
+# =========================
+class UserBlock(db.Model):
+    __tablename__ = 'user_block'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    blocker_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    blocked_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('blocker_id', 'blocked_id', name='unique_user_block'),
+    )
+
+    blocker = db.relationship('User', foreign_keys=[blocker_id], backref='blocked_users')
+    blocked = db.relationship('User', foreign_keys=[blocked_id], backref='blocked_by_users')
+
+
+# =========================
+# USER REPORT TABLE
+# =========================
+class UserReport(db.Model):
+    __tablename__ = 'user_report'
+
+    id          = db.Column(db.Integer, primary_key=True)
+    reporter_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    reported_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+
+    reason      = db.Column(db.String(100), nullable=False)   # e.g. "Spam", "Harassment", etc.
+    description = db.Column(db.Text, nullable=True)
+
+    # Admin handling
+    status      = db.Column(db.String(20), default='pending')  # pending | reviewed | dismissed
+    admin_notes = db.Column(db.Text, nullable=True)
+    reviewed_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('reporter_id', 'reported_id', name='unique_user_report'),
+    )
+
+    reporter     = db.relationship('User', foreign_keys=[reporter_id], backref='reports_made')
+    reported     = db.relationship('User', foreign_keys=[reported_id], backref='reports_received')
+    reviewed_by_admin = db.relationship('User', foreign_keys=[reviewed_by])
+
+    def to_dict(self):
+        return {
+            'id':          self.id,
+            'reporter':    self.reporter.username if self.reporter else '—',
+            'reported':    self.reported.username if self.reported else '—',
+            'reported_id': self.reported_id,
+            'reason':      self.reason,
+            'description': self.description or '',
+            'status':      self.status,
+            'created_at':  self.created_at.strftime('%b %d, %Y %H:%M') if self.created_at else '',
+        }
+    
+def is_blocked_between(user_a_id, user_b_id):
+    """True if either user has blocked the other."""
+    from sqlalchemy import or_, and_
+    return bool(UserBlock.query.filter(
+        or_(
+            and_(UserBlock.blocker_id == user_a_id, UserBlock.blocked_id == user_b_id),
+            and_(UserBlock.blocker_id == user_b_id, UserBlock.blocked_id == user_a_id),
+        )
+    ).first())

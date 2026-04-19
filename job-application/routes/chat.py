@@ -270,6 +270,15 @@ def people():
     users_query = User.query.filter(User.role != "admin")
 
     if current_user.is_authenticated:
+        from models import UserBlock
+        _blocked_out = db.session.query(UserBlock.blocked_id).filter_by(blocker_id=current_user.id)
+        _blocked_in  = db.session.query(UserBlock.blocker_id).filter_by(blocked_id=current_user.id)
+        users_query = users_query.filter(
+            User.id.not_in(_blocked_out),
+            User.id.not_in(_blocked_in),
+        )
+
+    if current_user.is_authenticated:
         users_query = users_query.filter(User.id != current_user.id)
 
     if query:
@@ -368,6 +377,17 @@ def inbox():
         user = User.query.get(uid)
         if not user:
             continue
+        # Skip users who have a block relationship with current user
+        from models import UserBlock
+        from sqlalchemy import or_, and_
+        _blk = UserBlock.query.filter(
+            or_(
+                and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == uid),
+                and_(UserBlock.blocker_id == uid,             UserBlock.blocked_id == current_user.id),
+            )
+        ).first()
+        if _blk:
+            continue
 
         last_msg = Message.query.filter(
             or_(
@@ -438,8 +458,19 @@ def conversation(other_id):
 
     conversations = []
     for uid in contact_ids:
-        u = User.query.get(uid)
-        if not u:
+        user = User.query.get(uid)
+        if not user:
+            continue
+        # Skip users who have a block relationship with current user
+        from models import UserBlock
+        from sqlalchemy import or_, and_
+        _blk = UserBlock.query.filter(
+            or_(
+                and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == uid),
+                and_(UserBlock.blocker_id == uid,             UserBlock.blocked_id == current_user.id),
+            )
+        ).first()
+        if _blk:
             continue
         last_msg = Message.query.filter(
             or_(
@@ -504,6 +535,18 @@ def conversation(other_id):
 @login_required
 def send_message(receiver_id):
     receiver = User.query.get_or_404(receiver_id)
+
+    from models import UserBlock
+    from sqlalchemy import or_, and_
+    _block = UserBlock.query.filter(
+        or_(
+            and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == receiver.id),
+            and_(UserBlock.blocker_id == receiver.id,     UserBlock.blocked_id == current_user.id),
+        )
+    ).first()
+    if _block:
+        return jsonify({'error': 'You cannot message this user.'}), 403
+
     data     = request.get_json()
     body     = (data.get("body") or "").strip()
 

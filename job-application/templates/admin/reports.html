@@ -1,0 +1,336 @@
+{% extends "layout.html" %}
+{% block title %}User Reports — Admin{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/reports.css') }}">
+{% endblock %}
+{% block content %}
+
+<div class="admin-dashboard-wrapper">
+<div class="admin-dashboard-container">
+
+    <!-- HEADER -->
+    <div class="admin-dashboard-header">
+        <div class="admin-dashboard-header-inner">
+            <div class="admin-dashboard-header-top">
+                <div>
+                    <h2><i class="fas fa-flag"></i> User Reports</h2>
+                    <p class="admin-dashboard-subtitle">Review and act on reports submitted by users</p>
+                </div>
+                <div class="admin-header-actions">
+                    <a href="{{ url_for('admin.dashboard') }}" class="admin-hero-btn admin-hero-btn--outline">
+                        <i class="fas fa-arrow-left"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="admin-stats-grid" style="grid-template-columns: repeat(3,1fr);">
+        <div class="admin-stat-card">
+            <i class="fas fa-clock admin-stat-icon" style="color:#d97706;"></i>
+            <div class="admin-stat-number" style="color:#d97706;">{{ pending_count }}</div>
+            <div class="admin-stat-label">Pending</div>
+        </div>
+        <div class="admin-stat-card">
+            <i class="fas fa-check-circle admin-stat-icon"></i>
+            <div class="admin-stat-number">{{ reviewed_count }}</div>
+            <div class="admin-stat-label">Reviewed</div>
+        </div>
+        <div class="admin-stat-card">
+            <i class="fas fa-times-circle admin-stat-icon" style="color:#6b7280;"></i>
+            <div class="admin-stat-number" style="color:#6b7280;">{{ dismissed_count }}</div>
+            <div class="admin-stat-label">Dismissed</div>
+        </div>
+    </div>
+
+    <div class="admin-content-area">
+
+        <!-- Filter tabs -->
+        <div class="admin-filter-tabs" style="margin-bottom:24px;">
+            <a href="{{ url_for('admin.reports', status='pending') }}"
+               class="admin-filter-tab {% if status_filter == 'pending' %}active{% endif %}">
+                <i class="fas fa-clock"></i> Pending
+                {% if pending_count %}<span class="rpt-tab-badge">{{ pending_count }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('admin.reports', status='reviewed') }}"
+               class="admin-filter-tab {% if status_filter == 'reviewed' %}active{% endif %}">
+                <i class="fas fa-check"></i> Reviewed
+            </a>
+            <a href="{{ url_for('admin.reports', status='dismissed') }}"
+               class="admin-filter-tab {% if status_filter == 'dismissed' %}active{% endif %}">
+                <i class="fas fa-ban"></i> Dismissed
+            </a>
+            <a href="{{ url_for('admin.reports', status='all') }}"
+               class="admin-filter-tab {% if status_filter == 'all' %}active{% endif %}">
+                All
+            </a>
+        </div>
+
+        {% if reports %}
+        <div class="rpt-list">
+            {% for r in reports %}
+            <div class="rpt-card rpt-card--{{ r.status }}">
+
+                <div class="rpt-card-top">
+                    <!-- Avatars -->
+                    <div class="rpt-avatars">
+                        <div class="rpt-avatar rpt-avatar--reporter"
+                             title="Reporter: {{ r.reporter.username if r.reporter else '—' }}">
+                            {{ (r.reporter.username[0] if r.reporter else '?') | upper }}
+                        </div>
+                        <i class="fas fa-arrow-right rpt-arrow"></i>
+                        <div class="rpt-avatar rpt-avatar--reported"
+                             title="Reported: {{ r.reported.username if r.reported else '—' }}">
+                            {{ (r.reported.username[0] if r.reported else '?') | upper }}
+                        </div>
+                    </div>
+
+                    <!-- Meta -->
+                    <div class="rpt-meta">
+                        <div class="rpt-meta-row">
+                            <span class="rpt-label">Reporter</span>
+                            <strong>{{ r.reporter.username if r.reporter else '—' }}</strong>
+                            <span class="rpt-role-pill">{{ (r.reporter.role | title) if r.reporter else '' }}</span>
+                        </div>
+                        <div class="rpt-meta-row">
+                            <span class="rpt-label">Reported</span>
+                            <strong>{{ r.reported.username if r.reported else '—' }}</strong>
+                            <span class="rpt-role-pill rpt-role-pill--reported">
+                                {{ (r.reported.role | title) if r.reported else '' }}
+                            </span>
+                            {% if r.reported %}
+                            <a href="{{ url_for('profile_view.view_profile', user_id=r.reported_id) }}"
+                               class="rpt-profile-link" target="_blank">
+                                <i class="fas fa-up-right-from-square"></i> View
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <!-- Current ban status -->
+                        {% if r.reported and r.reported.is_banned %}
+                        <div class="rpt-meta-row" style="margin-top:6px;">
+                            <span class="rpt-ban-active-badge">
+                                <i class="fas fa-ban"></i>
+                                {% if r.reported.ban_until %}
+                                    Banned until {{ r.reported.ban_until.strftime('%b %d, %Y') }}
+                                {% else %}
+                                    Permanently Banned
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Badges -->
+                    <div class="rpt-badges">
+                        <span class="rpt-reason-badge">{{ r.reason }}</span>
+                        <span class="rpt-status-badge rpt-status--{{ r.status }}">
+                            {% if r.status == 'pending' %}<i class="fas fa-clock"></i>
+                            {% elif r.status == 'reviewed' %}<i class="fas fa-check"></i>
+                            {% else %}<i class="fas fa-times"></i>{% endif %}
+                            {{ r.status | title }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if r.description %}
+                <div class="rpt-desc">
+                    <i class="fas fa-quote-left rpt-quote-icon"></i>
+                    {{ r.description }}
+                </div>
+                {% endif %}
+
+                <div class="rpt-card-footer">
+                    <span class="rpt-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        {{ r.created_at.strftime('%b %d, %Y · %H:%M') }}
+                    </span>
+                    {% if r.admin_notes %}
+                    <span class="rpt-admin-note">
+                        <i class="fas fa-shield-alt"></i> {{ r.admin_notes }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if r.status == 'pending' %}
+                <div class="rpt-actions">
+                    <button class="rpt-btn rpt-btn--ban"
+                            onclick="openBanModal({{ r.id }}, '{{ r.reported.username if r.reported else '' }}')">
+                        <i class="fas fa-ban"></i> Ban User
+                    </button>
+                    <form method="POST" action="{{ url_for('admin.dismiss_report', report_id=r.id) }}"
+                          onsubmit="return confirm('Dismiss this report?')" style="display:inline;">
+                        <button type="submit" class="rpt-btn rpt-btn--dismiss">
+                            <i class="fas fa-times"></i> Dismiss
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="admin-empty-state">
+            <i class="fas fa-flag"></i>
+            <p>No {{ status_filter }} reports.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+</div>
+
+<!-- ══ BAN MODAL ════════════════════════════════════════════════ -->
+<div class="admin-modal-overlay" id="banModalOverlay" style="display:none;">
+    <div class="admin-modal ban-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-ban"></i> Ban User</h3>
+            <button class="admin-modal-close" onclick="closeBanModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Banning <strong id="banUsername"></strong>.
+                Choose how long this ban should last.
+            </p>
+
+            <form method="POST" id="banForm">
+
+                <!-- Duration chips -->
+                <div class="admin-modal-field">
+                    <label class="admin-modal-label">
+                        <i class="fas fa-clock"></i> Ban Duration
+                    </label>
+                    <div class="ban-duration-grid">
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="1">
+                            <span>1 Day</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="3">
+                            <span>3 Days</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="7">
+                            <span>1 Week</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="14">
+                            <span>2 Weeks</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="30">
+                            <span>1 Month</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="90">
+                            <span>3 Months</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="180">
+                            <span>6 Months</span>
+                        </label>
+                        <label class="ban-chip ban-chip--permanent">
+                            <input type="radio" name="ban_duration" value="permanent" checked>
+                            <span><i class="fas fa-ban"></i> Permanent</span>
+                        </label>
+                    </div>
+
+                    <!-- Live preview -->
+                    <div class="ban-duration-preview ban-duration-preview--permanent" id="banDurationPreview">
+                        <i class="fas fa-infinity"></i>
+                        <span id="banDurationText">
+                            User will be banned permanently until manually unbanned
+                        </span>
+                    </div>
+                </div>
+
+                <div class="admin-modal-field">
+                    <label class="admin-modal-label">
+                        <i class="fas fa-comment-alt"></i> Ban reason
+                        <span class="admin-modal-label-sub">(shown to user)</span>
+                    </label>
+                    <textarea name="ban_reason" class="admin-modal-textarea"
+                              placeholder="e.g. Repeated harassment, scam activity..."
+                              rows="2"></textarea>
+                </div>
+
+                <div class="admin-modal-field">
+                    <label class="admin-modal-label">
+                        <i class="fas fa-shield-alt"></i> Admin notes
+                        <span class="admin-modal-label-sub">(internal only)</span>
+                    </label>
+                    <textarea name="admin_notes" class="admin-modal-textarea"
+                              placeholder="Internal notes about this decision..."
+                              rows="2"></textarea>
+                </div>
+
+                <div class="admin-modal-footer">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel"
+                            onclick="closeBanModal()">Cancel</button>
+                    <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
+                        <i class="fas fa-ban"></i> Confirm Ban
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openBanModal(reportId, username) {
+    document.getElementById('banUsername').textContent = username;
+    document.getElementById('banForm').action = `/admin/reports/${reportId}/ban`;
+    document.getElementById('banModalOverlay').style.display = 'flex';
+    updateDurationPreview();
+}
+
+function closeBanModal() {
+    document.getElementById('banModalOverlay').style.display = 'none';
+}
+
+document.getElementById('banModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeBanModal();
+});
+
+function updateDurationPreview() {
+    const selected = document.querySelector('input[name="ban_duration"]:checked');
+    if (!selected) return;
+
+    const preview = document.getElementById('banDurationPreview');
+    const text    = document.getElementById('banDurationText');
+    const icon    = preview.querySelector('i');
+    const val     = selected.value;
+
+    if (val === 'permanent') {
+        icon.className    = 'fas fa-infinity';
+        text.textContent  = 'User will be banned permanently until manually unbanned';
+        preview.className = 'ban-duration-preview ban-duration-preview--permanent';
+    } else {
+        const days  = parseInt(val);
+        const until = new Date();
+        until.setDate(until.getDate() + days);
+        const formatted = until.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+        });
+        icon.className    = 'fas fa-calendar-alt';
+        text.textContent  = `Ban expires ${formatted} (${days} day${days !== 1 ? 's' : ''} from now)`;
+        preview.className = 'ban-duration-preview ban-duration-preview--timed';
+    }
+}
+
+document.querySelectorAll('input[name="ban_duration"]').forEach(r => {
+    r.addEventListener('change', updateDurationPreview);
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeBanModal();
+});
+</script>
+
+{% endblock %}

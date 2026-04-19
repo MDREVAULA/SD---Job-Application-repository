@@ -1,10 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, session, make_response
 from flask_login import login_required, current_user, login_user
 from werkzeug.security import check_password_hash
 from models import AdminNotification, db, User, ApplicantProfile
 from routes.auth import send_verification_email
 from flask import jsonify
-from datetime import datetime
+from datetime import datetime, timedelta
 
 admin_bp = Blueprint('admin', __name__, url_prefix="/admin")
 
@@ -20,7 +20,7 @@ def admin_login(token):
         return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
-        email = request.form.get("email")
+        email    = request.form.get("email")
         password = request.form.get("password")
 
         admin = User.query.filter_by(email=email, role="admin").first()
@@ -38,8 +38,6 @@ def admin_login(token):
 
 # ==============================
 # Admin Dashboard
-# FIX 1: Show recruiters who submitted for review OR completed profile
-# FIX 4: Pass total_recruiters instead of pending count for stat card
 # ==============================
 @admin_bp.route('/dashboard')
 @login_required
@@ -49,10 +47,9 @@ def dashboard():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    from models import RecruiterProfile
+    from models import RecruiterProfile, Application, Job
+    from collections import defaultdict
 
-    # FIX 1: Show all pending recruiters who have submitted for review
-    # (submitted_for_review=True ensures only those who explicitly submitted appear)
     pending_recruiter_ids = db.session.query(RecruiterProfile.user_id).filter_by(
         submitted_for_review=True
     ).subquery()
@@ -63,27 +60,91 @@ def dashboard():
         User.id.in_(pending_recruiter_ids)
     ).all()
 
-    # Banned users (all roles)
-    banned_users = User.query.filter_by(is_banned=True).all()
-
-    # Count all applicants for info panel
+    banned_users     = User.query.filter_by(is_banned=True).all()
     total_applicants = User.query.filter_by(role='applicant').count()
-
-    # FIX 4: Count all recruiters instead of just pending
     total_recruiters = User.query.filter_by(role='recruiter').count()
 
-    return render_template(
+    # ==============================
+    # Chart Data: Last 7 Days
+    # ==============================
+    today = datetime.now().date()
+    days_data = {}
+
+    # Initialize last 7 days
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        day_key = day.strftime('%b %d')
+        days_data[day_key] = {
+            'applications': 0,
+            'signups': 0,
+            'jobs': 0
+        }
+
+    # Count applications per day (last 7 days)
+    applications = Application.query.filter(
+        Application.created_at >= datetime.combine(today - timedelta(days=7), datetime.min.time())
+    ).all()
+
+    for app in applications:
+        day_key = app.created_at.strftime('%b %d')
+        if day_key in days_data:
+            days_data[day_key]['applications'] += 1
+
+    # Count user signups per day (last 7 days)
+    # Note: User model doesn't have created_at, so we'll use id as proxy (newer id = newer user)
+    # If you have a created_at field on User, replace this logic
+    users = User.query.filter(
+        User.role.in_(['applicant', 'recruiter', 'hr']),
+        User.id >= db.session.query(db.func.max(User.id)).scalar() - 100  # approximate last users
+    ).all()
+
+    # If you don't have User.created_at, we'll just show 0s for signups
+    # Uncomment below if you have created_at on User model:
+    # users = User.query.filter(
+    #     User.created_at >= datetime.combine(today - timedelta(days=7), datetime.min.time()),
+    #     User.role.in_(['applicant', 'recruiter', 'hr'])
+    # ).all()
+    # for user in users:
+    #     day_key = user.created_at.strftime('%b %d')
+    #     if day_key in days_data:
+    #         days_data[day_key]['signups'] += 1
+
+    # Count jobs posted per day (last 7 days)
+    jobs = Job.query.filter(
+        Job.created_at >= datetime.combine(today - timedelta(days=7), datetime.min.time())
+    ).all()
+
+    for job in jobs:
+        day_key = job.created_at.strftime('%b %d')
+        if day_key in days_data:
+            days_data[day_key]['jobs'] += 1
+
+    # Format for Chart.js
+    chart_labels = list(days_data.keys())
+    chart_applications = [days_data[label]['applications'] for label in chart_labels]
+    chart_signups = [days_data[label]['signups'] for label in chart_labels]
+    chart_jobs = [days_data[label]['jobs'] for label in chart_labels]
+
+    response = make_response(render_template(
         'admin/dashboard.html',
         pending_recruiters=pending_recruiters,
         banned_users=banned_users,
         total_applicants=total_applicants,
         total_recruiters=total_recruiters,
-    )
+        chart_labels=chart_labels,
+        chart_applications=chart_applications,
+        chart_signups=chart_signups,
+        chart_jobs=chart_jobs,
+    ))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    return response
+
+    
 
 
 # ==============================
 # All Users Page
-# FIX 3: Exclude banned users from this view
 # ==============================
 @admin_bp.route('/users')
 @login_required
@@ -95,7 +156,6 @@ def all_users():
 
     role_filter = request.args.get('role', 'all')
 
-    # FIX 3: Exclude banned users — they belong in the banned_users tab only
     query = User.query.filter(
         User.role != 'admin',
         User.is_banned == False
@@ -200,11 +260,10 @@ def verify(user_id):
         flash("Only recruiter accounts require verification!", "danger")
         return redirect(url_for('admin.dashboard'))
 
-    user.verification_status = "Approved"
+    user.verification_status  = "Approved"
     user.verification_remarks = None
-    user.is_verified = True
+    user.is_verified          = True
 
-    # ── Notify the recruiter ──
     from models import RecruiterNotification
     notif = RecruiterNotification(
         recruiter_id=user.id,
@@ -249,11 +308,10 @@ def reject(user_id):
 
     remarks = request.form.get("remarks") or "Account rejected due to suspicious or invalid information."
 
-    user.verification_status = "Rejected"
+    user.verification_status  = "Rejected"
     user.verification_remarks = remarks
-    user.is_verified = False
+    user.is_verified          = False
     db.session.commit()
-
 
     from routes.auth import send_verification_email
     push_admin_notif(
@@ -285,9 +343,9 @@ def ban_user(user_id):
 
     reason = request.form.get("ban_reason") or "Banned due to suspicious activity."
 
-    user.is_banned = True
+    user.is_banned  = True
     user.ban_reason = reason
-    user.banned_at = datetime.utcnow()
+    user.banned_at  = datetime.utcnow()
     db.session.commit()
 
     flash(f"{user.username} has been banned.", "warning")
@@ -313,9 +371,10 @@ def unban_user(user_id):
         flash("User not found!", "danger")
         return redirect(url_for('admin.banned_users'))
 
-    user.is_banned = False
+    user.is_banned  = False
     user.ban_reason = None
-    user.banned_at = None
+    user.banned_at  = None
+    user.ban_until  = None
     db.session.commit()
 
     flash(f"{user.username} has been unbanned.", "success")
@@ -323,7 +382,7 @@ def unban_user(user_id):
 
 
 # ==============================
-# FIX 5: DELETE Banned User permanently
+# DELETE Banned User permanently
 # ==============================
 @admin_bp.route('/delete-user/<int:user_id>', methods=['POST'])
 @login_required
@@ -342,12 +401,12 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
 
-    flash(f"User has been permanently deleted.", "warning")
+    flash("User has been permanently deleted.", "warning")
     return redirect(url_for('admin.banned_users'))
 
 
 # ==============================
-# Restore Rejected Recruiter → back to Pending
+# Restore Rejected Recruiter
 # ==============================
 @admin_bp.route('/restore/<int:user_id>', methods=['POST'])
 @login_required
@@ -363,13 +422,14 @@ def restore(user_id):
         flash("Recruiter not found!", "danger")
         return redirect(url_for('admin.scammers'))
 
-    user.verification_status = "Pending"
+    user.verification_status  = "Pending"
     user.verification_remarks = None
-    user.is_verified = False
+    user.is_verified          = False
     db.session.commit()
 
     flash(f"{user.username} has been restored to pending verification.", "success")
     return redirect(url_for('admin.scammers'))
+
 
 # ==============================
 # Restore Rejected Applicant
@@ -388,30 +448,145 @@ def restore_applicant(user_id):
         flash("Applicant not found!", "danger")
         return redirect(url_for('admin.rejected_applicants'))
 
-    user.verification_status = "Pending"
+    user.verification_status  = "Pending"
     user.verification_remarks = None
-    user.is_verified = False
+    user.is_verified          = False
     db.session.commit()
 
     flash(f"{user.username} has been restored to pending verification.", "success")
     return redirect(url_for('admin.rejected_applicants'))
 
 
-# ── Helper: create an admin notification (call this from other routes) ──
+# ==============================
+# Reports Tab
+# ==============================
+@admin_bp.route('/reports')
+@login_required
+def reports():
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    from models import UserReport
+    status_filter = request.args.get('status', 'pending')
+
+    query = UserReport.query
+    if status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+
+    all_reports     = query.order_by(UserReport.created_at.desc()).all()
+    pending_count   = UserReport.query.filter_by(status='pending').count()
+    reviewed_count  = UserReport.query.filter_by(status='reviewed').count()
+    dismissed_count = UserReport.query.filter_by(status='dismissed').count()
+
+    return render_template(
+        'admin/reports.html',
+        reports=all_reports,
+        status_filter=status_filter,
+        pending_count=pending_count,
+        reviewed_count=reviewed_count,
+        dismissed_count=dismissed_count,
+    )
+
+
+# ==============================
+# Dismiss a Report
+# ==============================
+@admin_bp.route('/reports/<int:report_id>/dismiss', methods=['POST'])
+@login_required
+def dismiss_report(report_id):
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Forbidden'}), 403
+
+    from models import UserReport
+    report = db.session.get(UserReport, report_id)
+    if not report:
+        flash("Report not found.", "danger")
+        return redirect(url_for('admin.reports'))
+
+    admin_notes        = request.form.get('admin_notes', '')
+    report.status      = 'dismissed'
+    report.admin_notes = admin_notes
+    report.reviewed_by = current_user.id
+    report.reviewed_at = datetime.utcnow()
+    db.session.commit()
+
+    flash("Report dismissed.", "success")
+    return redirect(url_for('admin.reports'))
+
+
+# ==============================
+# Ban User FROM a Report (with duration)
+# ==============================
+@admin_bp.route('/reports/<int:report_id>/ban', methods=['POST'])
+@login_required
+def ban_from_report(report_id):
+    if current_user.role != 'admin':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    from models import UserReport
+
+    report = db.session.get(UserReport, report_id)
+    if not report:
+        flash("Report not found.", "danger")
+        return redirect(url_for('admin.reports'))
+
+    user = db.session.get(User, report.reported_id)
+    if not user or user.role == 'admin':
+        flash("Cannot ban this user.", "danger")
+        return redirect(url_for('admin.reports'))
+
+    reason      = request.form.get('ban_reason') or f'Banned following a report: {report.reason}'
+    admin_notes = request.form.get('admin_notes', '')
+    duration    = request.form.get('ban_duration', 'permanent')
+
+    if duration == 'permanent':
+        ban_until = None
+    else:
+        try:
+            days      = int(duration)
+            ban_until = datetime.utcnow() + timedelta(days=days)
+        except ValueError:
+            ban_until = None
+
+    user.is_banned  = True
+    user.ban_reason = reason
+    user.banned_at  = datetime.utcnow()
+    user.ban_until  = ban_until
+
+    report.status      = 'reviewed'
+    report.admin_notes = admin_notes
+    report.reviewed_by = current_user.id
+    report.reviewed_at = datetime.utcnow()
+
+    db.session.commit()
+
+    push_admin_notif(
+        'account_banned',
+        f'User <strong>{user.username}</strong> was banned'
+        + (f' for {duration} days' if duration != 'permanent' else ' permanently')
+        + f' following report #{report_id}',
+        user_id=user.id
+    )
+
+    duration_str = 'permanently' if duration == 'permanent' else f'for {duration} days'
+    flash(f"{user.username} has been banned {duration_str}.", "warning")
+    return redirect(url_for('admin.reports'))
+
+
+# ==============================
+# Helper: push admin notification
+# ==============================
 def push_admin_notif(notif_type, message, user_id=None):
-    """
-    notif_type options:
-      'new_message'      – new chat message sent on the platform
-      'account_request'  – new user registration awaiting approval
-      'account_approved' – admin approved a user
-      'account_rejected' – admin rejected a user
-    """
     notif = AdminNotification(type=notif_type, message=message, user_id=user_id)
     db.session.add(notif)
     db.session.commit()
 
 
-# ── API: Get all admin notifications ──
+# ==============================
+# API: Get all admin notifications
+# ==============================
 @admin_bp.route('/notifications')
 @login_required
 def admin_notifications():
@@ -427,7 +602,9 @@ def admin_notifications():
     })
 
 
-# ── API: Mark all as read ──
+# ==============================
+# API: Mark all notifications as read
+# ==============================
 @admin_bp.route('/notifications/mark-read', methods=['POST'])
 @login_required
 def admin_notifications_mark_read():
@@ -438,7 +615,9 @@ def admin_notifications_mark_read():
     return jsonify({'ok': True})
 
 
-# ── API: Clear all ──
+# ==============================
+# API: Clear all notifications
+# ==============================
 @admin_bp.route('/notifications/clear-all', methods=['POST'])
 @login_required
 def admin_notifications_clear():
@@ -449,7 +628,9 @@ def admin_notifications_clear():
     return jsonify({'ok': True})
 
 
-# ── Page: Notification History ──
+# ==============================
+# Page: Notification History
+# ==============================
 @admin_bp.route('/notification-history')
 @login_required
 def admin_notification_history():
@@ -459,3 +640,12 @@ def admin_notification_history():
         AdminNotification.created_at.desc()
     ).all()
     return render_template('admin/notification_history.html', notifications=notifs)
+
+@admin_bp.route('/reports/pending-count')
+@login_required
+def reports_pending_count():
+    if current_user.role != 'admin':
+        return jsonify({'error': 'Forbidden'}), 403
+    from models import UserReport
+    count = UserReport.query.filter_by(status='pending').count()
+    return jsonify({'count': count})
