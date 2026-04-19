@@ -5,14 +5,6 @@
 /* ── Section navigation ─────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── Force-clear search box on load (prevents browser autofill) ──
-    const searchInput = document.getElementById('settingsSearch');
-    if (searchInput) {
-            searchInput.value = '';
-            setTimeout(() => { searchInput.value = ''; }, 100);
-            setTimeout(() => { searchInput.value = ''; }, 500);
-            setTimeout(() => { searchInput.value = ''; }, 1000);
-        }
     // Nav buttons
     document.querySelectorAll('.settings-nav-btn').forEach(btn => {
         btn.addEventListener('click', function () {
@@ -30,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     /* ── Settings search ─────────────────────────────────── */
+    const searchInput = document.getElementById('settingsSearch');
     const searchDrop  = document.getElementById('searchResults');
 
     if (searchInput) {
@@ -94,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ── Sync theme buttons on load ──────────────────────── */
+    // Read the current applied theme from <html data-theme>
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     _highlightThemeBtn(currentTheme);
 });
@@ -200,17 +194,26 @@ function confirmLogoutAll() {
 }
 
 /* ============================================================
-   THEME
+   THEME — Settings Appearance section
+   ─────────────────────────────────────────────────────────────
+   setTheme() is called by the three theme buttons in the
+   Appearance card.  It:
+     1. Applies the theme immediately (visual feedback)
+     2. Saves it to the DB via /settings/save  (section: appearance)
+     3. Updates the active state of the buttons
    ============================================================ */
 function setTheme(theme) {
+    // 1. Apply visually right away — calls the global helper in script.js
     if (typeof applyUserTheme === 'function') {
         applyUserTheme(theme);
     } else {
         document.documentElement.setAttribute('data-theme', theme);
     }
 
+    // 2. Highlight the correct button
     _highlightThemeBtn(theme);
 
+    // 3. Save to DB
     fetch('/settings/save', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -229,6 +232,7 @@ function setTheme(theme) {
 
 function _highlightThemeBtn(theme) {
     document.querySelectorAll('.theme-btn').forEach(btn => {
+        // Each button calls setTheme('light') / setTheme('dark') / setTheme('system')
         const onclick = btn.getAttribute('onclick') || '';
         const active  = onclick.includes("'" + theme + "'") || onclick.includes('"' + theme + '"');
         btn.classList.toggle('active', active);
@@ -236,15 +240,17 @@ function _highlightThemeBtn(theme) {
 }
 
 /* ============================================================
-   SAVE SETTINGS
+   SAVE SETTINGS — generic handler for all other sections
    ============================================================ */
 function saveSettings(section) {
     const payload = { section };
 
     if (section === 'privacy') {
+        // Show name
         const showName = document.querySelector('input[name="show_name"]:checked');
         if (showName) payload.show_name = showName.value;
 
+        // Profile visibility
         const showProfile = document.querySelector('input[name="show_profile"]:checked');
         if (showProfile) {
             payload.show_profile = showProfile.value;
@@ -255,12 +261,15 @@ function saveSettings(section) {
             }
         }
 
+        // Follow list
         const showFollow = document.querySelector('input[name="show_follow_list"]:checked');
         if (showFollow) payload.show_follow_list = showFollow.value;
 
+        // Follow count (optional — may be commented out)
         const showCount = document.querySelector('input[name="show_follow_count"]:checked');
         if (showCount) payload.show_follow_count = showCount.value;
 
+        // Messaging
         const whoMsg = document.querySelector('input[name="who_can_message"]:checked');
         if (whoMsg) payload.who_can_message = whoMsg.value;
 
@@ -287,6 +296,7 @@ function saveSettings(section) {
         payload.confirm_password = conf;
 
     } else if (section === 'appearance') {
+        // Density only — theme is handled by setTheme() above
         const density = document.querySelector('input[name="density"]:checked');
         if (density) payload.density = density.value;
 
@@ -319,4 +329,45 @@ function saveSettings(section) {
         }
     })
     .catch(() => showToast('Network error. Please try again.', true));
+}
+
+/* ── Unblock user ───────────────────────────────────── */
+function unblockUser(userId, username) {
+    if (!confirm(`Unblock ${username}? They will be able to see your profile and message you again.`)) return;
+
+    fetch(`/settings/unblock/${userId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the row from the UI instantly
+                const row = document.getElementById('blocked-row-' + userId);
+                if (row) row.remove();
+
+                // Update the card description count
+                const remaining = document.querySelectorAll('.blocked-item').length;
+                const desc = document.querySelector('#section-blocked .card-desc');
+                if (desc) {
+                    desc.textContent = remaining > 0
+                        ? `You have blocked ${remaining} user${remaining !== 1 ? 's' : ''}.`
+                        : "You haven't blocked anyone.";
+                }
+
+                // If list is now empty, show the empty state
+                if (remaining === 0) {
+                    const list = document.querySelector('.blocked-list');
+                    if (list) {
+                        list.outerHTML = `
+                            <div class="blocked-empty">
+                                <i class="fas fa-user-check"></i>
+                                <p>Your blocked list is empty.</p>
+                            </div>`;
+                    }
+                }
+
+                showToast(`${username} has been unblocked.`);
+            } else {
+                showToast(data.message || 'Could not unblock user.', true);
+            }
+        })
+        .catch(() => showToast('Network error. Please try again.', true));
 }

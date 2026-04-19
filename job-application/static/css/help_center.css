@@ -15,7 +15,6 @@
   margin-top: 0;
   padding-top: 0;
   padding: 64px 24px 80px;
-
 }
 
 .help-header-bg { position: absolute; inset: 0; pointer-events: none; }
@@ -180,7 +179,7 @@
 
 .cat-card.active .cat-card-label {
   color: #fff;
-  font-weight: 700;
+  font-weight: 700; 
 }
 
 .help-layout {
@@ -275,7 +274,6 @@
 
 .cat-account   { background: rgba(59,130,246,0.1);  color: #3b82f6; }
 .cat-settings  { background: rgba(139,92,246,0.1);  color: #8b5cf6; }
-.cat-billing   { background: rgba(236,153,27,0.1);  color: #ec9c1b; }
 
 .faq-trigger-text { flex: 1; min-width: 0; }
 
@@ -848,26 +846,6 @@
 
 .widget-title svg { width: 14px; height: 14px; color: #4D774E; }
 
-.popular-list {
-  list-style: none;
-  padding: 0; margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.popular-list li a {
-  display: block;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: all 0.15s;
-}
-
-.popular-list li a:hover { background: rgba(77,119,78,0.07); color: #4D774E; padding-left: 14px; }
-
 @keyframes onlinePulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
   50%       { box-shadow: 0 0 0 5px rgba(16,185,129,0); }
@@ -947,4 +925,64 @@ mark {
   .cat-card-label { font-size: 11px; }
   .help-sidebar { grid-template-columns: 1fr; }
   .faq-body-inner { padding-left: 20px; }
+}
+
+[data-theme="light"] .header-content h1,
+[data-theme="light"] .header-highlight,
+[data-theme="light"] .header-subtitle,
+[data-theme="light"] .header-badge,
+[data-theme="light"] .hero-search-wrap input,
+[data-theme="light"] .hero-search-icon {
+  color: #111827;
+}
+
+[data-theme="light"] .header-highlight {
+  color: #164A41;
+}
+
+[data-theme="light"] .hero-search-wrap input {
+  color: #111827;
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .hero-search-wrap input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .header-badge {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #111827;
+}
+
+/* ── Jobs category icon ── */
+.cat-jobs {
+    background: rgba(77, 119, 78, 0.1);
+    color: #4D774E;
+}
+
+/* ── Role tags next to faq-tag ── */
+.faq-role-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.faq-role-tag.role-applicant {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.faq-role-tag.role-recruiter {
+    background: rgba(241, 178, 74, 0.15);
+    color: #b07000;
+}
+
+.faq-role-tag.role-hr {
+    background: rgba(139, 92, 246, 0.1);
+    color: #7c3aed;
 }
