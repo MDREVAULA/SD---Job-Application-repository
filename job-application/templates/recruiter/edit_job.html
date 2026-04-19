@@ -129,13 +129,6 @@
                   <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=400&fit=crop"
                        alt="Cover Photo" class="header-img" id="coverPhotoPreview">
                 {% endif %}
-                <!--<button type="button" class="btn-change-image" onclick="document.getElementById('coverPhotoInput').click()">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                  Change
-                </button>-->
               </div>
               <input type="file" id="coverPhotoInput" name="cover_photo" accept="image/*"
                      style="display:none">
@@ -955,7 +948,7 @@ function saveValues() {
     return '<div class="value-item">'
       + '<div class="value-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"'
       + ' stroke="currentColor" stroke-width="2">'
-      + '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>'
+      + '<polyline points="20 6 9 17 4 12"/>'
       + '</svg></div>'
       + '<div class="value-content">'
       + '<h5 class="value-title">'  + _esc(v.title)       + '</h5>'
@@ -1018,7 +1011,7 @@ function saveWhyJoin() {
 /* ══════════════════════════════════════════════════════
    HR TEAM MEMBER TOGGLE
    Changes are queued locally; AJAX is fired on main form submit.
-   ══════════════════════════════════════════════════════ */
+   ════════════════════���═════════════════════════════════ */
  
 /*
   _teamQueue  = { hrId: 'add' | 'remove' }

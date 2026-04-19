@@ -1,0 +1,389 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/review_resignation.css') }}">
+
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            {% if current_user.role == 'recruiter' %}
+            <a href="{{ url_for('employment.employee_list', job_id=job.id) }}" class="back-btn">
+            {% else %}
+            <a href="{{ url_for('employment.employee_list', job_id=job.id) }}" class="back-btn">
+            {% endif %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">RESIGNATION REVIEW</div>
+                <h1 class="job-title-main">{{ applicant.username }}'s Resignation</h1>
+                <div class="job-meta">
+                    <span>{{ job.title }}</span>
+                    <span class="meta-dot">•</span>
+                    <span>
+                        {% if resignation.status == 'pending' %}
+                        <span style="color:#d97706;">Pending Review</span>
+                        {% elif resignation.status == 'approved' %}
+                        <span style="color:#059669;">Approved</span>
+                        {% elif resignation.status == 'rejected' %}
+                        <span style="color:#dc2626;">Rejected</span>
+                        {% elif resignation.status == 'revision_requested' %}
+                        <span style="color:#7c3aed;">Revision Requested</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="emp-wrapper">
+    <div class="emp-layout">
+
+        <!-- MAIN: Resignation Details -->
+        <div class="emp-main">
+
+            <!-- Resignation letter details -->
+            <div class="emp-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        Resignation Request Details
+                    </div>
+                </div>
+
+                <div style="padding: 0 20px 20px;">
+
+                    <!-- Applicant info -->
+                    <div style="display:flex; align-items:center; gap:12px; padding:14px; background:var(--bg-tertiary); border-radius:10px; margin-bottom:20px;">
+                        <div class="emp-avatar-sm">
+                            {% if applicant.profile_picture %}
+                                {% if applicant.profile_picture.startswith('http') %}
+                                    <img src="{{ applicant.profile_picture }}" alt="">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + applicant.profile_picture) }}" alt="">
+                                {% endif %}
+                            {% else %}
+                            <span>{{ applicant.username[0]|upper }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div style="font-weight:600; font-size:0.9rem; color:var(--text-primary);">{{ applicant.username }}</div>
+                            <div style="font-size:0.78rem; color:var(--text-muted);">{{ applicant.email }}</div>
+                        </div>
+                        <div style="margin-left:auto; text-align:right;">
+                            <div style="font-size:0.75rem; color:var(--text-muted);">Submitted</div>
+                            <div style="font-size:0.82rem; color:var(--text-primary);">{{ resignation.submitted_at.strftime('%B %d, %Y') }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Intended last day highlighted -->
+                    <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; padding:14px 16px; margin-bottom:20px; display:flex; align-items:center; gap:12px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <div>
+                            <div style="font-size:0.78rem; color:#3B82F6; font-weight:600;">Intended Last Day of Work</div>
+                            <div style="font-size:1rem; font-weight:700; color:#1E40AF;">{{ resignation.intended_last_day.strftime('%B %d, %Y') }}</div>
+                        </div>
+                        {% if resignation.intended_last_day > today %}
+                        <div style="margin-left:auto; font-size:0.78rem; color:#3B82F6;">
+                            {{ (resignation.intended_last_day - today).days }} days remaining
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Reason -->
+                    <div style="margin-bottom:20px;">
+                        <div style="font-size:0.82rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Reason</div>
+                        <div style="background:var(--bg-tertiary); border-radius:8px; padding:14px; font-size:0.875rem; color:var(--text-primary); line-height:1.6; white-space:pre-wrap;">{{ resignation.reason }}</div>
+                    </div>
+
+                    <!-- Uploaded letter -->
+                    {% if resignation.letter_file %}
+                    <div style="margin-bottom:20px;">
+                        <div style="font-size:0.82rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Uploaded Resignation Letter</div>
+                        <div class="emp-existing-file">
+                            <div class="emp-file-icon">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                </svg>
+                            </div>
+                            <div class="emp-file-meta">
+                                <span class="emp-file-name">{{ resignation.letter_file }}</span>
+                            </div>
+                            <a href="{{ url_for('static', filename='uploads/resignation_letters/' + resignation.letter_file) }}"
+                               target="_blank" class="emp-view-btn">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                                Open File
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="margin-bottom:20px;">
+                        <div style="font-size:0.82rem; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Resignation Letter</div>
+                        <p style="font-size:0.82rem; color:var(--text-muted); font-style:italic;">No file uploaded.</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Previous reviewer note if any -->
+                    {% if resignation.reviewer_note %}
+                    <div style="background:#FEF3C7; border:1px solid #F59E0B; border-radius:8px; padding:12px 14px; margin-bottom:20px;">
+                        <div style="font-size:0.78rem; font-weight:600; color:#92400E; margin-bottom:4px;">Previous Reviewer Note</div>
+                        <div style="font-size:0.82rem; color:#92400E;">{{ resignation.reviewer_note }}</div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Review Actions — only show if pending -->
+            {% if resignation.status == 'pending' %}
+            <div class="emp-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11l3 3L22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                        Review Decision
+                    </div>
+                </div>
+                <div style="padding: 0 20px 20px;">
+
+                    <!-- Reviewer note textarea (shared) -->
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block; font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:6px;">
+                            Note / Remarks
+                            <span style="font-weight:400; color:var(--text-muted);">(required for reject / request revision)</span>
+                        </label>
+                        <textarea id="reviewer_note_field" rows="3" class="emp-modal-textarea" style="width:100%;"
+                                  placeholder="Add a note for the employee..."></textarea>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+                        <!-- APPROVE -->
+                        <form method="POST"
+                              action="{{ url_for('employment.review_resignation', resignation_id=resignation.id) }}"
+                              id="form-approve"
+                              onsubmit="return confirmAction('approve')">
+                            <input type="hidden" name="action" value="approve">
+                            <input type="hidden" name="reviewer_note" id="note-approve">
+                            <button type="submit" class="emp-revision-btn"
+                                    style="background:#059669; border-color:#059669; padding:10px 20px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                Approve
+                            </button>
+                        </form>
+
+                        <!-- REQUEST REVISION -->
+                        <form method="POST"
+                              action="{{ url_for('employment.review_resignation', resignation_id=resignation.id) }}"
+                              id="form-revision"
+                              onsubmit="return confirmAction('revision')">
+                            <input type="hidden" name="action" value="request_revision">
+                            <input type="hidden" name="reviewer_note" id="note-revision">
+                            <button type="submit" class="emp-revision-btn"
+                                    style="background:#7c3aed; border-color:#7c3aed; padding:10px 20px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                Request Revision
+                            </button>
+                        </form>
+
+                        <!-- REJECT -->
+                        <form method="POST"
+                              action="{{ url_for('employment.review_resignation', resignation_id=resignation.id) }}"
+                              id="form-reject"
+                              onsubmit="return confirmAction('reject')">
+                            <input type="hidden" name="action" value="reject">
+                            <input type="hidden" name="reviewer_note" id="note-reject">
+                            <button type="submit" class="emp-revision-btn"
+                                    style="background:#dc2626; border-color:#dc2626; padding:10px 20px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="15" y1="9" x2="9" y2="15"/>
+                                    <line x1="9" y1="9" x2="15" y2="15"/>
+                                </svg>
+                                Reject
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <script>
+            function confirmAction(type) {
+                const note = document.getElementById('reviewer_note_field').value.trim();
+
+                if (type === 'approve') {
+                    document.getElementById('note-approve').value = note;
+                    return confirm(
+                        'Approve this resignation?\n\n' +
+                        'The employee will enter their rendering period until their intended last day.'
+                    );
+                }
+
+                if (type === 'revision') {
+                    if (!note) {
+                        alert('Please add a note explaining what needs to be revised.');
+                        return false;
+                    }
+                    document.getElementById('note-revision').value = note;
+                    return confirm('Request a revision from the employee?');
+                }
+
+                if (type === 'reject') {
+                    if (!note) {
+                        alert('Please provide a reason for rejecting this resignation.');
+                        return false;
+                    }
+                    document.getElementById('note-reject').value = note;
+                    return confirm('Reject this resignation request? The employee will remain active.');
+                }
+
+                return false;
+            }
+            </script>
+
+            {% elif resignation.status == 'approved' %}
+            <div class="emp-card" style="border-left: 4px solid #059669;">
+                <div class="emp-card-header">
+                    <div class="emp-card-title" style="color:#059669;">
+                        ✅ Resignation Approved — Rendering Period Active
+                    </div>
+                </div>
+                <div style="padding: 0 20px 16px; font-size:0.875rem; color:var(--text-secondary);">
+                    {% if resignation.intended_last_day >= today %}
+                    The employee is currently serving their rendering period.
+                    Their last day is <strong>{{ resignation.intended_last_day.strftime('%B %d, %Y') }}</strong>
+                    ({{ (resignation.intended_last_day - today).days }} days remaining).
+                    Employment will be officially concluded at the end of that day.
+                    {% else %}
+                    The rendering period has ended. Employment conclusion is being processed.
+                    {% endif %}
+                </div>
+            </div>
+
+            {% elif resignation.status == 'rejected' %}
+            <div class="emp-card" style="border-left: 4px solid #dc2626;">
+                <div class="emp-card-header">
+                    <div class="emp-card-title" style="color:#dc2626;">
+                        Resignation Rejected
+                    </div>
+                </div>
+                <div style="padding: 0 20px 16px; font-size:0.875rem; color:var(--text-secondary);">
+                    This resignation was rejected. The employee remains active.
+                    {% if resignation.reviewer_note %}
+                    <br><strong>Reason:</strong> {{ resignation.reviewer_note }}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% elif resignation.status == 'revision_requested' %}
+            <div class="emp-card" style="border-left: 4px solid #7c3aed;">
+                <div class="emp-card-header">
+                    <div class="emp-card-title" style="color:#7c3aed;">
+                        📝 Revision Requested
+                    </div>
+                </div>
+                <div style="padding: 0 20px 16px; font-size:0.875rem; color:var(--text-secondary);">
+                    You have requested a revision. The employee has been notified.
+                    {% if resignation.reviewer_note %}
+                    <br><strong>Note sent:</strong> {{ resignation.reviewer_note }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="emp-sidebar">
+            <div class="emp-card emp-info-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">Status</div>
+                </div>
+                <div style="padding: 16px 20px;">
+                    {% if resignation.status == 'pending' %}
+                    <span class="emp-status-chip chip-info">Pending Review</span>
+                    {% elif resignation.status == 'approved' %}
+                    <span class="emp-status-chip chip-done">Approved</span>
+                    {% elif resignation.status == 'rejected' %}
+                    <span class="emp-status-chip chip-error">Rejected</span>
+                    {% elif resignation.status == 'revision_requested' %}
+                    <span class="emp-status-chip chip-warning">Revision Requested</span>
+                    {% endif %}
+
+                    {% if resignation.reviewed_at %}
+                    <p style="margin-top:10px; font-size:0.78rem; color:var(--text-muted);">
+                        Reviewed {{ resignation.reviewed_at.strftime('%B %d, %Y') }}
+                        {% if resignation.reviewer %}by {{ resignation.reviewer.username }}{% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="emp-card">
+                <div class="emp-card-header">
+                    <div class="emp-card-title">Timeline</div>
+                </div>
+                <div style="padding: 0 20px 16px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; gap:10px; align-items:flex-start; font-size:0.82rem;">
+                        <div style="width:8px;height:8px;border-radius:50%;background:#059669;flex-shrink:0;margin-top:4px;"></div>
+                        <div>
+                            <div style="font-weight:600;color:var(--text-primary);">Submitted</div>
+                            <div style="color:var(--text-muted);">{{ resignation.submitted_at.strftime('%B %d, %Y') }}</div>
+                        </div>
+                    </div>
+
+                    {% if resignation.reviewed_at %}
+                    <div style="display:flex; gap:10px; align-items:flex-start; font-size:0.82rem;">
+                        <div style="width:8px;height:8px;border-radius:50%;background:{% if resignation.status == 'approved' %}#059669{% elif resignation.status == 'rejected' %}#dc2626{% else %}#7c3aed{% endif %};flex-shrink:0;margin-top:4px;"></div>
+                        <div>
+                            <div style="font-weight:600;color:var(--text-primary);">
+                                {% if resignation.status == 'approved' %}Approved{% elif resignation.status == 'rejected' %}Rejected{% else %}Revision Requested{% endif %}
+                            </div>
+                            <div style="color:var(--text-muted);">{{ resignation.reviewed_at.strftime('%B %d, %Y') }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if resignation.status == 'approved' %}
+                    <div style="display:flex; gap:10px; align-items:flex-start; font-size:0.82rem;">
+                        <div style="width:8px;height:8px;border-radius:50%;background:{% if resignation.intended_last_day <= today %}#059669{% else %}var(--border-color){% endif %};flex-shrink:0;margin-top:4px;"></div>
+                        <div>
+                            <div style="font-weight:600;color:var(--text-primary);">Last Day</div>
+                            <div style="color:var(--text-muted);">{{ resignation.intended_last_day.strftime('%B %d, %Y') }}</div>
+                            {% if resignation.intended_last_day > today %}
+                            <div style="color:#3B82F6; font-weight:500;">{{ (resignation.intended_last_day - today).days }} days left</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -882,6 +882,35 @@ class UserReport(db.Model):
             'status':      self.status,
             'created_at':  self.created_at.strftime('%b %d, %Y %H:%M') if self.created_at else '',
         }
+# =========================
+# RESIGNATION REQUEST TABLE
+# =========================
+class ResignationRequest(db.Model):
+    __tablename__ = 'resignation_request'
+ 
+    id                = db.Column(db.Integer, primary_key=True)
+    employee_id       = db.Column(db.Integer, db.ForeignKey('employee.id', ondelete='CASCADE'), nullable=False, unique=True)
+    applicant_id      = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    job_id            = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='SET NULL'), nullable=True)
+ 
+    reason            = db.Column(db.Text, nullable=False)
+    intended_last_day = db.Column(db.Date, nullable=False)
+    letter_file       = db.Column(db.String(300), nullable=True)
+ 
+    # pending | revision_requested | approved | rejected
+    status            = db.Column(db.String(30), default='pending', nullable=False)
+ 
+    reviewer_note     = db.Column(db.Text, nullable=True)
+    reviewed_by       = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    reviewed_at       = db.Column(db.DateTime, nullable=True)
+ 
+    submitted_at      = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at        = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+ 
+    employee  = db.relationship('Employee', backref=db.backref('resignation_request', uselist=False))
+    applicant = db.relationship('User', foreign_keys=[applicant_id])
+    reviewer  = db.relationship('User', foreign_keys=[reviewed_by])
+    job       = db.relationship('Job', foreign_keys=[job_id])
     
 def is_blocked_between(user_a_id, user_b_id):
     """True if either user has blocked the other."""

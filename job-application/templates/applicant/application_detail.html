@@ -1,20 +1,17 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/status.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/application_detail.css') }}">
 
-<!-- ===== TOP NAVIGATION BAR (Matching Status Page) ===== -->
+<!-- ===== TOP NAVIGATION BAR (Matching Reference Design) ===== -->
 <div class="job-view-nav">
     <div class="nav-container">
         <div class="nav-left">
-            <a href="{{ url_for('applicant.status') }}" class="back-link">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <a href="{{ url_for('applicant.status') }}" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
-                Back to Applications
             </a>
-            <div class="nav-divider"></div>
             <div class="job-title-section">
                 <div class="job-category">APPLICATION DETAIL</div>
                 <h1 class="job-title-main">{{ job.title if job else 'Job Removed' }}</h1>
@@ -371,6 +368,6 @@
 
 </div><!-- /job-list-wrapper -->
 
-<script src="{{ url_for('static', filename='js/applicant/application_detail.js') }}"></script>
+<script src="{{ url_for('static', filename='js/applicant/application_status.js') }}"></script>
 
 {% endblock %}

@@ -3,44 +3,46 @@
    with Light/Dark Mode Support
    (Identical to Recruiter Design)
    ================================ */
-
+body {
+    position: relative;
+}
 /* ===== CSS VARIABLES ===== */
 :root[data-theme="light"] {
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
-    
-    --accent-primary: #4f46e5;
-    --accent-hover: #4338ca;
-    --accent-light: #eef2ff;
-    
-    --success: #10b981;
-    --success-light: #d1fae5;
-    --warning: #f59e0b;
-    --warning-light: #fef3c7;
-    --info: #3b82f6;
-    --info-light: #dbeafe;
-    --danger: #ef4444;
-    --danger-light: #fee2e2;
+
+    --accent-primary: #4D774E;
+    --accent-hover: #9DC88D;
+    --accent-light: rgba(157, 200, 141, 0.12);
+
+    --success: #9DC88D;
+    --success-light: rgba(157, 200, 141, 0.15);
+    --warning: #F1B24A;
+    --warning-light: rgba(241, 178, 74, 0.15);
+    --info: #64b5f6;
+    --info-light: rgba(100, 181, 246, 0.12);
+    --danger: #ff6b6b;
+    --danger-light: rgba(255, 107, 107, 0.15);
 }
 
 :root[data-theme="dark"] {
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-    
-    --accent-primary: #6366f1;
-    --accent-hover: #818cf8;
-    --accent-light: #312e81;
-    
-    --success: #34d399;
-    --success-light: #065f46;
+
+    --accent-primary: #9DC88D;
+    --accent-hover: #ade09b;
+    --accent-light: rgba(157, 200, 141, 0.18);
+
+    --success: #81c784;
+    --success-light: rgba(129, 199, 132, 0.12);
     --warning: #fbbf24;
-    --warning-light: #78350f;
+    --warning-light: rgba(241, 178, 74, 0.12);
     --info: #60a5fa;
-    --info-light: #1e3a8a;
-    --danger: #f87171;
-    --danger-light: #7f1d1d;
+    --info-light: rgba(100, 181, 246, 0.12);
+    --danger: #e57373;
+    --danger-light: rgba(229, 115, 115, 0.12);
 }
 
 /* ===== GLOBAL STYLES ===== */
@@ -155,30 +157,6 @@
 .btn-nav:hover {
     background: var(--bg-hover);
     border-color: var(--text-secondary);
-}
-
-.btn-apply-nav {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: #14b8a6;
-    border: 1px solid #14b8a6;
-    color: white;
-    text-decoration: none;
-}
-
-.btn-apply-nav:hover {
-    background: #0f9488;
-    border-color: #0f9488;
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
 }
 
 /* ===== GLOBAL STYLES ===== */
@@ -804,7 +782,153 @@
 
 .actions {
     text-align: center;
+    overflow: visible;  /* ADD THIS */
+    position: relative;
 }
+
+/* ===== ACTION DROPDOWN ===== */
+.action-dropdown {
+    position: relative !important;  /* Force relative positioning */
+    display: inline-flex;
+    align-items: center;
+}
+
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;  /* Align to the right edge of the button */
+    top: 100%;  /* Position below the button */
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    z-index: 9999;  /* High z-index to appear above everything */
+    padding: 6px;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+
+.dropdown-menu.open {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: background 0.15s;
+}
+
+.dropdown-item:hover {
+    background: var(--bg-hover);
+}
+
+.dropdown-item svg {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.dropdown-item-disabled {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    border-radius: 6px;
+    cursor: not-allowed;
+    opacity: 0.5;
+    user-select: none;
+    width: 100%;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+}
+
+/* Hide original dropdown menus - floating portal handles display */
+.action-dropdown .dropdown-menu {
+    display: none !important;
+}
+
+/* Floating portal menu styling */
+#floatingDropdownMenu {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+#floatingDropdownMenu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: background 0.15s;
+    box-sizing: border-box;
+}
+
+#floatingDropdownMenu .dropdown-item:hover {
+    background: var(--bg-hover);
+}
+
+#floatingDropdownMenu .dropdown-item svg {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+#floatingDropdownMenu .dropdown-item-danger {
+    color: var(--danger);
+}
+
+#floatingDropdownMenu .dropdown-item-danger svg {
+    color: var(--danger);
+}
+
+#floatingDropdownMenu .dropdown-item-danger:hover {
+    background: var(--danger-light);
+}
+
+#floatingDropdownMenu .dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;  /* ADD THIS */
+}
+
 
 .action-btn {
     width: 36px;

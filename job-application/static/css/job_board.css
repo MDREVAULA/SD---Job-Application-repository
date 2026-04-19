@@ -15,23 +15,59 @@
     transition: background 0.3s ease;
 }
 
-/* ================================
-   TOP NAVIGATION BAR
-   ================================ */
+/* ===== CSS VARIABLES (matching status page) ===== */
+:root[data-theme="light"] {
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
 
-.jb-nav {
-    background: var(--bg-card);
+    --accent-primary: #4D774E;
+    --accent-hover: #9DC88D;
+    --accent-light: rgba(157, 200, 141, 0.12);
+
+    --success: #9DC88D;
+    --success-light: rgba(157, 200, 141, 0.15);
+    --warning: #F1B24A;
+    --warning-light: rgba(241, 178, 74, 0.15);
+    --info: #64b5f6;
+    --info-light: rgba(100, 181, 246, 0.12);
+    --danger: #ff6b6b;
+    --danger-light: rgba(255, 107, 107, 0.15);
+}
+
+:root[data-theme="dark"] {
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+
+    --accent-primary: #9DC88D;
+    --accent-hover: #ade09b;
+    --accent-light: rgba(157, 200, 141, 0.18);
+
+    --success: #81c784;
+    --success-light: rgba(129, 199, 132, 0.12);
+    --warning: #fbbf24;
+    --warning-light: rgba(241, 178, 74, 0.12);
+    --info: #60a5fa;
+    --info-light: rgba(100, 181, 246, 0.12);
+    --danger: #e57373;
+    --danger-light: rgba(229, 115, 115, 0.12);
+}
+
+/* ===== TOP NAVIGATION BAR ===== */
+.job-view-nav {
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 65px;
     z-index: 100;
-    box-shadow: 0 1px 3px var(--shadow-color);
+    box-shadow: var(--shadow-sm);
 }
 
-.jb-nav-container {
+.nav-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 14px 40px;
+    padding: 16px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -39,45 +75,67 @@
     flex-wrap: wrap;
 }
 
-/* Left — title block */
-.jb-nav-left {
-    flex-shrink: 0;
-}
-
-.jb-title-section {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.jb-category-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-}
-
-.jb-title-main {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.3;
-    font-family: 'DM Sans', sans-serif;
-}
-
-.jb-meta {
-    font-size: 12px;
-    color: var(--text-muted);
+.nav-left {
     display: flex;
     align-items: center;
+    gap: 16px;
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: var(--bg-hover);
+}
+
+.job-title-section {
+    display: flex;
+    flex-direction: column;
     gap: 4px;
 }
 
-.jb-meta span {
+.job-category {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+}
+
+.job-title-main {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.job-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.job-meta span {
     font-weight: 700;
-    color: var(--brand-green-dark);
+    color: var(--accent-primary);
+}
+
+.meta-dot {
+    color: var(--text-tertiary);
 }
 
 /* Center — search */
@@ -120,9 +178,9 @@
 
 .jb-search-wrap input:focus {
     outline: none;
-    border-color: var(--brand-green-dark);
+    border-color: var(--accent-primary);
     background: var(--input-bg);
-    box-shadow: 0 0 0 3px rgba(77, 119, 78, 0.1);
+    box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .jb-search-wrap input::placeholder {

@@ -204,6 +204,18 @@ function filterUpcoming() {
     if (emptyBase) emptyBase.style.display  = 'none';
 }
 
+// ===== INTERVIEW FIELD TOGGLE =====
+function toggleInterviewField(select, appId) {
+    const field = document.getElementById('interview-field-' + appId);
+    if (field) field.style.display = select.value === 'interview' ? 'block' : 'none';
+}
+
+// ===== ONLINE MEETING FIELDS TOGGLE =====
+function toggleMeetingLink(select, appId) {
+    const onlineFields = document.getElementById('online-fields-' + appId);
+    if (onlineFields) onlineFields.style.display = select.value === 'online' ? 'block' : 'none';
+}
+
 // ===== KEYBOARD NAVIGATION =====
 document.addEventListener('keydown', e => {
     const active  = document.querySelector('.applicant-card.active');

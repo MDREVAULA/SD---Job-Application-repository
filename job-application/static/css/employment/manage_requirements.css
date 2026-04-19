@@ -136,15 +136,15 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    border: 1px solid var(--border-color);
-    background: var(--bg-tertiary);
+    border: 1px solid var(--brand-accent);
+    background: var(--brand-accent);
     color: var(--text-primary);
     text-decoration: none;
 }
 
 .btn-nav:hover {
-    background: var(--bg-hover);
-    border-color: var(--text-secondary);
+    background: var(--brand-accent-dark);
+    border-color: var(--brand-accent-dark);
 }
 
 /* ===== MAIN WRAPPER ===== */
@@ -258,12 +258,16 @@
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .emp-req-desc {
     font-size: 13px;
     color: var(--text-secondary);
     line-height: 1.6;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 /* ===== BADGES ===== */
@@ -362,6 +366,7 @@
 .emp-form-group textarea:focus {
     outline: none;
     border-color: var(--accent-primary);
+    color: var(--text-primary);
     box-shadow: 0 0 0 3px var(--accent-light);
 }
 
@@ -404,7 +409,7 @@
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
-    background: var(--accent-primary);
+    background: var(--brand-accent);
     color: white;
     border: none;
     border-radius: 8px;
@@ -415,7 +420,7 @@
 }
 
 .emp-submit-btn:hover {
-    background: var(--accent-hover);
+    background: var(--brand-accent-dark);
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
