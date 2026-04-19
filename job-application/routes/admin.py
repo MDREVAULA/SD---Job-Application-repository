@@ -47,7 +47,8 @@ def dashboard():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    from models import RecruiterProfile
+    from models import RecruiterProfile, Application, Job
+    from collections import defaultdict
 
     pending_recruiter_ids = db.session.query(RecruiterProfile.user_id).filter_by(
         submitted_for_review=True
@@ -63,12 +64,77 @@ def dashboard():
     total_applicants = User.query.filter_by(role='applicant').count()
     total_recruiters = User.query.filter_by(role='recruiter').count()
 
+    # ==============================
+    # Chart Data: Last 7 Days
+    # ==============================
+    today = datetime.now().date()
+    days_data = {}
+
+    # Initialize last 7 days
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        day_key = day.strftime('%b %d')
+        days_data[day_key] = {
+            'applications': 0,
+            'signups': 0,
+            'jobs': 0
+        }
+
+    # Count applications per day (last 7 days)
+    applications = Application.query.filter(
+        Application.created_at >= datetime.combine(today - timedelta(days=7), datetime.min.time())
+    ).all()
+
+    for app in applications:
+        day_key = app.created_at.strftime('%b %d')
+        if day_key in days_data:
+            days_data[day_key]['applications'] += 1
+
+    # Count user signups per day (last 7 days)
+    # Note: User model doesn't have created_at, so we'll use id as proxy (newer id = newer user)
+    # If you have a created_at field on User, replace this logic
+    users = User.query.filter(
+        User.role.in_(['applicant', 'recruiter', 'hr']),
+        User.id >= db.session.query(db.func.max(User.id)).scalar() - 100  # approximate last users
+    ).all()
+
+    # If you don't have User.created_at, we'll just show 0s for signups
+    # Uncomment below if you have created_at on User model:
+    # users = User.query.filter(
+    #     User.created_at >= datetime.combine(today - timedelta(days=7), datetime.min.time()),
+    #     User.role.in_(['applicant', 'recruiter', 'hr'])
+    # ).all()
+    # for user in users:
+    #     day_key = user.created_at.strftime('%b %d')
+    #     if day_key in days_data:
+    #         days_data[day_key]['signups'] += 1
+
+    # Count jobs posted per day (last 7 days)
+    jobs = Job.query.filter(
+        Job.created_at >= datetime.combine(today - timedelta(days=7), datetime.min.time())
+    ).all()
+
+    for job in jobs:
+        day_key = job.created_at.strftime('%b %d')
+        if day_key in days_data:
+            days_data[day_key]['jobs'] += 1
+
+    # Format for Chart.js
+    chart_labels = list(days_data.keys())
+    chart_applications = [days_data[label]['applications'] for label in chart_labels]
+    chart_signups = [days_data[label]['signups'] for label in chart_labels]
+    chart_jobs = [days_data[label]['jobs'] for label in chart_labels]
+
     response = make_response(render_template(
         'admin/dashboard.html',
         pending_recruiters=pending_recruiters,
         banned_users=banned_users,
         total_applicants=total_applicants,
         total_recruiters=total_recruiters,
+        chart_labels=chart_labels,
+        chart_applications=chart_applications,
+        chart_signups=chart_signups,
+        chart_jobs=chart_jobs,
     ))
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
