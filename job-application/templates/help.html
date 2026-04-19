@@ -1,189 +1,455 @@
-{% extends "layout.html" %}
+help{% extends "layout.html" %}
 
 {% block content %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
-<!-- Lucide Icons CDN -->
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <div class="help-center">
+
     <div class="help-header">
+        <div class="help-header-bg">
+        <div class="help-header-orb orb-1"></div>
+        <div class="help-header-orb orb-2"></div>
+        <div class="help-header-orb orb-3"></div>
+    </div>
         <div class="header-content">
-            <div class="header-icon">
-                <i data-lucide="help-circle"></i>
+            <div class="header-badge">
+                <i data-lucide="life-buoy"></i>
+                <span>Help Center</span>
             </div>
-            <h1>Help Center</h1>
-            <p class="header-subtitle">Find answers to frequently asked questions</p>
+            <h1>How can we <span class="header-highlight">help you?</span></h1>
+            <p class="header-subtitle">Search our knowledge base or browse topics below</p>
+
+            <div class="hero-search-wrap">
+                <i data-lucide="search" class="hero-search-icon"></i>
+                <input
+                type="text"
+                id="searchInput"
+                placeholder="Search for answers…"
+                autocomplete="off"
+                />
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <!-- Search Bar -->
-        <div class="search-wrapper">
-            <i data-lucide="search" class="search-icon"></i>
-            <input 
-                type="text" 
-                id="searchInput" 
-                placeholder="Search for a question..."
-            >
+  <div class="help-body">
+
+    <div class="category-cards">
+        <button class="cat-card active" data-category="all">
+            <div class="cat-card-icon"><i data-lucide="layout-grid"></i></div>
+            <span class="cat-card-label">All Topics</span>
+        </button>
+        <button class="cat-card" data-category="Account">
+            <div class="cat-card-icon"><i data-lucide="user-circle"></i></div>
+            <span class="cat-card-label">Account</span>
+        </button>
+        <button class="cat-card" data-category="Settings">
+            <div class="cat-card-icon"><i data-lucide="settings"></i></div>
+            <span class="cat-card-label">Settings</span>
+        </button>
+        <button class="cat-card" data-category="Billing">
+            <div class="cat-card-icon"><i data-lucide="credit-card"></i></div>
+            <span class="cat-card-label">Billing</span>
+        </button>
+    </div>
+
+    <div class="help-layout">
+
+        <div class="faq-column">
+            <div class="faq-list-header">
+            <span id="faqResultLabel">All articles</span>
+            <span class="faq-count-badge" id="faqCount">8</span>
         </div>
 
-        <!-- Category Filter -->
-        <div class="category-filter">
-            <button class="category-btn active" data-category="all">All</button>
-            <button class="category-btn" data-category="Account">Account</button>
-            <button class="category-btn" data-category="Settings">Settings</button>
-            <button class="category-btn" data-category="Billing">Billing</button>
-            <button class="category-btn" data-category="Resources">Resources</button>
-        </div>
-
-        <!-- FAQ List -->
         <ul id="questionsList">
-            <li data-category="Account">
-                <div class="question-header">
-                    <div class="question-content">
-                        <i data-lucide="user" class="question-icon"></i>
-                        <div>
-                            <span class="question">How do I login to my account?</span>
-                            <span class="category-tag">Account</span>
+
+            <li data-category="Account" data-tags="login signin access">
+                <button class="faq-trigger" aria-expanded="false">
+                    <div class="faq-trigger-left">
+                        <div class="faq-icon-wrap cat-account">
+                        <i data-lucide="log-in"></i>
+                        </div>
+                        <div class="faq-trigger-text">
+                        <span class="faq-question">How do I login to my account?</span>
+                        <span class="faq-meta"><span class="faq-tag">Account</span></span>
                         </div>
                     </div>
-                    <i data-lucide="chevron-down" class="chevron"></i>
-                </div>
-                <div class="answer">
-                    <p>Click the login button in the top right corner, then enter your email address and password. If you've forgotten your password, click the "Forgot Password" link to reset it.</p>
+                    <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-body">
+                    <div class="faq-body-inner">
+                        <div class="demo-strip">
+                            <div class="demo-label"><i data-lucide="play-circle"></i> Quick Demo</div>
+                            <div class="demo-frame">
+                                <div class="demo-steps">
+                                <div class="demo-step active" data-step="1">
+                                    <div class="demo-screen">
+                                    <div class="demo-mockup-bar"></div>
+                                    <div class="demo-mockup-content">
+                                        <div class="demo-mockup-logo">HireBon</div>
+                                        <div class="demo-mockup-form">
+                                        <div class="demo-input-row">
+                                            <div class="demo-input-label">Email</div>
+                                            <div class="demo-input-box typing"></div>
+                                        </div>
+                                        <div class="demo-input-row">
+                                            <div class="demo-input-label">Password</div>
+                                            <div class="demo-input-box"></div>
+                                        </div>
+                                        <div class="demo-btn-row">
+                                            <div class="demo-btn">Login</div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <div class="demo-caption">① Enter your email &amp; password</div>
+                                </div>
+                                <div class="demo-step" data-step="2">
+                                    <div class="demo-screen">
+                                    <div class="demo-mockup-bar"></div>
+                                    <div class="demo-mockup-content success-state">
+                                        <i data-lucide="check-circle" class="demo-success-icon"></i>
+                                        <div class="demo-success-text">Welcome back!</div>
+                                    </div>
+                                    </div>
+                                    <div class="demo-caption">② You're logged in!</div>
+                                </div>
+                                </div>
+                                <div class="demo-dots">
+                                <span class="demo-dot active" data-target="1"></span>
+                                <span class="demo-dot" data-target="2"></span>
+                                </div>
+                            </div>
+                            </div>
+                            <p>Click the <strong>Login</strong> button in the top right corner of the navbar, then enter your email address and password. If you've forgotten your password, click the <strong>"Forgot Password"</strong> link below the form.</p>
+                            <div class="tip-callout">
+                            <i data-lucide="lightbulb"></i>
+                            <p>You can also sign in with <strong>Google</strong> for a faster login experience.</p>
+                        </div>
+                    </div>
                 </div>
             </li>
 
-            <li data-category="Account">
-                <div class="question-header">
-                    <div class="question-content">
-                        <i data-lucide="user" class="question-icon"></i>
-                        <div>
-                            <span class="question">How do I create a new account/signup?</span>
-                            <span class="category-tag">Account</span>
-                        </div>
+            <li data-category="Account" data-tags="register signup create new account">
+                <button class="faq-trigger" aria-expanded="false">
+                <div class="faq-trigger-left">
+                    <div class="faq-icon-wrap cat-account">
+                    <i data-lucide="user-plus"></i>
                     </div>
-                    <i data-lucide="chevron-down" class="chevron"></i>
+                    <div class="faq-trigger-text">
+                    <span class="faq-question">How do I create a new account?</span>
+                    <span class="faq-meta"><span class="faq-tag">Account</span></span>
+                    </div>
                 </div>
-                <div class="answer">
-                    <p>Click the signup button on the homepage and fill in the required information including your name, email address, and password. You'll receive a confirmation email to verify your account.</p>
+                <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-body">
+                <div class="faq-body-inner">
+                    <p>Click the <strong>Sign Up</strong> button on the homepage and fill in the required information including your name, email address, and password. Choose your role — <em>Applicant</em> or <em>Recruiter</em> — and complete the registration form.</p>
+                    <div class="steps-list">
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-text">Go to the homepage and click <strong>Sign Up</strong></div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">2</div>
+                        <div class="step-text">Choose your role: <strong>Applicant</strong> or <strong>Recruiter</strong></div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">3</div>
+                        <div class="step-text">Fill in your name, email, and create a password</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">4</div>
+                        <div class="step-text">Submit and verify your email if prompted</div>
+                    </div>
+                    </div>
+                </div>
                 </div>
             </li>
 
-            <li data-category="Account">
-                <div class="question-header">
-                    <div class="question-content">
-                        <i data-lucide="lock" class="question-icon"></i>
-                        <div>
-                            <span class="question">I forgot my password. What should I do?</span>
-                            <span class="category-tag">Account</span>
-                        </div>
+            <li data-category="Account" data-tags="forgot password reset recover">
+                <button class="faq-trigger" aria-expanded="false">
+                <div class="faq-trigger-left">
+                    <div class="faq-icon-wrap cat-account">
+                    <i data-lucide="key"></i>
                     </div>
-                    <i data-lucide="chevron-down" class="chevron"></i>
+                    <div class="faq-trigger-text">
+                    <span class="faq-question">I forgot my password. What should I do?</span>
+                    <span class="faq-meta"><span class="faq-tag">Account</span></span>
+                    </div>
                 </div>
-                <div class="answer">
-                    <p>Click on the "Forgot Password" link on the login page. Enter your email address and we'll send you instructions to reset your password. Check your spam folder if you don't see the email within a few minutes.</p>
+                <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-body">
+                <div class="faq-body-inner">
+                    <p>Click <strong>"Forgot Password"</strong> on the login page. Enter your registered email address and we'll send you a reset link. Check your spam folder if you don't see the email within a few minutes.</p>
+                    <div class="tip-callout warning">
+                    <i data-lucide="alert-triangle"></i>
+                    <p>Reset links expire after <strong>30 minutes</strong>. Request a new one if yours has expired.</p>
+                    </div>
+                </div>
                 </div>
             </li>
 
-            <li data-category="Settings">
-                <div class="question-header">
-                    <div class="question-content">
-                        <i data-lucide="settings" class="question-icon"></i>
-                        <div>
-                            <span class="question">How do I update my profile information?</span>
-                            <span class="category-tag">Settings</span>
+            <!-- ── UPDATED: Profile update FAQ with demo ── -->
+            <li data-category="Settings" data-tags="profile update edit information name email">
+                <button class="faq-trigger" aria-expanded="false">
+                <div class="faq-trigger-left">
+                    <div class="faq-icon-wrap cat-settings">
+                    <i data-lucide="user-cog"></i>
+                    </div>
+                    <div class="faq-trigger-text">
+                    <span class="faq-question">How do I update my profile information?</span>
+                    <span class="faq-meta"><span class="faq-tag">Settings</span></span>
+                    </div>
+                </div>
+                <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-body">
+                <div class="faq-body-inner">
+
+                    <!-- Profile demo strip -->
+                    <div class="demo-strip">
+                        <div class="demo-label"><i data-lucide="play-circle"></i> Quick Demo</div>
+                        <div class="demo-frame">
+                            <div class="demo-steps">
+
+                                <!-- Step 1: Profile page with arrow on Edit Profile button -->
+                                <div class="demo-step active" data-step="1">
+                                    <div class="demo-screen demo-screen-profile">
+                                        <!-- Top nav bar -->
+                                        <div class="demo-mockup-bar"></div>
+                                        <!-- Profile banner -->
+                                        <div class="demo-profile-banner">
+                                            <div class="demo-profile-dots"></div>
+                                        </div>
+                                        <!-- Profile body -->
+                                        <div class="demo-profile-body">
+                                            <!-- Avatar -->
+                                            <div class="demo-profile-avatar">J</div>
+                                            <!-- Edit button area — highlighted -->
+                                            <div class="demo-profile-actions">
+                                                <div class="demo-profile-edit-target">
+                                                    <span class="demo-pencil-icon">✎</span> Edit Profile
+                                                    <!-- Pulsing ring -->
+                                                    <div class="demo-highlight-ring"></div>
+                                                </div>
+                                                <!-- Arrow pointing up at the button -->
+                                                <div class="demo-arrow-wrap">
+                                                    <svg class="demo-arrow-svg" viewBox="0 0 24 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M12 38 L12 6" stroke="#ec9c1b" stroke-width="2.5" stroke-linecap="round"/>
+                                                        <path d="M5 13 L12 4 L19 13" stroke="#ec9c1b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                    <span class="demo-arrow-label">Click here</span>
+                                                </div>
+                                            </div>
+                                            <!-- Name block -->
+                                            <div class="demo-profile-info">
+                                                <div class="demo-profile-name-block"> Your Name</div>
+                                                <div class="demo-profile-meta-row">
+                                                    <span class="demo-profile-meta-item">@username</span>
+                                                    <span class="demo-profile-meta-dot">•</span>
+                                                    <span class="demo-profile-meta-item">0 Followers</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="demo-caption">① Click <strong>Edit Profile</strong> (top right of your profile)</div>
+                                </div>
+
+                                <!-- Step 2: Edit form open -->
+                                <div class="demo-step" data-step="2">
+                                    <div class="demo-screen">
+                                        <div class="demo-mockup-bar"></div>
+                                        <div class="demo-mockup-content">
+                                            <div class="demo-mockup-logo" style="font-size:9px; margin-bottom:8px; color: var(--text-muted);">Personal Information</div>
+                                            <div class="demo-mockup-form">
+                                                <div class="demo-input-row">
+                                                    <div class="demo-input-label">First Name</div>
+                                                    <div class="demo-input-box typing"></div>
+                                                </div>
+                                                <div class="demo-input-row">
+                                                    <div class="demo-input-label">Headline</div>
+                                                    <div class="demo-input-box"></div>
+                                                </div>
+                                                <div class="demo-btn-row">
+                                                    <div class="demo-btn">Save Changes</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="demo-caption">② Edit your details and click <strong>Save Changes</strong></div>
+                                </div>
+
+                                <!-- Step 3: Saved -->
+                                <div class="demo-step" data-step="3">
+                                    <div class="demo-screen">
+                                        <div class="demo-mockup-bar"></div>
+                                        <div class="demo-mockup-content success-state">
+                                            <i data-lucide="check-circle" class="demo-success-icon"></i>
+                                            <div class="demo-success-text">Profile updated!</div>
+                                        </div>
+                                    </div>
+                                    <div class="demo-caption">③ Your profile is now updated</div>
+                                </div>
+
+                            </div>
+                            <div class="demo-dots">
+                                <span class="demo-dot active" data-target="1"></span>
+                                <span class="demo-dot" data-target="2"></span>
+                                <span class="demo-dot" data-target="3"></span>
+                            </div>
                         </div>
                     </div>
-                    <i data-lucide="chevron-down" class="chevron"></i>
+
+                    <p>Navigate to <strong>My Profile</strong> from the sidebar. From there, click <strong>Edit Profile</strong> in the top right and start editing your information. Don't forget to save your changes!</p>
+                    <div class="steps-list">
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <div class="step-text">Open the <strong>sidebar</strong> and click <strong>My Profile</strong></div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">2</div>
+                        <div class="step-text">Click <strong>Edit Profile</strong> in the top right</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">3</div>
+                        <div class="step-text">Edit your details and click <strong>Save Changes</strong></div>
+                    </div>
+                    </div>
                 </div>
-                <div class="answer">
-                    <p>Navigate to Settings from your account dashboard. From there, you can update your name, email, profile picture, and other personal information. Don't forget to save your changes!</p>
                 </div>
             </li>
 
-            <li data-category="Settings">
-                <div class="question-header">
-                    <div class="question-content">
-                        <i data-lucide="mail" class="question-icon"></i>
-                        <div>
-                            <span class="question">How do I change my email preferences?</span>
-                            <span class="category-tag">Settings</span>
-                        </div>
+            <li data-category="Settings" data-tags="email preferences notifications alerts">
+                <button class="faq-trigger" aria-expanded="false">
+                <div class="faq-trigger-left">
+                    <div class="faq-icon-wrap cat-settings">
+                    <i data-lucide="mail"></i>
                     </div>
-                    <i data-lucide="chevron-down" class="chevron"></i>
+                    <div class="faq-trigger-text">
+                    <span class="faq-question">How do I change my email preferences?</span>
+                    <span class="faq-meta"><span class="faq-tag">Settings</span></span>
+                    </div>
                 </div>
-                <div class="answer">
-                    <p>Go to Settings > Notifications to customize which emails you receive. You can choose to receive updates about new features, promotions, or turn off all marketing emails while keeping essential account notifications.</p>
+                <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-body">
+                <div class="faq-body-inner">
+                    <p>Go to <strong>Settings → Notifications</strong> to customize which emails you receive. You can toggle on/off updates about new features, promotions, or turn off all marketing emails while keeping essential account notifications.</p>
+                </div>
                 </div>
             </li>
 
-            <li data-category="Billing">
-                <div class="question-header">
-                    <div class="question-content">
-                        <i data-lucide="credit-card" class="question-icon"></i>
-                        <div>
-                            <span class="question">What payment methods do you accept?</span>
-                            <span class="category-tag">Billing</span>
-                        </div>
+            <li data-category="Billing" data-tags="payment methods credit card debit paypal">
+                <button class="faq-trigger" aria-expanded="false">
+                <div class="faq-trigger-left">
+                    <div class="faq-icon-wrap cat-billing">
+                    <i data-lucide="credit-card"></i>
                     </div>
-                    <i data-lucide="chevron-down" class="chevron"></i>
+                    <div class="faq-trigger-text">
+                    <span class="faq-question">What payment methods do you accept?</span>
+                    <span class="faq-meta"><span class="faq-tag">Billing</span></span>
+                    </div>
                 </div>
-                <div class="answer">
+                <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-body">
+                <div class="faq-body-inner">
                     <p>We accept all major credit cards (Visa, Mastercard, American Express), debit cards, and PayPal. All transactions are encrypted and secure.</p>
+                    <div class="payment-badges">
+                    <span class="pay-badge">Visa</span>
+                    <span class="pay-badge">Mastercard</span>
+                    <span class="pay-badge">Amex</span>
+                    <span class="pay-badge">PayPal</span>
+                    <span class="pay-badge">Debit</span>
+                    </div>
+                </div>
                 </div>
             </li>
 
-            <li data-category="Billing">
-                <div class="question-header">
-                    <div class="question-content">
-                        <i data-lucide="credit-card" class="question-icon"></i>
-                        <div>
-                            <span class="question">How do I cancel my subscription?</span>
-                            <span class="category-tag">Billing</span>
-                        </div>
+            <li data-category="Billing" data-tags="cancel subscription billing plan">
+                <button class="faq-trigger" aria-expanded="false">
+                <div class="faq-trigger-left">
+                    <div class="faq-icon-wrap cat-billing">
+                    <i data-lucide="x-circle"></i>
                     </div>
-                    <i data-lucide="chevron-down" class="chevron"></i>
-                </div>
-                <div class="answer">
-                    <p>Go to Settings > Billing and click "Cancel Subscription". You'll retain access until the end of your current billing period. We're sorry to see you go!</p>
-                </div>
-            </li>
-
-            <li data-category="Resources">
-                <div class="question-header">
-                    <div class="question-content">
-                        <i data-lucide="book-open" class="question-icon"></i>
-                        <div>
-                            <span class="question">Where can I find tutorials and guides?</span>
-                            <span class="category-tag">Resources</span>
-                        </div>
+                    <div class="faq-trigger-text">
+                    <span class="faq-question">How do I cancel my subscription?</span>
+                    <span class="faq-meta"><span class="faq-tag">Billing</span></span>
                     </div>
-                    <i data-lucide="chevron-down" class="chevron"></i>
                 </div>
-                <div class="answer">
-                    <p>Visit our Learning Center from the main navigation menu. We have video tutorials, step-by-step guides, and best practices to help you get the most out of our platform.</p>
+                <i data-lucide="chevron-down" class="faq-chevron"></i>
+                </button>
+                <div class="faq-body">
+                <div class="faq-body-inner">
+                    <p>Go to <strong>Settings → Billing</strong> and click <strong>"Cancel Subscription"</strong>. You'll retain access until the end of your current billing period.</p>
+                    <div class="tip-callout warning">
+                    <i data-lucide="alert-triangle"></i>
+                    <p>Cancellation takes effect at the end of your billing cycle — you won't lose access immediately.</p>
+                    </div>
+                </div>
                 </div>
             </li>
         </ul>
 
-        <!-- No Results Message -->
-        <div id="noResults" class="no-results" style="display: none;">
-            <div class="no-results-icon">
-                <i data-lucide="search"></i>
-            </div>
-            <h3>No results found</h3>
-            <p>Try adjusting your search or filter to find what you're looking for</p>
+        <div id="noResults" class="no-results" style="display:none;">
+          <div class="no-results-icon"><i data-lucide="search-x"></i></div>
+          <h3>No results found</h3>
+          <p>Try a different keyword or browse a category above</p>
+          <button class="no-results-reset" onclick="resetSearch()">Clear search</button>
         </div>
 
-        <!-- Contact Support Section -->
-        <div class="contact-support">
-            <h2>Still need help?</h2>
-            <p>Our support team is here to assist you</p>
-            <button class="support-btn">Contact Support</button>
+      </div>
+
+      <aside class="help-sidebar">
+
+        <div class="sidebar-widget feedback-widget">
+          <div class="widget-icon"><i data-lucide="thumbs-up"></i></div>
+          <h4>Was this helpful?</h4>
+          <p>Let us know how we're doing</p>
+          <div class="feedback-btns">
+            <button class="feedback-btn yes" onclick="submitFeedback('yes', this)">
+              <i data-lucide="thumbs-up"></i> Yes
+            </button>
+            <button class="feedback-btn no" onclick="submitFeedback('no', this)">
+              <i data-lucide="thumbs-down"></i> No
+            </button>
+          </div>
+          <div class="feedback-thanks" id="feedbackThanks" style="display:none;">
+            <i data-lucide="check-circle"></i> Thanks for your feedback!
+          </div>
         </div>
+
+        <div class="sidebar-widget">
+          <h4 class="widget-title"><i data-lucide="trending-up"></i> Popular Articles</h4>
+          <ul class="popular-list">
+            <li><a href="#" onclick="jumpToArticle(0)">How do I login?</a></li>
+            <li><a href="#" onclick="jumpToArticle(2)">Forgot my password</a></li>
+            <li><a href="#" onclick="jumpToArticle(3)">Update my profile</a></li>
+            <li><a href="#" onclick="jumpToArticle(5)">Payment methods</a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-widget contact-widget">
+            <h4>Still need help?</h4>
+            <p>Our support team typically responds within a few minutes.</p>
+            <button class="btn-contact" id="helpEmailSupportBtn">
+                <i class="fas fa-envelope"></i> Email Support
+            </button>
+            <button class="btn-contact-secondary">
+                <i data-lucide="message-circle"></i> Live Chat
+            </button>
+        </div>
+
+      </aside>
+
     </div>
+
+  </div>
+
 </div>
 
 <script src="{{ url_for('static', filename='js/help_center.js') }}"></script>

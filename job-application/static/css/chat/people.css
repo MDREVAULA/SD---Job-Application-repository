@@ -1,9 +1,4 @@
 /* ========================================
-   PEOPLE PAGE - MATCHING JOB DETAILS DESIGN
-   Modern, professional design with consistent theme
-   ======================================== */
-
-/* ========================================
    BASE WRAPPER
    ======================================== */
 .people-page-wrapper {
@@ -13,7 +8,7 @@
 }
 
 /* ========================================
-   TOP NAVIGATION WITH SEARCH (matches job-view-nav)
+   TOP NAVIGATION WITH SEARCH
    ======================================== */
 .people-nav {
   background: var(--bg-secondary);
@@ -74,7 +69,7 @@
 }
 
 .people-title-main i {
-  color: #14b8a6;
+  color: #4D774E;
   font-size: 18px;
 }
 
@@ -108,8 +103,8 @@
 }
 
 .search-input-wrapper:focus-within {
-  border-color: #14b8a6;
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+  border-color: #4D774E;
+  box-shadow: 0 0 0 3px rgba(77, 119, 78, 0.15);
 }
 
 .search-people {
@@ -144,7 +139,7 @@
   font-weight: 500;
   cursor: pointer;
   border: none;
-  background: #14b8a6;
+  background: #4D774E;
   color: white;
   transition: all 0.2s;
   flex-shrink: 0;
@@ -152,11 +147,11 @@
 }
 
 .btn-search:hover {
-  background: #0f9488;
+  background: #164A41;
 }
 
 /* ========================================
-   FILTER TABS BAR (separate sticky bar)
+   FILTER TABS BAR
    ======================================== */
 .people-filter-bar {
   background: var(--bg-secondary);
@@ -173,7 +168,6 @@
   padding: 12px 24px;
 }
 
-/* Role Filter Tabs */
 .role-filter-tabs {
   display: flex;
   gap: 8px;
@@ -197,13 +191,13 @@
 
 .role-tab:hover {
   background: var(--bg-hover);
-  border-color: #14b8a6;
+  border-color: #4D774E;
   color: var(--text-primary);
 }
 
 .role-tab.active {
-  background: #14b8a6;
-  border-color: #14b8a6;
+  background: #4D774E;
+  border-color: #4D774E;
   color: white;
 }
 
@@ -221,7 +215,7 @@
 }
 
 /* ========================================
-   GUEST NOTICE (matches content-card style)
+   GUEST NOTICE
    ======================================== */
 .guest-notice-card {
   display: flex;
@@ -229,7 +223,7 @@
   gap: 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-left: 4px solid #14b8a6;
+  border-left: 4px solid #4D774E;
   border-radius: 12px;
   padding: 16px 20px;
   margin-bottom: 24px;
@@ -238,7 +232,7 @@
 
 .guest-notice-card i {
   font-size: 20px;
-  color: #14b8a6;
+  color: #4D774E;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -262,7 +256,7 @@
 }
 
 .guest-notice-card a {
-  color: #14b8a6;
+  color: #4D774E;
   font-weight: 600;
   text-decoration: none;
 }
@@ -272,7 +266,7 @@
 }
 
 /* ========================================
-   PEOPLE GRID (matches content-card design)
+   PEOPLE GRID
    ======================================== */
 .people-grid {
   display: grid;
@@ -281,7 +275,7 @@
 }
 
 /* ========================================
-   PERSON CARD (matches content-card)
+   PERSON CARD
    ======================================== */
 .person-card {
   background: var(--bg-secondary);
@@ -294,32 +288,32 @@
 }
 
 .person-card:hover {
-  box-shadow: 0 4px 12px var(--shadow-color);
+  box-shadow: 0 4px 16px var(--shadow-color);
   transform: translateY(-2px);
-  border-color: #14b8a6;
+  border-color: #4D774E;
 }
 
 /* Cover Strip */
 .card-cover {
   height: 72px;
-  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  background: linear-gradient(135deg, #4D774E 0%, #164A41 100%);
   flex-shrink: 0;
   position: relative;
 }
 
 .card-cover.role-applicant {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  background: linear-gradient(135deg, #164A41 0%, #0d2e28 100%)
 }
 
 .card-cover.role-recruiter {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  background: linear-gradient(135deg, #F1B24A 0%, #e09a30 100%);
 }
 
 .card-cover.role-hr {
-  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  background: linear-gradient(135deg, #9DC88D 0%, #4D774E 100%);
 }
 
-/* Avatar overlaps cover */
+/* Avatar */
 .card-avatar-wrap {
   position: absolute;
   left: 16px;
@@ -361,7 +355,6 @@
   gap: 6px;
 }
 
-/* Name row with badges */
 .person-name-row {
   display: flex;
   align-items: center;
@@ -402,14 +395,14 @@
 }
 
 .badge-restricted {
-  background: rgba(234, 179, 8, 0.1);
-  color: #ca8a04;
+  background: rgba(241, 178, 74, 0.15);
+  color: #e09a30;
 }
 
 .badge-recruiters-only,
 .badge-mutuals-only {
-  background: rgba(59, 130, 246, 0.1);
-  color: #2563eb;
+  background: rgba(77, 119, 78, 0.12);
+  color: #4D774E;
 }
 
 .person-username {
@@ -418,7 +411,7 @@
   display: block;
 }
 
-/* Role Pill */
+/* Role Pills */
 .person-role-pill {
   display: inline-flex;
   align-items: center;
@@ -438,21 +431,21 @@
 }
 
 .person-role-pill.role-applicant {
-  background: rgba(59, 130, 246, 0.1);
-  color: #2563eb;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(77, 119, 78, 0.1);
+  color: #4D774E;
+  border: 1px solid rgba(77, 119, 78, 0.3);
 }
 
 .person-role-pill.role-recruiter {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(241, 178, 74, 0.15);
+  color: #c47f0a;
+  border: 1px solid rgba(241, 178, 74, 0.4);
 }
 
 .person-role-pill.role-hr {
-  background: rgba(139, 92, 246, 0.1);
-  color: #7c3aed;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: rgba(157, 200, 141, 0.2);
+  color: #164A41;
+  border: 1px solid rgba(157, 200, 141, 0.5);
 }
 
 .person-company {
@@ -470,7 +463,7 @@
 .person-company i {
   font-size: 11px;
   flex-shrink: 0;
-  color: var(--text-muted);
+  color: #4D774E;
 }
 
 .person-followers {
@@ -484,7 +477,7 @@
 
 .person-followers i {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #9DC88D;
 }
 
 .follower-count {
@@ -493,7 +486,7 @@
 }
 
 /* ========================================
-   CARD FOOTER (matches sidebar buttons)
+   CARD FOOTER
    ======================================== */
 .card-footer {
   padding: 12px 16px;
@@ -504,7 +497,6 @@
   margin-top: auto;
 }
 
-/* Buttons (matches job-details button style) */
 .btn-follow,
 .btn-message,
 .btn-view-profile {
@@ -524,14 +516,14 @@
 .btn-follow {
   flex: 1;
   padding: 10px 16px;
-  background: #14b8a6;
+  background: #4D774E;
   color: white;
-  border: 1px solid #14b8a6;
+  border: 1px solid #4D774E;
 }
 
 .btn-follow:hover {
-  background: #0f9488;
-  border-color: #0f9488;
+  background: #164A41;
+  border-color: #164A41;
 }
 
 .btn-follow.following {
@@ -553,9 +545,9 @@
 }
 
 .btn-follow.btn-guest-view:hover {
-  background: #14b8a6;
+  background: #4D774E;
   color: white;
-  border-color: #14b8a6;
+  border-color: #4D774E;
 }
 
 .btn-message,
@@ -570,9 +562,9 @@
 }
 
 .btn-message:hover {
-  border-color: #14b8a6;
-  color: #14b8a6;
-  background: rgba(20, 184, 166, 0.1);
+  border-color: #4D774E;
+  color: #4D774E;
+  background: rgba(77, 119, 78, 0.1);
 }
 
 .btn-message-restricted {
@@ -580,20 +572,20 @@
 }
 
 .btn-message-restricted:hover {
-  border-color: #f59e0b;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
+  border-color: #F1B24A;
+  color: #e09a30;
+  background: rgba(241, 178, 74, 0.1);
   opacity: 1;
 }
 
 .btn-view-profile:hover {
-  border-color: #14b8a6;
-  color: #14b8a6;
-  background: rgba(20, 184, 166, 0.1);
+  border-color: #4D774E;
+  color: #4D774E;
+  background: rgba(77, 119, 78, 0.1);
 }
 
 /* ========================================
-   EMPTY STATE (matches job-details empty state)
+   EMPTY STATE
    ======================================== */
 .people-empty {
   border-radius: 12px;
@@ -651,9 +643,9 @@
 }
 
 .btn-clear-search:hover {
-  background: #14b8a6;
+  background: #4D774E;
   color: white;
-  border-color: #14b8a6;
+  border-color: #4D774E;
 }
 
 /* ========================================
@@ -666,7 +658,7 @@
   max-width: 400px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid #F1B24A;
   border-radius: 12px;
   box-shadow: 0 8px 24px var(--shadow-color);
   z-index: 9999;
@@ -691,7 +683,7 @@
 
 .msg-toast-icon {
   font-size: 24px;
-  color: #f59e0b;
+  color: #F1B24A;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -872,4 +864,41 @@
   .role-tab {
     justify-content: center;
   }
+}
+ 
+.person-role-pill.role-applicant {
+  background: rgba(77, 119, 78, 0.18);
+  color: #9DC88D;
+  border: 1px solid rgba(157, 200, 141, 0.35);
+}
+
+.person-role-pill.role-recruiter {
+  background: rgba(241, 178, 74, 0.18);
+  color: #F1B24A;
+  border: 1px solid rgba(241, 178, 74, 0.35);
+}
+
+.person-role-pill.role-hr {
+  background: rgba(157, 200, 141, 0.18);
+  color: #9DC88D;
+  border: 1px solid rgba(157, 200, 141, 0.35);
+}
+
+/* LIGHT MODE — use dark colors for readability on white */
+[data-theme="light"] .person-role-pill.role-applicant {
+  background: rgba(77, 119, 78, 0.1);
+  color: #4D774E;
+  border: 1px solid rgba(77, 119, 78, 0.3);
+}
+
+[data-theme="light"] .person-role-pill.role-recruiter {
+  background: rgba(241, 178, 74, 0.15);
+  color: #b07000;
+  border: 1px solid rgba(241, 178, 74, 0.4);
+}
+
+[data-theme="light"] .person-role-pill.role-hr {
+  background: rgba(77, 119, 78, 0.1);
+  color: #164A41;
+  border: 1px solid rgba(77, 119, 78, 0.3);
 }
