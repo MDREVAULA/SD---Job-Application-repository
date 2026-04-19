@@ -95,6 +95,7 @@ def inject_now():
 @app.before_request
 def auto_unban_expired():
     try:
+        # ── Auto-unban expired users ──
         expired = User.query.filter(
             User.is_banned == True,
             User.ban_until != None,
@@ -107,9 +108,25 @@ def auto_unban_expired():
                 u.ban_reason = None
                 u.banned_at  = None
             db.session.commit()
+
+        # ── Auto-restore expired job takedowns ──
+        from models import Job
+        expired_jobs = Job.query.filter(
+            Job.is_taken_down == True,
+            Job.takedown_until != None,
+            Job.takedown_until <= datetime.utcnow()
+        ).all()
+        if expired_jobs:
+            for j in expired_jobs:
+                j.is_taken_down   = False
+                j.takedown_until  = None
+                j.takedown_reason = None
+                j.taken_down_at   = None
+            db.session.commit()
+
     except Exception:
         pass  # never crash the app over this
-
+    
 # ============================================================
 # AUTO-PROCESS EXPIRED RENDERING PERIODS
 # Runs on every request (lightweight — only commits when rows change).
@@ -134,7 +151,7 @@ from routes.admin import admin_bp
 from routes.chat import chat_bp
 from routes.profile_view import profile_view_bp
 from routes.settings import settings_bp
-from routes.report_block import report_block_bp
+from routes.report_block import report_block_bp   
 from routes.employment import employment_bp
 
 app.register_blueprint(auth_bp)
@@ -145,7 +162,8 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(profile_view_bp)
 app.register_blueprint(settings_bp)
-app.register_blueprint(report_block_bp)
+app.register_blueprint(report_block_bp)   
+
 app.register_blueprint(employment_bp)
 
 # ============================================================

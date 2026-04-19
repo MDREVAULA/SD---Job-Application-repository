@@ -396,6 +396,10 @@ class Job(db.Model):
     location = db.Column(db.String(200))
     salary = db.Column(db.String(100))
     currency = db.Column(db.String(10), default='PHP')
+    is_taken_down   = db.Column(db.Boolean, default=False)
+    takedown_reason = db.Column(db.Text, nullable=True)
+    takedown_until  = db.Column(db.DateTime, nullable=True)  # None = permanent
+    taken_down_at   = db.Column(db.DateTime, nullable=True)
 
     poster = db.Column(db.String(200))
 
@@ -854,6 +858,7 @@ class UserReport(db.Model):
 
     reason      = db.Column(db.String(100), nullable=False)   # e.g. "Spam", "Harassment", etc.
     description = db.Column(db.Text, nullable=True)
+    evidence_files = db.Column(db.Text, nullable=True)
 
     # Admin handling
     status      = db.Column(db.String(20), default='pending')  # pending | reviewed | dismissed

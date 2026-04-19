@@ -1021,6 +1021,273 @@
     </div>
 
   </div>
+{# ================================================================
+   PASTE THIS BLOCK inside job_details.html, right before the
+   closing </div> of .job-view-wrapper (end of the file).
+   It is 100% wrapped in {% if current_user.role == 'admin' %}
+   so it never renders for any other user.
+   ================================================================ #}
+{% if current_user.is_authenticated and current_user.role == 'admin' %}
+
+<!-- ── Admin Ribbon ───────────────────────────────────────── -->
+<div class="adm-job-ribbon" id="admJobRibbon">
+  <div class="adm-job-ribbon-inner">
+    <span class="adm-job-ribbon-label">
+      <i class="fas fa-shield-alt"></i> Admin
+    </span>
+
+    {% if job.is_taken_down %}
+      <span class="adm-job-status adm-job-status--down">
+        <i class="fas fa-ban"></i> Taken Down
+      </span>
+      <button class="adm-job-btn adm-job-btn--restore"
+              onclick="admRestoreJob({{ job.id }})">
+        <i class="fas fa-undo"></i> Restore Job
+      </button>
+    {% else %}
+      <button class="adm-job-btn adm-job-btn--takedown"
+              onclick="admOpenTakedown()">
+        <i class="fas fa-ban"></i> Take Down
+      </button>
+    {% endif %}
+
+    <a href="{{ url_for('admin.all_jobs', job_id=job.id) }}"
+       class="adm-job-btn adm-job-btn--view">
+      <i class="fas fa-cog"></i> Admin Panel
+    </a>
+
+    <button class="adm-job-ribbon-toggle" onclick="admToggleRibbon()">
+      <i class="fas fa-chevron-down" id="admRibbonChevron"></i>
+    </button>
+  </div>
+
+  {% if job.is_taken_down and job.takedown_reason %}
+  <div class="adm-job-reason">
+    <i class="fas fa-comment-alt"></i>
+    Reason: <strong>{{ job.takedown_reason }}</strong>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Re-open tab (shown only when ribbon is collapsed) ──── -->
+<button class="adm-job-ribbon-tab" id="admRibbonTab"
+        onclick="admToggleRibbon()">
+  <i class="fas fa-shield-alt"></i> Admin
+</button>
+
+<!-- ── Takedown Modal ─────────────────────────────────────── -->
+<div class="adm-td-overlay" id="admTdOverlay" onclick="admCloseTakedownOutside(event)">
+  <div class="adm-td-modal" id="admTdModal">
+
+    <!-- Header -->
+    <div class="adm-td-header">
+      <h3><i class="fas fa-ban"></i> Take Down Job</h3>
+      <button class="adm-td-close" onclick="admCloseTakedown()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="adm-td-body">
+      <p class="adm-td-desc">
+        This job will be <strong>hidden from applicants</strong> until restored.
+        The recruiter will be notified.
+      </p>
+
+      <!-- Duration chips -->
+      <div class="adm-td-field">
+        <div class="adm-td-label">
+          <i class="fas fa-clock"></i> Duration
+        </div>
+        <div class="adm-td-chips">
+          <label class="adm-td-chip">
+            <input type="radio" name="duration" value="3"> 3 Days
+          </label>
+          <label class="adm-td-chip">
+            <input type="radio" name="duration" value="7" checked> 7 Days
+          </label>
+          <label class="adm-td-chip">
+            <input type="radio" name="duration" value="14"> 14 Days
+          </label>
+          <label class="adm-td-chip">
+            <input type="radio" name="duration" value="30"> 30 Days
+          </label>
+          <label class="adm-td-chip adm-td-chip--perm">
+            <input type="radio" name="duration" value="permanent"> Permanent
+          </label>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="adm-td-preview adm-td-preview--timed" id="admTdPreview">
+        <i class="fas fa-calendar-alt"></i>
+        <span id="admTdPreviewText"></span>
+      </div>
+
+      <!-- Reason -->
+      <div class="adm-td-field" style="margin-top:14px;">
+        <div class="adm-td-label">
+          <i class="fas fa-comment-alt"></i> Reason
+          <span class="adm-td-optional">(optional)</span>
+        </div>
+        <textarea class="adm-td-textarea" id="admTdReason" rows="3"
+          placeholder="e.g. Misleading job description, spam, violates guidelines…"></textarea>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="adm-td-footer">
+      <button class="adm-td-btn adm-td-btn--cancel" onclick="admCloseTakedown()">
+        Cancel
+      </button>
+      <button class="adm-td-btn adm-td-btn--confirm" onclick="admSubmitTakedown({{ job.id }})">
+        <i class="fas fa-ban"></i> Confirm Takedown
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+console.log('Modal element:', document.getElementById('admTdModal'));
+console.log('Overlay element:', document.getElementById('admTdOverlay'));
+
+// ── Ribbon toggle (with persistent re-open tab) ──────────────
+function admToggleRibbon() {
+    const ribbon  = document.getElementById('admJobRibbon');
+    const chevron = document.getElementById('admRibbonChevron');
+    const tab     = document.getElementById('admRibbonTab');
+ 
+    ribbon.classList.toggle('collapsed');
+    const isCollapsed = ribbon.classList.contains('collapsed');
+ 
+    // Show the floating tab only when ribbon is hidden
+    tab.style.display = isCollapsed ? 'flex' : 'none';
+ 
+    chevron.className = isCollapsed
+        ? 'fas fa-chevron-up'   // chevron points up = "click to open"
+        : 'fas fa-chevron-down'; // chevron points down = "click to close"
+}
+ 
+// ── Restore job ──────────────────────────────────────────────
+function admRestoreJob(jobId) {
+    if (!confirm('Restore this job? It will be visible to applicants again.')) return;
+    fetch(`/admin/job/${jobId}/restore`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) location.reload();
+            else alert(data.error || 'Something went wrong.');
+        })
+        .catch(() => alert('Something went wrong.'));
+}
+ 
+// ── Takedown modal open / close ──────────────────────────────
+function admOpenTakedown() {
+    const overlay = document.getElementById('admTdOverlay');
+    const modal   = document.getElementById('admTdModal');
+
+    if (!overlay || !modal) {
+        console.error('Modal elements not found!');
+        return;
+    }
+
+    overlay.style.display = 'flex';   // ← already correct
+    modal.style.display   = 'flex';   // ← already correct
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            modal.style.opacity   = '1';          // ← add these two lines
+            modal.style.transform = 'translateY(0)';
+            modal.classList.add('open');
+        });
+    });
+
+    document.body.style.overflow = 'hidden';
+    admUpdatePreview();
+}
+
+function admCloseTakedown() {
+    const overlay = document.getElementById('admTdOverlay');
+    const modal   = document.getElementById('admTdModal');
+
+    modal.classList.remove('open');
+    overlay.classList.remove('open');
+
+    setTimeout(() => {
+        modal.style.display   = 'none';
+        overlay.style.display = 'none';
+    }, 220);
+
+    document.body.style.overflow = '';
+}
+ 
+// Close only when clicking the backdrop (not the modal itself)
+function admCloseTakedownOutside(event) {
+    if (event.target === document.getElementById('admTdOverlay')) {
+        admCloseTakedown();
+    }
+}
+ 
+// ── Submit takedown ──────────────────────────────────────────
+function admSubmitTakedown(jobId) {
+    const duration = document.querySelector('input[name="duration"]:checked').value;
+    const reason   = document.getElementById('admTdReason').value.trim();
+    const days     = duration === 'permanent' ? null : parseInt(duration);
+ 
+    fetch(`/admin/job/${jobId}/takedown`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason, days })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) { admCloseTakedown(); location.reload(); }
+        else alert(data.error || 'Something went wrong.');
+    })
+    .catch(() => alert('Something went wrong.'));
+}
+ 
+// ── Duration preview ─────────────────────────────────────────
+function admUpdatePreview() {
+    const selected = document.querySelector('input[name="duration"]:checked');
+    if (!selected) return;
+ 
+    const preview = document.getElementById('admTdPreview');
+    const text    = document.getElementById('admTdPreviewText');
+    const icon    = preview.querySelector('i');
+    const val     = selected.value;
+ 
+    if (val === 'permanent') {
+        icon.className    = 'fas fa-infinity';
+        text.textContent  = 'Job will be permanently removed from public view until admin restores it.';
+        preview.className = 'adm-td-preview adm-td-preview--perm';
+    } else {
+        const days  = parseInt(val);
+        const until = new Date();
+        until.setDate(until.getDate() + days);
+        const fmt = until.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+        });
+        icon.className    = 'fas fa-calendar-alt';
+        text.textContent  = `Job will be hidden until ${fmt} (${days} day${days !== 1 ? 's' : ''}). Recruiter has until then to comply.`;
+        preview.className = 'adm-td-preview adm-td-preview--timed';
+    }
+}
+ 
+document.querySelectorAll('input[name="duration"]').forEach(r =>
+    r.addEventListener('change', admUpdatePreview)
+);
+ 
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') admCloseTakedown();
+});
+</script>
+
+
+
+
+{% endif %}
 
 </div>
 

@@ -23,9 +23,36 @@
         </div>
         {% endif %}
 
+        <!-- Ban Duration -->
+        <div class="banned-reason-box" style="margin-bottom: 20px;">
+            <div class="banned-reason-label" style="color: #F1B24A;">
+                <i class="fas fa-clock"></i> Ban Duration
+            </div>
+            {% if user.ban_until %}
+                {% set now = namespace(dt=None) %}
+                <p class="banned-reason-text">
+                    <span style="color: #fbbf24; font-weight: 700;">
+                        Temporary Ban
+                    </span><br>
+                    Expires on <strong>{{ user.ban_until.strftime('%B %d, %Y at %I:%M %p') }}</strong>
+                </p>
+                <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted, #888);">
+                    <i class="fas fa-hourglass-half" style="color: #F1B24A;"></i>
+                    Your access will be automatically restored after this date.
+                </div>
+            {% else %}
+                <p class="banned-reason-text">
+                    <span style="color: #f87171; font-weight: 700;">
+                        Permanent Ban
+                    </span><br>
+                    This suspension has no expiration date.
+                </p>
+            {% endif %}
+        </div>
+
         {% if user.banned_at %}
         <div class="banned-meta">
-            <i class="fas fa-clock"></i>
+            <i class="fas fa-calendar-alt"></i>
             Suspended on {{ user.banned_at.strftime('%B %d, %Y') }}
         </div>
         {% endif %}

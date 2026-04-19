@@ -68,6 +68,22 @@
                     <label class="pam-field-label" for="pamReportDesc">Additional details <span>(optional)</span></label>
                     <textarea id="pamReportDesc" class="pam-field-textarea" placeholder="Describe the issue in more detail..." rows="3"></textarea>
                 </div>
+
+                <!-- ── Evidence Upload ── -->
+                <div class="pam-report-field" style="margin-top:14px;">
+                    <label class="pam-field-label">
+                        Evidence
+                        <span>(optional · up to 5 files · jpg, png, gif, mp4, pdf · max 10 MB each)</span>
+                    </label>
+                    <div class="pam-evidence-drop" id="pamEvidenceDrop" onclick="document.getElementById('pamEvidenceInput').click()">
+                        <input type="file" id="pamEvidenceInput" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.pdf" style="display:none;">
+                        <svg viewBox="0 0 24 24" class="pam-evidence-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span class="pam-evidence-label">Click to upload files</span>
+                        <span class="pam-evidence-sub">or drag and drop</span>
+                    </div>
+                    <div id="pamEvidenceList" class="pam-evidence-list"></div>
+                </div>
+
                 <div id="pamReportError" class="pam-report-error" style="display:none;"></div>
             </div>
             <div class="pam-report-footer">
@@ -81,6 +97,108 @@
 
         <!-- Toast -->
         <div class="pam-toast" id="pamToast"></div>
+
+        <style>
+        /* ── Evidence drop zone ── */
+        .pam-evidence-drop {
+            border: 2px dashed var(--border-color, #e5e7eb);
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.18s, background 0.18s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .pam-evidence-drop:hover,
+        .pam-evidence-drop.drag-over {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
+        .pam-evidence-icon {
+            width: 28px;
+            height: 28px;
+            stroke: #9ca3af;
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            margin-bottom: 2px;
+        }
+        .pam-evidence-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary, #374151);
+        }
+        .pam-evidence-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted, #9ca3af);
+        }
+
+        /* ── File list ── */
+        .pam-evidence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .pam-evidence-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 12px;
+            background: var(--bg-surface-alt, #f9fafb);
+            border: 1px solid var(--border-color, #e5e7eb);
+            border-radius: 8px;
+            font-size: 0.82rem;
+        }
+        .pam-evidence-item-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            color: #6b7280;
+        }
+        .pam-evidence-item-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--text-secondary, #374151);
+            font-weight: 500;
+        }
+        .pam-evidence-item-size {
+            font-size: 0.72rem;
+            color: var(--text-muted, #9ca3af);
+            flex-shrink: 0;
+        }
+        .pam-evidence-item-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            transition: color 0.12s;
+        }
+        .pam-evidence-item-remove:hover { color: #dc2626; }
+
+        /* ── Preview thumbnail ── */
+        .pam-evidence-thumb {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        [data-theme="dark"] .pam-evidence-drop { border-color: var(--border-color); }
+        [data-theme="dark"] .pam-evidence-drop:hover { background: rgba(220,38,38,0.08); }
+        [data-theme="dark"] .pam-evidence-item { background: rgba(255,255,255,0.04); border-color: var(--border-color); }
+        [data-theme="dark"] .pam-evidence-item-name { color: var(--text-secondary); }
+        </style>
         `;
         document.body.appendChild(div);
     }
@@ -105,7 +223,6 @@
         const menu    = $('pamMenu');
         if (!trigger || !menu) return;
         const rect = trigger.getBoundingClientRect();
-        // Use fixed so scroll/overflow on any ancestor can never clip it
         menu.style.position = 'fixed';
         menu.style.top      = (rect.bottom + 8) + 'px';
         menu.style.right    = (window.innerWidth - rect.right) + 'px';
@@ -135,7 +252,6 @@
         if (trigger) trigger.classList.remove('pam-trigger--open');
     };
 
-    // reposition on scroll / resize
     window.addEventListener('scroll', () => { if (menuOpen) positionMenu(); }, { passive: true });
     window.addEventListener('resize', () => { if (menuOpen) positionMenu(); });
 
@@ -174,6 +290,116 @@
         .catch(() => toast('Something went wrong.', 'error'));
     };
 
+    // ── Evidence file handling ───────────────────────────────────
+    let evidenceFiles = [];
+    const MAX_FILES   = 5;
+    const MAX_SIZE    = 10 * 1024 * 1024;
+    const ALLOWED_EXT = new Set(['.jpg','.jpeg','.png','.gif','.webp','.mp4','.pdf']);
+
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function fileIcon(name) {
+        const ext = name.toLowerCase().split('.').pop();
+        if (['jpg','jpeg','png','gif','webp'].includes(ext)) return '🖼️';
+        if (ext === 'mp4') return '🎥';
+        if (ext === 'pdf') return '📄';
+        return '📎';
+    }
+
+    function renderEvidenceList() {
+        const list = $('pamEvidenceList');
+        if (!list) return;
+        list.innerHTML = '';
+        evidenceFiles.forEach((f, i) => {
+            const isImage = f.type.startsWith('image/');
+            const item = document.createElement('div');
+            item.className = 'pam-evidence-item';
+
+            let thumbHtml = '';
+            if (isImage) {
+                const url = URL.createObjectURL(f);
+                thumbHtml = `<img src="${url}" class="pam-evidence-thumb" alt="">`;
+            } else {
+                thumbHtml = `<span class="pam-evidence-item-icon">${fileIcon(f.name)}</span>`;
+            }
+
+            item.innerHTML = `
+                ${thumbHtml}
+                <span class="pam-evidence-item-name" title="${f.name}">${f.name}</span>
+                <span class="pam-evidence-item-size">${formatBytes(f.size)}</span>
+                <button class="pam-evidence-item-remove" title="Remove" data-index="${i}">✕</button>
+            `;
+            list.appendChild(item);
+        });
+
+        list.querySelectorAll('.pam-evidence-item-remove').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const idx = parseInt(this.dataset.index);
+                evidenceFiles.splice(idx, 1);
+                renderEvidenceList();
+            });
+        });
+    }
+
+    function addFiles(newFiles) {
+        const errEl = $('pamReportError');
+        for (const f of newFiles) {
+            if (evidenceFiles.length >= MAX_FILES) {
+                if (errEl) { errEl.textContent = `Maximum ${MAX_FILES} files allowed.`; errEl.style.display = 'flex'; }
+                break;
+            }
+            const ext = '.' + f.name.toLowerCase().split('.').pop();
+            if (!ALLOWED_EXT.has(ext)) {
+                toast(`${f.name}: unsupported file type`, 'error');
+                continue;
+            }
+            if (f.size > MAX_SIZE) {
+                toast(`${f.name}: exceeds 10 MB limit`, 'error');
+                continue;
+            }
+            evidenceFiles.push(f);
+        }
+        renderEvidenceList();
+    }
+
+    // Wire up file input
+    document.addEventListener('change', function (e) {
+        if (e.target && e.target.id === 'pamEvidenceInput') {
+            addFiles(Array.from(e.target.files));
+            e.target.value = ''; // reset so same file can be re-added after removal
+        }
+    });
+
+    // Drag and drop
+    document.addEventListener('dragover', function (e) {
+        const drop = $('pamEvidenceDrop');
+        if (drop && drop.contains(e.target)) {
+            e.preventDefault();
+            drop.classList.add('drag-over');
+        }
+    });
+
+    document.addEventListener('dragleave', function (e) {
+        const drop = $('pamEvidenceDrop');
+        if (drop && !drop.contains(e.relatedTarget)) {
+            drop.classList.remove('drag-over');
+        }
+    });
+
+    document.addEventListener('drop', function (e) {
+        const drop = $('pamEvidenceDrop');
+        if (drop && drop.contains(e.target)) {
+            e.preventDefault();
+            drop.classList.remove('drag-over');
+            addFiles(Array.from(e.dataTransfer.files));
+        }
+    });
+
     // ── open report modal ────────────────────────────────────────
     window.pamOpenReport = function () {
         pamCloseMenu();
@@ -192,6 +418,8 @@
         if (desc) desc.value = '';
         const err = $('pamReportError');
         if (err) { err.style.display = 'none'; err.textContent = ''; }
+        evidenceFiles = [];
+        renderEvidenceList();
     };
 
     // ── close report modal ───────────────────────────────────────
@@ -207,7 +435,7 @@
         document.body.style.overflow = '';
     };
 
-    // ── submit report ────────────────────────────────────────────
+    // ── submit report (uses FormData for file upload) ─────────────
     window.pamSubmitReport = function () {
         const uid      = window.PROFILE_USER_ID;
         const reasonEl = document.querySelector('input[name="pamReason"]:checked');
@@ -224,10 +452,17 @@
         const btn = $('pamSubmitBtn');
         if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
 
+        // Build FormData so we can attach files
+        const formData = new FormData();
+        formData.append('reason', reason);
+        formData.append('description', desc);
+        evidenceFiles.forEach(f => formData.append('evidence', f));
+
         fetch(`/user/report/${uid}`, {
             method : 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            body   : JSON.stringify({ reason, description: desc }),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            // NOTE: do NOT set Content-Type header — browser sets multipart boundary automatically
+            body   : formData,
         })
         .then(r => r.json())
         .then(data => {

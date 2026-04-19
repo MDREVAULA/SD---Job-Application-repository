@@ -3,6 +3,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/reports.css') }}">
 
 <div class="admin-page-wrapper">
 
@@ -13,7 +14,11 @@
                 <i class="fas fa-users" style="font-size:18px;"></i>
             </div>
             <div>
-                <h1 class="admin-page-title">All Users <span style="font-size:1rem; font-weight:700; background:rgba(220,38,38,0.1); color:#f87171; border:1px solid rgba(220,38,38,0.25); border-radius:20px; padding:2px 12px; margin-left:6px;">{{ banned_users|length }}</span></h1>
+                <h1 class="admin-page-title">All Users
+                    <span style="font-size:1rem; font-weight:700; background:rgba(220,38,38,0.1); color:#f87171; border:1px solid rgba(220,38,38,0.25); border-radius:20px; padding:2px 12px; margin-left:6px;">
+                        {{ users|length }}
+                    </span>
+                </h1>
                 <p class="admin-page-subtitle">Browse and manage every account on the platform</p>
             </div>
         </div>
@@ -108,9 +113,9 @@
 
 </div>
 
-<!-- Ban Modal -->
+<!-- ══ BAN MODAL ══ -->
 <div class="admin-modal-overlay" id="banModalOverlay" style="display:none;">
-    <div class="admin-modal">
+    <div class="admin-modal ban-modal">
         <div class="admin-modal-header">
             <h3><i class="fas fa-ban"></i> Ban User</h3>
             <button class="admin-modal-close" onclick="closeBanModal()">
@@ -119,22 +124,73 @@
         </div>
         <div class="admin-modal-body">
             <p class="admin-modal-desc">
-                You are about to ban <strong id="banUsername"></strong>.
+                Banning <strong id="banUsername"></strong>.
                 They will be immediately locked out.
             </p>
             <form method="POST" id="banForm">
                 <input type="hidden" name="next" value="{{ request.url }}">
+
+                <!-- Duration chips -->
                 <div class="admin-modal-field">
                     <label class="admin-modal-label">
-                        <i class="fas fa-comment-alt"></i> Reason (shown to user)
+                        <i class="fas fa-clock"></i> Ban Duration
                     </label>
-                    <textarea name="ban_reason" class="admin-textarea"
-                              placeholder="e.g. Suspicious activity, spam, policy violation..."
-                              rows="3"></textarea>
+                    <div class="ban-duration-grid">
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="1">
+                            <span>1 Day</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="3">
+                            <span>3 Days</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="7">
+                            <span>1 Week</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="14">
+                            <span>2 Weeks</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="30">
+                            <span>1 Month</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="90">
+                            <span>3 Months</span>
+                        </label>
+                        <label class="ban-chip">
+                            <input type="radio" name="ban_duration" value="180">
+                            <span>6 Months</span>
+                        </label>
+                        <label class="ban-chip ban-chip--permanent">
+                            <input type="radio" name="ban_duration" value="permanent" checked>
+                            <span><i class="fas fa-ban"></i> Permanent</span>
+                        </label>
+                    </div>
+
+                    <!-- Live preview -->
+                    <div class="ban-duration-preview ban-duration-preview--permanent" id="banDurationPreview">
+                        <i class="fas fa-infinity"></i>
+                        <span id="banDurationText">User will be banned permanently until manually unbanned</span>
+                    </div>
                 </div>
+
+                <div class="admin-modal-field">
+                    <label class="admin-modal-label">
+                        <i class="fas fa-comment-alt"></i> Ban Reason
+                        <span class="admin-modal-label-sub">(shown to user)</span>
+                    </label>
+                    <textarea name="ban_reason" class="admin-modal-textarea"
+                              placeholder="e.g. Suspicious activity, spam, policy violation..."
+                              rows="2"></textarea>
+                </div>
+
                 <div class="admin-modal-footer">
-                    <button type="button" class="admin-back-btn" onclick="closeBanModal()">Cancel</button>
-                    <button type="submit" class="btn-ban" style="padding:10px 22px;">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel"
+                            onclick="closeBanModal()">Cancel</button>
+                    <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
                         <i class="fas fa-ban"></i> Confirm Ban
                     </button>
                 </div>
@@ -148,12 +204,49 @@ function openBanModal(userId, username) {
     document.getElementById('banUsername').textContent = username;
     document.getElementById('banForm').action = `/admin/ban/${userId}`;
     document.getElementById('banModalOverlay').style.display = 'flex';
+    updateDurationPreview();
 }
+
 function closeBanModal() {
     document.getElementById('banModalOverlay').style.display = 'none';
 }
+
 document.getElementById('banModalOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeBanModal();
+});
+
+function updateDurationPreview() {
+    const selected = document.querySelector('input[name="ban_duration"]:checked');
+    if (!selected) return;
+
+    const preview = document.getElementById('banDurationPreview');
+    const text    = document.getElementById('banDurationText');
+    const icon    = preview.querySelector('i');
+    const val     = selected.value;
+
+    if (val === 'permanent') {
+        icon.className    = 'fas fa-infinity';
+        text.textContent  = 'User will be banned permanently until manually unbanned';
+        preview.className = 'ban-duration-preview ban-duration-preview--permanent';
+    } else {
+        const days  = parseInt(val);
+        const until = new Date();
+        until.setDate(until.getDate() + days);
+        const formatted = until.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+        });
+        icon.className    = 'fas fa-calendar-alt';
+        text.textContent  = `Ban expires ${formatted} (${days} day${days !== 1 ? 's' : ''} from now)`;
+        preview.className = 'ban-duration-preview ban-duration-preview--timed';
+    }
+}
+
+document.querySelectorAll('input[name="ban_duration"]').forEach(r => {
+    r.addEventListener('change', updateDurationPreview);
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeBanModal();
 });
 </script>
 

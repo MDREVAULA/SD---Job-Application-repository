@@ -1,0 +1,314 @@
+{% extends "layout.html" %}
+{% block title %}Manage Jobs — Admin{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/reports.css') }}">
+
+<div class="admin-page-wrapper">
+
+    <!-- PAGE HEADER -->
+    <div class="admin-page-header">
+        <div class="admin-page-header-left">
+            <div class="admin-page-icon" style="background: linear-gradient(135deg, #92400e, #F1B24A);">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <div>
+                <h1 class="admin-page-title">Manage Jobs
+                    <span style="font-size:1rem; font-weight:700; background:rgba(241,178,74,0.12); color:#F1B24A; border:1px solid rgba(241,178,74,0.3); border-radius:20px; padding:2px 12px; margin-left:6px;">
+                        {{ total_jobs }}
+                    </span>
+                </h1>
+                <p class="admin-page-subtitle">View, take down, restore or permanently delete job postings</p>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- STATS -->
+    <div style="display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+        <div class="admin-table-card" style="flex:1; min-width:120px; padding:18px 20px; text-align:center;">
+            <i class="fas fa-briefcase" style="font-size:1.4rem; color:#9DC88D; display:block; margin-bottom:6px;"></i>
+            <div style="font-size:1.6rem; font-weight:800; color:#9DC88D;">{{ total_jobs }}</div>
+            <div style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-top:2px;">Total Jobs</div>
+        </div>
+        <div class="admin-table-card" style="flex:1; min-width:120px; padding:18px 20px; text-align:center;">
+            <i class="fas fa-check-circle" style="font-size:1.4rem; color:#4D774E; display:block; margin-bottom:6px;"></i>
+            <div style="font-size:1.6rem; font-weight:800; color:#4D774E;">{{ active_count }}</div>
+            <div style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-top:2px;">Active</div>
+        </div>
+        <div class="admin-table-card" style="flex:1; min-width:120px; padding:18px 20px; text-align:center;">
+            <i class="fas fa-eye-slash" style="font-size:1.4rem; color:#d97706; display:block; margin-bottom:6px;"></i>
+            <div style="font-size:1.6rem; font-weight:800; color:#d97706;">{{ takendown_count }}</div>
+            <div style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-top:2px;">Taken Down</div>
+        </div>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div class="rpt-filter-row">
+        <a href="{{ url_for('admin.all_jobs', status='all') }}"
+           class="btn-restore {% if status_filter == 'all' %}btn-restore--active{% endif %}">
+            All
+        </a>
+        <a href="{{ url_for('admin.all_jobs', status='active') }}"
+           class="btn-restore {% if status_filter == 'active' %}btn-restore--active{% endif %}">
+            <i class="fas fa-check-circle"></i> Active
+        </a>
+        <a href="{{ url_for('admin.all_jobs', status='takendown') }}"
+           class="btn-restore {% if status_filter == 'takendown' %}btn-restore--active{% endif %}">
+            <i class="fas fa-eye-slash"></i> Taken Down
+            {% if takendown_count %}<span class="rpt-tab-pill">{{ takendown_count }}</span>{% endif %}
+        </a>
+    </div>
+
+    <!-- JOBS TABLE -->
+    <div class="admin-table-card" style="margin-top:16px;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Recruiter</th>
+                    <th>Status</th>
+                    <th>Posted</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td>
+                        <div style="font-weight:700; color:var(--text-primary);">{{ job.title }}</div>
+                        {% if job.location %}
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                            <i class="fas fa-map-marker-alt"></i> {{ job.location }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set recruiter = job.company_id | get_recruiter_profile %}
+                        {% if recruiter %}
+                            {{ recruiter.company_name or '—' }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if job.is_taken_down %}
+                            <span class="badge badge-rejected">
+                                <i class="fas fa-eye-slash"></i> Taken Down
+                            </span>
+                            {% if job.takedown_until %}
+                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">
+                                Until {{ job.takedown_until.strftime('%b %d, %Y') }}
+                            </div>
+                            {% else %}
+                            <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">Indefinite</div>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge badge-approved">
+                                <i class="fas fa-check-circle"></i> Active
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--text-muted); font-size:0.8rem;">
+                        {{ job.created_at.strftime('%b %d, %Y') if job.created_at else '—' }}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                            <a href="{{ url_for('applicant.job_details', job_id=job.id) }}"
+                               target="_blank" class="btn-restore" style="text-decoration:none;">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            {% if job.is_taken_down %}
+                                <button class="btn-restore"
+                                        onclick="restoreJob({{ job.id }}, '{{ job.title|replace("'", "\\'") }}')">
+                                    <i class="fas fa-undo"></i> Restore
+                                </button>
+                            {% else %}
+                                <button class="btn-ban"
+                                        onclick="openTakedownModal({{ job.id }}, '{{ job.title|replace("'", "\\'") }}')">
+                                    <i class="fas fa-eye-slash"></i> Take Down
+                                </button>
+                            {% endif %}
+                            <button class="btn-ban"
+                                    style="background:rgba(127,29,29,0.12); border-color:rgba(127,29,29,0.3); color:#f87171;"
+                                    onclick="confirmDeleteJob({{ job.id }}, '{{ job.title|replace("'", "\\'") }}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="empty-row">
+                    <td colspan="5">
+                        <i class="fas fa-briefcase"></i>
+                        No jobs found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ══ TAKEDOWN MODAL ══ -->
+<div class="admin-modal-overlay" id="takedownModalOverlay" style="display:none;">
+    <div class="admin-modal ban-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-eye-slash"></i> Take Down Job</h3>
+            <button class="admin-modal-close" onclick="closeTakedownModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Taking down <strong id="takedownJobTitle"></strong>. It will be hidden from applicants immediately.
+            </p>
+
+            <div class="admin-modal-field">
+                <label class="admin-modal-label">
+                    <i class="fas fa-clock"></i> Duration
+                </label>
+                <div class="ban-duration-grid">
+                    <label class="ban-chip"><input type="radio" name="takedownDays" value="1"><span>1 Day</span></label>
+                    <label class="ban-chip"><input type="radio" name="takedownDays" value="3"><span>3 Days</span></label>
+                    <label class="ban-chip"><input type="radio" name="takedownDays" value="7"><span>1 Week</span></label>
+                    <label class="ban-chip"><input type="radio" name="takedownDays" value="14"><span>2 Weeks</span></label>
+                    <label class="ban-chip"><input type="radio" name="takedownDays" value="30"><span>1 Month</span></label>
+                    <label class="ban-chip ban-chip--permanent">
+                        <input type="radio" name="takedownDays" value="" checked>
+                        <span><i class="fas fa-infinity"></i> Indefinite</span>
+                    </label>
+                </div>
+                <div class="ban-duration-preview ban-duration-preview--permanent" id="takedownPreview">
+                    <i class="fas fa-infinity"></i>
+                    <span id="takedownPreviewText">Job will be hidden indefinitely until manually restored</span>
+                </div>
+            </div>
+
+            <div class="admin-modal-field">
+                <label class="admin-modal-label">
+                    <i class="fas fa-comment-alt"></i> Reason
+                    <span class="admin-modal-label-sub">(shown to recruiter)</span>
+                </label>
+                <textarea id="takedownReason" class="admin-modal-textarea"
+                          placeholder="e.g. Misleading job description, policy violation..."
+                          rows="2"></textarea>
+            </div>
+
+            <div class="admin-modal-footer">
+                <button type="button" class="admin-modal-btn admin-modal-btn--cancel"
+                        onclick="closeTakedownModal()">Cancel</button>
+                <button type="button" class="admin-modal-btn admin-modal-btn--danger"
+                        onclick="submitTakedown()">
+                    <i class="fas fa-eye-slash"></i> Confirm Takedown
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentJobId = null;
+
+// ── Takedown modal ────────────────────────────────────────────
+function openTakedownModal(jobId, title) {
+    currentJobId = jobId;
+    document.getElementById('takedownJobTitle').textContent = title;
+    document.getElementById('takedownModalOverlay').style.display = 'flex';
+    document.getElementById('takedownReason').value = '';
+    document.querySelector('input[name="takedownDays"][value=""]').checked = true;
+    updateTakedownPreview();
+}
+
+function closeTakedownModal() {
+    document.getElementById('takedownModalOverlay').style.display = 'none';
+    currentJobId = null;
+}
+
+document.getElementById('takedownModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeTakedownModal();
+});
+
+function updateTakedownPreview() {
+    const selected = document.querySelector('input[name="takedownDays"]:checked');
+    if (!selected) return;
+    const preview  = document.getElementById('takedownPreview');
+    const text     = document.getElementById('takedownPreviewText');
+    const icon     = preview.querySelector('i');
+    const val      = selected.value;
+
+    if (!val) {
+        icon.className    = 'fas fa-infinity';
+        text.textContent  = 'Job will be hidden indefinitely until manually restored';
+        preview.className = 'ban-duration-preview ban-duration-preview--permanent';
+    } else {
+        const days  = parseInt(val);
+        const until = new Date();
+        until.setDate(until.getDate() + days);
+        const formatted = until.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+        });
+        icon.className    = 'fas fa-calendar-alt';
+        text.textContent  = `Job will be automatically restored on ${formatted}`;
+        preview.className = 'ban-duration-preview ban-duration-preview--timed';
+    }
+}
+
+document.querySelectorAll('input[name="takedownDays"]').forEach(r => {
+    r.addEventListener('change', updateTakedownPreview);
+});
+
+function submitTakedown() {
+    if (!currentJobId) return;
+    const days   = document.querySelector('input[name="takedownDays"]:checked').value;
+    const reason = document.getElementById('takedownReason').value.trim();
+
+    fetch(`/admin/job/${currentJobId}/takedown`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason, days: days ? parseInt(days) : null })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            closeTakedownModal();
+            location.reload();
+        } else {
+            alert(data.error || 'Something went wrong.');
+        }
+    })
+    .catch(() => alert('Something went wrong.'));
+}
+
+// ── Restore ───────────────────────────────────────────────────
+function restoreJob(jobId, title) {
+    if (!confirm(`Restore "${title}"? It will be visible to applicants again.`)) return;
+    fetch(`/admin/job/${jobId}/restore`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) location.reload();
+            else alert(data.error || 'Something went wrong.');
+        })
+        .catch(() => alert('Something went wrong.'));
+}
+
+// ── Delete ────────────────────────────────────────────────────
+function confirmDeleteJob(jobId, title) {
+    if (!confirm(`Permanently delete "${title}"? This cannot be undone and will remove all applications.`)) return;
+    fetch(`/admin/job/${jobId}/admin-delete`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) location.reload();
+            else alert(data.error || 'Something went wrong.');
+        })
+        .catch(() => alert('Something went wrong.'));
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeTakedownModal();
+});
+</script>
+
+{% endblock %}
