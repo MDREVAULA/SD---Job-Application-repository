@@ -162,14 +162,15 @@
                              data-title="{{ job.title }}"
                              data-posted="{{ job.id }}"
                         >
-                            {% if current_user.is_authenticated and current_user.role == "applicant" %}
-                            <button class="btn-bookmark {% if job.id in saved_job_ids %}saved{% endif %}"
-                            data-job-id="{{ job.id }}"
-                            data-auth="true"
-                            onclick="toggleSaveJob(this, {{ job.id }})">
-                            <i class="{% if job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
-                    </button>
-                    {% endif %}
+                            <div class="job-card-inner">
+                                {% if current_user.is_authenticated and current_user.role == "applicant" %}
+                                    <button class="btn-bookmark {% if job.id in saved_job_ids %}saved{% endif %}"
+                                        data-job-id="{{ job.id }}"
+                                        data-auth="true"
+                                        onclick="toggleSaveJob(this, {{ job.id }})">
+                                        <i class="{% if job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                                    </button>
+                                {% endif %}
 
                                 <div class="job-logo">
                                     {% if recruiter and recruiter.company_logo %}

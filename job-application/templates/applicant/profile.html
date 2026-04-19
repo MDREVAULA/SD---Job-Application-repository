@@ -233,7 +233,7 @@
                                         <div style="font-size:0.78rem;color:#4D774E;font-weight:500;">{{ emp.company_name }}</div>
                                         <div style="font-size:0.72rem;color:var(--text-muted);">Since {{ emp.start_date.strftime('%B %Y') if emp.start_date else '' }}</div>
                                     </div>
-                                    <a href="{{ url_for('employment.applicant_onboarding_status', app_id=emp.application_id) }}"
+                                    <a href="{{ url_for('employment.employment_status', app_id=emp.application_id) }}"
                                     style="margin-left:auto;font-size:0.75rem;color:#164A41;font-weight:600;text-decoration:none;border:1px solid #9DC88D;padding:4px 10px;border-radius:20px;">
                                         View
                                     </a>

@@ -145,14 +145,14 @@ def submit_documents(app_id):
         id=app_id, applicant_id=current_user.id
     ).first_or_404()
 
-    if application.status != 'accepted':
+    if application.status not in ('accepted', 'employed'):
         flash("You can only submit documents for accepted applications.", "warning")
         return redirect(url_for('applicant.dashboard'))
 
     existing_emp = Employee.query.filter_by(application_id=app_id).first()
     if existing_emp and existing_emp.employment_status == 'active':
         flash("You are already confirmed as an employee for this job.", "info")
-        return redirect(url_for('applicant.dashboard'))
+        return redirect(url_for('employment.employment_status', app_id=app_id))
 
     job          = application.job
     requirements = EmploymentRequirement.query.filter_by(job_id=job.id).all()
@@ -529,7 +529,7 @@ def all_employees():
 
 @employment_bp.route('/terminate/<int:employee_id>', methods=['POST'])
 @login_required
-def terminate_employee(employee_id):
+def fire_employee(employee_id):
     if current_user.role != 'recruiter':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
@@ -547,7 +547,7 @@ def terminate_employee(employee_id):
 
     reason = request.form.get('reason', '').strip()
 
-    emp.employment_status = 'terminated'  # FIXED
+    emp.employment_status = 'fired' 
     emp.ended_at          = datetime.utcnow()
     emp.end_reason        = reason
 
@@ -565,6 +565,44 @@ def terminate_employee(employee_id):
     flash("Employee has been terminated.", "success")
     return redirect(url_for('employment.employee_list', job_id=job.id))
 
+# ================================================================
+# ── APPLICANT: View employment status & resign ──
+# ================================================================
+
+@employment_bp.route('/my-employment/<int:app_id>')
+@login_required
+def employment_status(app_id):
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    application = Application.query.filter_by(
+        id=app_id, applicant_id=current_user.id
+    ).first_or_404()
+
+    emp = Employee.query.filter_by(application_id=app_id).first_or_404()
+    job = application.job
+
+    from models import EmploymentOnboarding, RecruiterProfile
+    onboarding = EmploymentOnboarding.query.filter_by(application_id=app_id).first()
+    recruiter_profile = RecruiterProfile.query.filter_by(user_id=job.company_id).first()
+
+    requirements = EmploymentRequirement.query.filter_by(job_id=job.id).all()
+    submissions_map = {
+        s.requirement_id: s
+        for s in EmploymentSubmission.query.filter_by(application_id=app_id).all()
+    }
+
+    return render_template(
+        'employment/employment_status.html',
+        application=application,
+        emp=emp,
+        job=job,
+        onboarding=onboarding,
+        recruiter_profile=recruiter_profile,
+        requirements=requirements,
+        submissions_map=submissions_map,
+    )
 
 # ================================================================
 # ── APPLICANT: Resign from a job ──
@@ -581,19 +619,19 @@ def resign(employee_id):
         id=employee_id, user_id=current_user.id
     ).first_or_404()
 
-    if emp.employment_status != 'active':  # FIXED
+    if emp.employment_status != 'active':
         flash("You are no longer active in this job.", "warning")
         return redirect(url_for('applicant.dashboard'))
 
     reason = request.form.get('reason', '').strip()
     job    = Job.query.get(emp.job_id)
 
-    emp.employment_status = 'resigned'   # FIXED
+    emp.employment_status = 'resigned'
     emp.ended_at          = datetime.utcnow()
     emp.end_reason        = reason
 
     db.session.add(RecruiterNotification(
-        recruiter_id=job.company_id,   # FIXED: was emp.recruiter_id (doesn't exist)
+        recruiter_id=job.company_id,
         type='employment_ended',
         message=(
             f"<strong>{current_user.username}</strong> has resigned from "
@@ -605,8 +643,7 @@ def resign(employee_id):
 
     db.session.commit()
     flash("You have successfully resigned from the job.", "success")
-    return redirect(url_for('applicant.dashboard'))
-
+    return redirect(url_for('applicant.profile'))
 
 # ================================================================
 # ── APPLICANT: View employment records ──
