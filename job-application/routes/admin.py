@@ -326,13 +326,13 @@ def ban_user(user_id):
         ban_until = None
     else:
         try:
-            ban_until = datetime.utcnow() + timedelta(days=int(duration))
+            ban_until = datetime.get_ph_time() + timedelta(days=int(duration))
         except ValueError:
             ban_until = None
 
     user.is_banned  = True
     user.ban_reason = reason
-    user.banned_at  = datetime.utcnow()
+    user.banned_at  = datetime.get_ph_time()
     user.ban_until  = ban_until
     db.session.commit()
 
@@ -495,7 +495,7 @@ def dismiss_report(report_id):
     report.status      = 'dismissed'
     report.admin_notes = admin_notes
     report.reviewed_by = current_user.id
-    report.reviewed_at = datetime.utcnow()
+    report.reviewed_at = datetime.get_ph_time()
     db.session.commit()
 
     flash("Report dismissed.", "success")
@@ -533,19 +533,19 @@ def ban_from_report(report_id):
     else:
         try:
             days      = int(duration)
-            ban_until = datetime.utcnow() + timedelta(days=days)
+            ban_until = datetime.get_ph_time() + timedelta(days=days)
         except ValueError:
             ban_until = None
 
     user.is_banned  = True
     user.ban_reason = reason
-    user.banned_at  = datetime.utcnow()
+    user.banned_at  = datetime.get_ph_time()
     user.ban_until  = ban_until
 
     report.status      = 'reviewed'
     report.admin_notes = admin_notes
     report.reviewed_by = current_user.id
-    report.reviewed_at = datetime.utcnow()
+    report.reviewed_at = datetime.get_ph_time()
 
     db.session.commit()
 
@@ -710,10 +710,10 @@ def takedown_job(job_id):
     # ── Fixed column names ──
     job.is_taken_down   = True
     job.takedown_reason = reason
-    job.taken_down_at   = datetime.utcnow()
+    job.taken_down_at   = datetime.get_ph_time()
 
     if days and str(days).isdigit() and int(days) > 0:
-        job.takedown_until = datetime.utcnow() + timedelta(days=int(days))
+        job.takedown_until = datetime.get_ph_time() + timedelta(days=int(days))
     else:
         job.takedown_until = None
 

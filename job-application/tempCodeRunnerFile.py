@@ -87,7 +87,7 @@ app.jinja_env.filters['from_json'] = _parse_json
 
 @app.context_processor
 def inject_now():
-    return {'now': datetime.utcnow}
+    return {'now': datetime.get_ph_time}
 
 # ============================================================
 # AUTO-UNBAN EXPIRED TIMED BANS
@@ -98,7 +98,7 @@ def auto_unban_expired():
         expired = User.query.filter(
             User.is_banned == True,
             User.ban_until != None,
-            User.ban_until <= datetime.utcnow()
+            User.ban_until <= datetime.get_ph_time()
         ).all()
         if expired:
             for u in expired:

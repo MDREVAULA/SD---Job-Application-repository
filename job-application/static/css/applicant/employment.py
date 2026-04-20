@@ -108,7 +108,7 @@ def submit_requirements(app_id):
                             os.remove(old_path)
                     submission.file_path = filename
                     submission.notes = note
-                    submission.updated_at = datetime.utcnow()
+                    submission.updated_at = datetime.get_ph_time()
                 else:
                     submission = EmploymentSubmission(
                         application_id=app_id,
@@ -121,7 +121,7 @@ def submit_requirements(app_id):
             elif note and submission:
                 # Update note only
                 submission.notes = note
-                submission.updated_at = datetime.utcnow()
+                submission.updated_at = datetime.get_ph_time()
                 any_change = True
 
         if any_change:
@@ -138,7 +138,7 @@ def submit_requirements(app_id):
 
             if all_required_met:
                 onboarding.status = 'submitted'
-                onboarding.submitted_at = datetime.utcnow()
+                onboarding.submitted_at = datetime.get_ph_time()
 
                 # Notify recruiter
                 job_owner = User.query.get(job.company_id)
@@ -239,7 +239,7 @@ def resign(employee_id):
 
     note = request.form.get('resignation_note', '').strip()
     emp.employment_status = 'resigned'
-    emp.ended_at = datetime.utcnow()
+    emp.ended_at = datetime.get_ph_time()
     emp.end_reason = note or 'Resigned'
 
     # Notify recruiter
@@ -377,7 +377,7 @@ def review_submission(app_id):
             db.session.add(employee)
 
             onboarding.status = 'confirmed'
-            onboarding.reviewed_at = datetime.utcnow()
+            onboarding.reviewed_at = datetime.get_ph_time()
 
             # Notify applicant
             app_notif = ApplicantNotification(
@@ -400,7 +400,7 @@ def review_submission(app_id):
             note = request.form.get('reviewer_note', '').strip()
             onboarding.status = 'needs_revision'
             onboarding.reviewer_note = note
-            onboarding.reviewed_at = datetime.utcnow()
+            onboarding.reviewed_at = datetime.get_ph_time()
 
             app_notif = ApplicantNotification(
                 applicant_id=application.applicant_id,
@@ -505,7 +505,7 @@ def fire_employee(employee_id):
 
     reason = request.form.get('fire_reason', '').strip()
     emp.employment_status = 'fired'
-    emp.ended_at = datetime.utcnow()
+    emp.ended_at = datetime.get_ph_time()
     emp.end_reason = reason or 'Terminated by recruiter'
 
     # Notify applicant

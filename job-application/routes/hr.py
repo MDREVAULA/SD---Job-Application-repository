@@ -471,7 +471,7 @@ def update_application_status(app_id):
 
         if existing:
             existing.feedback   = new_feedback
-            existing.updated_at = datetime.utcnow()
+            existing.updated_at = datetime.get_ph_time()
         else:
             new_fb = HRFeedback(
                 application_id=app_id,
