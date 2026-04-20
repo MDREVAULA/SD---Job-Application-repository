@@ -589,7 +589,8 @@ def get_notifications():
                 'message': n.message,
                 'is_read': n.is_read,
                 'created_at': n.created_at.strftime('%b %d, %Y at %I:%M %p'),
-                'job_id': n.job_id
+                'job_id': n.job_id,
+                'sender_id': n.sender_id
             }
             for n in notifs
         ]

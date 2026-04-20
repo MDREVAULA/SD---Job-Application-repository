@@ -643,6 +643,7 @@ setInterval(updateUnreadBadge, 10000);
 
     let lastUnread = 0;
     let knownIds   = new Set();
+    let knownMsgMap = {};
 
     const ICONS = {
         new_application:    { cls: 'type-new_application',   icon: 'fa-file-alt' },
@@ -659,7 +660,9 @@ setInterval(updateUnreadBadge, 10000);
     }
 
     function getNotifUrl(n) {
-        if (n.type === 'new_message') return '/chat/inbox';
+        if (n.type === 'new_message') {
+            return n.sender_id ? '/chat/inbox/' + n.sender_id : '/chat/inbox';
+        }
         if (n.type === 'new_follow') {
             if (ROLE === 'recruiter') return '/recruiter/profile';
             if (ROLE === 'hr')        return '/hr/profile';
@@ -732,32 +735,36 @@ setInterval(updateUnreadBadge, 10000);
     }
 
     function fetchNotifs() {
-        fetch(NOTIF_API)
-            .then(r => r.json())
-            .then(data => {
-                const count = data.unread_count || 0;
-                if (count > 0) {
-                    badge.textContent = count > 99 ? '99+' : count;
-                    badge.style.display = 'inline-flex';
-                    if (count > lastUnread) btn.classList.add('has-unread');
-                } else {
-                    badge.style.display = 'none';
-                    btn.classList.remove('has-unread');
-                }
-                if (data.notifications) {
-                    data.notifications.forEach(n => {
-                        if (!knownIds.has(n.id)) {
-                            knownIds.add(n.id);
-                            if (!n.is_read && lastUnread !== null) showToast(n);
+    fetch(NOTIF_API)
+        .then(r => r.json())
+        .then(data => {
+            const count = data.unread_count || 0;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'inline-flex';
+                btn.classList.add('has-unread');
+            } else {
+                badge.style.display = 'none';
+                btn.classList.remove('has-unread');
+            }
+            if (data.notifications) {
+                data.notifications.forEach(n => {
+                    if (!n.is_read) {
+                        const prev = knownMsgMap[n.id];
+                        if (!prev || prev !== n.message) {
+                            showToast(n);
                         }
-                    });
-                    if (panel.classList.contains('open')) renderNotifs(data.notifications);
-                }
-                lastUnread = count;
-            })
-            .catch(() => {});
-    }
-
+                        knownMsgMap[n.id] = n.message;
+                    }
+                    knownIds.add(n.id);
+                });
+                if (panel.classList.contains('open')) renderNotifs(data.notifications);
+            }
+            lastUnread = count;
+        })
+        .catch(() => {});
+}
+    // Initial silent load — populate knownMsgMap without showing toasts
     fetch(NOTIF_API)
         .then(r => r.json())
         .then(data => {
@@ -768,13 +775,17 @@ setInterval(updateUnreadBadge, 10000);
                 btn.classList.add('has-unread');
             }
             if (data.notifications) {
-                data.notifications.forEach(n => knownIds.add(n.id));
-                if (panel.classList.contains('open')) renderNotifs(data.notifications);
+                data.notifications.forEach(n => {
+                    knownIds.add(n.id);
+                    knownMsgMap[n.id] = n.message;
+                });
             }
         }).catch(() => {});
 
-    setInterval(fetchNotifs, 15000);
+    // Poll every 5 seconds for new notifications
+    setInterval(fetchNotifs, 5000);
 
+    // Bell button toggle
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = panel.classList.toggle('open');
@@ -831,6 +842,7 @@ setInterval(updateUnreadBadge, 10000);
 
     let lastUnread = 0;
     let knownIds   = new Set();
+    let knownMsgMap = {};
 
     const ICONS = {
         new_message:      { cls: 'type-new_message',      icon: 'fa-comment-dots'    },
