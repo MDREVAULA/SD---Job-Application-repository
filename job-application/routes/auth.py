@@ -187,7 +187,22 @@ def google_login():
 
 @auth_bp.route("/auth/google/callback")
 def google_callback():
-    token = get_oauth().google.authorize_access_token()
+    from authlib.integrations.base_client.errors import MismatchingStateError, OAuthError
+
+    # User clicked "Cancel" on Google's consent screen
+    if request.args.get('error') == 'access_denied':
+        flash("Google sign-in was cancelled.", "info")
+        return redirect(url_for("auth.login"))
+
+    try:
+        token = get_oauth().google.authorize_access_token()
+    except MismatchingStateError:
+        flash("Login session expired. Please try again.", "info")
+        return redirect(url_for("auth.login"))
+    except OAuthError:
+        flash("Google sign-in failed. Please try again.", "danger")
+        return redirect(url_for("auth.login"))
+
     info = token.get("userinfo")
 
     if not info:
