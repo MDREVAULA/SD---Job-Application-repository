@@ -675,7 +675,7 @@ setInterval(updateUnreadBadge, 10000);
         if ((n.type === 'application_status' || n.type === 'interview_scheduled') && n.application_id) {
             return '/applicant/status';
         }
-        if (n.type === 'job_update' && n.job_id) return '/jobs/' + n.job_id;
+        if (n.type === 'job_update' && n.job_id) return '/applicant/job/' + n.job_id;
         if (n.type === 'profile_complete') {
             if (ROLE === 'applicant') return '/applicant/status';
         }
