@@ -424,9 +424,6 @@ def inbox():
     )
 
 
-# =========================
-# CONVERSATION with a specific user
-# =========================
 @chat_bp.route("/inbox/<int:other_id>")
 @login_required
 def conversation(other_id):
@@ -456,14 +453,15 @@ def conversation(other_id):
     )
     contact_ids.add(other_id)
 
+    from models import UserBlock
+
     conversations = []
     for uid in contact_ids:
         user = User.query.get(uid)
         if not user:
             continue
-        # Skip users who have a block relationship with current user
-        from models import UserBlock
-        from sqlalchemy import or_, and_
+
+        # ── block check — uses top-level or_ / and_ imports ──
         _blk = UserBlock.query.filter(
             or_(
                 and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == uid),
@@ -472,6 +470,7 @@ def conversation(other_id):
         ).first()
         if _blk:
             continue
+
         last_msg = Message.query.filter(
             or_(
                 and_(Message.sender_id == current_user.id, Message.receiver_id == uid),
@@ -484,9 +483,9 @@ def conversation(other_id):
         ).count()
 
         conversations.append({
-            "user":         u,
-            "display_name": get_display_name(u),
-            "company":      get_company_name(u),
+            "user":         user,                    # fixed: was `u`
+            "display_name": get_display_name(user),  # fixed: was `u`
+            "company":      get_company_name(user),  # fixed: was `u`
             "last_message": last_msg,
             "unread_count": unread_count,
         })

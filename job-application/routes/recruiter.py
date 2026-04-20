@@ -97,14 +97,27 @@ def profile():
 
     profile_complete = is_recruiter_profile_complete(rec_profile)
 
+# ── Determine verify_state ──────────────────────────────────────
+    # Order matters: check most specific states first.
+
     if current_user.is_verified and current_user.verification_status == "Approved":
         verify_state = "approved"
+
     elif current_user.verification_status == "Rejected":
         verify_state = "rejected"
+
     elif rec_profile and rec_profile.submitted_for_review:
         verify_state = "pending"
+
     elif profile_complete:
-        verify_state = "complete_unsubmitted"
+        # Profile fields are done — check whether company proof is uploaded
+        if rec_profile and rec_profile.company_proof:
+            # Everything ready → show Submit button
+            verify_state = "complete_unsubmitted"
+        else:
+            # Fields done but no proof yet → show proof upload step
+            verify_state = "complete_needs_proof"
+
     else:
         verify_state = "incomplete"
 
@@ -1636,3 +1649,59 @@ def clear_all_notifications_api():
     RecruiterNotification.query.filter_by(recruiter_id=current_user.id).delete()
     db.session.commit()
     return jsonify({'ok': True})
+
+# ===============================
+# UPLOAD COMPANY PROOF  (from banner)
+# Add this route to recruiter.py alongside the other upload routes
+# ===============================
+@recruiter_bp.route('/upload-company-proof', methods=['POST'])
+@login_required
+def upload_company_proof():
+    banned = check_banned()
+    if banned:
+        return banned
+
+    if current_user.role != 'recruiter':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    profile = current_user.recruiter_profile
+    if not profile:
+        flash("Recruiter profile not found.", "danger")
+        return redirect(url_for('recruiter.profile'))
+
+    file = request.files.get('company_proof')
+
+    if not file or file.filename == '':
+        flash("No file selected.", "danger")
+        return redirect(url_for('recruiter.profile'))
+
+    allowed = {'.pdf', '.jpg', '.jpeg', '.png'}
+    ext = os.path.splitext(file.filename.lower())[1]
+    if ext not in allowed:
+        flash("Company proof must be a PDF, JPG, or PNG file.", "danger")
+        return redirect(url_for('recruiter.profile'))
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 10 * 1024 * 1024:
+        flash("File exceeds the 10MB limit.", "danger")
+        return redirect(url_for('recruiter.profile'))
+
+    upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'recruiter_documents')
+    os.makedirs(upload_folder, exist_ok=True)
+
+    # Remove old proof file if it exists
+    if profile.company_proof:
+        old_path = os.path.join(upload_folder, profile.company_proof)
+        if os.path.exists(old_path):
+            os.remove(old_path)
+
+    filename = f"proof_{current_user.id}_{uuid.uuid4().hex[:8]}{ext}"
+    file.save(os.path.join(upload_folder, filename))
+    profile.company_proof = filename
+    db.session.commit()
+
+    flash("Company proof uploaded! You can now submit for review.", "success")
+    return redirect(url_for('recruiter.profile'))

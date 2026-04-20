@@ -245,180 +245,116 @@ def google_callback():
     flash("Logged in with Google!", "success")
     return redirect_by_role(user)
 
-
-# =========================
-# GOOGLE ROLE SELECTION
-# =========================
 @auth_bp.route("/google-role-select", methods=["GET", "POST"])
 def google_role_select():
-
+ 
     if not session.get("google_id"):
         flash("Session expired. Please try again.", "error")
         return redirect(url_for("auth.login"))
-
+ 
     if request.method == "POST":
         role = request.form.get("role")
-
+ 
         if role not in ["applicant", "recruiter"]:
             flash("Please select a valid role.", "error")
             return redirect(url_for("auth.google_role_select"))
-
-        session["google_role"] = role
-
-        if role == "recruiter":
-            flash("Please complete your company information to finish registration.", "info")
-            return redirect(url_for("auth.google_recruiter_profile"))
-
-        flash("Please complete your profile to finish registration.", "info")
-        return redirect(url_for("auth.google_applicant_profile"))
-
+ 
+        google_id     = session.pop("google_id")
+        email         = session.pop("google_email")
+        name          = session.pop("google_name")
+        google_picture = session.pop("google_picture", None)
+        session.pop("google_role", None)
+ 
+        # ── CREATE THE USER RIGHT HERE — no separate profile form ──
+        if role == "applicant":
+            user = User(
+                username=name,
+                email=email,
+                google_id=google_id,
+                role="applicant",
+                verification_status="Approved",
+                is_verified=True,
+                profile_completed=False,   # still needs profile completion
+                profile_picture=google_picture,
+            )
+            db.session.add(user)
+            db.session.commit()
+ 
+            # Create a bare ApplicantProfile so the profile page works immediately
+            applicant_profile = ApplicantProfile(user_id=user.id)
+            db.session.add(applicant_profile)
+            db.session.commit()
+ 
+            try:
+                from routes.admin import push_admin_notif
+                push_admin_notif(
+                    "account_request",
+                    f"New applicant account registered via Google: <strong>{user.username}</strong>",
+                    user_id=user.id,
+                )
+            except Exception:
+                pass
+ 
+            login_user(user)
+            flash("Account created with Google! Please complete your profile to unlock all features.", "success")
+            return redirect(url_for("applicant.profile"))
+ 
+        else:  # recruiter
+            user = User(
+                username=name,
+                email=email,
+                google_id=google_id,
+                role="recruiter",
+                verification_status="Pending",
+                is_verified=False,
+                profile_completed=False,
+                profile_picture=google_picture,
+            )
+            db.session.add(user)
+            db.session.commit()
+ 
+            # Create a bare RecruiterProfile so the profile page works immediately
+            profile = RecruiterProfile(user_id=user.id)
+            db.session.add(profile)
+            db.session.commit()
+ 
+            try:
+                from routes.admin import push_admin_notif
+                push_admin_notif(
+                    "account_request",
+                    f"New recruiter account registered via Google: <strong>{user.username}</strong>",
+                    user_id=user.id,
+                )
+            except Exception:
+                pass
+ 
+            login_user(user)
+            flash("Account created! Complete your company profile, then submit for admin verification.", "info")
+            return redirect(url_for("recruiter.profile"))
+ 
     return render_template("auth/google_role_select.html")
 
-
 # =========================
-# GOOGLE APPLICANT PROFILE
+# GOOGLE APPLICANT PROFILE  ← kept for backwards-compat but no longer used
 # =========================
 @auth_bp.route("/google-applicant-profile", methods=["GET", "POST"])
 def google_applicant_profile():
-
+    # This route is no longer part of the normal flow.
+    # Redirect anyone who lands here to the role-select page.
     if not session.get("google_id"):
-        flash("Session expired. Please try again.", "error")
         return redirect(url_for("auth.login"))
-
-    if request.method == "POST":
-        google_id = session.pop("google_id")
-        email = session.pop("google_email")
-        name = session.pop("google_name")
-        google_picture = session.pop("google_picture", None)
-        session.pop("google_role", None)
-
-        user = User(
-            username=name,
-            email=email,
-            google_id=google_id,
-            role="applicant",
-            verification_status="Approved",
-            is_verified=True,
-            profile_completed=False,
-            profile_picture=google_picture
-        )
-        db.session.add(user)
-        db.session.commit()
-
-        dob_str = request.form.get("date_of_birth")
-        dob = None
-        if dob_str:
-            try:
-                dob = datetime.strptime(dob_str, "%Y-%m-%d").date()
-            except:
-                dob = None
-
-        applicant_profile = ApplicantProfile(
-            user_id=user.id,
-            last_name=request.form.get("surname") or "",
-            first_name=request.form.get("first_name") or "",
-            middle_name=request.form.get("middle_name") or "",
-            date_of_birth=dob,
-            gender=request.form.get("gender") or "",
-            phone_number=request.form.get("phone_number") or "",
-            country=request.form.get("country") or "",
-            city=request.form.get("city") or "",
-            home_address=request.form.get("home_address") or "",
-        )
-        db.session.add(applicant_profile)
-        db.session.commit()
-
-        try:
-            from routes.admin import push_admin_notif
-            push_admin_notif(
-                'account_request',
-                f'New applicant account registered via Google: <strong>{user.username}</strong>',
-                user_id=user.id
-            )
-        except:
-            pass
-
-        login_user(user)
-        flash("Account created with Google! Welcome aboard.", "success")
-        return redirect_by_role(user)
-
-    return render_template("auth/google_applicant_profile.html")
-
+    return redirect(url_for("auth.google_role_select"))
 
 # =========================
-# GOOGLE RECRUITER PROFILE
+# GOOGLE RECRUITER PROFILE  ← kept for backwards-compat but no longer used
 # =========================
 @auth_bp.route("/google-recruiter-profile", methods=["GET", "POST"])
 def google_recruiter_profile():
-
+    # This route is no longer part of the normal flow.
+    # Redirect anyone who lands here to the role-select page.
     if not session.get("google_id"):
-        flash("Session expired. Please try again.", "error")
         return redirect(url_for("auth.login"))
-
-    if request.method == "POST":
-        google_id = session.pop("google_id")
-        email = session.pop("google_email")
-        name = session.pop("google_name")
-        google_picture = session.pop("google_picture", None)
-        session.pop("google_role", None)
-
-        user = User(
-            username=name,
-            email=email,
-            google_id=google_id,
-            role="recruiter",
-            verification_status="Pending",
-            is_verified=False,
-            profile_completed=False,
-            profile_picture=google_picture
-        )
-        db.session.add(user)
-        db.session.commit()
-
-        upload_folder = os.path.join(current_app.root_path, "static", "uploads", "recruiter_documents")
-        os.makedirs(upload_folder, exist_ok=True)
-
-        logo_file = request.files.get("company_logo")
-        proof_file = request.files.get("company_proof")
-
-        logo_filename = save_uploaded_file(logo_file, upload_folder) if logo_file else None
-        proof_filename = save_uploaded_file(proof_file, upload_folder) if proof_file else None
-
-        profile = RecruiterProfile(
-            user_id=user.id,
-            surname=request.form.get("surname") or "",
-            first_name=request.form.get("first_name") or "",
-            middle_name=request.form.get("middle_name") or "",
-            phone_number=request.form.get("phone_number") or "",
-            company_name=request.form.get("company_name") or "",
-            company_industry=request.form.get("company_industry") or "",
-            company_description=request.form.get("company_description") or "",
-            company_address=request.form.get("company_address") or "",
-            country=request.form.get("country") or "",
-            city=request.form.get("city") or "",
-            office_address=request.form.get("office_address") or "",
-            company_email_domain=request.form.get("company_email_domain") or "",
-            company_logo=logo_filename,
-            company_proof=proof_filename
-        )
-        db.session.add(profile)
-        db.session.commit()
-
-        try:
-            from routes.admin import push_admin_notif
-            push_admin_notif(
-                'account_request',
-                f'New recruiter account registered via Google: <strong>{user.username}</strong>',
-                user_id=user.id
-            )
-        except:
-            pass
-
-        flash("Registration complete! Your account is pending admin verification.", "info")
-        return redirect(url_for("auth.login"))
-
-    return render_template("auth/google_recruiter_profile.html")
-
+    return redirect(url_for("auth.google_role_select"))
 
 # =========================
 # REGISTER

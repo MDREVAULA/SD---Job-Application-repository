@@ -68,6 +68,12 @@ def gate_applicant_features():
         return
     if current_user.role != 'applicant':
         return
+
+    # ── Force a fresh read of profile_completed on every request ──
+    # This prevents SQLAlchemy's identity-map cache from serving a
+    # stale False value after update_personal has committed True.
+    db.session.expire(current_user)
+
     if getattr(current_user, 'profile_completed', False):
         return
 
@@ -108,6 +114,7 @@ def profile():
 
     from models import Follow
 
+    # Fresh query — never rely on the cached relationship
     prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
 
     experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
@@ -125,7 +132,16 @@ def profile():
     followers = [u for u in followers if u]
     following = [u for u in following if u]
 
+    # Recalculate from actual field values — never trust the cached flag alone
     profile_complete = is_profile_complete(prof)
+
+    # Sync the DB flag both directions so the gate and other pages are correct
+    if profile_complete and not current_user.profile_completed:
+        current_user.profile_completed = True
+        db.session.commit()
+    elif not profile_complete and current_user.profile_completed:
+        current_user.profile_completed = False
+        db.session.commit()
 
     return render_template(
         'applicant/profile.html',
@@ -139,7 +155,8 @@ def profile():
         following_count=len(following),
         followers=followers,
         following=following,
-        profile_complete=profile_complete,
+        profile_complete=profile_complete,    # used by the completion widget
+        profile_completed=profile_complete,   # used by the badge ({% if profile_completed %})
     )
 
 
@@ -174,14 +191,13 @@ def update_personal():
     if dob_str:
         try:
             prof.date_of_birth = datetime.strptime(dob_str, '%Y-%m-%d').date()
-        except:
+        except Exception:
             pass
 
     was_complete = getattr(current_user, 'profile_completed', False)
 
     if not was_complete and is_profile_complete(prof):
         current_user.profile_completed = True
-
         notif = ApplicantNotification(
             applicant_id=current_user.id,
             type='profile_complete',
@@ -190,6 +206,9 @@ def update_personal():
         db.session.add(notif)
 
     db.session.commit()
+
+    # Expire the identity-map entry so the very next access hits the DB
+    db.session.expire(current_user)
 
     flash("Personal information updated!", "success")
     return redirect(url_for('applicant.profile'))
@@ -597,7 +616,6 @@ _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
 def job_details(job_id):
     job = Job.query.get_or_404(job_id)
 
-    # Block access to taken-down jobs
     if job.is_taken_down:
         flash("This job posting is currently unavailable.", "warning")
         return redirect(url_for('auth.jobs'))
@@ -651,7 +669,6 @@ def apply_job(job_id):
 
     job = Job.query.get_or_404(job_id)
 
-    # Block applying to taken-down jobs
     if job.is_taken_down:
         flash("This job posting is currently unavailable.", "warning")
         return redirect(url_for('auth.jobs'))
@@ -684,10 +701,8 @@ def apply_job(job_id):
         if resume_file and resume_file.filename != "":
             upload_folder = os.path.join(current_app.root_path, "static", "uploads", "applicant_resumes")
             os.makedirs(upload_folder, exist_ok=True)
-
             filename        = secure_filename(resume_file.filename)
             unique_filename = f"{uuid.uuid4()}_{filename}"
-
             resume_file.save(os.path.join(upload_folder, unique_filename))
             resume_filename = unique_filename
 
@@ -710,11 +725,7 @@ def apply_job(job_id):
         )
         db.session.add(notif)
 
-        hr_users = User.query.filter_by(
-            created_by=job_owner.company_id,
-            role='hr'
-        ).all()
-
+        hr_users = User.query.filter_by(created_by=job_owner.company_id, role='hr').all()
         for hr in hr_users:
             hr_notif = HRNotification(
                 hr_id=hr.id,
@@ -1059,9 +1070,7 @@ def saved_jobs():
         applicant_id=current_user.id
     ).order_by(SavedJob.created_at.desc()).all()
 
-    # Filter out taken-down jobs
     saved = [s for s in saved if s.job and not s.job.is_taken_down]
-
     saved_job_ids = {s.job_id for s in saved}
 
     return render_template(
