@@ -90,8 +90,14 @@ def dashboard():
 
     users = User.query.filter(
         User.role.in_(['applicant', 'recruiter', 'hr']),
-        User.id >= db.session.query(db.func.max(User.id)).scalar() - 100
+        User.created_at >= datetime.combine(today - timedelta(days=7), datetime.min.time())
     ).all()
+
+    for user in users:
+        if user.created_at:
+            day_key = user.created_at.strftime('%b %d')
+            if day_key in days_data:
+                days_data[day_key]['signups'] += 1
 
     jobs = Job.query.filter(
         Job.created_at >= datetime.combine(today - timedelta(days=7), datetime.min.time())
