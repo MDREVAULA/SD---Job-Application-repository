@@ -379,7 +379,7 @@ def inbox():
             continue
         # Skip users who have a block relationship with current user
         from models import UserBlock
-        from sqlalchemy import or_, and_
+        
         _blk = UserBlock.query.filter(
             or_(
                 and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == uid),
@@ -458,12 +458,12 @@ def conversation(other_id):
 
     conversations = []
     for uid in contact_ids:
-        user = User.query.get(uid)
-        if not user:
+        u = User.query.get(uid)
+        if not u:
             continue
         # Skip users who have a block relationship with current user
         from models import UserBlock
-        from sqlalchemy import or_, and_
+        
         _blk = UserBlock.query.filter(
             or_(
                 and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == uid),
@@ -537,7 +537,7 @@ def send_message(receiver_id):
     receiver = User.query.get_or_404(receiver_id)
 
     from models import UserBlock
-    from sqlalchemy import or_, and_
+    
     _block = UserBlock.query.filter(
         or_(
             and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == receiver.id),
