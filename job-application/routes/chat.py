@@ -483,9 +483,9 @@ def conversation(other_id):
         ).count()
 
         conversations.append({
-            "user":         user,                    # fixed: was `u`
-            "display_name": get_display_name(user),  # fixed: was `u`
-            "company":      get_company_name(user),  # fixed: was `u`
+            "user":         u,                    # fixed: was `u`
+            "display_name": get_display_name(u),  # fixed: was `u`
+            "company":      get_company_name(u),  # fixed: was `u`
             "last_message": last_msg,
             "unread_count": unread_count,
         })
