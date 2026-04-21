@@ -40,8 +40,8 @@ class User(db.Model, UserMixin):
     is_banned = db.Column(db.Boolean, default=False)
     ban_reason = db.Column(db.Text, nullable=True)
     banned_at = db.Column(db.DateTime, nullable=True)
-    ban_until = db.Column(db.DateTime, nullable=True)  
-    
+    ban_until = db.Column(db.DateTime, nullable=True)
+
     # HR created by recruiter
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
@@ -50,6 +50,7 @@ class User(db.Model, UserMixin):
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
 
     profile_picture = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
 
     # Soft-delete support (for undo on HR accounts)
     is_deleted = db.Column(db.Boolean, default=False, nullable=False)
@@ -429,10 +430,12 @@ class Job(db.Model):
         overlaps="job,saved_by"
     )
 
+    # FIX: use back_populates to properly link with JobTeamMember.job
     team_members = db.relationship(
         'JobTeamMember',
         lazy=True,
         cascade='all, delete-orphan',
+        back_populates='job'
     )
 
 
@@ -466,6 +469,7 @@ class Application(db.Model):
         cascade="all, delete-orphan"
     )
 
+
 # =========================
 # EMPLOYMENT REQUIREMENT TABLE
 # Recruiter defines which documents the applicant must submit
@@ -473,7 +477,7 @@ class Application(db.Model):
 class EmploymentRequirement(db.Model):
     """Documents/requirements the recruiter defines per job for onboarding."""
     __tablename__ = 'employment_requirement'
- 
+
     id          = db.Column(db.Integer, primary_key=True)
     job_id      = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='CASCADE'), nullable=False)
     title       = db.Column(db.String(200), nullable=False)   # e.g. "Government-issued ID"
@@ -482,8 +486,8 @@ class EmploymentRequirement(db.Model):
     created_at  = db.Column(db.DateTime, default=get_ph_time)
  
     job = db.relationship('Job', backref=db.backref('employment_requirements', cascade='all, delete-orphan', lazy=True))
- 
- 
+
+
 # =========================
 # EMPLOYMENT SUBMISSION TABLE
 # Applicant submits one file per requirement
@@ -491,7 +495,7 @@ class EmploymentRequirement(db.Model):
 class EmploymentSubmission(db.Model):
     """One submitted file from the applicant for an EmploymentRequirement."""
     __tablename__ = 'employment_submission'
- 
+
     id             = db.Column(db.Integer, primary_key=True)
     application_id = db.Column(db.Integer, db.ForeignKey('application.id', ondelete='CASCADE'), nullable=False)
     requirement_id = db.Column(db.Integer, db.ForeignKey('employment_requirement.id', ondelete='CASCADE'), nullable=False)
@@ -502,8 +506,8 @@ class EmploymentSubmission(db.Model):
  
     application = db.relationship('Application', backref=db.backref('employment_submissions', cascade='all, delete-orphan', lazy=True))
     requirement = db.relationship('EmploymentRequirement', backref=db.backref('submissions', lazy=True))
- 
- 
+
+
 # =========================
 # EMPLOYEE TABLE
 # Created when recruiter/HR confirms employment after reviewing submissions
@@ -515,7 +519,7 @@ class Employee(db.Model):
     Once created, application status can no longer be changed.
     """
     __tablename__ = 'employee'
- 
+
     id             = db.Column(db.Integer, primary_key=True)
     application_id = db.Column(db.Integer, db.ForeignKey('application.id', ondelete='CASCADE'), nullable=False, unique=True)
     job_id         = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='SET NULL'), nullable=True)
@@ -524,7 +528,7 @@ class Employee(db.Model):
     start_date     = db.Column(db.Date, nullable=True)
     job_title      = db.Column(db.String(200), nullable=True)  # snapshot of the job title at confirmation
     company_name   = db.Column(db.String(200), nullable=True)  # snapshot of company name
- 
+
     # Employment status: active | resigned | fired
     employment_status = db.Column(db.String(20), default='active', nullable=False)
     ended_at          = db.Column(db.DateTime, nullable=True)
@@ -537,8 +541,8 @@ class Employee(db.Model):
     job          = db.relationship('Job', foreign_keys=[job_id], backref=db.backref('employees', lazy=True))
     user         = db.relationship('User', foreign_keys=[user_id], backref=db.backref('employment_records', lazy=True))
     confirmer    = db.relationship('User', foreign_keys=[confirmed_by])
- 
- 
+
+
 # =========================
 # EMPLOYMENT SUBMISSION STATUS (per-application onboarding state)
 # Tracks the overall onboarding review state for an application
@@ -553,7 +557,7 @@ class EmploymentOnboarding(db.Model):
       confirmed           – recruiter/HR confirmed, Employee record created
     """
     __tablename__ = 'employment_onboarding'
- 
+
     id             = db.Column(db.Integer, primary_key=True)
     application_id = db.Column(db.Integer, db.ForeignKey('application.id', ondelete='CASCADE'), nullable=False, unique=True)
     status         = db.Column(db.String(30), default='pending_submission', nullable=False)
@@ -563,6 +567,7 @@ class EmploymentOnboarding(db.Model):
     created_at     = db.Column(db.DateTime, default=get_ph_time)
  
     application = db.relationship('Application', backref=db.backref('onboarding', uselist=False))
+
 
 # =========================
 # HR TEAM MEMBERS
@@ -580,7 +585,8 @@ class JobTeamMember(db.Model):
     )
 
     hr  = db.relationship('User', foreign_keys=[hr_id])
-    job = db.relationship('Job',  foreign_keys=[job_id])
+    # FIX: use back_populates to properly link with Job.team_members
+    job = db.relationship('Job', foreign_keys=[job_id], back_populates='team_members')
 
 
 # =========================
@@ -818,12 +824,15 @@ class UserSettings(db.Model):
 
     # Two-factor (security section)
     two_factor = db.Column(db.Boolean, default=False)
+    two_factor_code   = db.Column(db.String(6),  nullable=True)
+    two_factor_expiry = db.Column(db.DateTime,   nullable=True)
 
     user = db.relationship('User', backref=db.backref('settings', uselist=False))
 
     def __repr__(self):
         return f'<UserSettings user_id={self.user_id}>'
-    
+
+
 # =========================
 # USER BLOCK TABLE
 # =========================
@@ -868,8 +877,8 @@ class UserReport(db.Model):
         db.UniqueConstraint('reporter_id', 'reported_id', name='unique_user_report'),
     )
 
-    reporter     = db.relationship('User', foreign_keys=[reporter_id], backref='reports_made')
-    reported     = db.relationship('User', foreign_keys=[reported_id], backref='reports_received')
+    reporter          = db.relationship('User', foreign_keys=[reporter_id], backref='reports_made')
+    reported          = db.relationship('User', foreign_keys=[reported_id], backref='reports_received')
     reviewed_by_admin = db.relationship('User', foreign_keys=[reviewed_by])
 
     def to_dict(self):
@@ -883,24 +892,26 @@ class UserReport(db.Model):
             'status':      self.status,
             'created_at':  self.created_at.strftime('%b %d, %Y %H:%M') if self.created_at else '',
         }
+
+
 # =========================
 # RESIGNATION REQUEST TABLE
 # =========================
 class ResignationRequest(db.Model):
     __tablename__ = 'resignation_request'
- 
+
     id                = db.Column(db.Integer, primary_key=True)
     employee_id       = db.Column(db.Integer, db.ForeignKey('employee.id', ondelete='CASCADE'), nullable=False, unique=True)
     applicant_id      = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     job_id            = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='SET NULL'), nullable=True)
- 
+
     reason            = db.Column(db.Text, nullable=False)
     intended_last_day = db.Column(db.Date, nullable=False)
     letter_file       = db.Column(db.String(300), nullable=True)
- 
+
     # pending | revision_requested | approved | rejected
     status            = db.Column(db.String(30), default='pending', nullable=False)
- 
+
     reviewer_note     = db.Column(db.Text, nullable=True)
     reviewed_by       = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     reviewed_at       = db.Column(db.DateTime, nullable=True)
@@ -912,7 +923,8 @@ class ResignationRequest(db.Model):
     applicant = db.relationship('User', foreign_keys=[applicant_id])
     reviewer  = db.relationship('User', foreign_keys=[reviewed_by])
     job       = db.relationship('Job', foreign_keys=[job_id])
-    
+
+
 def is_blocked_between(user_a_id, user_b_id):
     """True if either user has blocked the other."""
     from sqlalchemy import or_, and_

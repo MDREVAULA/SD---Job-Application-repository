@@ -557,3 +557,92 @@
     }
 }
 
+/* ===== STATUS BADGES ===== */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: var(--warning-light);
+    color: var(--warning);
+    border: 1px solid rgba(241, 178, 74, 0.3);
+}
+
+.status-interview {
+    background: var(--info-light);
+    color: var(--info);
+    border: 1px solid rgba(100, 181, 246, 0.3);
+}
+
+.status-accepted {
+    background: var(--success-light);
+    color: var(--success);
+    border: 1px solid rgba(157, 200, 141, 0.3);
+}
+
+.status-rejected {
+    background: var(--danger-light);
+    color: var(--danger);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+/* ===== DEPARTMENT BADGE ===== */
+.department-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--accent-light);
+    color: var(--accent-primary);
+    border: 1px solid rgba(77, 119, 78, 0.25);
+    white-space: nowrap;
+}
+
+[data-theme="dark"] .department-badge {
+    border-color: rgba(157, 200, 141, 0.25);
+}
+
+/* ===== STAT ICON (interview alert icon) ===== */
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ===== DARK MODE BADGE OVERRIDES ===== */
+[data-theme="dark"] .status-pending {
+    background: rgba(241, 178, 74, 0.15);
+    color: var(--warning);
+    border-color: rgba(241, 178, 74, 0.25);
+}
+
+[data-theme="dark"] .status-interview {
+    background: rgba(100, 181, 246, 0.15);
+    color: var(--info);
+    border-color: rgba(100, 181, 246, 0.25);
+}
+
+[data-theme="dark"] .status-accepted {
+    background: rgba(129, 199, 132, 0.15);
+    color: var(--success);
+    border-color: rgba(129, 199, 132, 0.25);
+}
+
+[data-theme="dark"] .status-rejected {
+    background: rgba(229, 115, 115, 0.15);
+    color: var(--danger);
+    border-color: rgba(229, 115, 115, 0.25);
+}

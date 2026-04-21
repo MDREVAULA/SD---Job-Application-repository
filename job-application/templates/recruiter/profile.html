@@ -136,15 +136,16 @@
     <div class="pcb-checklist">
         <span class="pcb-check done"><i class="fas fa-check-circle"></i> Profile fields</span>
         <span class="pcb-check done"><i class="fas fa-check-circle"></i> Company proof uploaded</span>
+        
+        <div class="pcb-actions">
+            <form method="POST" action="{{ url_for('recruiter.submit_for_review') }}" style="display:inline;">
+                <button type="submit" class="pcb-submit-btn">
+                    <i class="fas fa-paper-plane"></i> Submit for Review
+                </button>
+            </form>
+        </div>
     </div>
- 
-    <div class="pcb-actions">
-        <form method="POST" action="{{ url_for('recruiter.submit_for_review') }}" style="display:inline;">
-            <button type="submit" class="pcb-submit-btn">
-                <i class="fas fa-paper-plane"></i> Submit for Review
-            </button>
-        </form>
-    </div>
+
 </div>
  
 {% elif verify_state == 'pending' %}
