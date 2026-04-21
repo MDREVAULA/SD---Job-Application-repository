@@ -13,6 +13,40 @@
     overflow: hidden;
 }
 
+.hero-logo-group {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: heroFadeUp 1s ease forwards;
+    animation-delay: 0.3s;
+}
+
+.hero-logo {
+    animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes heroFadeUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes logoFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.hero-tagline {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: heroFadeUp 1s ease forwards;
+    animation-delay: 0.8s;
+}
+
 .about-hero::before {
     content: '';
     position: absolute;
@@ -66,6 +100,76 @@
 
 .about-strip {
     padding: 100px 80px;
+}
+
+.about-strip {
+    position: relative;
+    overflow: hidden;
+}
+
+.about-strip::before,
+.about-strip::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.35;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.strip-inner,
+.team-container {
+    position: relative;
+    z-index: 1;
+}
+
+.about-strip:has(#about-us)::before {
+    width: 280px;
+    height: 280px;
+    background: #9DC88D;
+    top: -100px;
+    left: -80px;
+}
+
+.about-strip:has(#about-us)::after {
+    width: 220px;
+    height: 220px;
+    background: #F1B24A;
+    bottom: -80px;
+    right: 15%;
+}
+
+.about-strip:has(#vision)::before {
+    width: 260px;
+    height: 260px;
+    background: #164A41;
+    top: 10%;
+    right: -100px;
+}
+
+.about-strip:has(#vision)::after {
+    width: 200px;
+    height: 200px;
+    background: #9DC88D;
+    bottom: -60px;
+    left: 10%;
+}
+
+.about-strip:has(#mission)::before {
+    width: 240px;
+    height: 240px;
+    background: #F1B24A;
+    top: -80px;
+    right: 25%;
+}
+
+.about-strip:has(#mission)::after {
+    width: 300px;
+    height: 300px;
+    background: #164A41;
+    bottom: -100px;
+    left: -80px;
 }
 
 .strip-white {
