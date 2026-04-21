@@ -7,62 +7,17 @@
 }
 
 .about-hero {
-    position: relative;
-    background: #164A41;
-    padding: 100px 40px 80px;
-    overflow: hidden;
+    width: 100%;
+    line-height: 0; 
 }
 
-.about-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(ellipse 65% 55% at 72% 50%, rgba(77,119,78,0.25) 0%, transparent 65%),
-        radial-gradient(ellipse 40% 50% at 8% 85%, rgba(157,200,141,0.12) 0%, transparent 60%);
-    pointer-events: none;
+.about-hero-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
 }
 
-.about-hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
-    background-size: 50px 50px;
-    pointer-events: none;
-}
-
-.about-hero-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-}
-
-.hero-logo-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 12px;
-}
-
-.hero-logo {
-    height: 100px;
-    width: auto;
-    object-fit: contain;
-}
-
-.hero-tagline {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1.125rem;
-    color: rgba(255,255,255,0.72);
-    margin: 0;
-    font-weight: 500;
-}
 
 .about-strip {
     padding: 100px 80px;
@@ -333,10 +288,6 @@
 @media (max-width: 768px) {
     .about-hero {
         padding: 80px 24px 60px;
-    }
-
-    .hero-logo {
-        height: 70px;
     }
 
     .about-strip {
