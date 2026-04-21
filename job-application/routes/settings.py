@@ -107,6 +107,14 @@ def save_settings():
         user_settings.notif_followers  = bool(data.get('notif_followers',  False))
         user_settings.notif_jobs       = bool(data.get('notif_jobs',       False))
 
+    # ── Security (2FA toggle) ─────────────────────────────────
+    elif section == 'security':
+        if 'two_factor' in data:
+            user_settings.two_factor = bool(data['two_factor'])
+            # Clear any leftover code when toggling
+            user_settings.two_factor_code   = None
+            user_settings.two_factor_expiry = None
+
     # ── Email ─────────────────────────────────────────────────
     elif section == 'email':
         new_email = data.get('new_email', '').strip()

@@ -161,6 +161,9 @@ def update_profile():
 # =========================
 # CHANGE PASSWORD
 # =========================
+# =========================
+# CHANGE PASSWORD
+# =========================
 @hr_bp.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
@@ -178,12 +181,10 @@ def change_password():
 
         db.session.commit()
 
-        flash("Password changed successfully! Please complete your profile.", "success")
-
-        return redirect(url_for("hr.setup_profile"))
+        flash("Password changed successfully!", "success")
+        return redirect(url_for("hr.profile"))
 
     return render_template("hr/change_password.html")
-
 
 # =========================
 # HR FIRST-TIME PROFILE SETUP
