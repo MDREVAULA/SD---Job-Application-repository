@@ -79,9 +79,9 @@
     flex-wrap: wrap;
     gap: 8px;
     width: 100%;
-    margin-top: 14px;
-    padding-top: 14px;
+    margin-top: 6px;
     border-top: 1px solid rgba(255,255,255,0.06);
+    align-items: center; /* ← add this */
 }
 
 .pcb-check {
@@ -115,8 +115,8 @@
 /* ── Add these to profile_completion_banner.css ── */
 
 .pcb-actions {
-    margin-top: 14px;
     flex-shrink: 0;
+    margin-left: auto; /* ← pushes button to the right */
 }
 
 .pcb-submit-btn {

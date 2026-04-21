@@ -10,6 +10,7 @@ from models import db, User, RecruiterProfile, Job, ApplicantProfile
 import os
 import uuid
 import secrets
+import random
 from datetime import date, datetime, timedelta
 
 auth_bp = Blueprint("auth", __name__)
@@ -82,6 +83,55 @@ Welcome to Job Portal!
 
 
 # =========================
+# SEND 2FA EMAIL
+# =========================
+def _send_2fa_email(to_email: str, username: str, pin: str):
+    """Send a 6-digit 2FA PIN to the user's email."""
+    try:
+        from app import mail
+
+        msg = Message(
+            subject="Your Login Verification Code – Job Portal",
+            recipients=[to_email],
+        )
+        msg.html = f"""
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;
+                    padding:32px 24px;background:#f9faf9;border-radius:12px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <div style="display:inline-block;background:#164A41;border-radius:50%;
+                        width:64px;height:64px;line-height:64px;font-size:28px;color:#fff;">
+              🔐
+            </div>
+          </div>
+          <h2 style="color:#164A41;text-align:center;margin:0 0 8px;font-size:20px;">
+            Two-Factor Authentication
+          </h2>
+          <p style="color:#555;text-align:center;margin:0 0 28px;font-size:14px;">
+            Hi <strong>{username}</strong>, here is your one-time login code.
+          </p>
+
+          <div style="background:#fff;border:2px solid #4D774E;border-radius:12px;
+                      padding:28px;text-align:center;margin-bottom:24px;">
+            <div style="font-size:44px;font-weight:900;letter-spacing:12px;
+                        color:#164A41;font-family:monospace;">
+              {pin}
+            </div>
+          </div>
+
+          <p style="color:#888;font-size:12px;text-align:center;margin:0 0 4px;">
+            This code expires in <strong>10 minutes</strong>.
+          </p>
+          <p style="color:#888;font-size:12px;text-align:center;margin:0;">
+            If you did not attempt to log in, please secure your account immediately.
+          </p>
+        </div>
+        """
+        mail.send(msg)
+    except Exception as e:
+        print(f"[2FA] Failed to send email to {to_email}: {e}")
+
+
+# =========================
 # PUBLIC PAGES
 # =========================
 @auth_bp.route("/")
@@ -127,7 +177,7 @@ def login():
 
     if request.method == "POST":
 
-        email = request.form.get("email")
+        email    = request.form.get("email")
         password = request.form.get("password")
 
         user = User.query.filter_by(email=email).first()
@@ -159,6 +209,25 @@ def login():
             if user.verification_status == "Rejected":
                 return render_template("account_rejected.html", user=user)
 
+        # ── 2FA check ──────────────────────────────────────────────────────────
+        from models import UserSettings
+        user_settings = UserSettings.query.filter_by(user_id=user.id).first()
+
+        if user_settings and user_settings.two_factor:
+            pin = str(random.randint(100000, 999999))
+            user_settings.two_factor_code   = pin
+            user_settings.two_factor_expiry = datetime.utcnow() + timedelta(minutes=10)
+            db.session.commit()
+
+            _send_2fa_email(user.email, user.username, pin)
+
+            # Store user id in session — NOT logged in yet
+            session['2fa_user_id'] = user.id
+
+            flash("A 6-digit verification code has been sent to your email.", "info")
+            return redirect(url_for("auth.verify_2fa"))
+        # ── End 2FA check ──────────────────────────────────────────────────────
+
         login_user(user)
 
         if user.role == "hr" and user.must_change_password:
@@ -169,6 +238,83 @@ def login():
         return redirect_by_role(user)
 
     return render_template("auth/login.html")
+
+
+# =========================
+# VERIFY 2FA
+# =========================
+@auth_bp.route("/verify-2fa", methods=["GET", "POST"])
+def verify_2fa():
+    from models import UserSettings
+
+    user_id = session.get('2fa_user_id')
+    if not user_id:
+        flash("Session expired. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
+
+    user = User.query.get(user_id)
+    if not user:
+        session.pop('2fa_user_id', None)
+        flash("User not found. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        entered_pin  = request.form.get("pin", "").strip()
+        user_settings = UserSettings.query.filter_by(user_id=user_id).first()
+
+        if (
+            user_settings
+            and user_settings.two_factor_code
+            and user_settings.two_factor_expiry
+            and datetime.utcnow() <= user_settings.two_factor_expiry
+            and entered_pin == user_settings.two_factor_code
+        ):
+            # Clear the one-time code
+            user_settings.two_factor_code   = None
+            user_settings.two_factor_expiry = None
+            db.session.commit()
+
+            session.pop('2fa_user_id', None)
+            login_user(user)
+
+            if user.role == "hr" and user.must_change_password:
+                flash("You must change your temporary password.", "hr_password_notice")
+                return redirect(url_for("hr.change_password"))
+
+            flash("Logged in successfully", "success")
+            return redirect_by_role(user)
+
+        else:
+            flash("Invalid or expired code. Please try again.", "danger")
+
+    return render_template("auth/verify_2fa.html", email=user.email)
+
+
+# =========================
+# RESEND 2FA CODE
+# =========================
+@auth_bp.route("/resend-2fa", methods=["POST"])
+def resend_2fa():
+    from models import UserSettings
+
+    user_id = session.get('2fa_user_id')
+    if not user_id:
+        flash("Session expired. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
+
+    user          = User.query.get(user_id)
+    user_settings = UserSettings.query.filter_by(user_id=user_id).first()
+
+    if user and user_settings:
+        pin = str(random.randint(100000, 999999))
+        user_settings.two_factor_code   = pin
+        user_settings.two_factor_expiry = datetime.utcnow() + timedelta(minutes=10)
+        db.session.commit()
+
+        _send_2fa_email(user.email, user.username, pin)
+        flash("A new verification code has been sent to your email.", "success")
+
+    return redirect(url_for("auth.verify_2fa"))
 
 
 # =========================
@@ -209,9 +355,9 @@ def google_callback():
         flash("Google login failed. Please try again.", "error")
         return redirect(url_for("auth.login"))
 
-    google_id = info["sub"]
-    email = info["email"]
-    name = info.get("name", email.split("@")[0])
+    google_id      = info["sub"]
+    email          = info["email"]
+    name           = info.get("name", email.split("@")[0])
     google_picture = info.get("picture")
 
     user = User.query.filter_by(google_id=google_id).first()
@@ -230,9 +376,9 @@ def google_callback():
             db.session.commit()
 
         else:
-            session["google_id"] = google_id
-            session["google_email"] = email
-            session["google_name"] = name
+            session["google_id"]      = google_id
+            session["google_email"]   = email
+            session["google_name"]    = name
             session["google_picture"] = google_picture
 
             return redirect(url_for("auth.google_role_select"))
@@ -260,27 +406,27 @@ def google_callback():
     flash("Logged in with Google!", "success")
     return redirect_by_role(user)
 
+
 @auth_bp.route("/google-role-select", methods=["GET", "POST"])
 def google_role_select():
- 
+
     if not session.get("google_id"):
         flash("Session expired. Please try again.", "error")
         return redirect(url_for("auth.login"))
- 
+
     if request.method == "POST":
         role = request.form.get("role")
- 
+
         if role not in ["applicant", "recruiter"]:
             flash("Please select a valid role.", "error")
             return redirect(url_for("auth.google_role_select"))
- 
-        google_id     = session.pop("google_id")
-        email         = session.pop("google_email")
-        name          = session.pop("google_name")
+
+        google_id      = session.pop("google_id")
+        email          = session.pop("google_email")
+        name           = session.pop("google_name")
         google_picture = session.pop("google_picture", None)
         session.pop("google_role", None)
- 
-        # ── CREATE THE USER RIGHT HERE — no separate profile form ──
+
         if role == "applicant":
             user = User(
                 username=name,
@@ -289,17 +435,16 @@ def google_role_select():
                 role="applicant",
                 verification_status="Approved",
                 is_verified=True,
-                profile_completed=False,   # still needs profile completion
+                profile_completed=False,
                 profile_picture=google_picture,
             )
             db.session.add(user)
             db.session.commit()
- 
-            # Create a bare ApplicantProfile so the profile page works immediately
+
             applicant_profile = ApplicantProfile(user_id=user.id)
             db.session.add(applicant_profile)
             db.session.commit()
- 
+
             try:
                 from routes.admin import push_admin_notif
                 push_admin_notif(
@@ -309,11 +454,11 @@ def google_role_select():
                 )
             except Exception:
                 pass
- 
+
             login_user(user)
             flash("Account created with Google! Please complete your profile to unlock all features.", "success")
             return redirect(url_for("applicant.profile"))
- 
+
         else:  # recruiter
             user = User(
                 username=name,
@@ -327,12 +472,11 @@ def google_role_select():
             )
             db.session.add(user)
             db.session.commit()
- 
-            # Create a bare RecruiterProfile so the profile page works immediately
+
             profile = RecruiterProfile(user_id=user.id)
             db.session.add(profile)
             db.session.commit()
- 
+
             try:
                 from routes.admin import push_admin_notif
                 push_admin_notif(
@@ -342,34 +486,33 @@ def google_role_select():
                 )
             except Exception:
                 pass
- 
+
             login_user(user)
             flash("Account created! Complete your company profile, then submit for admin verification.", "info")
             return redirect(url_for("recruiter.profile"))
- 
+
     return render_template("auth/google_role_select.html")
+
 
 # =========================
 # GOOGLE APPLICANT PROFILE  ← kept for backwards-compat but no longer used
 # =========================
 @auth_bp.route("/google-applicant-profile", methods=["GET", "POST"])
 def google_applicant_profile():
-    # This route is no longer part of the normal flow.
-    # Redirect anyone who lands here to the role-select page.
     if not session.get("google_id"):
         return redirect(url_for("auth.login"))
     return redirect(url_for("auth.google_role_select"))
+
 
 # =========================
 # GOOGLE RECRUITER PROFILE  ← kept for backwards-compat but no longer used
 # =========================
 @auth_bp.route("/google-recruiter-profile", methods=["GET", "POST"])
 def google_recruiter_profile():
-    # This route is no longer part of the normal flow.
-    # Redirect anyone who lands here to the role-select page.
     if not session.get("google_id"):
         return redirect(url_for("auth.login"))
     return redirect(url_for("auth.google_role_select"))
+
 
 # =========================
 # REGISTER
@@ -379,9 +522,9 @@ def register():
 
     if request.method == "POST":
 
-        role = request.form.get("role")
-        username = request.form.get("username")
-        email = request.form.get("email")
+        role         = request.form.get("role")
+        username     = request.form.get("username")
+        email        = request.form.get("email")
         password_raw = request.form.get("password")
 
         if role not in ["applicant", "recruiter"]:
@@ -462,10 +605,10 @@ def register():
             upload_folder = os.path.join(current_app.root_path, "static", "uploads", "recruiter_documents")
             os.makedirs(upload_folder, exist_ok=True)
 
-            logo_file = request.files.get("company_logo")
+            logo_file  = request.files.get("company_logo")
             proof_file = request.files.get("company_proof")
 
-            logo_filename = save_uploaded_file(logo_file, upload_folder) if logo_file else None
+            logo_filename  = save_uploaded_file(logo_file,  upload_folder) if logo_file  else None
             proof_filename = save_uploaded_file(proof_file, upload_folder) if proof_file else None
 
             profile = RecruiterProfile(
@@ -502,14 +645,14 @@ def register():
 def check_availability():
     data = request.get_json()
 
-    email = data.get("email", "").strip()
+    email    = data.get("email", "").strip()
     username = data.get("username", "").strip()
 
-    email_taken = User.query.filter_by(email=email).first() is not None
+    email_taken    = User.query.filter_by(email=email).first() is not None
     username_taken = User.query.filter_by(username=username).first() is not None
 
     return jsonify({
-        "email_taken": email_taken,
+        "email_taken":    email_taken,
         "username_taken": username_taken
     })
 
@@ -521,7 +664,7 @@ def check_availability():
 def forgot_password():
     if request.method == "POST":
         email = request.form.get("email")
-        user = User.query.filter_by(email=email).first()
+        user  = User.query.filter_by(email=email).first()
 
         if user and user.google_id and not user.password:
             flash("This email is linked to a Google account. Please use 'Sign in with Google' instead.", "login_warning")
@@ -529,7 +672,7 @@ def forgot_password():
 
         if user and user.password:
             token = secrets.token_urlsafe(32)
-            user.reset_token = token
+            user.reset_token        = token
             user.reset_token_expiry = datetime.utcnow() + timedelta(minutes=30)
             db.session.commit()
 
@@ -572,8 +715,8 @@ def reset_password(token):
     if request.method == "POST":
         new_password = request.form.get("password")
 
-        user.password = generate_password_hash(new_password)
-        user.reset_token = None
+        user.password           = generate_password_hash(new_password)
+        user.reset_token        = None
         user.reset_token_expiry = None
         db.session.commit()
 

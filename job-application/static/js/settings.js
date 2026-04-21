@@ -10,11 +10,9 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', function () {
             const target = this.dataset.section;
 
-            // Deactivate all
             document.querySelectorAll('.settings-nav-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
 
-            // Activate target
             this.classList.add('active');
             const section = document.getElementById('section-' + target);
             if (section) section.classList.add('active');
@@ -80,14 +78,41 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    /* ── Help modal ──────────────────────────────────────── */
-    const helpBtn = document.getElementById('openHelpBtn');
-    if (helpBtn) {
-        helpBtn.addEventListener('click', openHelp);
+    /* ── 2FA toggle — auto-save on change ────────────────── */
+    const twoFactorToggle = document.querySelector('input[name="two_factor"]');
+    if (twoFactorToggle) {
+        twoFactorToggle.addEventListener('change', function () {
+            const enabled = this.checked;
+
+            fetch('/settings/save', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({
+                    section:    'security',
+                    two_factor: enabled
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(enabled
+                        ? '🔐 Two-factor authentication enabled.'
+                        : 'Two-factor authentication disabled.'
+                    );
+                } else {
+                    showToast(data.message || 'Could not save 2FA setting.', true);
+                    // Revert the toggle on failure
+                    twoFactorToggle.checked = !enabled;
+                }
+            })
+            .catch(() => {
+                showToast('Network error. Please try again.', true);
+                twoFactorToggle.checked = !enabled;
+            });
+        });
     }
 
     /* ── Sync theme buttons on load ──────────────────────── */
-    // Read the current applied theme from <html data-theme>
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     _highlightThemeBtn(currentTheme);
 });
@@ -194,26 +219,17 @@ function confirmLogoutAll() {
 }
 
 /* ============================================================
-   THEME — Settings Appearance section
-   ─────────────────────────────────────────────────────────────
-   setTheme() is called by the three theme buttons in the
-   Appearance card.  It:
-     1. Applies the theme immediately (visual feedback)
-     2. Saves it to the DB via /settings/save  (section: appearance)
-     3. Updates the active state of the buttons
+   THEME
    ============================================================ */
 function setTheme(theme) {
-    // 1. Apply visually right away — calls the global helper in script.js
     if (typeof applyUserTheme === 'function') {
         applyUserTheme(theme);
     } else {
         document.documentElement.setAttribute('data-theme', theme);
     }
 
-    // 2. Highlight the correct button
     _highlightThemeBtn(theme);
 
-    // 3. Save to DB
     fetch('/settings/save', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -232,7 +248,6 @@ function setTheme(theme) {
 
 function _highlightThemeBtn(theme) {
     document.querySelectorAll('.theme-btn').forEach(btn => {
-        // Each button calls setTheme('light') / setTheme('dark') / setTheme('system')
         const onclick = btn.getAttribute('onclick') || '';
         const active  = onclick.includes("'" + theme + "'") || onclick.includes('"' + theme + '"');
         btn.classList.toggle('active', active);
@@ -240,17 +255,15 @@ function _highlightThemeBtn(theme) {
 }
 
 /* ============================================================
-   SAVE SETTINGS — generic handler for all other sections
+   SAVE SETTINGS — generic handler
    ============================================================ */
 function saveSettings(section) {
     const payload = { section };
 
     if (section === 'privacy') {
-        // Show name
         const showName = document.querySelector('input[name="show_name"]:checked');
         if (showName) payload.show_name = showName.value;
 
-        // Profile visibility
         const showProfile = document.querySelector('input[name="show_profile"]:checked');
         if (showProfile) {
             payload.show_profile = showProfile.value;
@@ -261,15 +274,12 @@ function saveSettings(section) {
             }
         }
 
-        // Follow list
         const showFollow = document.querySelector('input[name="show_follow_list"]:checked');
         if (showFollow) payload.show_follow_list = showFollow.value;
 
-        // Follow count (optional — may be commented out)
         const showCount = document.querySelector('input[name="show_follow_count"]:checked');
         if (showCount) payload.show_follow_count = showCount.value;
 
-        // Messaging
         const whoMsg = document.querySelector('input[name="who_can_message"]:checked');
         if (whoMsg) payload.who_can_message = whoMsg.value;
 
@@ -296,7 +306,6 @@ function saveSettings(section) {
         payload.confirm_password = conf;
 
     } else if (section === 'appearance') {
-        // Density only — theme is handled by setTheme() above
         const density = document.querySelector('input[name="density"]:checked');
         if (density) payload.density = density.value;
 
@@ -331,7 +340,7 @@ function saveSettings(section) {
     .catch(() => showToast('Network error. Please try again.', true));
 }
 
-/* ── Unblock user ───────────────────────────────────── */
+/* ── Unblock user ───────────────────────────────────────── */
 function unblockUser(userId, username) {
     if (!confirm(`Unblock ${username}? They will be able to see your profile and message you again.`)) return;
 
@@ -339,11 +348,9 @@ function unblockUser(userId, username) {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                // Remove the row from the UI instantly
                 const row = document.getElementById('blocked-row-' + userId);
                 if (row) row.remove();
 
-                // Update the card description count
                 const remaining = document.querySelectorAll('.blocked-item').length;
                 const desc = document.querySelector('#section-blocked .card-desc');
                 if (desc) {
@@ -352,7 +359,6 @@ function unblockUser(userId, username) {
                         : "You haven't blocked anyone.";
                 }
 
-                // If list is now empty, show the empty state
                 if (remaining === 0) {
                     const list = document.querySelector('.blocked-list');
                     if (list) {

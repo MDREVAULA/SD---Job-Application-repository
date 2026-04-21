@@ -454,3 +454,15 @@ html, body {
     color: var(--link-hover);
     text-decoration: underline;
 } */
+
+/* Add this to the bottom of your login.css */
+
+/* Give the password input right padding so text doesn't hide under the eye button */
+#password-input {
+    padding-right: 44px;
+}
+
+/* Eye button hover color */
+#toggle-pw:hover {
+    color: #4D774E;
+}
