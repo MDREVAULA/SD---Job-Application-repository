@@ -112,6 +112,8 @@ def jobs():
 
 @auth_bp.route("/help")
 def help_page():
+    if current_user.is_authenticated and current_user.role == 'admin':
+        return redirect(url_for('admin.dashboard'))
     return render_template("help.html")
 
 @auth_bp.route("/about")

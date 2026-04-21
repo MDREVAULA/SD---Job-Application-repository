@@ -288,13 +288,16 @@
         {% endif %}
 
         <!-- HELP -->
+        {% if not (current_user.is_authenticated and current_user.role == 'admin') %}
         <li>
             <a href="{{ url_for('auth.help_page') }}"
-               class="sidebar-link {% if request.endpoint == 'auth.help_page' %}active{% endif %}">
+            class="sidebar-link {% if request.endpoint == 'auth.help_page' %}active{% endif %}">
                 <i class="fas fa-question-circle"></i>
                 <span>Help Center</span>
             </a>
         </li>
+        {% endif %}
+
 
         <!-- RECRUITER MENU -->
         {% if current_user.is_authenticated and current_user.role == "recruiter" %}
