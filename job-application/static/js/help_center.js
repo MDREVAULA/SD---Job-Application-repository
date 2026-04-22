@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Init Lucide icons
   if (typeof lucide !== 'undefined') lucide.createIcons();
 
   const searchInput   = document.getElementById('searchInput');
@@ -13,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let activeCategory = 'all';
 
-  /* ── FAQ accordion ────────────────────────────────────── */
   questions.forEach(li => {
     const trigger = li.querySelector('.faq-trigger');
     if (!trigger) return;
@@ -21,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     trigger.addEventListener('click', () => {
       const isOpen = li.classList.contains('open');
 
-      // Close all others
       questions.forEach(other => {
         if (other !== li) {
           other.classList.remove('open');
@@ -35,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ── Category filter ──────────────────────────────────── */
   catCards.forEach(card => {
     card.addEventListener('click', () => {
       catCards.forEach(c => c.classList.remove('active'));
@@ -48,11 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ── Search ───────────────────────────────────────────── */
   if (searchInput) {
     searchInput.addEventListener('input', () => filterQuestions());
 
-    // ESC to clear
     searchInput.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
         searchInput.value = '';
@@ -61,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ── Filter logic ─────────────────────────────────────── */
   function filterQuestions() {
     const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
     let visible = 0;
@@ -87,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
         li.style.animationDelay = (visible * 0.04) + 's';
         visible++;
 
-        // Highlight matching text
         if (questionEl) highlightText(questionEl, questionText, q);
         if (bodyEl)     highlightText(bodyEl,     bodyText,     q);
       } else {
@@ -106,11 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
       questionsList.style.display = '';
     }
 
-    // Re-init icons (highlights may wipe SVG)
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
 
-  /* ── Text highlighting ────────────────────────────────── */
   function highlightText(el, original, term) {
     if (!term) { el.textContent = original; return; }
     const regex = new RegExp(`(${escapeReg(term)})`, 'gi');
@@ -121,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
-  /* ── Mini demo step navigation ────────────────────────── */
   document.querySelectorAll('.demo-dots').forEach(dotsEl => {
     const strip  = dotsEl.closest('.demo-strip');
     const steps  = strip.querySelectorAll('.demo-step');
@@ -139,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Auto-advance demo every 3 seconds while FAQ is open
     let demoTimer = null;
     const li = strip.closest('li');
     if (li) {
@@ -170,13 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-/* ── Reset search (called from no-results button) ────── */
 function resetSearch() {
   const inp = document.getElementById('searchInput');
   if (inp) { inp.value = ''; inp.dispatchEvent(new Event('input')); }
 }
 
-/* ── Jump to article by index ────────────────────────── */
 function jumpToArticle(index) {
   const items = document.querySelectorAll('#questionsList li');
   if (!items[index]) return;
@@ -187,7 +173,6 @@ function jumpToArticle(index) {
   }, 400);
 }
 
-/* ── Feedback widget ──────────────────────────────────── */
 function submitFeedback(type, btn) {
   const widget = btn.closest('.feedback-widget');
   const btns   = widget.querySelectorAll('.feedback-btn');
@@ -209,7 +194,6 @@ document.addEventListener("DOMContentLoaded", function() {
   if (helpEmailSupportBtn) {
     helpEmailSupportBtn.addEventListener("click", function(e) {
       e.preventDefault();
-      // Redirect to About Us → Our Team
       window.location.href = "/about#our-team";
     });
   }

@@ -64,7 +64,6 @@
 
                 <ul id="questionsList">
 
-                    <!-- ── ACCOUNT ── -->
                     <li data-category="Account" data-tags="login signin access">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -194,7 +193,6 @@
                         </div>
                     </li>
 
-                    <!-- ── SETTINGS ── -->
                     <li data-category="Settings" data-tags="profile update edit information name email">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -326,11 +324,7 @@
                         </div>
                     </li>
 
-                    <!-- ══════════════════════════════════
-                         JOBS — APPLICANT ONLY
-                    ══════════════════════════════════ -->
                     {% if current_user.is_authenticated and current_user.role == 'applicant' %}
-
                     <li data-category="Jobs" data-tags="apply job application submit resume how to applicant">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -419,9 +413,6 @@
 
                     {% endif %}
 
-                    <!-- ══════════════════════════════════
-                         JOBS — RECRUITER ONLY
-                    ══════════════════════════════════ -->
                     {% if current_user.is_authenticated and current_user.role == 'recruiter' %}
 
                     <li data-category="Jobs" data-tags="post publish job hiring listing create recruiter">
@@ -644,41 +635,16 @@
             </div>
 
             <aside class="help-sidebar">
-
-                <div class="sidebar-widget feedback-widget">
-                    <div class="widget-icon"><i data-lucide="thumbs-up"></i></div>
-                    <h4>Was this helpful?</h4>
-                    <p>Let us know how we're doing</p>
-                    <div class="feedback-btns">
-                        <button class="feedback-btn yes" onclick="submitFeedback('yes', this)">
-                            <i data-lucide="thumbs-up"></i> Yes
-                        </button>
-                        <button class="feedback-btn no" onclick="submitFeedback('no', this)">
-                            <i data-lucide="thumbs-down"></i> No
-                        </button>
-                    </div>
-                    <div class="feedback-thanks" id="feedbackThanks" style="display:none;">
-                        <i data-lucide="check-circle"></i> Thanks for your feedback!
-                    </div>
-                </div>
-
                 <div class="sidebar-widget contact-widget">
                     <h4>Still need help?</h4>
                     <p>Contact our team for further assistance.</p>
                     <button class="btn-contact" id="helpEmailSupportBtn">
                         <i class="fas fa-envelope"></i> Email Support
                     </button>
-                    <button class="btn-contact-secondary">
-                        <i data-lucide="message-circle"></i> Live Chat
-                    </button>
                 </div>
-
             </aside>
-
         </div>
-
     </div>
-
 </div>
 
 <script src="{{ url_for('static', filename='js/help_center.js') }}"></script>
