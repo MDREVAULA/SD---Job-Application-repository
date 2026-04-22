@@ -50,26 +50,36 @@
 <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/hr_temporary.js') }}" defer></script>
 
-<style>
-    .theme-toggle-btn {
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-        width: 38px;
-        height: 38px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-    .theme-toggle-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: scale(1.05);
-    }
-</style>
+    <style>
+        .theme-toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        body { visibility: hidden; opacity: 0; }
+    </style>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+            <script>
+                // Once the window and all resources (including CSS) are loaded, show the body
+                window.addEventListener('DOMContentLoaded', function() {
+                    document.body.style.visibility = 'visible';
+                    document.body.style.opacity = '1';
+                });
+            </script>
 </head>
 
 {#
@@ -101,6 +111,39 @@
         <div class="website-logo-container">
             <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
         </div>
+
+        <nav class="nav-menu">
+            <a href="{{ url_for('auth.index') }}" 
+            class="nav-link {% if request.endpoint == 'auth.index' %}active{% endif %}" 
+            data-text="Home">Home</a>
+            
+            <a href="{{ url_for('auth.jobs') }}" 
+            class="nav-link {% if request.endpoint == 'auth.jobs' %}active{% endif %}" 
+            data-text="Browse Jobs">Browse Jobs</a>
+            
+            {% if current_user.is_authenticated %}
+                {% if current_user.role != 'admin' %}
+                    {% set profile_route = current_user.role + '.profile' %}
+                    <a href="{{ url_for(profile_route) }}" 
+                    class="nav-link {% if request.endpoint == profile_route %}active{% endif %}" 
+                    data-text="My Profile">My Profile</a>
+                {% endif %}
+
+                <a href="{{ url_for('chat.inbox') }}" 
+                class="nav-link {% if 'chat.inbox' in request.endpoint %}active{% endif %}" 
+                data-text="Messages">Messages</a>
+            {% endif %}
+            
+            <a href="{{ url_for('auth.about') }}" 
+            class="nav-link {% if request.endpoint == 'auth.about' %}active{% endif %}" 
+            data-text="About Us">About Us</a>
+
+            {% if current_user.role != 'admin' %}
+                <a href="{{ url_for('auth.help_page') }}" 
+                class="nav-link {% if request.endpoint == 'auth.help_page' %}active{% endif %}" 
+                data-text="Help Center">Help Center</a>
+            {% endif %}
+        </nav>
     </div>
 
     <div class="nav-right">
@@ -246,58 +289,26 @@
     <div class="sidebar-section-label">Navigation</div>
 
     <ul class="sidebar-menu">
-
-        <!-- HOME -->
         <li>
-            <a href="{{ url_for('auth.index') }}"
-               class="sidebar-link {% if request.endpoint == 'auth.index' %}active{% endif %}">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
-        </li>
-
-        <!-- JOBS -->
-        <li>
-            <a href="{{ url_for('auth.jobs') }}"
-               class="sidebar-link {% if request.endpoint == 'auth.jobs' %}active{% endif %}">
+            <a href="{{ url_for('auth.jobs') }}" class="sidebar-link">
                 <i class="fas fa-briefcase"></i>
                 <span>Browse Jobs</span>
             </a>
         </li>
-
-        <!-- PEOPLE -->
         <li>
-            <a href="{{ url_for('chat.people') }}"
-               class="sidebar-link {% if request.endpoint == 'chat.people' %}active{% endif %}">
+            <a href="{{ url_for('chat.people') }}" class="sidebar-link">
                 <i class="fas fa-users"></i>
                 <span>People</span>
             </a>
         </li>
-
-        <!-- MESSAGES (logged-in users only) -->
         {% if current_user.is_authenticated %}
         <li>
-            <a href="{{ url_for('chat.inbox') }}"
-               class="sidebar-link {% if request.endpoint and 'chat.inbox' in request.endpoint %}active{% endif %}"
-               style="position: relative;">
+            <a href="{{ url_for('chat.inbox') }}" class="sidebar-link">
                 <i class="fas fa-comment-dots"></i>
                 <span>Messages</span>
-                <span class="nav-chat-badge" id="navUnreadBadge" style="display:none;"></span>
             </a>
         </li>
         {% endif %}
-
-        <!-- HELP -->
-        {% if not (current_user.is_authenticated and current_user.role == 'admin') %}
-        <li>
-            <a href="{{ url_for('auth.help_page') }}"
-            class="sidebar-link {% if request.endpoint == 'auth.help_page' %}active{% endif %}">
-                <i class="fas fa-question-circle"></i>
-                <span>Help Center</span>
-            </a>
-        </li>
-        {% endif %}
-
 
         <!-- RECRUITER MENU -->
         {% if current_user.is_authenticated and current_user.role == "recruiter" %}
