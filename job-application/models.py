@@ -50,7 +50,7 @@ class User(db.Model, UserMixin):
     reset_token_expiry = db.Column(db.DateTime, nullable=True)
 
     profile_picture = db.Column(db.String(200), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
+    created_at = db.Column(db.DateTime, default=get_ph_time, nullable=True)
 
     # Soft-delete support (for undo on HR accounts)
     is_deleted = db.Column(db.Boolean, default=False, nullable=False)

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile, HRProfile, UserSettings
-from models import ApplicantNotification, RecruiterNotification, HRNotification
+from models import ApplicantNotification, RecruiterNotification, HRNotification, get_ph_time
 from datetime import datetime
 from sqlalchemy import or_, and_
 from models import MessageReaction 
@@ -183,7 +183,7 @@ def _notify_new_message(sender, receiver, message_preview):
         ).first()
         if existing:
             existing.message = msg_text
-            existing.created_at = datetime.utcnow()
+            existing.created_at = get_ph_time()
             existing.is_read = False
         else:
             db.session.add(ApplicantNotification(
