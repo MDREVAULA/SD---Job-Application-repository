@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from models import db, User, RecruiterProfile, UserBlock, UserReport, ResignationRequest
+from models import db, User, RecruiterProfile, UserBlock, UserReport, ResignationRequest, get_ph_time
 from flask_login import LoginManager
 from flask_mail import Mail
 from authlib.integrations.flask_client import OAuth
@@ -85,9 +85,14 @@ app.jinja_env.filters['from_json'] = _parse_json
 # CONTEXT PROCESSOR
 # ============================================================
 
+import pytz
+from datetime import datetime
+
+ph_tz = pytz.timezone("Asia/Manila")
+
 @app.context_processor
 def inject_now():
-    return {'now': datetime.utcnow}
+    return {'now': datetime.now(ph_tz)}
 
 # ============================================================
 # AUTO-UNBAN EXPIRED TIMED BANS
@@ -99,7 +104,7 @@ def auto_unban_expired():
         expired = User.query.filter(
             User.is_banned == True,
             User.ban_until != None,
-            User.ban_until <= datetime.utcnow()
+            User.ban_until <= get_ph_time()
         ).all()
         if expired:
             for u in expired:
@@ -114,7 +119,7 @@ def auto_unban_expired():
         expired_jobs = Job.query.filter(
             Job.is_taken_down == True,
             Job.takedown_until != None,
-            Job.takedown_until <= datetime.utcnow()
+            Job.takedown_until <= get_ph_time()
         ).all()
         if expired_jobs:
             for j in expired_jobs:

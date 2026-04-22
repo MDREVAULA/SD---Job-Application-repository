@@ -186,7 +186,7 @@
                         
                         <td class="status">
                             {% if job.expiration_date %}
-                                {% set today = now().date() %}
+                                {% set today = current_date %}
                                 {% if job.expiration_date >= today %}
                                 <span class="status-badge status-active">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">

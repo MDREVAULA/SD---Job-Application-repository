@@ -13,7 +13,7 @@ from models import (
     db, Job, Application, User,
     ApplicantNotification, RecruiterNotification, HRNotification,
     EmploymentRequirement, EmploymentSubmission, Employee,
-    ResignationRequest,
+    ResignationRequest, get_ph_time
 )
 
 employment_bp = Blueprint('employment', __name__, url_prefix='/employment')
@@ -214,7 +214,7 @@ def submit_documents(app_id):
                 if old and os.path.exists(old):
                     os.remove(old)
                 sub.file_path    = filename
-                sub.submitted_at = datetime.utcnow()
+                sub.submitted_at = get_ph_time()
                 sub.notes        = None
             else:
                 sub = EmploymentSubmission(
@@ -235,12 +235,12 @@ def submit_documents(app_id):
             if onboarding:
                 if onboarding.status in ('pending_submission', 'needs_revision', 'submitted'):
                     onboarding.status = 'submitted'
-                    onboarding.submitted_at = datetime.utcnow()
+                    onboarding.submitted_at = get_ph_time()
             else:
                 onboarding = EmploymentOnboarding(
                     application_id=app_id,
                     status='submitted',
-                    submitted_at=datetime.utcnow()
+                    submitted_at=get_ph_time()
                 )
                 db.session.add(onboarding)
 
@@ -354,7 +354,7 @@ def review_documents(app_id):
                 db.session.add(employee)
                 application.status = 'employed'
                 onboarding.status = 'confirmed'
-                onboarding.reviewed_at = datetime.utcnow()
+                onboarding.reviewed_at = get_ph_time()
 
                 from models import ApplicantNotification
                 db.session.add(ApplicantNotification(
@@ -376,7 +376,7 @@ def review_documents(app_id):
             note = request.form.get('reviewer_note', '').strip()
             onboarding.status = 'needs_revision'
             onboarding.reviewer_note = note
-            onboarding.reviewed_at = datetime.utcnow()
+            onboarding.reviewed_at = get_ph_time()
 
             from models import ApplicantNotification
             db.session.add(ApplicantNotification(
@@ -607,7 +607,7 @@ def fire_employee(employee_id):
     reason = request.form.get('fire_reason', '').strip()
 
     emp.employment_status = 'fired'
-    emp.ended_at          = datetime.utcnow()
+    emp.ended_at          = get_ph_time()
     emp.end_reason        = reason
 
     application = Application.query.get(emp.application_id)
@@ -619,8 +619,7 @@ def fire_employee(employee_id):
         emp.resignation_request.status = 'rejected'
         emp.resignation_request.reviewer_note = 'Employment terminated by recruiter.'
         emp.resignation_request.reviewed_by   = current_user.id
-        emp.resignation_request.reviewed_at   = datetime.utcnow()
-
+        emp.resignation_request.reviewed_at   = get_ph_time()
     db.session.add(ApplicantNotification(
         applicant_id=emp.user_id,
         type='employment_ended',
@@ -681,7 +680,7 @@ def review_resignation(resignation_id):
             resignation.status        = 'approved'
             resignation.reviewer_note = reviewer_note or None
             resignation.reviewed_by   = current_user.id
-            resignation.reviewed_at   = datetime.utcnow()
+            resignation.reviewed_at   = get_ph_time()
             emp.employment_status = 'rendering'
             emp.end_reason        = resignation.reason
             db.session.add(ApplicantNotification(
@@ -702,7 +701,7 @@ def review_resignation(resignation_id):
             resignation.status        = 'rejected'
             resignation.reviewer_note = reviewer_note
             resignation.reviewed_by   = current_user.id
-            resignation.reviewed_at   = datetime.utcnow()
+            resignation.reviewed_at   = get_ph_time()
             emp.employment_status = 'active'
             db.session.add(ApplicantNotification(
                 applicant_id = emp.user_id,
@@ -719,7 +718,7 @@ def review_resignation(resignation_id):
             resignation.status        = 'revision_requested'
             resignation.reviewer_note = reviewer_note
             resignation.reviewed_by   = current_user.id
-            resignation.reviewed_at   = datetime.utcnow()
+            resignation.reviewed_at   = get_ph_time()
             emp.employment_status = 'active'
             db.session.add(ApplicantNotification(
                 applicant_id = emp.user_id,
@@ -839,7 +838,7 @@ def submit_resignation(employee_id):
             existing.reviewer_note     = None
             existing.reviewed_by       = None
             existing.reviewed_at       = None
-            existing.submitted_at      = datetime.utcnow()
+            existing.submitted_at      = get_ph_time()
             if letter_filename:
                 existing.letter_file = letter_filename
             db.session.flush()
@@ -934,7 +933,7 @@ def process_expired_rendering_periods():
         emp = res.employee
         if emp and emp.employment_status == 'rendering':
             emp.employment_status = 'resigned'
-            emp.ended_at          = datetime.utcnow()
+            emp.ended_at          = get_ph_time()
 
             application = Application.query.get(emp.application_id)
             if application:

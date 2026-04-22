@@ -8,6 +8,11 @@ from models import (
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, date
+from models import (
+    db, Job, User, Application, JobImage, HRFeedback,
+    RecruiterNotification, ApplicantNotification, RecruiterEducation,
+    JobTeamMember, HRProfile, RecruiterProfile, Employee, get_ph_time  # ← add get_ph_time
+)
 from PIL import Image
 import base64
 import io
@@ -707,7 +712,7 @@ def soft_delete_hr(hr_id):
         return jsonify({'success': False, 'error': 'HR account not found'}), 404
 
     hr.is_deleted = True
-    hr.deleted_at = datetime.utcnow()
+    hr.deleted_at = get_ph_time()
     hr.deleted_by = current_user.id
     db.session.commit()
 
@@ -724,7 +729,7 @@ def soft_delete_all_hr():
     if not hrs:
         return jsonify({'success': True, 'deleted_ids': []})
 
-    now = datetime.utcnow()
+    now = get_ph_time()
     deleted_ids = []
     for hr in hrs:
         hr.is_deleted = True
@@ -1145,7 +1150,7 @@ def edit_job(job_id):
                 db.session.add(new_image)
 
         # ── Force updated_at refresh ──
-        job.updated_at = datetime.utcnow()
+        job.updated_at = get_ph_time()
 
         db.session.commit()
 
@@ -1202,7 +1207,7 @@ def update_job_cover(job_id):
     unique_name = f"cover_{job.id}_{uuid.uuid4().hex[:8]}_{filename}"
     cover_file.save(os.path.join(upload_folder, unique_name))
     job.cover_photo = unique_name
-    job.updated_at  = datetime.utcnow()
+    job.updated_at  = get_ph_time()
     db.session.commit()
 
     return jsonify({
@@ -1246,7 +1251,7 @@ def update_job_company_content(job_id):
     else:
         return jsonify({'success': False, 'error': 'Unknown section'}), 400
 
-    job.updated_at = datetime.utcnow()
+    job.updated_at = get_ph_time()
     db.session.commit()
 
     return jsonify({'success': True})
@@ -1333,7 +1338,7 @@ def toggle_allow_applications(job_id):
     job.allow_applications = bool(value)
     from sqlalchemy.orm.attributes import flag_modified
     flag_modified(job, 'allow_applications')
-    job.updated_at = datetime.utcnow()
+    job.updated_at = get_ph_time()
     db.session.commit()
 
     return jsonify({'success': True, 'allow_applications': job.allow_applications})

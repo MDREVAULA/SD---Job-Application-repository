@@ -4,9 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_mail import Message
 from authlib.integrations.flask_client import OAuth
-
-from models import db, User, RecruiterProfile, Job, ApplicantProfile
-
+from models import db, User, RecruiterProfile, Job, ApplicantProfile, get_ph_time
 import os
 import uuid
 import secrets
@@ -674,8 +672,8 @@ def forgot_password():
 
         if user and user.password:
             token = secrets.token_urlsafe(32)
-            user.reset_token        = token
-            user.reset_token_expiry = datetime.utcnow() + timedelta(minutes=30)
+            user.reset_token = token
+            user.reset_token_expiry = get_ph_time() + timedelta(minutes=30)
             db.session.commit()
 
             reset_url = url_for("auth.reset_password", token=token, _external=True)
@@ -710,7 +708,7 @@ def reset_password(token):
         return redirect(url_for("auth.forgot_password"))
 
     expiry = user.reset_token_expiry.replace(tzinfo=None)
-    if expiry < datetime.utcnow():
+    if expiry < get_ph_time():
         flash("This reset link is invalid or has expired.", "error")
         return redirect(url_for("auth.forgot_password"))
 

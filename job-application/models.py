@@ -1,7 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
+import pytz
 
+ph_tz = pytz.timezone("Asia/Manila")
+
+def get_ph_time():
+    return datetime.now(ph_tz)
 db = SQLAlchemy()
 
 
@@ -154,9 +159,8 @@ class WorkExperience(db.Model):
     end_date = db.Column(db.String(50))
     is_current = db.Column(db.Boolean, default=False)
     description = db.Column(db.Text)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
 # =========================
 # APPLICANT EDUCATION  (applicant-only)
@@ -178,9 +182,8 @@ class ApplicantEducation(db.Model):
     end_date = db.Column(db.String(50))
     is_current = db.Column(db.Boolean, default=False)
     description = db.Column(db.Text)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
 # Keep the old name as an alias so existing import statements still work
 Education = ApplicantEducation
@@ -206,9 +209,8 @@ class RecruiterEducation(db.Model):
     end_date = db.Column(db.String(50))
     is_current = db.Column(db.Boolean, default=False)
     description = db.Column(db.Text)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
 # =========================
 # HR EDUCATION  (hr-only)
@@ -227,7 +229,7 @@ class HREducation(db.Model):
     end_date       = db.Column(db.String(50))
     is_current     = db.Column(db.Boolean, default=False)
     description    = db.Column(db.Text)
-    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at     = db.Column(db.DateTime, default=get_ph_time)
 
 
 # =========================
@@ -242,9 +244,8 @@ class Skill(db.Model):
 
     name = db.Column(db.String(100))
     level = db.Column(db.String(50))  # Beginner, Intermediate, Advanced, Expert
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
 # =========================
 # PROJECT  (applicant only)
@@ -261,9 +262,8 @@ class Project(db.Model):
     url = db.Column(db.String(200))
     start_date = db.Column(db.String(50))
     end_date = db.Column(db.String(50))
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
 # =========================
 # CERTIFICATION  (applicant only)
@@ -280,9 +280,8 @@ class Certification(db.Model):
     issue_date = db.Column(db.String(50))
     expiry_date = db.Column(db.String(50))
     credential_url = db.Column(db.String(200))
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
 # =========================
 # RECRUITER PROFILE
@@ -406,8 +405,8 @@ class Job(db.Model):
 
     expiration_date = db.Column(db.Date)
 
-    created_at         = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at         = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at         = db.Column(db.DateTime, default=get_ph_time)
+    updated_at         = db.Column(db.DateTime, default=get_ph_time, onupdate=get_ph_time)
     max_applications   = db.Column(db.Integer,  nullable=True)
     allow_applications = db.Column(db.Boolean,  default=True)
     cover_photo        = db.Column(db.String(200), nullable=True)
@@ -460,8 +459,8 @@ class Application(db.Model):
     interview_date = db.Column(db.DateTime, nullable=True)
     meeting_type   = db.Column(db.String(50),  nullable=True)
     meeting_link   = db.Column(db.String(500), nullable=True)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
     hr_feedbacks = db.relationship(
         "HRFeedback",
@@ -484,8 +483,8 @@ class EmploymentRequirement(db.Model):
     title       = db.Column(db.String(200), nullable=False)   # e.g. "Government-issued ID"
     description = db.Column(db.Text, nullable=True)           # optional instructions
     is_required = db.Column(db.Boolean, default=True)
-    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
-
+    created_at  = db.Column(db.DateTime, default=get_ph_time)
+ 
     job = db.relationship('Job', backref=db.backref('employment_requirements', cascade='all, delete-orphan', lazy=True))
 
 
@@ -502,9 +501,9 @@ class EmploymentSubmission(db.Model):
     requirement_id = db.Column(db.Integer, db.ForeignKey('employment_requirement.id', ondelete='CASCADE'), nullable=False)
     file_path      = db.Column(db.String(300), nullable=True)   # uploaded file path
     notes          = db.Column(db.Text, nullable=True)           # optional note from applicant
-    submitted_at   = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at     = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    submitted_at   = db.Column(db.DateTime, default=get_ph_time)
+    updated_at     = db.Column(db.DateTime, default=get_ph_time, onupdate=get_ph_time)
+ 
     application = db.relationship('Application', backref=db.backref('employment_submissions', cascade='all, delete-orphan', lazy=True))
     requirement = db.relationship('EmploymentRequirement', backref=db.backref('submissions', lazy=True))
 
@@ -534,9 +533,9 @@ class Employee(db.Model):
     employment_status = db.Column(db.String(20), default='active', nullable=False)
     ended_at          = db.Column(db.DateTime, nullable=True)
     end_reason        = db.Column(db.Text, nullable=True)  # reason for firing or resignation note
-
-    confirmed_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+ 
+    confirmed_at = db.Column(db.DateTime, default=get_ph_time)
+ 
     # Relationships
     application  = db.relationship('Application', backref=db.backref('employee_record', uselist=False))
     job          = db.relationship('Job', foreign_keys=[job_id], backref=db.backref('employees', lazy=True))
@@ -565,8 +564,8 @@ class EmploymentOnboarding(db.Model):
     reviewer_note  = db.Column(db.Text, nullable=True)   # note when sending back for revision
     submitted_at   = db.Column(db.DateTime, nullable=True)
     reviewed_at    = db.Column(db.DateTime, nullable=True)
-    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
-
+    created_at     = db.Column(db.DateTime, default=get_ph_time)
+ 
     application = db.relationship('Application', backref=db.backref('onboarding', uselist=False))
 
 
@@ -579,7 +578,7 @@ class JobTeamMember(db.Model):
     id     = db.Column(db.Integer, primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='CASCADE'), nullable=False)
     hr_id  = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
-    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    added_at = db.Column(db.DateTime, default=get_ph_time)
 
     __table_args__ = (
         db.UniqueConstraint('job_id', 'hr_id', name='unique_job_team_member'),
@@ -599,7 +598,7 @@ class SavedJob(db.Model):
     id           = db.Column(db.Integer, primary_key=True)
     applicant_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     job_id       = db.Column(db.Integer, db.ForeignKey('job.id', ondelete='CASCADE'), nullable=False)
-    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at   = db.Column(db.DateTime, default=get_ph_time)
 
     __table_args__ = (
         db.UniqueConstraint('applicant_id', 'job_id', name='unique_saved_job'),
@@ -618,8 +617,8 @@ class Follow(db.Model):
 
     follower_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     followed_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
     __table_args__ = (
         db.UniqueConstraint("follower_id", "followed_id", name="unique_follow"),
@@ -645,8 +644,8 @@ class Message(db.Model):
     edited  = db.Column(db.Boolean, default=False)
 
     reply_to_id = db.Column(db.Integer, db.ForeignKey("message.id"), nullable=True)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
     sender   = db.relationship("User", foreign_keys=[sender_id],   backref="sent_messages")
     receiver = db.relationship("User", foreign_keys=[receiver_id], backref="received_messages")
@@ -669,8 +668,7 @@ class MessageReaction(db.Model):
     message_id = db.Column(db.Integer, db.ForeignKey("message.id", ondelete="CASCADE"), nullable=False)
     user_id    = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     reaction   = db.Column(db.String(20), nullable=False)  # like | heart | haha | wow | sad | angry
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    created_at = db.Column(db.DateTime, default=get_ph_time)
     __table_args__ = (
         db.UniqueConstraint("message_id", "user_id", name="unique_message_reaction"),
     )
@@ -690,9 +688,9 @@ class HRFeedback(db.Model):
     hr_id          = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     feedback = db.Column(db.Text, nullable=False)
-
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    created_at = db.Column(db.DateTime, default=get_ph_time)
+    updated_at = db.Column(db.DateTime, default=get_ph_time, onupdate=get_ph_time)
 
 
 # =========================
@@ -706,7 +704,7 @@ class RecruiterNotification(db.Model):
     is_read      = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
     job_id       = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
-    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at   = db.Column(db.DateTime, default=get_ph_time)
 
     recruiter   = db.relationship("User", foreign_keys=[recruiter_id], backref="notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
@@ -723,7 +721,7 @@ class HRNotification(db.Model):
     is_read        = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
     job_id         = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
-    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at     = db.Column(db.DateTime, default=get_ph_time)
 
     hr          = db.relationship("User", foreign_keys=[hr_id], backref="hr_notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
@@ -740,7 +738,7 @@ class ApplicantNotification(db.Model):
     is_read        = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
     job_id         = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
-    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at     = db.Column(db.DateTime, default=get_ph_time)
 
     applicant   = db.relationship("User", foreign_keys=[applicant_id], backref="applicant_notifications")
     application = db.relationship("Application", foreign_keys=[application_id])
@@ -757,11 +755,15 @@ class AdminNotification(db.Model):
     message    = db.Column(db.Text, nullable=False)
     is_read    = db.Column(db.Boolean, default=False)
     user_id    = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_ph_time)
 
     def to_dict(self):
-        now = datetime.utcnow()
-        diff = now - self.created_at
+        now = get_ph_time()
+        # Handle both naive (old rows) and aware (new rows) datetimes
+        created = self.created_at
+        if created.tzinfo is None:
+            created = ph_tz.localize(created)
+        diff = now - created
         if diff.seconds < 60:
             time_str = "just now"
         elif diff.seconds < 3600:
@@ -845,8 +847,7 @@ class UserBlock(db.Model):
     id         = db.Column(db.Integer, primary_key=True)
     blocker_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     blocked_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    created_at = db.Column(db.DateTime, default=get_ph_time)
     __table_args__ = (
         db.UniqueConstraint('blocker_id', 'blocked_id', name='unique_user_block'),
     )
@@ -875,7 +876,7 @@ class UserReport(db.Model):
     reviewed_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     reviewed_at = db.Column(db.DateTime, nullable=True)
 
-    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at  = db.Column(db.DateTime, default=get_ph_time)
 
     __table_args__ = (
         db.UniqueConstraint('reporter_id', 'reported_id', name='unique_user_report'),
@@ -919,10 +920,10 @@ class ResignationRequest(db.Model):
     reviewer_note     = db.Column(db.Text, nullable=True)
     reviewed_by       = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     reviewed_at       = db.Column(db.DateTime, nullable=True)
-
-    submitted_at      = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at        = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+ 
+    submitted_at      = db.Column(db.DateTime, default=get_ph_time)
+    updated_at        = db.Column(db.DateTime, default=get_ph_time, onupdate=get_ph_time)
+ 
     employee  = db.relationship('Employee', backref=db.backref('resignation_request', uselist=False))
     applicant = db.relationship('User', foreign_keys=[applicant_id])
     reviewer  = db.relationship('User', foreign_keys=[reviewed_by])
