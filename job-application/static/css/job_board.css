@@ -75,7 +75,7 @@
     flex-wrap: wrap;
 }
 
-.nav-left {
+.jb-nav-left {
     display: flex;
     align-items: center;
     gap: 16px;
