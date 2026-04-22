@@ -202,7 +202,7 @@ def _notify_new_message(sender, receiver, message_preview):
         ).first()
         if existing:
             existing.message = msg_text
-            existing.created_at = datetime.utcnow()
+            existing.created_at = get_ph_time()
             existing.is_read = False
         else:
             db.session.add(RecruiterNotification(
@@ -221,7 +221,7 @@ def _notify_new_message(sender, receiver, message_preview):
         ).first()
         if existing:
             existing.message = msg_text
-            existing.created_at = datetime.utcnow()
+            existing.created_at = get_ph_time()
             existing.is_read = False
         else:
             db.session.add(HRNotification(
