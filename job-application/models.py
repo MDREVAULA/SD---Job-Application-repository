@@ -756,9 +756,14 @@ class AdminNotification(db.Model):
     is_read    = db.Column(db.Boolean, default=False)
     user_id    = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=get_ph_time)
+
     def to_dict(self):
         now = get_ph_time()
-        diff = now - self.created_at
+        # Handle both naive (old rows) and aware (new rows) datetimes
+        created = self.created_at
+        if created.tzinfo is None:
+            created = ph_tz.localize(created)
+        diff = now - created
         if diff.seconds < 60:
             time_str = "just now"
         elif diff.seconds < 3600:

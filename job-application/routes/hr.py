@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification, HREducation, Employee
+from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification, HREducation, Employee, get_ph_time  
 from werkzeug.security import generate_password_hash
 from flask import current_app
 from PIL import Image
@@ -472,7 +472,7 @@ def update_application_status(app_id):
 
         if existing:
             existing.feedback   = new_feedback
-            existing.updated_at = datetime.get_ph_time()
+            existing.updated_at = get_ph_time()
         else:
             new_fb = HRFeedback(
                 application_id=app_id,

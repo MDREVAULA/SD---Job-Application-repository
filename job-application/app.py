@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from models import db, User, RecruiterProfile, UserBlock, UserReport, ResignationRequest
+from models import db, User, RecruiterProfile, UserBlock, UserReport, ResignationRequest, get_ph_time
 from flask_login import LoginManager
 from flask_mail import Mail
 from authlib.integrations.flask_client import OAuth
@@ -104,7 +104,7 @@ def auto_unban_expired():
         expired = User.query.filter(
             User.is_banned == True,
             User.ban_until != None,
-            User.ban_until <= datetime.get_ph_time()
+            User.ban_until <= get_ph_time()
         ).all()
         if expired:
             for u in expired:
@@ -119,7 +119,7 @@ def auto_unban_expired():
         expired_jobs = Job.query.filter(
             Job.is_taken_down == True,
             Job.takedown_until != None,
-            Job.takedown_until <= datetime.get_ph_time()
+            Job.takedown_until <= get_ph_time()
         ).all()
         if expired_jobs:
             for j in expired_jobs:
