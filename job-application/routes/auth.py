@@ -203,9 +203,6 @@ def login():
 
         if user.role == "recruiter":
             profile = user.recruiter_profile
-            if profile and profile.submitted_for_review and user.verification_status == "Pending":
-                flash("Your recruiter account is pending admin verification.", "login_warning")
-                return redirect(url_for("auth.login"))
             if user.verification_status == "Rejected":
                 return render_template("account_rejected.html", user=user)
 
@@ -392,9 +389,6 @@ def google_callback():
 
     if user.role == "recruiter":
         profile = user.recruiter_profile
-        if profile and profile.submitted_for_review and user.verification_status == "Pending":
-            flash("Your recruiter account is pending admin verification.", "login_warning")
-            return redirect(url_for("auth.login"))
         if user.verification_status == "Rejected":
             return render_template("account_rejected.html", user=user)
 
@@ -403,9 +397,17 @@ def google_callback():
         db.session.commit()
 
     login_user(user)
+
+    if not current_user.is_authenticated:
+        flash("Login failed. Please try again.", "danger")
+        return redirect(url_for("auth.login"))
+
+    if user.role == "hr" and user.must_change_password:
+        flash("You must change your temporary password.", "hr_password_notice")
+        return redirect(url_for("hr.change_password"))
+
     flash("Logged in with Google!", "success")
     return redirect_by_role(user)
-
 
 @auth_bp.route("/google-role-select", methods=["GET", "POST"])
 def google_role_select():
