@@ -114,6 +114,7 @@ pip install werkzeug
 pip install requests
 pip install python-dotenv
 pip install Pillow
+pip install pytz 
 ```
 
 Or install everything at once if a `requirements.txt` is provided:
