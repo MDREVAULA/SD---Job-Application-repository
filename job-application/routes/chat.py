@@ -171,11 +171,6 @@ def serialize_message(m, current_user_id, active_display_name=None):
 
 
 def _notify_new_message(sender, receiver, message_preview):
-    """
-    Create a new_message notification for the receiver regardless of role.
-    Only fires once per conversation (avoids spam): checks if there's already
-    an unread new_message notification from this sender.
-    """
     preview = (message_preview[:60] + '…') if len(message_preview) > 60 else message_preview
     msg_text = f"<strong>{sender.username}</strong> sent you a message: \"{preview}\""
 
@@ -183,50 +178,58 @@ def _notify_new_message(sender, receiver, message_preview):
         existing = ApplicantNotification.query.filter_by(
             applicant_id=receiver.id,
             type='new_message',
-            is_read=False
-        ).filter(
-            ApplicantNotification.message.like(f"%{sender.username}%")
+            is_read=False,
+            sender_id=sender.id
         ).first()
-        if not existing:
-            notif = ApplicantNotification(
+        if existing:
+            existing.message = msg_text
+            existing.created_at = datetime.utcnow()
+            existing.is_read = False
+        else:
+            db.session.add(ApplicantNotification(
                 applicant_id=receiver.id,
                 type='new_message',
-                message=msg_text
-            )
-            db.session.add(notif)
+                message=msg_text,
+                sender_id=sender.id
+            ))
 
     elif receiver.role == 'recruiter':
         existing = RecruiterNotification.query.filter_by(
             recruiter_id=receiver.id,
             type='new_message',
-            is_read=False
-        ).filter(
-            RecruiterNotification.message.like(f"%{sender.username}%")
+            is_read=False,
+            sender_id=sender.id
         ).first()
-        if not existing:
-            notif = RecruiterNotification(
+        if existing:
+            existing.message = msg_text
+            existing.created_at = datetime.utcnow()
+            existing.is_read = False
+        else:
+            db.session.add(RecruiterNotification(
                 recruiter_id=receiver.id,
                 type='new_message',
-                message=msg_text
-            )
-            db.session.add(notif)
+                message=msg_text,
+                sender_id=sender.id
+            ))
 
     elif receiver.role == 'hr':
         existing = HRNotification.query.filter_by(
             hr_id=receiver.id,
             type='new_message',
-            is_read=False
-        ).filter(
-            HRNotification.message.like(f"%{sender.username}%")
+            is_read=False,
+            sender_id=sender.id
         ).first()
-        if not existing:
-            notif = HRNotification(
+        if existing:
+            existing.message = msg_text
+            existing.created_at = datetime.utcnow()
+            existing.is_read = False
+        else:
+            db.session.add(HRNotification(
                 hr_id=receiver.id,
                 type='new_message',
-                message=msg_text
-            )
-            db.session.add(notif)
-
+                message=msg_text,
+                sender_id=sender.id
+            ))
 
 def _notify_new_follow(follower, followed):
     """
@@ -238,7 +241,7 @@ def _notify_new_follow(follower, followed):
         notif = ApplicantNotification(
             applicant_id=followed.id,
             type='new_follow',
-            message=msg_text
+            message=msg_text,
         )
         db.session.add(notif)
 
@@ -379,7 +382,7 @@ def inbox():
             continue
         # Skip users who have a block relationship with current user
         from models import UserBlock
-        from sqlalchemy import or_, and_
+        
         _blk = UserBlock.query.filter(
             or_(
                 and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == uid),
@@ -457,8 +460,8 @@ def conversation(other_id):
 
     conversations = []
     for uid in contact_ids:
-        user = User.query.get(uid)
-        if not user:
+        u = User.query.get(uid)
+        if not u:
             continue
 
         # ── block check — uses top-level or_ / and_ imports ──
@@ -483,9 +486,9 @@ def conversation(other_id):
         ).count()
 
         conversations.append({
-            "user":         user,                    # fixed: was `u`
-            "display_name": get_display_name(user),  # fixed: was `u`
-            "company":      get_company_name(user),  # fixed: was `u`
+            "user":         u,                    # fixed: was `u`
+            "display_name": get_display_name(u),  # fixed: was `u`
+            "company":      get_company_name(u),  # fixed: was `u`
             "last_message": last_msg,
             "unread_count": unread_count,
         })
@@ -536,7 +539,7 @@ def send_message(receiver_id):
     receiver = User.query.get_or_404(receiver_id)
 
     from models import UserBlock
-    from sqlalchemy import or_, and_
+    
     _block = UserBlock.query.filter(
         or_(
             and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == receiver.id),
@@ -574,7 +577,10 @@ def send_message(receiver_id):
     db.session.add(msg)
 
     # Notify receiver of new message (for all roles)
-    _notify_new_message(current_user, receiver, body)
+    try:
+        _notify_new_message(current_user, receiver, body)
+    except Exception as e:
+        print(f"[NOTIF ERROR] {e}")
 
     db.session.commit()
 

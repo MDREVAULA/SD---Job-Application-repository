@@ -141,3 +141,10 @@ const printStyles = `
     }
 }
 `;
+
+function switchTab(tabName, btn) {
+    document.querySelectorAll('.tab-panel-new').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.detail-tab-new').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    btn.classList.add('active');
+}
