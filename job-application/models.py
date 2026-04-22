@@ -703,6 +703,7 @@ class RecruiterNotification(db.Model):
     message      = db.Column(db.Text, nullable=False)
     is_read      = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     job_id       = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
     created_at   = db.Column(db.DateTime, default=get_ph_time)
 
@@ -720,6 +721,7 @@ class HRNotification(db.Model):
     message        = db.Column(db.Text, nullable=False)
     is_read        = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     job_id         = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
     created_at     = db.Column(db.DateTime, default=get_ph_time)
 
@@ -737,6 +739,7 @@ class ApplicantNotification(db.Model):
     message        = db.Column(db.Text, nullable=False)
     is_read        = db.Column(db.Boolean, default=False)
     application_id = db.Column(db.Integer, db.ForeignKey("application.id"), nullable=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     job_id         = db.Column(db.Integer, db.ForeignKey("job.id"), nullable=True)
     created_at     = db.Column(db.DateTime, default=get_ph_time)
 

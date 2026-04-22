@@ -176,8 +176,6 @@ app.register_blueprint(employment_bp)
 # ============================================================
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
-
         if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
             existing_admin = User.query.filter_by(role="admin").first()

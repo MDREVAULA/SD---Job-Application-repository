@@ -744,3 +744,7 @@ def logout():
     logout_user()
     flash("Logged out successfully", "info")
     return redirect(url_for("auth.index"))
+
+@auth_bp.route("/jobs/<int:job_id>")
+def job_redirect(job_id):
+    return redirect(url_for("applicant.job_details", job_id=job_id))
