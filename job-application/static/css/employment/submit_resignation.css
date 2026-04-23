@@ -132,7 +132,7 @@
 /* ===== LAYOUT ===== */
 .emp-layout {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 420px;
     gap: 24px;
     align-items: start;
 }
@@ -146,7 +146,7 @@
     top: 89px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
 
 /* ===== ALERT BANNERS ===== */
@@ -154,10 +154,11 @@
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    padding: 16px 20px;
+    padding: 18px 20px;
     border-radius: 12px;
     margin-bottom: 24px;
-    border: 1px solid;
+    border: 2px solid;
+    background: var(--bg-secondary);
 }
 
 .emp-alert svg {
@@ -167,27 +168,29 @@
 
 .emp-alert strong {
     font-weight: 700;
+    font-size: 15px;
 }
 
 .emp-alert p {
-    margin: 4px 0 0 0;
+    margin: 6px 0 0 0;
     font-size: 14px;
+    line-height: 1.5;
 }
 
 .emp-alert-note {
-    margin-top: 8px !important;
-    padding-top: 8px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: 12px !important;
+    padding-top: 12px;
+    border-top: 1px solid rgba(241, 178, 74, 0.3);
 }
 
 .emp-alert-warning {
-    background: var(--warning-light);
-    border-color: var(--warning);
+    background: rgba(241, 178, 74, 0.08);
+    border-color: rgba(217, 119, 6, 0.4);
     color: var(--text-primary);
 }
 
 .emp-alert-warning svg {
-    color: var(--warning);
+    color: #d97706;
 }
 
 /* ===== CARDS ===== */
@@ -195,14 +198,14 @@
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    padding: 24px;
+    overflow: hidden;
     box-shadow: var(--shadow-sm);
 }
 
 .emp-card-header {
-    margin-bottom: 20px;
-    padding-bottom: 16px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border-color);
+    background: var(--bg-surface-alt);
 }
 
 .emp-card-title {
@@ -221,16 +224,16 @@
 
 /* ===== FORM STYLES ===== */
 .emp-resign-form {
-    padding: 0 20px 20px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
 .emp-form-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .emp-form-group label {
@@ -239,7 +242,7 @@
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
 }
 
 .emp-required {
@@ -249,18 +252,19 @@
 
 .emp-optional {
     font-weight: 400;
-    color: var(--text-tertiary);
+    color: var(--text-muted);
     font-size: 13px;
+    margin-left: 4px;
 }
 
 .emp-textarea,
 .emp-input,
 .emp-file-input-styled {
     width: 100%;
-    padding: 10px 14px;
+    padding: 12px 16px;
     background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
     font-size: 14px;
     color: var(--text-primary);
     font-family: inherit;
@@ -271,6 +275,7 @@
 .emp-textarea {
     resize: vertical;
     min-height: 120px;
+    line-height: 1.6;
 }
 
 .emp-textarea:focus,
@@ -279,34 +284,43 @@
     outline: none;
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px var(--accent-light);
+    background: var(--bg-secondary);
 }
 
 .emp-textarea::placeholder,
 .emp-input::placeholder {
-    color: var(--text-tertiary);
+    color: var(--text-muted);
 }
 
 .emp-input-hint {
-    font-size: 12px;
-    color: var(--text-tertiary);
+    font-size: 13px;
+    color: var(--text-muted);
     margin: 0;
+    line-height: 1.4;
+}
+
+.emp-hint-top {
+    margin-bottom: 8px;
+    order: -1;
 }
 
 /* ===== FILE INPUT ===== */
 .emp-file-input-styled {
     cursor: pointer;
+    padding: 10px 14px;
 }
 
 .emp-file-input-styled::-webkit-file-upload-button {
     background: var(--accent-light);
-    border: 1px solid var(--accent-primary);
+    border: 1.5px solid var(--accent-primary);
     color: var(--accent-primary);
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     margin-right: 12px;
+    transition: all 0.2s ease;
 }
 
 .emp-file-input-styled::-webkit-file-upload-button:hover {
@@ -319,21 +333,20 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    margin-bottom: 8px;
+    padding: 14px;
+    background: var(--bg-primary);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
 }
 
 .emp-file-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--accent-light);
-    border-radius: 8px;
+    border-radius: 10px;
     flex-shrink: 0;
 }
 
@@ -346,11 +359,11 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
 }
 
 .emp-file-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
     white-space: nowrap;
@@ -360,18 +373,18 @@
 
 .emp-file-date {
     font-size: 12px;
-    color: var(--text-tertiary);
+    color: var(--text-muted);
 }
 
 .emp-view-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     background: var(--accent-light);
-    border: 1px solid var(--accent-primary);
+    border: 1.5px solid var(--accent-primary);
     color: var(--accent-primary);
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
@@ -384,6 +397,7 @@
     background: var(--accent-primary);
     color: white;
     transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .emp-view-btn svg {
@@ -394,28 +408,28 @@
 .emp-warning-box {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
-    background: var(--warning-light);
-    border: 1px solid var(--warning);
-    border-radius: 10px;
+    gap: 14px;
+    padding: 18px 20px;
+    background: rgba(217, 119, 6, 0.08);
+    border: 2px solid rgba(217, 119, 6, 0.3);
+    border-radius: 12px;
 }
 
 .emp-warning-box svg {
-    color: var(--warning);
+    color: #d97706;
     flex-shrink: 0;
     margin-top: 2px;
 }
 
 .emp-warning-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--text-primary);
-    margin: 0 0 4px 0;
+    margin: 0 0 6px 0;
 }
 
 .emp-warning-text {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-secondary);
     line-height: 1.6;
     margin: 0;
@@ -425,7 +439,7 @@
 .emp-form-actions {
     display: flex;
     gap: 12px;
-    padding-top: 8px;
+    padding-top: 4px;
 }
 
 .emp-submit-btn {
@@ -433,11 +447,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px 20px;
+    gap: 10px;
+    padding: 14px 24px;
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -448,24 +462,26 @@
 }
 
 .emp-submit-warning {
-    background: var(--warning);
+    background: #d97706;
     color: white;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.2);
 }
 
 .emp-submit-warning:hover {
-    background: #d97706;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    background: #b45309;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
 }
 
 .emp-cancel-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 12px 20px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 14px;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-secondary);
     text-decoration: none;
@@ -476,37 +492,33 @@
 .emp-cancel-btn:hover {
     background: var(--bg-hover);
     border-color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 /* ===== INFO CARD ===== */
 .emp-info-card {
-    background: var(--accent-light);
-    border-color: rgba(157, 200, 141, 0.3);
-}
-
-.emp-info-card .emp-card-header {
-    border-bottom-color: rgba(157, 200, 141, 0.2);
+    border: 2px solid var(--border-color);
 }
 
 .emp-info-body {
-    padding: 16px 20px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
 }
 
 .emp-info-item {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
 .emp-info-label {
-    font-size: 12px;
-    color: var(--text-tertiary);
+    font-size: 11px;
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
+    letter-spacing: 0.8px;
+    font-weight: 700;
 }
 
 .emp-info-value {
@@ -515,52 +527,70 @@
     color: var(--text-primary);
 }
 
-/* ===== STATUS CHIPS ===== */
-.emp-status-chip {
+/* ===== STATUS BADGE ===== */
+.emp-status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 12px;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 600;
-    white-space: nowrap;
+    width: fit-content;
 }
 
-.chip-done {
+.emp-status-badge svg {
+    flex-shrink: 0;
+}
+
+.status-active {
     background: var(--success-light);
     color: var(--success);
+    border: 1.5px solid var(--success);
 }
 
-/* ===== PROCESS STEPS ===== */
+/* ===== PROCESS STEPS CARD ===== */
+.emp-process-card {
+    border: 2px solid var(--border-color);
+}
+
 .emp-steps-body {
-    padding: 0 20px 16px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
 }
 
 .emp-step-item {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.6;
+    gap: 14px;
 }
 
 .emp-step-number {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: var(--accent-primary);
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(157, 200, 141, 0.3);
+}
+
+.emp-step-content {
+    flex: 1;
+    padding-top: 4px;
+}
+
+.emp-step-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -572,6 +602,9 @@
     .emp-sidebar {
         position: static;
         order: -1;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 }
 
@@ -597,12 +630,21 @@
         padding: 16px;
     }
 
-    .emp-card {
-        padding: 20px;
+    .emp-sidebar {
+        grid-template-columns: 1fr;
+    }
+
+    .emp-card-header {
+        padding: 16px 20px;
     }
 
     .emp-resign-form {
-        padding: 0 16px 16px;
+        padding: 20px;
+    }
+
+    .emp-info-body,
+    .emp-steps-body {
+        padding: 20px;
     }
 
     .emp-existing-file {
@@ -626,38 +668,41 @@
 }
 
 @media (max-width: 480px) {
-    .emp-card {
-        padding: 16px;
+    .emp-card-header {
+        padding: 14px 16px;
     }
 
     .emp-resign-form {
-        padding: 0 12px 12px;
+        padding: 16px;
     }
 
     .emp-alert {
-        padding: 14px 16px;
+        padding: 16px;
         font-size: 13px;
     }
 
     .emp-warning-box {
-        flex-direction: column;
-        padding: 14px;
+        padding: 16px;
     }
 
     .emp-existing-file {
-        padding: 10px;
+        padding: 12px;
     }
 
     .emp-file-icon {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
     }
 
-    .emp-info-body {
-        padding: 14px 16px;
-    }
-
+    .emp-info-body,
     .emp-steps-body {
-        padding: 0 16px 14px;
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .emp-step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
     }
 }
