@@ -110,7 +110,7 @@ class ApplicantProfile(db.Model):
 
     headline = db.Column(db.String(200))
     bio = db.Column(db.Text)
-    linkedin = db.Column(db.String(200))
+    facebook = db.Column(db.String(200))
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
@@ -305,7 +305,7 @@ class RecruiterProfile(db.Model):
     headline = db.Column(db.String(200))
     bio      = db.Column(db.Text)
 
-    linkedin  = db.Column(db.String(200))
+    facebook  = db.Column(db.String(200))
     github    = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
@@ -359,7 +359,7 @@ class HRProfile(db.Model):
     headline = db.Column(db.String(200))
     bio = db.Column(db.Text)
 
-    linkedin = db.Column(db.String(200))
+    facebook = db.Column(db.String(200))
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 

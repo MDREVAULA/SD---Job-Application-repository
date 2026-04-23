@@ -127,9 +127,9 @@
                     <span><i class="fas fa-envelope"></i>{{ viewed_user.email }}</span>
                 </div>
                 <div class="pview-social-links">
-                    {% if profile and profile.linkedin %}
-                    <a href="{{ profile.linkedin }}" target="_blank" class="pview-social-btn">
-                        <i class="fab fa-linkedin"></i> LinkedIn
+                    {% if profile and profile.facebook %}
+                    <a href="{{ profile.facebook }}" target="_blank" class="pview-social-btn">
+                        <i class="fab fa-facebook"></i> Facebook
                     </a>
                     {% endif %}
                     {% if profile and profile.github %}
@@ -190,6 +190,36 @@
             </div>
             {% endif %}
 
+            <!-- EDUCATION -->
+            <div class="pview-card" style="animation-delay:0.11s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title">
+                        <i class="fas fa-graduation-cap"></i> Education
+                        {% if educations %}<span class="pview-section-count">{{ educations | length }}</span>{% endif %}
+                    </div>
+                </div>
+                {% if educations %}
+                <div class="pview-items-list">
+                    {% for edu in educations %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <div class="pview-item-body">
+                            <div class="pview-item-title">{{ edu.school }}</div>
+                            <div class="pview-item-subtitle">{{ edu.degree if edu.degree else '' }}{% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}</div>
+                            <div class="pview-item-date">
+                                {{ edu.start_date if edu.start_date else '' }}
+                                {% if edu.is_current %} – Present{% elif edu.end_date %} – {{ edu.end_date }}{% endif %}
+                            </div>
+                            {% if edu.description %}<div class="pview-item-desc">{{ edu.description }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="pview-empty-section"><i class="fas fa-graduation-cap"></i><p>No education added yet.</p></div>
+                {% endif %}
+            </div>
+            
             <!-- EXPERIENCE -->
             <div class="pview-card" style="animation-delay:0.08s">
                 <div class="pview-card-header">
@@ -220,136 +250,151 @@
                 {% endif %}
             </div>
 
-            <!-- EDUCATION -->
-            <div class="pview-card" style="animation-delay:0.11s">
-                <div class="pview-card-header">
-                    <div class="pview-card-title">
-                        <i class="fas fa-graduation-cap"></i> Education
-                        {% if educations %}<span class="pview-section-count">{{ educations | length }}</span>{% endif %}
-                    </div>
-                </div>
-                {% if educations %}
-                <div class="pview-items-list">
-                    {% for edu in educations %}
-                    <div class="pview-item">
-                        <div class="pview-item-icon"><i class="fas fa-graduation-cap"></i></div>
-                        <div class="pview-item-body">
-                            <div class="pview-item-title">{{ edu.school }}</div>
-                            <div class="pview-item-subtitle">{{ edu.degree if edu.degree else '' }}{% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}</div>
-                            <div class="pview-item-date">
-                                {{ edu.start_date if edu.start_date else '' }}
-                                {% if edu.is_current %} – Present{% elif edu.end_date %} – {{ edu.end_date }}{% endif %}
-                            </div>
-                            {% if edu.description %}<div class="pview-item-desc">{{ edu.description }}</div>{% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="pview-empty-section"><i class="fas fa-graduation-cap"></i><p>No education added yet.</p></div>
-                {% endif %}
-            </div>
-
-            <!-- PROJECTS -->
-            <div class="pview-card" style="animation-delay:0.14s">
-                <div class="pview-card-header">
-                    <div class="pview-card-title">
-                        <i class="fas fa-laptop-code"></i> Projects
-                        {% if projects %}<span class="pview-section-count">{{ projects | length }}</span>{% endif %}
-                    </div>
-                </div>
-                {% if projects %}
-                <div class="pview-items-list">
-                    {% for proj in projects %}
-                    <div class="pview-item">
-                        <div class="pview-item-icon"><i class="fas fa-laptop-code"></i></div>
-                        <div class="pview-item-body">
-                            <div class="pview-item-title">
-                                {{ proj.title }}
-                                {% if proj.url %}<a href="{{ proj.url }}" target="_blank" class="pview-item-link"><i class="fas fa-up-right-from-square"></i> View</a>{% endif %}
-                            </div>
-                            <div class="pview-item-date">{{ proj.start_date if proj.start_date else '' }}{% if proj.end_date %} – {{ proj.end_date }}{% endif %}</div>
-                            {% if proj.description %}<div class="pview-item-desc">{{ proj.description }}</div>{% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="pview-empty-section"><i class="fas fa-laptop-code"></i><p>No projects added yet.</p></div>
-                {% endif %}
-            </div>
-
-            <!-- CERTIFICATIONS -->
-            <div class="pview-card" style="animation-delay:0.17s">
-                <div class="pview-card-header">
-                    <div class="pview-card-title">
-                        <i class="fas fa-certificate"></i> Certifications
-                        {% if certifications %}<span class="pview-section-count">{{ certifications | length }}</span>{% endif %}
-                    </div>
-                </div>
-                {% if certifications %}
-                <div class="pview-items-list">
-                    {% for cert in certifications %}
-                    <div class="pview-item">
-                        <div class="pview-item-icon"><i class="fas fa-certificate"></i></div>
-                        <div class="pview-item-body">
-                            <div class="pview-item-title">
-                                {{ cert.name }}
-                                {% if cert.credential_url %}<a href="{{ cert.credential_url }}" target="_blank" class="pview-item-link"><i class="fas fa-up-right-from-square"></i> Verify</a>{% endif %}
-                            </div>
-                            <div class="pview-item-subtitle">{{ cert.issuer if cert.issuer else '' }}</div>
-                            <div class="pview-item-date">
-                                {% if cert.issue_date %}Issued {{ cert.issue_date }}{% endif %}
-                                {% if cert.expiry_date %} · Expires {{ cert.expiry_date }}{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="pview-empty-section"><i class="fas fa-certificate"></i><p>No certifications added yet.</p></div>
-                {% endif %}
-            </div>
-
-            <!-- DOCUMENTS -->
+            <!-- DOCUMENTS (tabbed) -->
             {% set cert_files = (profile.certificate_files | from_json) if (profile and profile.certificate_files) else [] %}
-            {% if (profile and profile.resume_file) or (profile and profile.portfolio_file) or cert_files %}
             <div class="pview-card" style="animation-delay:0.20s">
                 <div class="pview-card-header">
                     <div class="pview-card-title"><i class="fas fa-folder-open"></i> Documents</div>
                 </div>
-                <div class="pview-items-list">
+
+                <!-- Tab Nav -->
+                <div class="doc-tab-nav">
+                    <button class="doc-tab active" onclick="switchPviewDocTab('resume', this)">
+                        <i class="fas fa-file-pdf"></i> Resume
+                    </button>
+                    <button class="doc-tab" onclick="switchPviewDocTab('portfolio', this)">
+                        <i class="fas fa-images"></i> Portfolio
+                    </button>
+                    <button class="doc-tab" onclick="switchPviewDocTab('certificates', this)">
+                        <i class="fas fa-award"></i> Certificates
+                    </button>
+                </div>
+
+                <!-- Resume Tab -->
+                <div class="doc-tab-panel" id="pviewdoctab-resume">
                     {% if profile and profile.resume_file %}
-                    <div class="pview-item">
-                        <div class="pview-item-icon"><i class="fas fa-file-pdf"></i></div>
-                        <div class="pview-item-body"><div class="pview-item-title">Resume</div><div class="pview-item-subtitle">PDF Document</div></div>
-                        <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.resume_file) }}" target="_blank" class="pview-doc-btn"><i class="fas fa-eye"></i> View</a>
+                    <div class="doc-file-item">
+                        <div class="doc-file-icon"><i class="fas fa-file-pdf"></i></div>
+                        <div class="doc-file-body">
+                            <div class="doc-file-name">Resume</div>
+                            <div class="doc-file-meta">PDF Document</div>
+                        </div>
+                        <div class="doc-file-actions">
+                            <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.resume_file) }}"
+                               target="_blank" class="doc-file-btn doc-file-btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="pview-empty-section" style="padding:20px;">
+                        <i class="fas fa-file-pdf"></i>
+                        <p>No resume uploaded yet.</p>
                     </div>
                     {% endif %}
+                </div>
+
+                <!-- Portfolio Tab -->
+                <div class="doc-tab-panel" id="pviewdoctab-portfolio" style="display:none;">
                     {% if profile and profile.portfolio_file %}
                     {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
-                    <div class="pview-item">
-                        <div class="pview-item-icon"><i class="fas {% if pext == 'pdf' %}fa-file-pdf{% else %}fa-file-image{% endif %}"></i></div>
-                        <div class="pview-item-body"><div class="pview-item-title">Portfolio</div><div class="pview-item-subtitle">{{ pext | upper }} Document</div></div>
-                        <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.portfolio_file) }}" target="_blank" class="pview-doc-btn"><i class="fas fa-eye"></i> View</a>
+                    <div class="doc-file-item">
+                        <div class="doc-file-icon">
+                            <i class="fas {% if pext == 'pdf' %}fa-file-pdf{% else %}fa-file-image{% endif %}"></i>
+                        </div>
+                        <div class="doc-file-body">
+                            <div class="doc-file-name">Portfolio</div>
+                            <div class="doc-file-meta">{{ pext | upper }} Document</div>
+                        </div>
+                        <div class="doc-file-actions">
+                            <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.portfolio_file) }}"
+                               target="_blank" class="doc-file-btn doc-file-btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="pview-empty-section" style="padding:20px;">
+                        <i class="fas fa-images"></i>
+                        <p>No portfolio uploaded yet.</p>
                     </div>
                     {% endif %}
-                    {% for cf in cert_files %}
-                    {% set ext = cf.rsplit('.', 1)[-1].lower() %}
-                    <div class="pview-item">
-                        <div class="pview-item-icon"><i class="fas {% if ext == 'pdf' %}fa-file-pdf{% else %}fa-file-image{% endif %}"></i></div>
-                        <div class="pview-item-body"><div class="pview-item-title">Certificate</div><div class="pview-item-subtitle">{{ ext | upper }} · Award / Certification</div></div>
-                        <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + cf) }}" target="_blank" class="pview-doc-btn"><i class="fas fa-eye"></i> View</a>
-                    </div>
-                    {% endfor %}
                 </div>
+
+                <!-- Certificates Tab -->
+                <div class="doc-tab-panel" id="pviewdoctab-certificates" style="display:none;">
+                    {% if cert_files %}
+                    <div class="doc-file-list">
+                        {% for cf in cert_files %}
+                        {% set ext = cf.rsplit('.', 1)[-1].lower() %}
+                        <div class="doc-file-item">
+                            <div class="doc-file-icon">
+                                <i class="fas {% if ext == 'pdf' %}fa-file-pdf{% else %}fa-file-image{% endif %}"></i>
+                            </div>
+                            <div class="doc-file-body">
+                                <div class="doc-file-name">Certificate {{ loop.index }}</div>
+                                <div class="doc-file-meta">{{ ext | upper }} · Award / Certification</div>
+                            </div>
+                            <div class="doc-file-actions">
+                                <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + cf) }}"
+                                   target="_blank" class="doc-file-btn doc-file-btn-view">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="pview-empty-section" style="padding:20px;">
+                        <i class="fas fa-award"></i>
+                        <p>No certificates uploaded yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
             </div>
-            {% endif %}
+            <!-- END DOCUMENTS -->
 
         </div><!-- /.pview-main -->
 
         <!-- ══ SIDEBAR ══ -->
         <div class="pview-side">
+            
+            <!-- ACTIVE EMPLOYMENT -->
+            {% set active_jobs = viewed_user.employment_records | selectattr('employment_status','equalto','active') | list %}
+            {% if active_jobs %}
+            <div class="pview-card" style="animation-delay:0.04s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-briefcase"></i> Currently Employed</div>
+                </div>
+                <div class="pview-side-list">
+                    {% for emp in active_jobs %}
+                    <div class="pview-side-item" style="align-items:center;">
+                        <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--border-color,#EAEDE8);background:var(--bg-surface-alt,#F9FBF8);display:flex;align-items:center;justify-content:center;">
+                            {% set rec_profile = emp.job.company.recruiter_profile if (emp.job and emp.job.company and emp.job.company.recruiter_profile) else none %}
+                            {% if rec_profile and rec_profile.company_logo %}
+                                <img src="{{ url_for('static', filename='uploads/company_logos/' + rec_profile.company_logo) }}"
+                                    style="width:100%;height:100%;object-fit:cover;" alt="{{ emp.company_name }} logo">
+                            {% else %}
+                                <i class="fas fa-building" style="color:#4D774E;font-size:1rem;"></i>
+                            {% endif %}
+                        </div>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">{{ emp.company_name }}</span>
+                            {{ emp.job_title }}
+                            {% if emp.start_date %}
+                            <div style="font-size:0.72rem;color:var(--text-muted,#9CA3AF);margin-top:1px;">Since {{ emp.start_date.strftime('%B %Y') }}</div>
+                            {% endif %}
+                            <a href="{{ url_for('applicant.job_details', job_id=emp.job_id) }}"
+                            style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:0.74rem;font-weight:600;color:#164A41;text-decoration:none;border:1px solid #9DC88D;padding:3px 10px;border-radius:20px;background:#F0F7EC;">
+                                <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i> View Job
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
             <!-- SKILLS -->
             <div class="pview-card" style="animation-delay:0.06s">
@@ -417,10 +462,10 @@
                         <div class="pview-side-item-text"><span class="pview-side-item-label">Location</span>{{ profile.city }}{% if profile.country %}, {{ profile.country }}{% endif %}</div>
                     </div>
                     {% endif %}
-                    {% if profile and profile.linkedin %}
+                    {% if profile and profile.facebook %}
                     <div class="pview-side-item">
-                        <i class="fab fa-linkedin"></i>
-                        <div class="pview-side-item-text"><span class="pview-side-item-label">LinkedIn</span><a href="{{ profile.linkedin }}" target="_blank" class="pview-link">View Profile</a></div>
+                        <i class="fab fa-facebook"></i>
+                        <div class="pview-side-item-text"><span class="pview-side-item-label">Facebook</span><a href="{{ profile.facebook }}" target="_blank" class="pview-link">View Profile</a></div>
                     </div>
                     {% endif %}
                     {% if profile and profile.github %}
@@ -656,6 +701,15 @@ function switchTab(tab) {
     document.getElementById('list-following').style.display = tab === 'following'  ? 'block' : 'none';
     document.getElementById('tab-followers').classList.toggle('active', tab === 'followers');
     document.getElementById('tab-following').classList.toggle('active', tab === 'following');
+}
+
+function switchPviewDocTab(tab, btn) {
+    ['resume', 'portfolio', 'certificates'].forEach(t => {
+        const panel = document.getElementById('pviewdoctab-' + t);
+        if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+    });
+    document.querySelectorAll('.doc-tab-nav .doc-tab').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
 }
 
 document.addEventListener('keydown', e => {

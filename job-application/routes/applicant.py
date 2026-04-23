@@ -229,7 +229,7 @@ def update_social():
         return redirect(url_for('auth.index'))
 
     prof = get_or_create_profile()
-    prof.linkedin  = request.form.get('linkedin', '').strip()
+    prof.facebook  = request.form.get('facebook', '').strip()
     prof.github    = request.form.get('github', '').strip()
     prof.portfolio = request.form.get('portfolio', '').strip()
 

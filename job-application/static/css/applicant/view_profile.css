@@ -644,6 +644,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: 10px;
 }
 
 .pview-side-item {
@@ -1262,6 +1263,119 @@
 .msg-toast-close:hover {
     color: var(--p-text);
     background: var(--p-border);
+}
+
+/* ══════════════════════════════════════════
+   DOCUMENTS CARD — Tab system (read-only view)
+   Mirrors applicant/profile.css doc-tab styles
+══════════════════════════════════════════ */
+
+.doc-tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border-color, #EAEDE8);
+    padding: 0 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.doc-tab-nav::-webkit-scrollbar { display: none; }
+
+.doc-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 13px 18px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted, #9CA3AF);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    white-space: nowrap;
+    margin-bottom: -1px;
+}
+.doc-tab i { font-size: 0.78rem; }
+.doc-tab.active { color: #164A41; border-bottom-color: #164A41; font-weight: 600; }
+.doc-tab:hover:not(.active) { color: var(--text-secondary, #374151); background: var(--bg-hover, #F9FBF8); }
+
+.doc-tab-panel { padding: 20px; }
+
+.doc-file-list { display: flex; flex-direction: column; gap: 0; }
+
+.doc-file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color, #f0f2ef);
+}
+.doc-file-item:last-child { border-bottom: none; }
+
+.doc-file-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #F0F7EC;
+    border: 1px solid #D4ECC8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #4D774E;
+    flex-shrink: 0;
+}
+
+.doc-file-body { flex: 1; min-width: 0; }
+
+.doc-file-name {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-primary, #111);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.doc-file-meta { font-size: 0.73rem; color: var(--text-muted, #9CA3AF); margin-top: 1px; }
+
+.doc-file-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+
+.doc-file-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+    border: 1px solid;
+}
+
+.doc-file-btn-view {
+    background: #F0F7EC;
+    border-color: #D4ECC8;
+    color: #4D774E;
+}
+.doc-file-btn-view:hover { background: #164A41; border-color: #164A41; color: #fff; }
+
+/* Dark mode */
+[data-theme="dark"] .doc-tab { color: var(--text-muted); }
+[data-theme="dark"] .doc-tab.active { color: #9DC88D; border-bottom-color: #9DC88D; }
+[data-theme="dark"] .doc-tab:hover:not(.active) { background: var(--bg-hover); color: var(--text-secondary); }
+[data-theme="dark"] .doc-file-icon { background: rgba(77,119,78,0.15); border-color: rgba(77,119,78,0.25); color: #9DC88D; }
+[data-theme="dark"] .doc-file-name { color: var(--text-primary); }
+[data-theme="dark"] .doc-file-btn-view { background: rgba(77,119,78,0.12); border-color: rgba(77,119,78,0.25); color: #9DC88D; }
+[data-theme="dark"] .doc-file-btn-view:hover { background: #4D774E; border-color: #4D774E; color: #fff; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .doc-tab { padding: 11px 12px; font-size: 0.78rem; }
+    .doc-tab-panel { padding: 14px; }
 }
 
 
