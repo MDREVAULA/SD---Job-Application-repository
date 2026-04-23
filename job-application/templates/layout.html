@@ -678,9 +678,7 @@ setInterval(updateUnreadBadge, 10000);
             return n.sender_id ? '/chat/inbox/' + n.sender_id : '/chat/inbox';
         }
         if (n.type === 'new_follow') {
-            if (ROLE === 'recruiter') return '/recruiter/profile';
-            if (ROLE === 'hr')        return '/hr/profile';
-            if (ROLE === 'applicant') return '/applicant/profile';
+            return n.sender_id ? '/profile/' + n.sender_id : '#';
         }
         if (n.type === 'new_application' && n.job_id) {
             if (ROLE === 'recruiter') return '/recruiter/job-applications/' + n.job_id;
@@ -696,17 +694,18 @@ setInterval(updateUnreadBadge, 10000);
         return '#';
     }
 
+
     function renderNotifs(notifs) {
-        if (!notifs.length) {
-            list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
-            return;
-        }
-        list.innerHTML = notifs.map(n => {
-            const t   = typeInfo(n.type);
-            const url = getNotifUrl(n);
-            return `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
-                 onclick="window.location.href='${url}'" style="cursor:pointer;">
+    if (!notifs.length) {
+        list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
+        return;
+    }
+    list.innerHTML = notifs.map(n => {
+        const t   = typeInfo(n.type);
+        const url = getNotifUrl(n);
+        return `
+        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
+             onclick="event.stopPropagation(); if('${url}' !== '#') window.location.href='${url}';" style="cursor:pointer;">
                 <div class="notif-icon ${t.cls}"><i class="fas ${t.icon}"></i></div>
                 <div class="notif-body">
                     <p class="notif-msg">${n.message}</p>
@@ -901,15 +900,16 @@ setInterval(updateUnreadBadge, 10000);
     }
 
     function renderNotifs(notifs) {
-        if (!notifs.length) {
-            list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
-            return;
-        }
-        list.innerHTML = notifs.map(n => {
-            const t   = typeInfo(n.type);
-            const url = getNotifUrl(n);
-            return `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
+    if (!notifs.length) {
+        list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
+        return;
+    }
+    list.innerHTML = notifs.map(n => {
+        const t   = typeInfo(n.type);
+        const url = getNotifUrl(n);
+        return `
+        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
+             onclick="event.stopPropagation(); if('${url}' !== '#') window.location.href='${url}';" style="cursor:pointer;">
                  onclick="window.location.href='${url}'" style="cursor:pointer;">
                 <div class="notif-icon ${t.cls}">
                     <i class="fas ${t.icon}"></i>
