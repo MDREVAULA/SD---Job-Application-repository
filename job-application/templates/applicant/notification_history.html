@@ -54,7 +54,32 @@
             {% set icon     = 'fa-bell' %}
         {% endif %}
 
-        <div class="notif-history-item {% if not n.is_read %}unread{% endif %}">
+        {# ── Resolve redirect URL — mirrors getNotifUrl() in layout.html ── #}
+        {% if n.type == 'new_message' %}
+            {% if n.sender_id %}
+                {% set notif_url = '/chat/inbox/' ~ n.sender_id %}
+            {% else %}
+                {% set notif_url = '/chat/inbox' %}
+            {% endif %}
+        {% elif n.type == 'new_follow' %}
+            {% if n.sender_id %}
+                {% set notif_url = '/profile/' ~ n.sender_id %}
+            {% else %}
+                {% set notif_url = '#' %}
+            {% endif %}
+        {% elif n.type in ('application_status', 'interview_scheduled') %}
+            {% set notif_url = url_for('applicant.status') %}
+        {% elif n.type == 'job_update' and n.job_id %}
+            {% set notif_url = url_for('applicant.job_details', job_id=n.job_id) %}
+        {% elif n.type == 'profile_complete' %}
+            {% set notif_url = url_for('applicant.status') %}
+        {% else %}
+            {% set notif_url = '#' %}
+        {% endif %}
+
+        <a href="{{ notif_url }}"
+           class="notif-history-item {% if not n.is_read %}unread{% endif %}"
+           style="text-decoration: none;">
             <div class="notif-history-icon {{ icon_cls }}">
                 <i class="fas {{ icon }}"></i>
             </div>
@@ -68,7 +93,7 @@
             {% if not n.is_read %}
             <div class="notif-history-unread-dot" title="Unread"></div>
             {% endif %}
-        </div>
+        </a>
 
         {% endfor %}
     </div>

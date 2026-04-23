@@ -619,12 +619,20 @@ def mark_notifications_read():
 @login_required
 def clear_all_notifications():
     if current_user.role != 'hr':
-        return jsonify({'error': 'forbidden'}), 403
-    HRNotification.query.filter_by(
-        hr_id=current_user.id
-    ).delete()
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'forbidden'}), 403
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+ 
+    HRNotification.query.filter_by(hr_id=current_user.id).delete()
     db.session.commit()
-    return jsonify({'ok': True})
+
+    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'ok': True})
+ 
+    flash("All notifications cleared.", "success")
+    return redirect(url_for('hr.notification_history'))
+
 
 # ===============================
 # HR NOTIFICATION HISTORY PAGE
