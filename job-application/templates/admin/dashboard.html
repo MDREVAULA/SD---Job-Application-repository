@@ -18,28 +18,33 @@
                     <h2><i class="fas fa-shield-alt"></i> Admin Dashboard</h2>
                     <p class="admin-dashboard-subtitle">Manage and verify user accounts</p>
                 </div>
-                <div class="admin-header-actions">
-                    <a href="{{ url_for('admin.all_users') }}" class="admin-hero-btn admin-hero-btn--outline">
-                        <i class="fas fa-users"></i> All Users
-                    </a>
-                    <a href="{{ url_for('admin.banned_users') }}" class="admin-hero-btn admin-hero-btn--danger">
-                        <i class="fas fa-ban"></i> Banned
-                        {% if banned_users %}
-                            <span class="admin-hero-badge">{{ banned_users|length }}</span>
-                        {% endif %}
-                    </a>
-                    <a href="{{ url_for('admin.reports') }}" class="admin-hero-btn admin-hero-btn--outline"
-                        style="border-color:rgba(220,38,38,0.4); color:#fca5a5;">
-                            <i class="fas fa-flag"></i> Reports
-                    </a>
-                    <a href="{{ url_for('admin.all_jobs') }}" class="admin-hero-btn admin-hero-btn--outline"
-                        style="border-color:rgba(241,178,74,0.4); color:#F1B24A;">
-                            <i class="fas fa-briefcase"></i> Jobs
-                    </a>
-                </div>
             </div>
         </div>
-
+        <!-- Admin Nav Tabs — replaces grid nav cards -->
+        <div class="admin-nav-tabs">
+            <div class="admin-tabs-container">
+                <a href="{{ url_for('admin.all_users') }}" class="admin-tab-btn {% if request.endpoint == 'admin.all_users' %}active{% endif %}">
+                    All Users
+                </a>
+                <a href="{{ url_for('admin.banned_users') }}" class="admin-tab-btn {% if request.endpoint == 'admin.banned_users' %}active{% endif %}">
+                    Banned
+                    {% if banned_users %}
+                    <span class="admin-tab-badge">{{ banned_users|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin.scammers') }}" class="admin-tab-btn {% if request.endpoint == 'admin.scammers' %}active{% endif %}">
+                    Rejected
+                </a>
+                <a href="{{ url_for('admin.reports') }}" class="admin-tab-btn {% if request.endpoint == 'admin.reports' %}active{% endif %}">
+                    Reports
+                    <span class="admin-tab-badge" id="dashReportBadge" style="display:none;"></span>
+                </a>
+                <a href="{{ url_for('admin.all_jobs') }}" class="admin-tab-btn {% if request.endpoint == 'admin.all_jobs' %}active{% endif %}">
+                    Jobs
+                    <span class="admin-tab-badge" id="dashTakenDownBadge" style="display:none;"></span>
+                </a>
+            </div>
+        </div>
         <!-- MAIN CONTENT -->
         <div class="admin-content-area">
 
@@ -274,66 +279,8 @@
             </div>
             {% endif %}
 
-            <!-- Navigation Cards -->
-            <div class="admin-grid-layout">
-                <div class="admin-col-span-6">
-                    <a href="{{ url_for('admin.all_users') }}" class="admin-nav-card">
-                        <div class="admin-nav-card-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div>
-                            <h4 class="admin-nav-card-title">All Users</h4>
-                            <p class="admin-nav-card-desc">Browse, filter, ban or unban all users</p>
-                        </div>
-                    </a>
-                </div>
-                <div class="admin-col-span-6">
-                    <a href="{{ url_for('admin.banned_users') }}" class="admin-nav-card">
-                        <div class="admin-nav-card-icon">
-                            <i class="fas fa-ban"></i>
-                        </div>
-                        <div>
-                            <h4 class="admin-nav-card-title">Banned Users</h4>
-                            <p class="admin-nav-card-desc">View and manage all banned accounts</p>
-                        </div>
-                    </a>
-                </div>
-                <div class="admin-col-span-6">
-                    <a href="{{ url_for('admin.scammers') }}" class="admin-nav-card">
-                        <div class="admin-nav-card-icon">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
-                        <div>
-                            <h4 class="admin-nav-card-title">Rejected Recruiters</h4>
-                            <p class="admin-nav-card-desc">View all rejected recruiter accounts</p>
-                        </div>
-                    </a>
-                </div>
-                <div class="admin-col-span-6">
-                    <a href="{{ url_for('admin.reports') }}" class="admin-nav-card">
-                        <div class="admin-nav-card-icon" style="background: rgba(220, 38, 38, 0.12); color: #dc2626;">
-                            <i class="fas fa-flag"></i>
-                        </div>
-                        <div>
-                            <h4 class="admin-nav-card-title">User Reports</h4>
-                            <p class="admin-nav-card-desc">Review reports submitted by users and take action</p>
-                            <span id="dashReportBadge" class="rpt-dashboard-badge" style="display:none; margin-top: 6px;"></span>
-                        </div>
-                    </a>
-                </div>
-                <div class="admin-col-span-6">
-                    <a href="{{ url_for('admin.all_jobs') }}" class="admin-nav-card">
-                        <div class="admin-nav-card-icon" style="background: rgba(241, 178, 74, 0.12); color: #F1B24A;">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <div>
-                            <h4 class="admin-nav-card-title">Manage Jobs</h4>
-                            <p class="admin-nav-card-desc">View, take down, restore or delete job postings</p>
-                            <span id="dashTakenDownBadge" class="rpt-dashboard-badge" style="display:none; margin-top:6px;"></span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+
+            
         </div>
     </div>
 </div>
