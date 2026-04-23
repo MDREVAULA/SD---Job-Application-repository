@@ -242,6 +242,7 @@ def _notify_new_follow(follower, followed):
             applicant_id=followed.id,
             type='new_follow',
             message=msg_text,
+            sender_id=follower.id,
         )
         db.session.add(notif)
 
@@ -249,7 +250,8 @@ def _notify_new_follow(follower, followed):
         notif = RecruiterNotification(
             recruiter_id=followed.id,
             type='new_follow',
-            message=msg_text
+            message=msg_text,
+            sender_id=follower.id,
         )
         db.session.add(notif)
 
@@ -257,7 +259,8 @@ def _notify_new_follow(follower, followed):
         notif = HRNotification(
             hr_id=followed.id,
             type='new_follow',
-            message=msg_text
+            message=msg_text,
+            sender_id=follower.id,
         )
         db.session.add(notif)
 

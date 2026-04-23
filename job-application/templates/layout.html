@@ -678,9 +678,7 @@ setInterval(updateUnreadBadge, 10000);
             return n.sender_id ? '/chat/inbox/' + n.sender_id : '/chat/inbox';
         }
         if (n.type === 'new_follow') {
-            if (ROLE === 'recruiter') return '/recruiter/profile';
-            if (ROLE === 'hr')        return '/hr/profile';
-            if (ROLE === 'applicant') return '/applicant/profile';
+            return n.sender_id ? '/profile/' + n.sender_id : '#';
         }
         if (n.type === 'new_application' && n.job_id) {
             if (ROLE === 'recruiter') return '/recruiter/job-applications/' + n.job_id;
@@ -696,6 +694,36 @@ setInterval(updateUnreadBadge, 10000);
         return '#';
     }
 
+    function markOneRead(notifId, el) {
+        if (!el.classList.contains('unread')) return;
+        el.classList.remove('unread');
+        fetch(MARK_READ_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: notifId })
+        }).then(() => {
+            lastUnread = Math.max(0, lastUnread - 1);
+            if (lastUnread > 0) {
+                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
+            } else {
+                badge.style.display = 'none';
+                btn.classList.remove('has-unread');
+            }
+        }).catch(() => {});
+    }
+
+    function attachNotifClicks() {
+        list.querySelectorAll('.notif-item').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const id  = parseInt(this.dataset.id);
+                const url = this.dataset.url;
+                markOneRead(id, this);
+                if (url && url !== '#') setTimeout(() => window.location.href = url, 150);
+            });
+        });
+    }
+
     function renderNotifs(notifs) {
         if (!notifs.length) {
             list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
@@ -705,8 +733,7 @@ setInterval(updateUnreadBadge, 10000);
             const t   = typeInfo(n.type);
             const url = getNotifUrl(n);
             return `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
-                 onclick="window.location.href='${url}'" style="cursor:pointer;">
+            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" data-url="${url}" style="cursor:pointer;">
                 <div class="notif-icon ${t.cls}"><i class="fas ${t.icon}"></i></div>
                 <div class="notif-body">
                     <p class="notif-msg">${n.message}</p>
@@ -714,6 +741,7 @@ setInterval(updateUnreadBadge, 10000);
                 </div>
             </div>`;
         }).join('');
+        attachNotifClicks();
     }
 
     function showToast(n) {
@@ -899,18 +927,34 @@ setInterval(updateUnreadBadge, 10000);
             if (sidebarBadge) sidebarBadge.style.display = 'none';
         }
     }
-
+    function markOneRead(notifId, el) {
+        if (!el.classList.contains('unread')) return;
+        el.classList.remove('unread');
+        fetch(MARK_READ_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: notifId })
+        }).then(() => {
+            lastUnread = Math.max(0, lastUnread - 1);
+            if (lastUnread > 0) {
+                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
+            } else {
+                badge.style.display = 'none';
+                btn.classList.remove('has-unread');
+            }
+        }).catch(() => {});
+    }
     function renderNotifs(notifs) {
-        if (!notifs.length) {
-            list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
-            return;
-        }
-        list.innerHTML = notifs.map(n => {
-            const t   = typeInfo(n.type);
-            const url = getNotifUrl(n);
-            return `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
-                 onclick="window.location.href='${url}'" style="cursor:pointer;">
+    if (!notifs.length) {
+        list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
+        return;
+    }
+    list.innerHTML = notifs.map(n => {
+        const t   = typeInfo(n.type);
+        const url = getNotifUrl(n);
+        return `
+        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
+             onclick="event.stopPropagation(); markOneRead(${n.id}, this); if('${url}' !== '#') setTimeout(() => window.location.href='${url}', 150);" style="cursor:pointer;">
                 <div class="notif-icon ${t.cls}">
                     <i class="fas ${t.icon}"></i>
                 </div>

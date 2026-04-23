@@ -602,9 +602,16 @@ def get_notifications():
 def mark_notifications_read():
     if current_user.role != 'hr':
         return jsonify({'error': 'forbidden'}), 403
-    HRNotification.query.filter_by(
-        hr_id=current_user.id, is_read=False
-    ).update({'is_read': True})
+    data = request.get_json(silent=True) or {}
+    notif_id = data.get('id')
+    if notif_id:
+        HRNotification.query.filter_by(
+            id=notif_id, hr_id=current_user.id
+        ).update({'is_read': True})
+    else:
+        HRNotification.query.filter_by(
+            hr_id=current_user.id, is_read=False
+        ).update({'is_read': True})
     db.session.commit()
     return jsonify({'ok': True})
 
@@ -612,12 +619,20 @@ def mark_notifications_read():
 @login_required
 def clear_all_notifications():
     if current_user.role != 'hr':
-        return jsonify({'error': 'forbidden'}), 403
-    HRNotification.query.filter_by(
-        hr_id=current_user.id
-    ).delete()
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'error': 'forbidden'}), 403
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+ 
+    HRNotification.query.filter_by(hr_id=current_user.id).delete()
     db.session.commit()
-    return jsonify({'ok': True})
+
+    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'ok': True})
+ 
+    flash("All notifications cleared.", "success")
+    return redirect(url_for('hr.notification_history'))
+
 
 # ===============================
 # HR NOTIFICATION HISTORY PAGE

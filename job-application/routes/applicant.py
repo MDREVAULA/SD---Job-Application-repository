@@ -982,12 +982,18 @@ def get_notifications():
 def mark_notifications_read():
     if current_user.role != 'applicant':
         return jsonify({'error': 'forbidden'}), 403
-    ApplicantNotification.query.filter_by(
-        applicant_id=current_user.id, is_read=False
-    ).update({'is_read': True})
+    data = request.get_json(silent=True) or {}
+    notif_id = data.get('id')
+    if notif_id:
+        ApplicantNotification.query.filter_by(
+            id=notif_id, applicant_id=current_user.id
+        ).update({'is_read': True})
+    else:
+        ApplicantNotification.query.filter_by(
+            applicant_id=current_user.id, is_read=False
+        ).update({'is_read': True})
     db.session.commit()
     return jsonify({'ok': True})
-
 
 # ===============================
 # CLEAR ALL NOTIFICATIONS

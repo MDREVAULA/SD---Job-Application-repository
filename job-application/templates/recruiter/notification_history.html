@@ -26,16 +26,53 @@
     {% else %}
     <div class="notif-history-list">
         {% for n in notifications %}
-        <a href="{% if n.type == 'account_verified' %}{{ url_for('recruiter.profile') }}{% elif n.job_id %}/recruiter/job-applications/{{ n.job_id }}{% else %}#{% endif %}"
-        class="notif-history-item {% if not n.is_read %}unread{% endif %}">
-            <div class="notif-history-icon type-{{ n.type }}">
-                {% if n.type == 'interview_scheduled' %}
-                    <i class="fas fa-calendar-check"></i>
-                {% elif n.type == 'account_verified' %}
-                    <i class="fas fa-circle-check"></i>
-                {% else %}
-                    <i class="fas fa-file-alt"></i>
-                {% endif %}
+
+        {# ── Resolve icon class and icon per type ── #}
+        {% if n.type == 'new_message' %}
+            {% set icon_cls = 'type-new_message' %}
+            {% set icon     = 'fa-comment-dots' %}
+        {% elif n.type == 'new_follow' %}
+            {% set icon_cls = 'type-new_follow' %}
+            {% set icon     = 'fa-user-plus' %}
+        {% elif n.type == 'interview_scheduled' %}
+            {% set icon_cls = 'type-interview_scheduled' %}
+            {% set icon     = 'fa-calendar-check' %}
+        {% elif n.type == 'account_verified' %}
+            {% set icon_cls = 'type-profile_complete' %}
+            {% set icon     = 'fa-circle-check' %}
+        {% else %}
+            {# new_application and anything else #}
+            {% set icon_cls = 'type-new_application' %}
+            {% set icon     = 'fa-file-alt' %}
+        {% endif %}
+
+        {# ── Resolve redirect URL — mirrors getNotifUrl() in layout.html ── #}
+        {% if n.type == 'new_message' %}
+            {% if n.sender_id %}
+                {% set notif_url = '/chat/inbox/' ~ n.sender_id %}
+            {% else %}
+                {% set notif_url = '/chat/inbox' %}
+            {% endif %}
+        {% elif n.type == 'new_follow' %}
+            {% if n.sender_id %}
+                {% set notif_url = '/profile/' ~ n.sender_id %}
+            {% else %}
+                {% set notif_url = '#' %}
+            {% endif %}
+        {% elif n.type == 'account_verified' %}
+            {% set notif_url = url_for('recruiter.profile') %}
+        {% elif n.job_id %}
+            {# new_application, interview_scheduled — go to that job's applicant list #}
+            {% set notif_url = url_for('recruiter.view_job_applications', job_id=n.job_id) %}
+        {% else %}
+            {% set notif_url = '#' %}
+        {% endif %}
+
+        <a href="{{ notif_url }}"
+           class="notif-history-item {% if not n.is_read %}unread{% endif %}"
+           style="text-decoration: none;">
+            <div class="notif-history-icon {{ icon_cls }}">
+                <i class="fas {{ icon }}"></i>
             </div>
             <div class="notif-history-body">
                 <p class="notif-history-msg">{{ n.message | safe }}</p>
@@ -48,6 +85,7 @@
             <span class="notif-history-unread-dot"></span>
             {% endif %}
         </a>
+
         {% endfor %}
     </div>
     {% endif %}
