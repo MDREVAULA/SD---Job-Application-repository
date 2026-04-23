@@ -1634,18 +1634,23 @@ def get_notifications():
         ]
     })
 
-
 @recruiter_bp.route('/notifications/mark-read', methods=['POST'])
 @login_required
 def mark_notifications_read():
     if current_user.role != 'recruiter':
         return jsonify({'error': 'forbidden'}), 403
-    RecruiterNotification.query.filter_by(
-        recruiter_id=current_user.id, is_read=False
-    ).update({'is_read': True})
+    data = request.get_json(silent=True) or {}
+    notif_id = data.get('id')
+    if notif_id:
+        RecruiterNotification.query.filter_by(
+            id=notif_id, recruiter_id=current_user.id
+        ).update({'is_read': True})
+    else:
+        RecruiterNotification.query.filter_by(
+            recruiter_id=current_user.id, is_read=False
+        ).update({'is_read': True})
     db.session.commit()
     return jsonify({'ok': True})
-
 
 @recruiter_bp.route('/notifications/clear-all', methods=['POST'])
 @login_required

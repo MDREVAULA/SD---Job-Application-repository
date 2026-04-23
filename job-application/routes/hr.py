@@ -602,9 +602,16 @@ def get_notifications():
 def mark_notifications_read():
     if current_user.role != 'hr':
         return jsonify({'error': 'forbidden'}), 403
-    HRNotification.query.filter_by(
-        hr_id=current_user.id, is_read=False
-    ).update({'is_read': True})
+    data = request.get_json(silent=True) or {}
+    notif_id = data.get('id')
+    if notif_id:
+        HRNotification.query.filter_by(
+            id=notif_id, hr_id=current_user.id
+        ).update({'is_read': True})
+    else:
+        HRNotification.query.filter_by(
+            hr_id=current_user.id, is_read=False
+        ).update({'is_read': True})
     db.session.commit()
     return jsonify({'ok': True})
 
