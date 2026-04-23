@@ -205,7 +205,7 @@
         background-color 0.3s ease,
         border-color 0.3s ease,
         color 0.3s ease,
-        box-shadow 0.3s ease !important;
+        box-shadow 0.3s ease;
 }
 
 .prof-avatar-img,
@@ -722,7 +722,6 @@
     padding: 16px 20px;
     background: var(--bg-surface-alt, #F9FBF8);
     border-top: 1px solid var(--border-color, #EAEDE8);
-    display: none; 
 }
 
 .prof-form-grid {

@@ -1,8 +1,3 @@
-/* ============================================================
-   RECRUITER PROFILE JS
-   ============================================================ */
-
-// Toggle inline edit forms (personal info, company info, account)
 function toggleEdit(section) {
     const view = document.getElementById('view-' + section);
     const form = document.getElementById('edit-' + section);
@@ -13,23 +8,22 @@ function toggleEdit(section) {
     if (isEditing) {
         form.dataset.open = 'false';
         form.style.display = 'none';
-        view.style.display = '';
+        view.style.display = 'block';      // ← explicit 'block' not ''
     } else {
         form.dataset.open = 'true';
-        form.style.display = '';
+        form.style.display = 'block';      // ← explicit 'block' not ''
         view.style.display = 'none';
         form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Update ALL buttons that target this section
-    document.querySelectorAll('[data-edit-target="' + section + '"]').forEach(btn => {
+    document.querySelectorAll('[data-edit-target="' + section + '"][data-edit-label]').forEach(btn => {
+        const label = btn.dataset.editLabel || 'Edit';
         btn.innerHTML = isEditing
-            ? '<i class="fas fa-pen"></i> Edit'
+            ? `<i class="fas fa-pen"></i> ${label}`
             : '<i class="fas fa-times"></i> Cancel';
     });
 }
 
-// Toggle add forms (if needed in future)
 function toggleAddForm(formId) {
     const form = document.getElementById(formId);
     if (!form) return;
@@ -41,32 +35,37 @@ function toggleAddForm(formId) {
         form.style.display = 'none';
     } else {
         form.dataset.open = 'true';
-        form.style.display = '';
+        form.style.display = 'block';     // ← explicit 'block' not ''
         form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
-// On page load
+function toggleEndDate(endDateId, checkbox) {
+    const endDate = document.getElementById(endDateId);
+    if (!endDate) return;
+    endDate.disabled = checkbox.checked;
+    if (checkbox.checked) endDate.value = '';
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Force-close all edit/add forms on load
     document.querySelectorAll('.prof-edit-form, .prof-add-form').forEach(form => {
         form.style.display = 'none';
         form.dataset.open = 'false';
     });
 
-    // Force-show all view panels on load
-    document.querySelectorAll('[id^="view-"]').forEach(view => {
-        view.style.display = '';
+    document.querySelectorAll('.prof-view').forEach(view => {
+        view.style.display = 'block';
     });
 
-    // Force-hide crop modals on load (safety net in case CSS isn't applied yet)
+    const socialView = document.getElementById('view-social');
+    if (socialView) socialView.style.display = 'block';
+
     const pfpBackdrop  = document.getElementById('pfpCropBackdrop');
     const logoBackdrop = document.getElementById('logoCropBackdrop');
-    if (pfpBackdrop  && !pfpBackdrop.classList.contains('active'))  pfpBackdrop.style.display  = 'none';
+    if (pfpBackdrop  && !pfpBackdrop.classList.contains('active'))  pfpBackdrop.style.display = 'none';
     if (logoBackdrop && !logoBackdrop.classList.contains('active')) logoBackdrop.style.display = 'none';
 
-    // Stagger card entrance animation
     document.querySelectorAll('.prof-card').forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(12px)';

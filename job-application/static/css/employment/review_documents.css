@@ -309,7 +309,7 @@
 
 .emp-req-item.req-done {
     border-color: var(--success);
-    background: var(--success-light);
+    background: var(--bg-secondary);
 }
 
 .emp-req-item.req-missing {

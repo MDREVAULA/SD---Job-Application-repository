@@ -249,7 +249,7 @@ def update_social():
         profile = HRProfile(user_id=current_user.id)
         db.session.add(profile)
 
-    profile.linkedin  = request.form.get('linkedin', '').strip()
+    profile.facebook  = request.form.get('facebook', '').strip()
     profile.github    = request.form.get('github', '').strip()
     profile.portfolio = request.form.get('portfolio', '').strip()
 

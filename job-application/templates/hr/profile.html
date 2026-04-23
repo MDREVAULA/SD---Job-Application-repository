@@ -88,9 +88,9 @@
                 </div>
                 <!-- Social links -->
                 <div class="prof-social-links">
-                    {% if profile and profile.linkedin %}
-                    <a href="{{ profile.linkedin }}" target="_blank" class="prof-social-btn">
-                        <i class="fab fa-linkedin"></i> LinkedIn
+                    {% if profile and profile.facebook %}
+                    <a href="{{ profile.facebook }}" target="_blank" class="prof-social-btn">
+                        <i class="fab fa-facebook"></i> Facebook
                     </a>
                     {% endif %}
                     {% if profile and profile.github %}
@@ -381,7 +381,7 @@
                     {% if profile and profile.phone_number %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.home_address %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.date_of_birth %}{% set score.val = score.val + 10 %}{% endif %}
-                    {% if profile and profile.linkedin %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.facebook %}{% set score.val = score.val + 10 %}{% endif %}
 
                     <div class="prof-completion-title">
                         {% if score.val >= 80 %}All-Star Profile!
@@ -423,9 +423,9 @@
                             <i class="{% if profile and profile.date_of_birth %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add your date of birth
                         </div>
-                        <div class="prof-completion-tip {% if profile and profile.linkedin %}done{% endif %}">
-                            <i class="{% if profile and profile.linkedin %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
-                            Link your LinkedIn
+                        <div class="prof-completion-tip {% if profile and profile.facebook %}done{% endif %}">
+                            <i class="{% if profile and profile.facebook %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Link your Facebook
                         </div>
                     </div>
                 </div>
@@ -527,12 +527,12 @@
                             </div>
                         </div>
                         {% endif %}
-                        {% if profile and profile.linkedin %}
+                        {% if profile and profile.facebook %}
                         <div class="prof-side-item">
-                            <i class="fab fa-linkedin"></i>
+                            <i class="fab fa-facebook"></i>
                             <div class="prof-side-item-text">
-                                <span class="prof-side-item-label">LinkedIn</span>
-                                <a href="{{ profile.linkedin }}" target="_blank" class="prof-link">View Profile</a>
+                                <span class="prof-side-item-label">Facebook</span>
+                                <a href="{{ profile.facebook }}" target="_blank" class="prof-link">View Profile</a>
                             </div>
                         </div>
                         {% endif %}
@@ -561,8 +561,8 @@
                     <form method="POST" action="{{ url_for('hr.update_social') }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group prof-form-full">
-                                <label>LinkedIn URL</label>
-                                <input type="url" name="linkedin" value="{{ profile.linkedin if profile and profile.linkedin else '' }}" placeholder="https://linkedin.com/in/yourname">
+                                <label>Facebook URL</label>
+                                <input type="url" name="facebook" value="{{ profile.facebook if profile and profile.facebook else '' }}" placeholder="https://facebook.com/yourname">
                             </div>
                             <div class="prof-form-group prof-form-full">
                                 <label>GitHub URL</label>

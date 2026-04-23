@@ -43,6 +43,7 @@
     </div>
 
 <div class="detail-page-wrapper">
+
     <!-- JOB HEADER CARD -->
     {% if job %}
     <div class="job-header-card-new">
@@ -54,10 +55,6 @@
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
                 <rect x="9" y="9" width="6" height="6"/>
-                <line x1="9" y1="1" x2="9" y2="4"/>
-                <line x1="15" y1="1" x2="15" y2="4"/>
-                <line x1="9" y1="20" x2="9" y2="23"/>
-                <line x1="15" y1="20" x2="15" y2="23"/>
             </svg>
             {% endif %}
         </div>
@@ -99,7 +96,7 @@
     </div>
     {% endif %}
 
-    <!-- INTERVIEW ALERT (if scheduled) -->
+    <!-- INTERVIEW ALERT -->
     {% if application.interview_date %}
     <div class="interview-alert-card">
         <div class="stat-icon interview-icon">
@@ -114,6 +111,9 @@
             <div class="interview-alert-title">Interview Scheduled</div>
             <div class="interview-alert-detail">
                 <strong>{{ application.interview_date.strftime('%B %d, %Y at %I:%M %p') }}</strong>
+                {% if application.meeting_type %}
+                · {{ application.meeting_type | replace('-', ' ') | title }}
+                {% endif %}
             </div>
             {% if application.meeting_link %}
             <a href="{{ application.meeting_link }}" target="_blank" class="btn-apply-nav meeting-link-btn">
@@ -130,14 +130,14 @@
     {% endif %}
 
     <!-- TABS -->
+    {# Count total remarks for badge #}
+    {% set remarks_count = (1 if application.recruiter_remarks else 0) + (application.hr_feedbacks | length) %}
+
     <div class="detail-tabs-new">
         <button class="detail-tab-new active" data-tab="submission">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10 9 9 9 8 9"/>
             </svg>
             Submission Details
         </button>
@@ -145,16 +145,19 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
-            Recruiter Remarks
-            {% if application.remarks|length > 0 %}
-            <span class="tab-badge-new">{{ application.remarks|length }}</span>
+            Recruiter &amp; HR Remarks
+            {% if remarks_count > 0 %}
+            <span class="tab-badge-new">{{ remarks_count }}</span>
             {% endif %}
         </button>
     </div>
 
     <!-- TAB PANELS -->
+
     <!-- Submission Details -->
     <div class="tab-panel-new active" id="tab-submission">
+
+        <!-- Status -->
         <div class="detail-card-new job-list-section">
             <div class="section-header">
                 <h2 class="section-title">
@@ -185,38 +188,30 @@
                         <div class="info-value">{{ application.interview_date.strftime('%B %d, %Y at %I:%M %p') }}</div>
                     </div>
                     {% endif %}
+                    <div class="info-item">
+                        <div class="info-label">Resume</div>
+                        <div class="info-value">
+                            {% if application.resume %}
+                            <a href="{{ url_for('static', filename='uploads/applicant_resumes/' ~ application.resume) }}"
+                               target="_blank"
+                               class="resume-download-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                View Resume
+                            </a>
+                            {% else %}
+                            <span style="color: var(--text-tertiary); font-style: italic; font-size: 13px;">No resume uploaded.</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="detail-card-new job-list-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    Resume
-                </h2>
-            </div>
-            <div class="detail-content-new">
-                {% if application.resume_path %}
-                <a href="{{ url_for('static', filename='uploads/resumes/' ~ application.resume_path) }}" 
-                   download 
-                   class="resume-download-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                    Download Resume
-                </a>
-                {% else %}
-                <p class="detail-text empty-text">No resume uploaded</p>
-                {% endif %}
-            </div>
-        </div>
-
+        <!-- Cover Letter -->
         <div class="detail-card-new job-list-section">
             <div class="section-header">
                 <h2 class="section-title">
@@ -230,60 +225,151 @@
                 {% if application.cover_letter %}
                 <p class="detail-text">{{ application.cover_letter }}</p>
                 {% else %}
-                <p class="detail-text empty-text">No cover letter provided</p>
+                <p class="detail-text empty-text">No cover letter provided.</p>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Recruiter Remarks -->
+    <!-- Recruiter & HR Remarks -->
     <div class="tab-panel-new" id="tab-remarks">
-        <div class="detail-card-new job-list-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    Remarks from Recruiter
-                </h2>
-            </div>
-            <div class="detail-content-new">
-                {% if application.remarks %}
-                    {% for remark in application.remarks %}
-                    <div class="remark-card-new">
-                        <div class="remark-header-new">
-                            <div class="remark-avatar-new">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="12" cy="7" r="4"/>
-                                </svg>
-                            </div>
-                            <div class="remark-meta-new">
-                                <div class="remark-name-new">{{ remark.recruiter_name or 'Recruiter' }}</div>
-                                <div class="remark-role-new">{{ remark.created_at.strftime('%b %d, %Y at %I:%M %p') }}</div>
-                            </div>
-                        </div>
-                        <p class="remark-text-new">{{ remark.content }}</p>
+
+    <!-- Recruiter Remarks -->
+    <div class="detail-card-new job-list-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Recruiter Remarks
+            </h2>
+        </div>
+        <div class="detail-content-new">
+            {% if application.recruiter_remarks %}
+            <div class="remark-card-new">
+                <div class="remark-header-new">
+                    <div class="remark-avatar-new">
+                        {% if recruiter_user and recruiter_user.profile_picture %}
+                            {% if recruiter_user.profile_picture.startswith('http') %}
+                                <img src="{{ recruiter_user.profile_picture }}" alt="{{ recruiter_user.username }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' ~ recruiter_user.profile_picture) }}" alt="{{ recruiter_user.username }}">
+                            {% endif %}
+                        {% else %}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        {% endif %}
                     </div>
-                    {% endfor %}
-                {% else %}
-                <p class="detail-text empty-text">No remarks yet from the recruiter</p>
-                {% endif %}
+                    <div class="remark-meta-new">
+                        <div class="remark-name-new">
+                            {% if recruiter and recruiter.first_name %}
+                                {{ recruiter.first_name }} {{ recruiter.surname }}
+                            {% elif recruiter_user %}
+                                {{ recruiter_user.username }}
+                            {% else %}
+                                Recruiter
+                            {% endif %}
+                        </div>
+                        <div class="remark-role-new" style="display: flex; align-items: center; gap: 8px;">
+                            Recruiter
+                            {% if recruiter_user %}
+                            <a href="{{ url_for('profile_view.view_profile', user_id=recruiter_user.id) }}"
+                               target="_blank"
+                               style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--accent-primary); text-decoration:none; padding:2px 8px; border-radius:6px; border:1px solid var(--accent-primary); transition:all 0.2s;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                                </svg>
+                                View Profile
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <p class="remark-text-new">{{ application.recruiter_remarks }}</p>
             </div>
+            {% else %}
+            <p class="detail-text empty-text">No remarks from the recruiter yet.</p>
+            {% endif %}
         </div>
     </div>
+
+    <!-- HR Feedback -->
+    <div class="detail-card-new job-list-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                HR Feedback
+            </h2>
+        </div>
+        <div class="detail-content-new">
+            {% if application.hr_feedbacks %}
+                {% for fb in application.hr_feedbacks %}
+                <div class="remark-card-new">
+                    <div class="remark-header-new">
+                        <div class="remark-avatar-new">
+                            {% if fb.hr_user and fb.hr_user.profile_picture %}
+                                {% if fb.hr_user.profile_picture.startswith('http') %}
+                                    <img src="{{ fb.hr_user.profile_picture }}" alt="{{ fb.hr_user.username }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' ~ fb.hr_user.profile_picture) }}" alt="{{ fb.hr_user.username }}">
+                                {% endif %}
+                            {% else %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="remark-meta-new">
+                            <div class="remark-name-new">
+                                {% if fb.hr_user and fb.hr_user.hr_profile and fb.hr_user.hr_profile.first_name %}
+                                    {{ fb.hr_user.hr_profile.first_name }} {{ fb.hr_user.hr_profile.last_name }}
+                                {% elif fb.hr_user %}
+                                    {{ fb.hr_user.username }}
+                                {% else %}
+                                    HR Staff
+                                {% endif %}
+                            </div>
+                            <div class="remark-role-new" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                HR · {{ fb.updated_at.strftime('%b %d, %Y at %I:%M %p') if fb.updated_at else fb.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                {% if fb.hr_user %}
+                                <a href="{{ url_for('profile_view.view_profile', user_id=fb.hr_user.id) }}"
+                                   target="_blank"
+                                   style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:var(--accent-primary); text-decoration:none; padding:2px 8px; border-radius:6px; border:1px solid var(--accent-primary); transition:all 0.2s;">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                                    </svg>
+                                    View Profile
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <p class="remark-text-new">{{ fb.feedback }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+            <p class="detail-text empty-text">No HR feedback yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    </div><!-- /.tab-remarks -->
 
 </div>
 
 <script>
-// Tab switching
 document.querySelectorAll('.detail-tab-new').forEach(tab => {
     tab.addEventListener('click', function() {
         const targetTab = this.dataset.tab;
-        
         document.querySelectorAll('.detail-tab-new').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-panel-new').forEach(p => p.classList.remove('active'));
-        
         this.classList.add('active');
         document.getElementById('tab-' + targetTab).classList.add('active');
     });
