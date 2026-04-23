@@ -142,12 +142,22 @@ def jobs():
     from models import SavedJob
 
     try:
-        jobs = Job.query.filter(
-            Job.is_taken_down == False,
-            (Job.expiration_date == None) | (Job.expiration_date >= date.today())
-        ).all()
+        jobs = (
+            Job.query
+            .join(User, Job.company_id == User.id)
+            .filter(
+                Job.is_taken_down == False,
+                User.is_banned == False,
+                (Job.expiration_date == None) | (Job.expiration_date >= date.today())
+            ).all()
+        )
     except:
-        jobs = Job.query.filter(Job.is_taken_down == False).all()
+        jobs = (
+            Job.query
+            .join(User, Job.company_id == User.id)
+            .filter(Job.is_taken_down == False, User.is_banned == False)
+            .all()
+        )
 
     saved_job_ids = set()
     if current_user.is_authenticated and current_user.role == 'applicant':

@@ -18,8 +18,8 @@ profile_view_bp = Blueprint('profile_view', __name__, url_prefix='/profile')
 def _get_follow_lists(user_id):
     follower_rows  = Follow.query.filter_by(followed_id=user_id).all()
     following_rows = Follow.query.filter_by(follower_id=user_id).all()
-    followers = [User.query.get(r.follower_id) for r in follower_rows if User.query.get(r.follower_id)]
-    following = [User.query.get(r.followed_id) for r in following_rows if User.query.get(r.followed_id)]
+    followers = [u for u in (User.query.get(r.follower_id) for r in follower_rows) if u and not u.is_banned]
+    following = [u for u in (User.query.get(r.followed_id) for r in following_rows) if u and not u.is_banned]
     return followers, following
 
 
@@ -116,6 +116,10 @@ def view_profile(user_id):
     from sqlalchemy import or_, and_
 
     user = User.query.get_or_404(user_id)
+
+    if user.is_banned:
+        flash("This profile is not available.", "warning")
+        return redirect(url_for('auth.index'))
 
     if current_user.is_authenticated and current_user.id == user_id:
         if user.role == 'applicant':
@@ -230,8 +234,7 @@ def view_recruiter_profile(user_id):
 
     profile     = RecruiterProfile.query.filter_by(user_id=user_id).first()
     educations  = Education.query.filter_by(profile_id=profile.id).order_by(Education.created_at.desc()).all() if profile else []
-    posted_jobs = Job.query.filter_by(company_id=user_id).order_by(Job.id.desc()).all()
-
+    posted_jobs = Job.query.filter_by(company_id=user_id, is_taken_down=False).order_by(Job.id.desc()).all()
     is_following = False
     if current_user.is_authenticated:
         is_following = Follow.query.filter_by(
@@ -351,10 +354,10 @@ def follow_list(user_id):
         return {'id': u.id, 'username': u.username, 'role': u.role,
                 'pic': pic, 'profile_url': '/profile/' + str(u.id)}
 
-    followers = [serialize(User.query.get(r.follower_id)) for r in follower_rows]
-    following = [serialize(User.query.get(r.followed_id)) for r in following_rows]
-    followers = [u for u in followers if u]
-    following = [u for u in following if u]
+    followers = [serialize(u) for r in follower_rows
+                 for u in [User.query.get(r.follower_id)] if u and not u.is_banned]
+    following = [serialize(u) for r in following_rows
+                 for u in [User.query.get(r.followed_id)] if u and not u.is_banned]
 
     show_count = _can_see_follow_count(settings)
     return jsonify({

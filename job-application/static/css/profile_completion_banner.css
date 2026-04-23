@@ -6,7 +6,7 @@
 .profile-completion-banner {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 10px;
     padding: 20px 24px;
     border-radius: 14px;
     margin-bottom: 24px;
@@ -62,7 +62,6 @@
     font-size: 14px;
     font-weight: 700;
     color: var(--text-primary, #fff);
-    margin-bottom: 4px;
 }
 
 .pcb-body p {
@@ -71,6 +70,7 @@
     margin: 0;
     line-height: 1.55;
     font-weight: 500;
+    margin-bottom: 0;
 }
 
 /* Checklist */
@@ -90,6 +90,8 @@
     gap: 5px;
     font-size: 12px;
     font-weight: 600;
+    margin-top: 16px;
+    margin-bottom: 0;
     padding: 5px 11px;
     border-radius: 20px;
     background: var(--bg-surface-alt, #313638);
