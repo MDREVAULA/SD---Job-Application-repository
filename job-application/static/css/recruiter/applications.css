@@ -1147,6 +1147,10 @@
     color: var(--text-secondary);
     line-height: 1.65;
     white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .feedback-item {

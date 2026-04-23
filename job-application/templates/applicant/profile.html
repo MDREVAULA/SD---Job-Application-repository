@@ -136,9 +136,9 @@
                     <span><i class="fas fa-envelope"></i>{{ current_user.email }}</span>
                 </div>
                 <div class="prof-social-links">
-                    {% if profile and profile.linkedin %}
-                    <a href="{{ profile.linkedin }}" target="_blank" class="prof-social-btn">
-                        <i class="fab fa-linkedin"></i> LinkedIn
+                    {% if profile and profile.facebook %}
+                    <a href="{{ profile.facebook }}" target="_blank" class="prof-social-btn">
+                        <i class="fab fa-facebook"></i> Facebook
                     </a>
                     {% endif %}
                     {% if profile and profile.github %}
@@ -216,32 +216,6 @@
                             <span class="prof-info-value prof-bio-text">{{ profile.bio if profile and profile.bio else '—'}}</span>
                         </div>
                         {% set active_jobs = current_user.employment_records | selectattr('employment_status','equalto','active') | list %}
-                        {% if active_jobs %}
-                        <div class="prof-info-item prof-info-full" style="margin-top:8px;">
-                            <span class="prof-info-label">Current Employment</span>
-                            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
-                                {% for emp in active_jobs %}
-                                <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-surface-alt,#EAF3DE);border:1px solid #9DC88D;border-radius:10px;">
-                                    <div style="width:36px;height:36px;border-radius:8px;background:#164A41;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
-                                            <rect x="2" y="7" width="20" height="14" rx="2"/>
-                                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">{{ emp.job_title }}</div>
-                                        <div style="font-size:0.78rem;color:#4D774E;font-weight:500;">{{ emp.company_name }}</div>
-                                        <div style="font-size:0.72rem;color:var(--text-muted);">Since {{ emp.start_date.strftime('%B %Y') if emp.start_date else '' }}</div>
-                                    </div>
-                                    <a href="{{ url_for('employment.employment_status', app_id=emp.application_id) }}"
-                                    style="margin-left:auto;font-size:0.75rem;color:#164A41;font-weight:600;text-decoration:none;border:1px solid #9DC88D;padding:4px 10px;border-radius:20px;">
-                                        View
-                                    </a>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
                 </div>
 
@@ -304,93 +278,6 @@
                             <button type="button" class="prof-btn-cancel" onclick="toggleEdit('personal')" data-edit-target="personal">Cancel</button>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <!-- ── WORK EXPERIENCE ── -->
-            <div class="prof-card" id="section-experience" style="animation-delay:0.08s">
-                <div class="prof-card-header">
-                    <div class="prof-card-title">
-                        <i class="fas fa-briefcase"></i> Experience
-                        {% if experiences %}<span class="prof-section-count">{{ experiences | length }}</span>{% endif %}
-                    </div>
-                    <div class="prof-card-btns">
-                        <button class="prof-add-btn" onclick="toggleAddForm('add-experience')">
-                            <i class="fas fa-plus"></i> Add
-                        </button>
-                    </div>
-                </div>
-
-                <div class="prof-add-form" id="add-experience" style="display:none;">
-                    <form method="POST" action="{{ url_for('applicant.add_experience') }}">
-                        <div class="prof-form-grid">
-                            <div class="prof-form-group">
-                                <label>Job Title</label>
-                                <input type="text" name="job_title" placeholder="e.g. Software Engineer" required>
-                            </div>
-                            <div class="prof-form-group">
-                                <label>Company</label>
-                                <input type="text" name="company" placeholder="e.g. Google" required>
-                            </div>
-                            <div class="prof-form-group">
-                                <label>Location</label>
-                                <input type="text" name="location" placeholder="e.g. Manila, PH">
-                            </div>
-                            <div class="prof-form-group">
-                                <label>Start Date</label>
-                                <input type="month" name="start_date">
-                            </div>
-                            <div class="prof-form-group">
-                                <label>End Date</label>
-                                <input type="month" name="end_date" id="exp-end-date">
-                            </div>
-                            <div class="prof-form-group prof-form-full">
-                                <label class="prof-checkbox-label">
-                                    <input type="checkbox" name="is_current" value="1" onchange="toggleEndDate('exp-end-date', this)">
-                                    I currently work here
-                                </label>
-                            </div>
-                            <div class="prof-form-group prof-form-full">
-                                <label>Description</label>
-                                <textarea name="description" rows="3" placeholder="Key responsibilities and achievements..."></textarea>
-                            </div>
-                        </div>
-                        <div class="prof-form-actions">
-                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
-                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-experience')">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="prof-items-list">
-                    {% if experiences %}
-                        {% for exp in experiences %}
-                        <div class="prof-item">
-                            <div class="prof-item-icon"><i class="fas fa-briefcase"></i></div>
-                            <div class="prof-item-body">
-                                <div class="prof-item-title">{{ exp.job_title }}</div>
-                                <div class="prof-item-subtitle">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</div>
-                                <div class="prof-item-date">
-                                    {{ exp.start_date if exp.start_date else '' }}
-                                    {% if exp.is_current %} – Present
-                                    {% elif exp.end_date %} – {{ exp.end_date }}
-                                    {% endif %}
-                                </div>
-                                {% if exp.description %}<div class="prof-item-desc">{{ exp.description }}</div>{% endif %}
-                            </div>
-                            <form method="POST" action="{{ url_for('applicant.delete_experience', exp_id=exp.id) }}" class="prof-item-delete">
-                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this experience?')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="prof-empty-section">
-                            <i class="fas fa-briefcase"></i>
-                            <p>No work experience added yet.</p>
-                        </div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -479,28 +366,34 @@
                 </div>
             </div>
 
-            <!-- ── PROJECTS ── -->
-            <div class="prof-card" id="section-projects" style="animation-delay:0.14s">
+            <!-- ── WORK EXPERIENCE ── -->
+            <div class="prof-card" id="section-experience" style="animation-delay:0.08s">
                 <div class="prof-card-header">
                     <div class="prof-card-title">
-                        <i class="fas fa-laptop-code"></i> Projects
-                        {% if projects %}<span class="prof-section-count">{{ projects | length }}</span>{% endif %}
+                        <i class="fas fa-briefcase"></i> Experience
+                        {% if experiences %}<span class="prof-section-count">{{ experiences | length }}</span>{% endif %}
                     </div>
-                    <button class="prof-add-btn" onclick="toggleAddForm('add-project')">
-                        <i class="fas fa-plus"></i> Add
-                    </button>
+                    <div class="prof-card-btns">
+                        <button class="prof-add-btn" onclick="toggleAddForm('add-experience')">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
                 </div>
 
-                <div class="prof-add-form" id="add-project" style="display:none;">
-                    <form method="POST" action="{{ url_for('applicant.add_project') }}">
+                <div class="prof-add-form" id="add-experience" style="display:none;">
+                    <form method="POST" action="{{ url_for('applicant.add_experience') }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group">
-                                <label>Project Title</label>
-                                <input type="text" name="title" placeholder="e.g. Job Portal Web App" required>
+                                <label>Job Title</label>
+                                <input type="text" name="job_title" placeholder="e.g. Software Engineer" required>
                             </div>
                             <div class="prof-form-group">
-                                <label>Project URL</label>
-                                <input type="url" name="url" placeholder="https://github.com/...">
+                                <label>Company</label>
+                                <input type="text" name="company" placeholder="e.g. Google" required>
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Location</label>
+                                <input type="text" name="location" placeholder="e.g. Manila, PH">
                             </div>
                             <div class="prof-form-group">
                                 <label>Start Date</label>
@@ -508,40 +401,44 @@
                             </div>
                             <div class="prof-form-group">
                                 <label>End Date</label>
-                                <input type="month" name="end_date">
+                                <input type="month" name="end_date" id="exp-end-date">
+                            </div>
+                            <div class="prof-form-group prof-form-full">
+                                <label class="prof-checkbox-label">
+                                    <input type="checkbox" name="is_current" value="1" onchange="toggleEndDate('exp-end-date', this)">
+                                    I currently work here
+                                </label>
                             </div>
                             <div class="prof-form-group prof-form-full">
                                 <label>Description</label>
-                                <textarea name="description" rows="3" placeholder="Your role, technologies used, and what you built..."></textarea>
+                                <textarea name="description" rows="3" placeholder="Key responsibilities and achievements..."></textarea>
                             </div>
                         </div>
                         <div class="prof-form-actions">
                             <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
-                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-project')">Cancel</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-experience')">Cancel</button>
                         </div>
                     </form>
                 </div>
 
                 <div class="prof-items-list">
-                    {% if projects %}
-                        {% for proj in projects %}
+                    {% if experiences %}
+                        {% for exp in experiences %}
                         <div class="prof-item">
-                            <div class="prof-item-icon"><i class="fas fa-laptop-code"></i></div>
+                            <div class="prof-item-icon"><i class="fas fa-briefcase"></i></div>
                             <div class="prof-item-body">
-                                <div class="prof-item-title">
-                                    {{ proj.title }}
-                                    {% if proj.url %}
-                                    <a href="{{ proj.url }}" target="_blank" class="prof-item-link"><i class="fas fa-up-right-from-square"></i> View</a>
+                                <div class="prof-item-title">{{ exp.job_title }}</div>
+                                <div class="prof-item-subtitle">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</div>
+                                <div class="prof-item-date">
+                                    {{ exp.start_date if exp.start_date else '' }}
+                                    {% if exp.is_current %} – Present
+                                    {% elif exp.end_date %} – {{ exp.end_date }}
                                     {% endif %}
                                 </div>
-                                <div class="prof-item-date">
-                                    {{ proj.start_date if proj.start_date else '' }}
-                                    {% if proj.end_date %} – {{ proj.end_date }}{% endif %}
-                                </div>
-                                {% if proj.description %}<div class="prof-item-desc">{{ proj.description }}</div>{% endif %}
+                                {% if exp.description %}<div class="prof-item-desc">{{ exp.description }}</div>{% endif %}
                             </div>
-                            <form method="POST" action="{{ url_for('applicant.delete_project', proj_id=proj.id) }}" class="prof-item-delete">
-                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this project?')">
+                            <form method="POST" action="{{ url_for('applicant.delete_experience', exp_id=exp.id) }}" class="prof-item-delete">
+                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this experience?')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -549,85 +446,8 @@
                         {% endfor %}
                     {% else %}
                         <div class="prof-empty-section">
-                            <i class="fas fa-laptop-code"></i>
-                            <p>No projects added yet.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- ── CERTIFICATIONS ── -->
-            <div class="prof-card" id="section-certifications" style="animation-delay:0.17s">
-                <div class="prof-card-header">
-                    <div class="prof-card-title">
-                        <i class="fas fa-certificate"></i> Certifications
-                        {% if certifications %}<span class="prof-section-count">{{ certifications | length }}</span>{% endif %}
-                    </div>
-                    <button class="prof-add-btn" onclick="toggleAddForm('add-certification')">
-                        <i class="fas fa-plus"></i> Add
-                    </button>
-                </div>
-
-                <div class="prof-add-form" id="add-certification" style="display:none;">
-                    <form method="POST" action="{{ url_for('applicant.add_certification') }}">
-                        <div class="prof-form-grid">
-                            <div class="prof-form-group">
-                                <label>Certification Name</label>
-                                <input type="text" name="name" placeholder="e.g. AWS Certified Developer" required>
-                            </div>
-                            <div class="prof-form-group">
-                                <label>Issuing Organization</label>
-                                <input type="text" name="issuer" placeholder="e.g. Amazon Web Services">
-                            </div>
-                            <div class="prof-form-group">
-                                <label>Issue Date</label>
-                                <input type="month" name="issue_date">
-                            </div>
-                            <div class="prof-form-group">
-                                <label>Expiry Date <span class="prof-form-hint">(optional)</span></label>
-                                <input type="month" name="expiry_date">
-                            </div>
-                            <div class="prof-form-group prof-form-full">
-                                <label>Credential URL</label>
-                                <input type="url" name="credential_url" placeholder="https://...">
-                            </div>
-                        </div>
-                        <div class="prof-form-actions">
-                            <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
-                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-certification')">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="prof-items-list">
-                    {% if certifications %}
-                        {% for cert in certifications %}
-                        <div class="prof-item">
-                            <div class="prof-item-icon"><i class="fas fa-certificate"></i></div>
-                            <div class="prof-item-body">
-                                <div class="prof-item-title">
-                                    {{ cert.name }}
-                                    {% if cert.credential_url %}
-                                    <a href="{{ cert.credential_url }}" target="_blank" class="prof-item-link"><i class="fas fa-up-right-from-square"></i> Verify</a>
-                                    {% endif %}
-                                </div>
-                                <div class="prof-item-subtitle">{{ cert.issuer if cert.issuer else '' }}</div>
-                                <div class="prof-item-date">
-                                    {% if cert.issue_date %}Issued {{ cert.issue_date }}{% endif %}
-                                    {% if cert.expiry_date %} · Expires {{ cert.expiry_date }}{% endif %}
-                                </div>
-                            </div>
-                            <form method="POST" action="{{ url_for('applicant.delete_certification', cert_id=cert.id) }}" class="prof-item-delete">
-                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this certification?')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="prof-empty-section">
-                            <i class="fas fa-certificate"></i>
-                            <p>No certifications added yet.</p>
+                            <i class="fas fa-briefcase"></i>
+                            <p>No work experience added yet.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -846,7 +666,7 @@
                     {% if profile and profile.first_name and profile.last_name %}{% set score.val = score.val + 15 %}{% endif %}
                     {% if profile and profile.bio %}{% set score.val = score.val + 15 %}{% endif %}
                     {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
-                    {% if profile and profile.linkedin %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.facebook %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if experiences %}{% set score.val = score.val + 20 %}{% endif %}
                     {% if educations %}{% set score.val = score.val + 15 %}{% endif %}
                     {% if skills %}{% set score.val = score.val + 10 %}{% endif %}
@@ -888,13 +708,50 @@
                             <i class="{% if skills %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add skills
                         </div>
-                        <div class="prof-completion-tip {% if profile and profile.linkedin %}done{% endif %}">
-                            <i class="{% if profile and profile.linkedin %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
-                            Link your LinkedIn
+                        <div class="prof-completion-tip {% if profile and profile.facebook %}done{% endif %}">
+                            <i class="{% if profile and profile.facebook %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Link your Facebook
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- ── CURRENTLY EMPLOYED (sidebar) ── -->
+            {% set active_jobs = current_user.employment_records | selectattr('employment_status','equalto','active') | list %}
+            {% if active_jobs %}
+            <div class="prof-card" style="animation-delay:0.04s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-briefcase"></i> Currently Employed</div>
+                </div>
+                <div class="prof-side-list">
+                    {% for emp in active_jobs %}
+                    <div class="prof-side-item" style="align-items:center;">
+                        <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--border-color,#EAEDE8);background:var(--bg-surface-alt,#F9FBF8);display:flex;align-items:center;justify-content:center;">
+                            {% set recruiter = emp.job.company if emp.job else none %}
+                            {% set rec_profile = emp.job.poster.recruiter_profile if emp.job and emp.job.poster else none %}
+                            {% if rec_profile and rec_profile.company_logo %}
+                                <img src="{{ url_for('static', filename='uploads/company_logos/' + rec_profile.company_logo) }}"
+                                    style="width:100%;height:100%;object-fit:cover;" alt="Logo">
+                            {% else %}
+                                <i class="fas fa-building" style="color:#4D774E;font-size:1rem;"></i>
+                            {% endif %}
+                        </div>
+                        <div class="prof-side-item-text" style="flex:1;min-width:0;">
+                            <span class="prof-side-item-label">{{ emp.company_name }}</span>
+                            <div style="font-weight:600;font-size:0.855rem;color:var(--text-primary,#111);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ emp.job_title }}</div>
+                            {% if emp.start_date %}
+                            <div style="font-size:0.72rem;color:var(--text-muted,#9CA3AF);margin-top:1px;">Since {{ emp.start_date.strftime('%B %Y') }}</div>
+                            {% endif %}
+                            <a href="{{ url_for('applicant.application_detail', app_id=emp.application_id) }}"
+                            style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:0.75rem;font-weight:600;color:#164A41;text-decoration:none;border:1px solid #9DC88D;padding:3px 10px;border-radius:20px;background:#F0F7EC;">
+                                <i class="fas fa-arrow-right" style="font-size:0.65rem;"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
             <!-- ── SKILLS (sidebar) ── -->
             <div class="prof-card" id="section-skills" style="animation-delay:0.1s">
@@ -978,12 +835,12 @@
                             </div>
                         </div>
                         {% endif %}
-                        {% if profile and profile.linkedin %}
+                        {% if profile and profile.facebook %}
                         <div class="prof-side-item">
-                            <i class="fab fa-linkedin"></i>
+                            <i class="fab fa-facebook"></i>
                             <div class="prof-side-item-text">
-                                <span class="prof-side-item-label">LinkedIn</span>
-                                <a href="{{ profile.linkedin }}" target="_blank" class="prof-link">View Profile</a>
+                                <span class="prof-side-item-label">Facebook</span>
+                                <a href="{{ profile.facebook }}" target="_blank" class="prof-link">View Profile</a>
                             </div>
                         </div>
                         {% endif %}
@@ -1011,8 +868,8 @@
                     <form method="POST" action="{{ url_for('applicant.update_social') }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group prof-form-full">
-                                <label>LinkedIn URL</label>
-                                <input type="url" name="linkedin" value="{{ profile.linkedin if profile and profile.linkedin else '' }}" placeholder="https://linkedin.com/in/yourname">
+                                <label>Facebook URL</label>
+                                <input type="url" name="facebook" value="{{ profile.facebook if profile and profile.facebook else '' }}" placeholder="https://facebook.com/yourname">
                             </div>
                             <div class="prof-form-group prof-form-full">
                                 <label>GitHub URL</label>

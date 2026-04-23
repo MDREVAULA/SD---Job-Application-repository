@@ -119,6 +119,8 @@
                 </div>
                 <p class="pview-headline">
                     Recruiter at <strong>{{ profile.company_name }}</strong>
+                </p>
+                <p class="pview-headline">
                     {% if profile and profile.headline %}
                         {{ profile.headline }}
                     {% endif %}
@@ -138,9 +140,9 @@
 
                 <!-- Social links -->
                 <div class="pview-social-links">
-                    {% if profile and profile.linkedin %}
-                    <a href="{{ profile.linkedin }}" target="_blank" class="pview-social-btn">
-                        <i class="fab fa-linkedin"></i> LinkedIn
+                    {% if profile and profile.facebook %}
+                    <a href="{{ profile.facebook }}" target="_blank" class="pview-social-btn">
+                        <i class="fab fa-facebook"></i> Facebook
                     </a>
                     {% endif %}
                     {% if profile and profile.github %}
@@ -423,12 +425,12 @@
                         </div>
                     </div>
                     {% endif %}
-                    {% if profile and profile.linkedin %}
+                    {% if profile and profile.facebook %}
                     <div class="pview-side-item">
-                        <i class="fab fa-linkedin"></i>
+                        <i class="fab fa-facebook"></i>
                         <div class="pview-side-item-text">
-                            <span class="pview-side-item-label">LinkedIn</span>
-                            <a href="{{ profile.linkedin }}" target="_blank" class="pview-link">View Profile</a>
+                            <span class="pview-side-item-label">Facebook</span>
+                            <a href="{{ profile.facebook }}" target="_blank" class="pview-link">View Profile</a>
                         </div>
                     </div>
                     {% endif %}
