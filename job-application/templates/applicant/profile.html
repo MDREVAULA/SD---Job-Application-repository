@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/profile.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_completion_banner.css') }}">
 
-
 {# ══ COMPLETION BANNER ══ #}
 {% if current_user.is_authenticated and not current_user.profile_completed %}
 <div class="profile-completion-banner banner--incomplete">
@@ -71,9 +70,6 @@
                         <i class="fas fa-circle-exclamation"></i> Incomplete Profile
                     </div>
                     {% endif %}
-                    <button class="prof-action-btn prof-action-btn-outline" onclick="toggleEdit('personal')" data-edit-target="personal">
-                        <i class="fas fa-pen"></i> Edit Profile
-                    </button>
                 </div>
             </div>
 
@@ -413,10 +409,6 @@
                                     I currently work here
                                 </label>
                             </div>
-                            <div class="prof-form-group prof-form-full">
-                                <label>Description</label>
-                                <textarea name="description" rows="3" placeholder="Key responsibilities and achievements..."></textarea>
-                            </div>
                             <!-- Certificates attached at creation -->
                             <div class="prof-form-group prof-form-full">
                                 <label>Certificates &amp; Awards <span class="prof-form-hint">Optional · PDF, JPG, PNG · Max 5MB each · Up to 10 files</span></label>
@@ -477,11 +469,6 @@
 
                             <!-- Collapsible body -->
                             <div class="exp-item-body" id="exp-body-{{ exp.id }}">
-                                {% if exp.description %}
-                                <div class="exp-item-desc-row">
-                                    <div class="prof-item-desc">{{ exp.description }}</div>
-                                </div>
-                                {% endif %}
 
                                 <!-- Certificates & Awards -->
                                 <div class="exp-certs-section" id="certs-section-{{ exp.id }}">
@@ -903,6 +890,8 @@
                                 <label>GitHub URL</label>
                                 <input type="url" name="github" value="{{ profile.github if profile and profile.github else '' }}" placeholder="https://github.com/yourname">
                             </div>
+                            <!-- ADD THIS: preserve portfolio when saving social links -->
+                            <input type="hidden" name="portfolio" value="{{ profile.portfolio if profile and profile.portfolio else '' }}">
                         </div>
                         <div class="prof-form-actions">
                             <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>

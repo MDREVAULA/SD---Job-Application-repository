@@ -343,6 +343,8 @@ class RecruiterProfile(db.Model):
     # Track whether profile has been submitted for verification
     submitted_for_review = db.Column(db.Boolean, default=False)
 
+    education_level = db.Column(db.String(100)) 
+
     # RELATIONSHIP — recruiter-specific education entries
     educations = db.relationship(
         "RecruiterEducation", backref="recruiter_profile",
@@ -379,6 +381,8 @@ class HRProfile(db.Model):
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
+    education_level = db.Column(db.String(100))
+    
     educations = db.relationship(
         "HREducation", backref="hr_profile",
         lazy=True, cascade="all, delete-orphan"

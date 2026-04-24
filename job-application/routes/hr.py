@@ -278,6 +278,7 @@ def add_education():
     edu = HREducation(
         profile_id     = profile.id,
         school         = request.form.get('school', '').strip(),
+        education_level= request.form.get('education_level', '').strip(),
         degree         = request.form.get('degree', '').strip(),
         field_of_study = request.form.get('field_of_study', '').strip(),
         start_date     = request.form.get('start_date', '').strip(),

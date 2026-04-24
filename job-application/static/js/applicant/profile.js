@@ -57,8 +57,6 @@ function toggleEndDate(endDateId, checkbox) {
 
 /* ────────────────────────────────────────────────────────────
    CUSTOM CHECKBOXES
-   Drives the .is-checked visual state and disables end-date
-   fields automatically — no inline onchange= needed in HTML.
    ──────────────────────────────────────────────────────────── */
 
 function initCustomCheckboxes() {
@@ -66,11 +64,9 @@ function initCustomCheckboxes() {
         const input = label.querySelector('input[type="checkbox"]');
         if (!input) return;
 
-        // Reflect any pre-checked state (e.g. form re-population)
         if (input.checked) label.classList.add('is-checked');
 
         label.addEventListener('click', function () {
-            // Read the native value after the browser has flipped it
             setTimeout(() => {
                 if (input.checked) {
                     label.classList.add('is-checked');
@@ -78,7 +74,6 @@ function initCustomCheckboxes() {
                     label.classList.remove('is-checked');
                 }
 
-                // Disable / clear the end-date field in the same form grid
                 const formGrid = label.closest('.prof-form-grid');
                 if (formGrid) {
                     const endDateInput = formGrid.querySelector('input[type="month"][name="end_date"]');
@@ -106,6 +101,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // Force-show all view panels on load
     document.querySelectorAll('[id^="view-"]').forEach(view => {
         view.style.display = '';
+    });
+
+    // Collapse all experience bodies by default
+    document.querySelectorAll('[id^="exp-body-"]').forEach(body => {
+        body.classList.add('collapsed');
+        const idNum = body.id.replace('exp-body-', '');
+        const chevron = document.getElementById('chevron-' + idNum);
+        const block   = document.getElementById('exp-block-' + idNum);
+        if (chevron) chevron.classList.add('rotated');
+        if (block)   block.classList.add('is-collapsed');
     });
 
     // Initialise all custom checkboxes
@@ -412,6 +417,8 @@ function switchPortfolioMode(mode) {
 
 /* ────────────────────────────────────────────────────────────
    FILE VALIDATION — portfolio, certificates
+   Shows the custom doc-error-overlay modal instead of the
+   browser's default error page / form submission.
    ──────────────────────────────────────────────────────────── */
 
 let _retryInputId  = null;
@@ -424,12 +431,21 @@ function showDocError(message, inputId, allowedExts, maxMB, formId) {
     _retryAccept  = allowedExts;
     _retryMaxMB   = maxMB;
     _retryFormId  = formId;
-    document.getElementById('doc-error-message').textContent = message;
-    document.getElementById('doc-error-overlay').classList.add('open');
+
+    const msgEl   = document.getElementById('doc-error-message');
+    const overlay = document.getElementById('doc-error-overlay');
+    if (!msgEl || !overlay) {
+        // Fallback — overlay missing from DOM; show a plain alert
+        alert('File error: ' + message);
+        return;
+    }
+    msgEl.textContent = message;
+    overlay.classList.add('open');
 }
 
 function closeDocError() {
-    document.getElementById('doc-error-overlay').classList.remove('open');
+    const overlay = document.getElementById('doc-error-overlay');
+    if (overlay) overlay.classList.remove('open');
     _retryInputId = _retryAccept = _retryMaxMB = _retryFormId = null;
 }
 
@@ -446,6 +462,11 @@ function retryDocUpload() {
     input.click();
 }
 
+/**
+ * Validates a file chosen by the user, then submits a hidden form.
+ * Always prevents the actual form submission when validation fails —
+ * the error modal is shown instead of navigating away.
+ */
 function validateAndSubmit(inputEl, allowedExt, maxMB, formId) {
     const file = inputEl.files && inputEl.files[0];
     if (!file) return;
@@ -456,23 +477,25 @@ function validateAndSubmit(inputEl, allowedExt, maxMB, formId) {
 
     if (!allowedExt.includes(ext)) {
         const allowed = allowedExt.map(e => e.toUpperCase()).join(', ');
+        // Clear the input BEFORE showing the error so no submit can sneak through
+        inputEl.value = '';
         showDocError(
-            '"' + file.name + '" is not a supported file type. Please upload a ' + allowed + ' file.',
+            `"${file.name}" is not a supported file type. Please upload a ${allowed} file.`,
             inputEl.id, allowedExt, maxMB, formId
         );
-        inputEl.value = '';
         return;
     }
 
     if (sizeMB > maxMB) {
+        inputEl.value = '';
         showDocError(
-            '"' + file.name + '" is ' + sizeMB.toFixed(1) + ' MB, which exceeds the ' + maxMB + ' MB limit. Please choose a smaller file.',
+            `"${file.name}" is ${sizeMB.toFixed(1)} MB, which exceeds the ${maxMB} MB limit. Please choose a smaller file.`,
             inputEl.id, allowedExt, maxMB, formId
         );
-        inputEl.value = '';
         return;
     }
 
+    // Validation passed — copy to the hidden form input and submit
     const dt = new DataTransfer();
     dt.items.add(file);
     const hiddenInput = document.getElementById(hiddenInputId);
@@ -513,7 +536,7 @@ function handleDrop(event, hiddenFieldName, allowedExt, maxMB) {
     if (!allowedExt.includes(ext)) {
         const allowed = allowedExt.map(e => e.toUpperCase()).join(', ');
         showDocError(
-            '"' + file.name + '" is not a supported file type. Please upload a ' + allowed + ' file.',
+            `"${file.name}" is not a supported file type. Please upload a ${allowed} file.`,
             visibleInput ? visibleInput.id : null,
             allowedExt, maxMB, targetForm.id
         );
@@ -522,7 +545,7 @@ function handleDrop(event, hiddenFieldName, allowedExt, maxMB) {
 
     if (sizeMB > maxMB) {
         showDocError(
-            '"' + file.name + '" is ' + sizeMB.toFixed(1) + ' MB, which exceeds the ' + maxMB + ' MB limit. Please choose a smaller file.',
+            `"${file.name}" is ${sizeMB.toFixed(1)} MB, which exceeds the ${maxMB} MB limit. Please choose a smaller file.`,
             visibleInput ? visibleInput.id : null,
             allowedExt, maxMB, targetForm.id
         );
