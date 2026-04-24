@@ -11,10 +11,8 @@
 {# ══════════════════════════════════════════════════════════════════════════════
    APPLICANT PROFILE — COMPLETION BANNER
    Only shows when profile is NOT complete.
-   This banner will automatically disappear once all required fields are filled.
    ══════════════════════════════════════════════════════════════════════════════ #}
 
-{# FIXED: The condition should be checking current_user.profile_complete, NOT just a variable #}
 {% if current_user.is_authenticated and not current_user.profile_completed %}
 <div class="profile-completion-banner banner--incomplete">
 
@@ -121,7 +119,7 @@
                             <span class="pview-follow-count-lbl">Following</span>
                         </button>
                     </div>
-                </div>  <!-- ← make sure this closing tag is here -->
+                </div>
                 
                 <p class="prof-headline">
                     {{ profile.headline if profile and profile.headline else 'Add a headline to describe yourself' }}
@@ -162,7 +160,7 @@
         <!-- ══ MAIN COLUMN ══ -->
         <div class="prof-main">
 
-            <!-- ── PERSONAL INFO + ABOUT (unified, always visible) ── -->
+            <!-- ── PERSONAL INFO + ABOUT ── -->
             <div class="prof-card" id="section-personal" style="animation-delay:0.05s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-id-card"></i> Personal Information</div>
@@ -215,7 +213,6 @@
                             <span class="prof-info-label">About / Bio</span>
                             <span class="prof-info-value prof-bio-text">{{ profile.bio if profile and profile.bio else '—'}}</span>
                         </div>
-                        {% set active_jobs = current_user.employment_records | selectattr('employment_status','equalto','active') | list %}
                     </div>
                 </div>
 
@@ -366,7 +363,9 @@
                 </div>
             </div>
 
-            <!-- ── WORK EXPERIENCE ── -->
+            <!-- ══════════════════════════════════════════════════
+                 WORK EXPERIENCE  (with Portfolio at top + per-exp Certs)
+            ══════════════════════════════════════════════════ -->
             <div class="prof-card" id="section-experience" style="animation-delay:0.08s">
                 <div class="prof-card-header">
                     <div class="prof-card-title">
@@ -380,6 +379,70 @@
                     </div>
                 </div>
 
+                <!-- ── PORTFOLIO UPLOAD (top of Experience card) ── -->
+                <div class="exp-portfolio-section">
+                    <div class="exp-portfolio-header">
+                        <div class="exp-portfolio-title">
+                            <i class="fas fa-images"></i> Portfolio
+                        </div>
+                    </div>
+
+                    {% if profile and profile.portfolio_file %}
+                        {# Portfolio exists — show file row only, no upload zone #}
+                        {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
+                        <div class="doc-file-item exp-portfolio-file">
+                            <div class="doc-file-icon">
+                                {% if pext == 'pdf' %}
+                                    <i class="fas fa-file-pdf"></i>
+                                {% else %}
+                                    <i class="fas fa-file-image"></i>
+                                {% endif %}
+                            </div>
+                            <div class="doc-file-body">
+                                <div class="doc-file-name">{{ profile.portfolio_file }}</div>
+                                <div class="doc-file-meta">{{ pext | upper }} · Portfolio</div>
+                            </div>
+                            <div class="doc-file-actions">
+                                <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.portfolio_file) }}"
+                                   target="_blank" class="doc-file-btn doc-file-btn-view">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <form method="POST" action="{{ url_for('applicant.delete_portfolio') }}" style="display:inline">
+                                    <button type="submit" class="doc-file-btn doc-file-btn-delete"
+                                            onclick="return confirm('Remove portfolio?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        {# No portfolio — show compact upload zone #}
+                        <div class="exp-portfolio-upload">
+                            <div class="doc-upload-zone exp-upload-zone"
+                                 ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                                 ondragleave="this.classList.remove('drag-over')"
+                                 ondrop="handleDrop(event, 'portfolio_file', ['pdf','jpg','jpeg','png'], 10)">
+                                <i class="fas fa-cloud-upload-alt doc-upload-icon"></i>
+                                <p class="doc-upload-label">Drag & drop your portfolio here</p>
+                                <p class="doc-upload-hint">PDF, JPG, or PNG · Max <strong>10MB</strong></p>
+                                <label class="prof-add-btn doc-upload-btn" for="input-portfolio">
+                                    <i class="fas fa-upload"></i> Choose File
+                                </label>
+                                <input type="file" id="input-portfolio" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
+                                       onchange="validateAndSubmit(this, ['pdf','jpg','jpeg','png'], 10, 'form-portfolio')">
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <form id="form-portfolio" method="POST"
+                          action="{{ url_for('applicant.upload_portfolio') }}"
+                          enctype="multipart/form-data" style="display:none">
+                        <input type="file" name="portfolio_file" id="hidden-portfolio">
+                    </form>
+                </div>
+                <!-- ── END PORTFOLIO ── -->
+
+                <!-- ── ADD EXPERIENCE FORM ── -->
                 <div class="prof-add-form" id="add-experience" style="display:none;">
                     <form method="POST" action="{{ url_for('applicant.add_experience') }}">
                         <div class="prof-form-grid">
@@ -421,29 +484,94 @@
                     </form>
                 </div>
 
-                <div class="prof-items-list">
+                <!-- ── EXPERIENCE LIST (each entry has its own certs) ── -->
+                <div class="prof-items-list exp-items-list">
                     {% if experiences %}
+                        {# Parse certificate files once #}
+                        {% set certs = (profile.certificate_files | from_json) if (profile and profile.certificate_files) else [] %}
+
                         {% for exp in experiences %}
-                        <div class="prof-item">
-                            <div class="prof-item-icon"><i class="fas fa-briefcase"></i></div>
-                            <div class="prof-item-body">
-                                <div class="prof-item-title">{{ exp.job_title }}</div>
-                                <div class="prof-item-subtitle">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</div>
-                                <div class="prof-item-date">
-                                    {{ exp.start_date if exp.start_date else '' }}
-                                    {% if exp.is_current %} – Present
-                                    {% elif exp.end_date %} – {{ exp.end_date }}
+                        <div class="prof-item exp-item-block">
+
+                            <!-- Experience header row -->
+                            <div class="exp-item-main">
+                                <div class="prof-item-icon"><i class="fas fa-briefcase"></i></div>
+                                <div class="prof-item-body">
+                                    <div class="prof-item-title">{{ exp.job_title }}</div>
+                                    <div class="prof-item-subtitle">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</div>
+                                    <div class="prof-item-date">
+                                        {{ exp.start_date if exp.start_date else '' }}
+                                        {% if exp.is_current %} – Present
+                                        {% elif exp.end_date %} – {{ exp.end_date }}
+                                        {% endif %}
+                                    </div>
+                                    {% if exp.description %}<div class="prof-item-desc">{{ exp.description }}</div>{% endif %}
+                                </div>
+                                <form method="POST" action="{{ url_for('applicant.delete_experience', exp_id=exp.id) }}" class="prof-item-delete">
+                                    <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this experience?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- ── Certificates & Awards for this experience ── -->
+                            <div class="exp-certs-section">
+                                <div class="exp-certs-header">
+                                    <span class="exp-certs-title">
+                                        <i class="fas fa-award"></i> Certificates &amp; Awards
+                                    </span>
+                                    {% if certs | length < 5 %}
+                                    <label class="exp-certs-upload-btn" for="input-cert-exp-{{ exp.id }}" title="Upload certificate">
+                                        <i class="fas fa-plus"></i> Add
+                                    </label>
+                                    <input type="file" id="input-cert-exp-{{ exp.id }}"
+                                           accept=".pdf,.jpg,.jpeg,.png" style="display:none"
+                                           onchange="validateAndSubmit(this, ['pdf','jpg','jpeg','png'], 5, 'form-certificate')">
                                     {% endif %}
                                 </div>
-                                {% if exp.description %}<div class="prof-item-desc">{{ exp.description }}</div>{% endif %}
+
+                                {% if certs %}
+                                <div class="exp-certs-list">
+                                    {% for cf in certs %}
+                                    {% set ext = cf.rsplit('.', 1)[-1].lower() %}
+                                    <div class="exp-cert-item">
+                                        <div class="exp-cert-icon">
+                                            {% if ext == 'pdf' %}
+                                                <i class="fas fa-file-pdf"></i>
+                                            {% else %}
+                                                <i class="fas fa-file-image"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="exp-cert-name">{{ cf }}</div>
+                                        <div class="exp-cert-actions">
+                                            <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + cf) }}"
+                                               target="_blank" class="doc-file-btn doc-file-btn-view">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <form method="POST" action="{{ url_for('applicant.delete_certificate', filename=cf) }}" style="display:inline">
+                                                <button type="submit" class="doc-file-btn doc-file-btn-delete"
+                                                        onclick="return confirm('Remove this certificate?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                {% if certs | length >= 5 %}
+                                <div class="doc-limit-notice exp-cert-limit">
+                                    <i class="fas fa-info-circle"></i> Maximum of 5 certificates reached.
+                                </div>
+                                {% endif %}
+
                             </div>
-                            <form method="POST" action="{{ url_for('applicant.delete_experience', exp_id=exp.id) }}" class="prof-item-delete">
-                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this experience?')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <!-- ── End Certs ── -->
+
                         </div>
                         {% endfor %}
+
                     {% else %}
                         <div class="prof-empty-section">
                             <i class="fas fa-briefcase"></i>
@@ -451,205 +579,16 @@
                         </div>
                     {% endif %}
                 </div>
-            </div>
 
-            <!-- ── DOCUMENTS ── -->
-            <div class="prof-card" id="section-documents" style="animation-delay:0.20s">
-    <div class="prof-card-header">
-        <div class="prof-card-title"><i class="fas fa-folder-open"></i> Documents</div>
-    </div>
-
-    <!-- Tab Nav -->
-    <div class="doc-tab-nav">
-        <button class="doc-tab active" onclick="switchDocTab('resume', this)">
-            <i class="fas fa-file-pdf"></i> Resume
-        </button>
-        <button class="doc-tab" onclick="switchDocTab('portfolio', this)">
-            <i class="fas fa-images"></i> Portfolio
-        </button>
-        <button class="doc-tab" onclick="switchDocTab('certificates', this)">
-            <i class="fas fa-award"></i> Certificates &amp; Awards
-        </button>
-    </div>
-
-    <!-- ── RESUME TAB ── -->
-    <div class="doc-tab-panel" id="doctab-resume">
-        <div class="doc-upload-zone" id="drop-resume"
-             ondragover="event.preventDefault(); this.classList.add('drag-over')"
-             ondragleave="this.classList.remove('drag-over')"
-             ondrop="handleDrop(event, 'resume_file', ['pdf'], 5)">
-            <i class="fas fa-cloud-upload-alt doc-upload-icon"></i>
-            <p class="doc-upload-label">Drag & drop your resume here</p>
-            <p class="doc-upload-hint">PDF only · Max <strong>5MB</strong></p>
-            <label class="prof-add-btn doc-upload-btn" for="input-resume">
-                <i class="fas fa-upload"></i> Choose File
-            </label>
-            <input type="file" id="input-resume" accept=".pdf" style="display:none"
-                   onchange="validateAndSubmit(this, ['pdf'], 5, 'form-resume')">
-        </div>
-
-        {% if profile and profile.resume_file %}
-        <div class="doc-file-item">
-            <div class="doc-file-icon"><i class="fas fa-file-pdf"></i></div>
-            <div class="doc-file-body">
-                <div class="doc-file-name">{{ profile.resume_file }}</div>
-                <div class="doc-file-meta">PDF · Resume</div>
-            </div>
-            <div class="doc-file-actions">
-                <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.resume_file) }}"
-                   target="_blank" class="doc-file-btn doc-file-btn-view">
-                    <i class="fas fa-eye"></i> View
-                </a>
-                <form method="POST" action="{{ url_for('applicant.delete_resume') }}" style="display:inline">
-                    <button type="submit" class="doc-file-btn doc-file-btn-delete"
-                            onclick="return confirm('Remove resume?')">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <!-- Shared hidden form for certificate uploads (all experiences share the same pool) -->
+                <form id="form-certificate" method="POST"
+                      action="{{ url_for('applicant.upload_certificate') }}"
+                      enctype="multipart/form-data" style="display:none">
+                    <input type="file" name="certificate_file" id="hidden-certificate">
                 </form>
+
             </div>
-        </div>
-        {% else %}
-        <div class="prof-empty-section doc-empty">
-            <i class="fas fa-file-pdf"></i>
-            <p>No resume uploaded yet.</p>
-        </div>
-        {% endif %}
-
-        <!-- Hidden form submitted programmatically -->
-        <form id="form-resume" method="POST"
-              action="{{ url_for('applicant.upload_resume') }}"
-              enctype="multipart/form-data" style="display:none">
-            <input type="file" name="resume_file" id="hidden-resume">
-        </form>
-    </div>
-
-    <!-- ── PORTFOLIO TAB ── -->
-    <div class="doc-tab-panel" id="doctab-portfolio" style="display:none">
-        <div class="doc-upload-zone" id="drop-portfolio"
-             ondragover="event.preventDefault(); this.classList.add('drag-over')"
-             ondragleave="this.classList.remove('drag-over')"
-             ondrop="handleDrop(event, 'portfolio_file', ['pdf','jpg','jpeg','png'], 10)">
-            <i class="fas fa-cloud-upload-alt doc-upload-icon"></i>
-            <p class="doc-upload-label">Drag & drop your portfolio here</p>
-            <p class="doc-upload-hint">PDF, JPG, or PNG · Max <strong>10MB</strong></p>
-            <label class="prof-add-btn doc-upload-btn" for="input-portfolio">
-                <i class="fas fa-upload"></i> Choose File
-            </label>
-            <input type="file" id="input-portfolio" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
-                   onchange="validateAndSubmit(this, ['pdf','jpg','jpeg','png'], 10, 'form-portfolio')">
-        </div>
-
-        {% if profile and profile.portfolio_file %}
-        {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
-        <div class="doc-file-item">
-            <div class="doc-file-icon">
-                {% if pext == 'pdf' %}
-                    <i class="fas fa-file-pdf"></i>
-                {% else %}
-                    <i class="fas fa-file-image"></i>
-                {% endif %}
-            </div>
-            <div class="doc-file-body">
-                <div class="doc-file-name">{{ profile.portfolio_file }}</div>
-                <div class="doc-file-meta">{{ pext | upper }} · Portfolio</div>
-            </div>
-            <div class="doc-file-actions">
-                <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.portfolio_file) }}"
-                   target="_blank" class="doc-file-btn doc-file-btn-view">
-                    <i class="fas fa-eye"></i> View
-                </a>
-                <form method="POST" action="{{ url_for('applicant.delete_portfolio') }}" style="display:inline">
-                    <button type="submit" class="doc-file-btn doc-file-btn-delete"
-                            onclick="return confirm('Remove portfolio?')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-        {% else %}
-        <div class="prof-empty-section doc-empty">
-            <i class="fas fa-images"></i>
-            <p>No portfolio uploaded yet.</p>
-        </div>
-        {% endif %}
-
-        <form id="form-portfolio" method="POST"
-              action="{{ url_for('applicant.upload_portfolio') }}"
-              enctype="multipart/form-data" style="display:none">
-            <input type="file" name="portfolio_file" id="hidden-portfolio">
-        </form>
-    </div>
-
-    <!-- ── CERTIFICATES TAB ── -->
-    <div class="doc-tab-panel" id="doctab-certificates" style="display:none">
-        {% set certs = (profile.certificate_files | from_json) if (profile and profile.certificate_files) else [] %}
-
-        {% if certs | length < 5 %}
-        <div class="doc-upload-zone" id="drop-certificates"
-             ondragover="event.preventDefault(); this.classList.add('drag-over')"
-             ondragleave="this.classList.remove('drag-over')"
-             ondrop="handleDrop(event, 'certificate_file', ['pdf','jpg','jpeg','png'], 5)">
-            <i class="fas fa-cloud-upload-alt doc-upload-icon"></i>
-            <p class="doc-upload-label">Drag & drop a certificate here</p>
-            <p class="doc-upload-hint">PDF, JPG, or PNG · Max <strong>5MB</strong> · Up to <strong>5 files</strong></p>
-            <label class="prof-add-btn doc-upload-btn" for="input-certificate">
-                <i class="fas fa-upload"></i> Choose File
-            </label>
-            <input type="file" id="input-certificate" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
-                   onchange="validateAndSubmit(this, ['pdf','jpg','jpeg','png'], 5, 'form-certificate')">
-        </div>
-        {% else %}
-        <div class="doc-limit-notice">
-            <i class="fas fa-info-circle"></i> Maximum of 5 certificates reached. Remove one to upload more.
-        </div>
-        {% endif %}
-
-        {% if certs %}
-        <div class="doc-file-list">
-            {% for cf in certs %}
-            {% set ext = cf.rsplit('.', 1)[-1].lower() %}
-            <div class="doc-file-item">
-                <div class="doc-file-icon">
-                    {% if ext == 'pdf' %}
-                        <i class="fas fa-file-pdf"></i>
-                    {% else %}
-                        <i class="fas fa-file-image"></i>
-                    {% endif %}
-                </div>
-                <div class="doc-file-body">
-                    <div class="doc-file-name">{{ cf }}</div>
-                    <div class="doc-file-meta">{{ ext | upper }} · Certificate</div>
-                </div>
-                <div class="doc-file-actions">
-                    <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + cf) }}"
-                       target="_blank" class="doc-file-btn doc-file-btn-view">
-                        <i class="fas fa-eye"></i> View
-                    </a>
-                    <form method="POST" action="{{ url_for('applicant.delete_certificate', filename=cf) }}" style="display:inline">
-                        <button type="submit" class="doc-file-btn doc-file-btn-delete"
-                                onclick="return confirm('Remove this certificate?')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="prof-empty-section doc-empty">
-            <i class="fas fa-award"></i>
-            <p>No certificates uploaded yet.</p>
-        </div>
-        {% endif %}
-
-        <form id="form-certificate" method="POST"
-              action="{{ url_for('applicant.upload_certificate') }}"
-              enctype="multipart/form-data" style="display:none">
-            <input type="file" name="certificate_file" id="hidden-certificate">
-        </form>
-            </div>
-            </div>
-<!-- ── END DOCUMENTS ── -->
+            <!-- ── END EXPERIENCE CARD ── -->
 
         </div><!-- /.prof-main -->
 
@@ -892,6 +831,7 @@
 
     </div><!-- /.prof-body -->
 </div>
+
 <!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
 <div class="follow-modal-backdrop" id="followModalBackdrop" onclick="closeFollowModal()"></div>
 <div class="follow-modal" id="followModal">
@@ -974,7 +914,7 @@
 <script>window.PROFILE_USER_ID = {{ current_user.id }};</script>
 <script src="{{ url_for('static', filename='js/follow_modal.js') }}"></script>
 
-<!-- ══ FILE SIZE ERROR POPUP ══ -->
+<!-- ══ FILE SIZE / TYPE ERROR POPUP ══ -->
 <div class="doc-error-overlay" id="doc-error-overlay" onclick="if(event.target===this) closeDocError()">
     <div class="doc-error-modal">
         <div class="doc-error-icon"><i class="fas fa-exclamation-triangle"></i></div>
