@@ -5,17 +5,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hr/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_completion_banner.css') }}">
+
+{% set upload_url = url_for('hr.upload_profile_picture') %}
+{% include 'components/profile_picture_modal.html' %}
 
 <div class="prof-wrapper">
 
-    {% set upload_url = url_for('hr.upload_profile_picture') %}
-    {% include 'components/profile_picture_modal.html' %}
-
     <!-- ── HEADER ── -->
     <div class="prof-header">
-        <div class="prof-cover-strip">
-        </div>
-
+        <div class="prof-cover-strip"></div>
         <div class="prof-header-inner">
             <div class="prof-header-top-row">
 
@@ -33,13 +32,19 @@
                     <div class="prof-avatar-overlay"><i class="fas fa-camera"></i></div>
                 </div>
 
+                <!-- Action buttons -->
+                <div class="prof-header-actions">
+                    <!-- No verification badge for HR (they inherit recruiter's verification) -->
+                </div>
             </div>
 
-            <!-- Name / meta -->
+            <!-- Name / company / meta -->
             <div class="prof-header-info">
                 <h1>
                     {% if profile and profile.first_name %}
-                        {{ profile.first_name }} {{ profile.last_name }}
+                        {{ profile.first_name }}
+                        {% if profile.middle_name %} {{ profile.middle_name[0] }}.{% endif %}
+                        {{ profile.last_name }}
                     {% else %}
                         {{ current_user.username }}
                     {% endif %}
@@ -65,7 +70,7 @@
                         HR at <strong>{{ recruiter_profile.company_name }}</strong>
                         {% if recruiter_profile.company_industry %} · {{ recruiter_profile.company_industry }}{% endif %}
                     {% else %}
-                        Human Resources
+                        Add a headline to describe yourself
                     {% endif %}
                 </p>
                 <div class="prof-header-meta">
@@ -112,7 +117,12 @@
             <div class="prof-card" id="section-personal" style="animation-delay:0.05s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-id-card"></i> Personal Information</div>
-                    <button class="prof-edit-btn" onclick="toggleEdit('personal')" data-edit-target="personal"><i class="fas fa-pen"></i> Edit</button>
+                    <button class="prof-edit-btn"
+                            onclick="toggleEdit('personal')"
+                            data-edit-target="personal"
+                            data-edit-label="Edit">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
                 </div>
 
                 <div class="prof-view" id="view-personal">
@@ -205,20 +215,20 @@
                         </div>
                         <div class="prof-form-actions">
                             <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save Changes</button>
-                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('personal')" data-edit-target="personal">Cancel</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('personal')">Cancel</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- ── COMPANY INFORMATION (Read-Only for HR) ── -->
+            <!-- ── COMPANY INFORMATION (READ-ONLY for HR) ── -->
             <div class="prof-card" id="section-company" style="animation-delay:0.08s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-building"></i> Company Information</div>
                     <span class="prof-readonly-badge"><i class="fas fa-lock"></i> Managed by Recruiter</span>
                 </div>
 
-                <div class="prof-view prof-company-readonly" id="view-company">
+                <div class="prof-view" id="view-company">
                     {% if recruiter_profile %}
                     <div class="prof-info-grid">
                         <div class="prof-info-item">
@@ -260,6 +270,7 @@
                     {% endif %}
                 </div>
             </div>
+
             <!-- ── EDUCATION ── -->
             <div class="prof-card" id="section-education" style="animation-delay:0.11s">
                 <div class="prof-card-header">
@@ -280,12 +291,40 @@
                                 <input type="text" name="school" placeholder="e.g. University of the Philippines" required>
                             </div>
                             <div class="prof-form-group">
-                                <label>Degree</label>
-                                <input type="text" name="degree" placeholder="e.g. Bachelor of Science">
+                                <label>Education Level</label>
+                                <div class="prof-edu-level-wrap">
+                                    <select name="education_level" class="prof-edu-level-select">
+                                        <option value="">Select Level</option>
+                                        <optgroup label="Higher Education">
+                                            <option value="Doctorate (PhD)">Doctorate (PhD)</option>
+                                            <option value="Master's Degree">Master's Degree</option>
+                                            <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                            <option value="Associate Degree">Associate Degree</option>
+                                            <option value="Vocational / Technical">Vocational / Technical</option>
+                                        </optgroup>
+                                        <optgroup label="Secondary Education">
+                                            <option value="Senior High School (Grade 11-12)">Senior High School (Grade 11–12)</option>
+                                            <option value="Junior High School (Grade 7-10)">Junior High School (Grade 7–10)</option>
+                                        </optgroup>
+                                        <optgroup label="Primary Education">
+                                            <option value="Elementary School">Elementary School</option>
+                                        </optgroup>
+                                        <optgroup label="Other">
+                                            <option value="Short Course / Certificate">Short Course / Certificate</option>
+                                            <option value="Online Course">Online Course</option>
+                                            <option value="Other">Other</option>
+                                        </optgroup>
+                                    </select>
+                                    <i class="fas fa-chevron-down prof-edu-level-arrow"></i>
+                                </div>
                             </div>
                             <div class="prof-form-group">
-                                <label>Field of Study</label>
-                                <input type="text" name="field_of_study" placeholder="e.g. Business Administration">
+                                <label>Field of Study (Degree / Course)</label>
+                                <input type="text" name="degree" placeholder="e.g. BS in Computer Engineering">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Specialization</label>
+                                <input type="text" name="field_of_study" placeholder="e.g. Human Resources Management">
                             </div>
                             <div class="prof-form-group">
                                 <label>Start Date</label>
@@ -296,22 +335,20 @@
                                 <input type="month" name="end_date" id="edu-end-date">
                             </div>
                             <div class="prof-form-group prof-form-full">
-                                <label class="prof-checkbox-label">
-                                    <input type="checkbox" name="is_current" value="1"
-                                        onchange="toggleEndDate('edu-end-date', this)">
+                                <label class="prof-checkbox-label" id="chk-label-edu-current">
+                                    <input type="checkbox" name="is_current" value="1">
+                                    <span class="prof-checkbox-box"><i class="fas fa-check"></i></span>
                                     I am currently studying here
                                 </label>
                             </div>
                             <div class="prof-form-group prof-form-full">
                                 <label>Description / Achievements</label>
-                                <textarea name="description" rows="3"
-                                        placeholder="Honors, achievements, relevant coursework..."></textarea>
+                                <textarea name="description" rows="3" placeholder="Honors, achievements, relevant coursework..."></textarea>
                             </div>
                         </div>
                         <div class="prof-form-actions">
                             <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
-                            <button type="button" class="prof-btn-cancel"
-                                    onclick="toggleAddForm('add-education')">Cancel</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleAddForm('add-education')">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -322,26 +359,24 @@
                         <div class="prof-item">
                             <div class="prof-item-icon"><i class="fas fa-graduation-cap"></i></div>
                             <div class="prof-item-body">
-                                <div class="prof-item-title">{{ edu.school }}</div>
-                                <div class="prof-item-subtitle">
-                                    {{ edu.degree if edu.degree else '' }}
-                                    {% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}
+                                <div class="prof-item-title">
+                                    {{ edu.school }}
+                                    {% if edu.education_level %}
+                                    <span class="prof-edu-level-badge">{{ edu.education_level }}</span>
+                                    {% endif %}
                                 </div>
+                                <div class="prof-item-subtitle">{{ edu.degree if edu.degree else '' }}{% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}</div>
                                 <div class="prof-item-date">
                                     {{ edu.start_date if edu.start_date else '' }}
                                     {% if edu.is_current %} – Present
                                     {% elif edu.end_date %} – {{ edu.end_date }}
                                     {% endif %}
                                 </div>
-                                {% if edu.description %}
-                                <div class="prof-item-desc">{{ edu.description }}</div>
-                                {% endif %}
+                                {% if edu.description %}<div class="prof-item-desc">{{ edu.description }}</div>{% endif %}
                             </div>
-                            <form method="POST"
-                                action="{{ url_for('hr.delete_education', edu_id=edu.id) }}"
-                                class="prof-item-delete">
-                                <button type="submit" class="prof-btn-delete" title="Delete"
-                                        onclick="return confirm('Delete this education entry?')">
+                            <form method="POST" action="{{ url_for('hr.delete_education', edu_id=edu.id) }}" class="prof-item-delete" id="del-edu-form-{{ edu.id }}">
+                                <button type="button" class="prof-btn-delete" title="Delete"
+                                        onclick="confirmDeleteEducation(document.getElementById('del-edu-form-{{ edu.id }}'), '{{ edu.school | replace("'", "\\'") }}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -361,21 +396,24 @@
         <!-- ══ SIDEBAR COLUMN ══ -->
         <div class="prof-side">
 
-            <!-- ── PROFILE COMPLETION ── -->
+            <!-- ── PROFILE STRENGTH ── -->
             <div class="prof-card" style="animation-delay:0.06s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-star"></i> Profile Strength</div>
                 </div>
                 <div class="prof-completion-wrap">
                     {% set score = namespace(val=0) %}
-                    {% if profile and profile.first_name %}{% set score.val = score.val + 15 %}{% endif %}
-                    {% if profile and profile.last_name %}{% set score.val = score.val + 15 %}{% endif %}
-                    {% if profile and profile.headline %}{% set score.val = score.val + 15 %}{% endif %}
-                    {% if profile and profile.bio %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.first_name and profile.last_name %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.bio %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.phone_number %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.home_address %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.date_of_birth %}{% set score.val = score.val + 10 %}{% endif %}
-                    {% if profile and profile.facebook %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.portfolio_file %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.portfolio %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.facebook %}{% set score.val = score.val + 5 %}{% endif %}
+                    {% if profile and profile.github %}{% set score.val = score.val + 5 %}{% endif %}
+                    {% if educations %}{% set score.val = score.val + 5 %}{% endif %}
 
                     <div class="prof-completion-title">
                         {% if score.val >= 80 %}All-Star Profile!
@@ -389,13 +427,9 @@
                     <div class="prof-completion-pct">{{ score.val }}% complete</div>
 
                     <div class="prof-completion-tips">
-                        <div class="prof-completion-tip {% if profile and profile.first_name %}done{% endif %}">
-                            <i class="{% if profile and profile.first_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
-                            Add your first name
-                        </div>
-                        <div class="prof-completion-tip {% if profile and profile.last_name %}done{% endif %}">
-                            <i class="{% if profile and profile.last_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
-                            Add your last name
+                        <div class="prof-completion-tip {% if profile and profile.first_name and profile.last_name %}done{% endif %}">
+                            <i class="{% if profile and profile.first_name and profile.last_name %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add your full name
                         </div>
                         <div class="prof-completion-tip {% if profile and profile.headline %}done{% endif %}">
                             <i class="{% if profile and profile.headline %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
@@ -417,15 +451,136 @@
                             <i class="{% if profile and profile.date_of_birth %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add your date of birth
                         </div>
-                        <div class="prof-completion-tip {% if profile and profile.facebook %}done{% endif %}">
-                            <i class="{% if profile and profile.facebook %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
-                            Link your Facebook
+                        <div class="prof-completion-tip {% if profile and profile.portfolio_file %}done{% endif %}">
+                            <i class="{% if profile and profile.portfolio_file %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Upload a portfolio file
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.portfolio %}done{% endif %}">
+                            <i class="{% if profile and profile.portfolio %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add a portfolio link
+                        </div>
+                        <div class="prof-completion-tip {% if educations %}done{% endif %}">
+                            <i class="{% if educations %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add education
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ── COMPANY CARD (sidebar) ── -->
+            <!-- ── PORTFOLIO CARD ── -->
+            <div class="prof-card" id="section-portfolio" style="animation-delay:0.13s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-images"></i> Portfolio</div>
+                </div>
+
+                <div class="portfolio-card-body">
+
+                    {# ── If a file is already uploaded, show it ── #}
+                    {% if profile and profile.portfolio_file %}
+                        {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
+                        <div class="doc-file-item port-file-item">
+                            <div class="doc-file-icon">
+                                {% if pext == 'pdf' %}<i class="fas fa-file-pdf"></i>
+                                {% else %}<i class="fas fa-file-image"></i>{% endif %}
+                            </div>
+                            <div class="doc-file-body">
+                                <div class="doc-file-name">{{ profile.portfolio_file }}</div>
+                                <div class="doc-file-meta">{{ pext | upper }} · Portfolio File</div>
+                            </div>
+                            <div class="doc-file-actions">
+                                <a href="{{ url_for('static', filename='uploads/hr_portfolios/' + profile.portfolio_file) }}"
+                                   target="_blank" class="doc-file-btn doc-file-btn-view">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('hr.delete_portfolio') }}" style="display:inline" id="form-delete-portfolio">
+                                    <button type="button" class="doc-file-btn doc-file-btn-delete"
+                                            onclick="confirmDeletePortfolio(document.getElementById('form-delete-portfolio'))">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# ── If a portfolio URL is set, show it ── #}
+                    {% if profile and profile.portfolio %}
+                        <div class="port-link-row">
+                            <div class="port-link-icon"><i class="fas fa-globe"></i></div>
+                            <div class="port-link-body">
+                                <div class="port-link-label">Portfolio Link</div>
+                                <a href="{{ profile.portfolio }}" target="_blank" class="port-link-url">{{ profile.portfolio }}</a>
+                            </div>
+                            <a href="{{ profile.portfolio }}" target="_blank" class="doc-file-btn doc-file-btn-view port-link-visit">
+                                <i class="fas fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {# ── If neither is set, show the upload/link panel ── #}
+                    {% if not (profile and (profile.portfolio_file or profile.portfolio)) %}
+                        <div class="port-empty-hint">
+                            <i class="fas fa-folder-open"></i>
+                            <p>Showcase your work — upload a file or add a link.</p>
+                        </div>
+                    {% endif %}
+
+                    {# ── Tab switcher to add/replace ── #}
+                    <div class="port-add-section">
+                        <div class="port-tabs">
+                            <button class="port-tab active" id="port-tab-file" onclick="switchPortfolioMode('file')">
+                                <i class="fas fa-file-arrow-up"></i> Upload File
+                            </button>
+                            <button class="port-tab" id="port-tab-link" onclick="switchPortfolioMode('link')">
+                                <i class="fas fa-link"></i> Add Link
+                            </button>
+                        </div>
+
+                        {# File upload panel #}
+                        <div id="port-panel-file">
+                            <div class="doc-upload-zone port-upload-zone"
+                                 ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                                 ondragleave="this.classList.remove('drag-over')"
+                                 ondrop="handleDrop(event, 'portfolio_file', ['pdf','jpg','jpeg','png'], 10)">
+                                <i class="fas fa-cloud-upload-alt doc-upload-icon"></i>
+                                <p class="doc-upload-label">Drag & drop here</p>
+                                <p class="doc-upload-hint">PDF, JPG, or PNG · Max <strong>10MB</strong></p>
+                                <label class="prof-add-btn doc-upload-btn" for="input-portfolio">
+                                    <i class="fas fa-upload"></i> Choose File
+                                </label>
+                                <input type="file" id="input-portfolio" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
+                                       onchange="validateAndSubmit(this, ['pdf','jpg','jpeg','png'], 10, 'form-portfolio')">
+                            </div>
+                            <form id="form-portfolio" method="POST"
+                                  action="{{ url_for('hr.upload_portfolio') }}"
+                                  enctype="multipart/form-data" style="display:none">
+                                <input type="file" name="portfolio_file" id="hidden-portfolio">
+                            </form>
+                        </div>
+
+                        {# Link panel #}
+                        <div id="port-panel-link" style="display:none;">
+                            <form method="POST" action="{{ url_for('hr.update_social') }}" class="port-link-form">
+                                <div class="port-link-input-wrap">
+                                    <i class="fas fa-globe port-link-input-icon"></i>
+                                    <input type="url" name="portfolio"
+                                           value="{{ profile.portfolio if profile and profile.portfolio else '' }}"
+                                           placeholder="https://yourportfolio.com"
+                                           class="port-link-input">
+                                    <input type="hidden" name="facebook" value="{{ profile.facebook if profile and profile.facebook else '' }}">
+                                    <input type="hidden" name="github"   value="{{ profile.github if profile and profile.github else '' }}">
+                                </div>
+                                <button type="submit" class="prof-btn-save port-link-save">
+                                    <i class="fas fa-check"></i> Save Link
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- END PORTFOLIO CARD -->
+
+            <!-- ── COMPANY CARD (sidebar - READ ONLY) ── -->
             <div class="prof-card prof-side-company-card" style="animation-delay:0.09s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-building"></i> Company</div>
@@ -500,7 +655,12 @@
             <div class="prof-card" style="animation-delay:0.13s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-link"></i> Links</div>
-                    <button class="prof-edit-btn" onclick="toggleEdit('social')" data-edit-target="social"><i class="fas fa-pen"></i> Edit</button>
+                    <button class="prof-edit-btn"
+                            onclick="toggleEdit('social')"
+                            data-edit-target="social"
+                            data-edit-label="Edit">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
                 </div>
 
                 <div id="view-social">
@@ -575,7 +735,7 @@
                 </div>
             </div>
 
-            <!-- ── QUICK LINKS ── -->
+            <!-- ── QUICK LINKS ── 
             <div class="prof-card" style="animation-delay:0.16s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-link"></i> Quick Links</div>
@@ -587,12 +747,12 @@
                         <i class="fas fa-chevron-right prof-quick-link-arrow"></i>
                     </a>
                 </div>
-            </div>
+            </div> -->
 
         </div><!-- /.prof-side -->
 
     </div><!-- /.prof-body -->
-</div>
+</div><!-- /.prof-wrapper -->
 
 <!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
 <div class="follow-modal-backdrop" id="followModalBackdrop" onclick="closeFollowModal()"></div>
@@ -608,6 +768,8 @@
         </div>
         <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
     </div>
+
+    <!-- Followers list -->
     <div class="follow-modal-list" id="list-followers">
         {% if followers %}
             {% for u in followers %}
@@ -631,9 +793,14 @@
             </a>
             {% endfor %}
         {% else %}
-            <div class="follow-modal-empty"><i class="fas fa-user-friends"></i><p>No followers yet.</p></div>
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-friends"></i>
+                <p>No followers yet.</p>
+            </div>
         {% endif %}
     </div>
+
+    <!-- Following list -->
     <div class="follow-modal-list" id="list-following" style="display:none;">
         {% if following %}
             {% for u in following %}
@@ -657,12 +824,30 @@
             </a>
             {% endfor %}
         {% else %}
-            <div class="follow-modal-empty"><i class="fas fa-user-plus"></i><p>Not following anyone yet.</p></div>
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-plus"></i>
+                <p>Not following anyone yet.</p>
+            </div>
         {% endif %}
+    </div>
+</div>
+
+<!-- ══ FILE SIZE / TYPE ERROR POPUP ══ -->
+<div class="doc-error-overlay" id="doc-error-overlay" onclick="if(event.target===this) closeDocError()">
+    <div class="doc-error-modal">
+        <div class="doc-error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="doc-error-title">File Too Large or Invalid</div>
+        <p class="doc-error-body" id="doc-error-message">This file exceeds the allowed size limit.</p>
+        <div class="doc-error-actions">
+            <button class="doc-error-btn-retry" onclick="retryDocUpload()"><i class="fas fa-redo"></i> Choose Another File</button>
+            <button class="doc-error-btn-cancel" onclick="closeDocError()">Cancel</button>
+        </div>
     </div>
 </div>
 
 <script src="{{ url_for('static', filename='js/hr/profile.js') }}"></script>
 <script>window.PROFILE_USER_ID = {{ current_user.id }};</script>
 <script src="{{ url_for('static', filename='js/follow_modal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/portfolio_upload.js') }}"></script>
+
 {% endblock %}

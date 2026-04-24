@@ -1,15 +1,39 @@
-const PROFILE_USER_ID = window.PROFILE_USER_ID;
+/* ============================================================
+   RECRUITER VIEW PROFILE JS
+   Ported from applicant/view_profile.js — keeps pview- class prefix
+   ============================================================ */
+
+const PROFILE_USER_ID  = window.PROFILE_USER_ID;
+const SHOW_FOLLOW_LIST = window.SHOW_FOLLOW_LIST !== undefined ? window.SHOW_FOLLOW_LIST : true;
+
+/* ────────────────────────────────────────────────────────────
+   CARD ENTRANCE ANIMATION
+   ──────────────────────────────────────────────────────────── */
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.pview-card').forEach((card, index) => {
+        card.style.opacity   = '0';
+        card.style.transform = 'translateY(12px)';
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            card.style.opacity    = '1';
+            card.style.transform  = 'translateY(0)';
+        }, 80 * index);
+    });
+});
+
+/* ────────────────────────────────────────────────────────────
+   FOLLOW LIST — FETCH & RENDER
+   ──────────────────────────────────────────────────────────── */
 
 function refreshFollowLists(callback) {
     fetch('/profile/follow-list/' + PROFILE_USER_ID)
         .then(r => r.json())
         .then(data => {
-            renderList('list-followers', data.followers, 'No followers yet.', 'fa-user-friends');
+            renderList('list-followers', data.followers, 'No followers yet.',         'fa-user-friends');
             renderList('list-following', data.following, 'Not following anyone yet.', 'fa-user-plus');
             document.querySelectorAll('#net-followers, #tab-count-followers').forEach(el => el.textContent = data.follower_count);
             document.querySelectorAll('#net-following, #tab-count-following').forEach(el => el.textContent = data.following_count);
-            const statVal = document.querySelector('.pview-stat-item:nth-child(3) .pview-stat-value');
-            if (statVal) statVal.textContent = data.follower_count;
             if (callback) callback(data);
         })
         .catch(err => console.error('Follow list fetch failed:', err));
@@ -38,6 +62,10 @@ function renderList(listId, users, emptyMsg, emptyIcon) {
         : users.map(buildUserRow).join('');
 }
 
+/* ────────────────────────────────────────────────────────────
+   FOLLOW / UNFOLLOW TOGGLE
+   ──────────────────────────────────────────────────────────── */
+
 function pviewToggleFollow(userId, btn) {
     fetch('/chat/follow/' + userId, {
         method: 'POST',
@@ -59,32 +87,102 @@ function pviewToggleFollow(userId, btn) {
     .catch(err => console.error('Follow toggle failed:', err));
 }
 
+/* ────────────────────────────────────────────────────────────
+   FOLLOWERS / FOLLOWING MODAL
+   ──────────────────────────────────────────────────────────── */
+
 let activeTab = 'followers';
 
 function openFollowModal(tab) {
     activeTab = tab || 'followers';
-    document.getElementById('followModal').classList.add('open');
-    document.getElementById('followModalBackdrop').classList.add('open');
+    const modal    = document.getElementById('followModal');
+    const backdrop = document.getElementById('followModalBackdrop');
+    if (!modal || !backdrop) return;
+    modal.classList.add('open');
+    backdrop.classList.add('open');
     document.body.style.overflow = 'hidden';
+
     ['list-followers', 'list-following'].forEach(id => {
-        document.getElementById(id).innerHTML =
+        const el = document.getElementById(id);
+        if (el) el.innerHTML =
             '<div class="follow-modal-empty"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>';
     });
     refreshFollowLists(() => switchTab(activeTab));
 }
 
 function closeFollowModal() {
-    document.getElementById('followModal').classList.remove('open');
-    document.getElementById('followModalBackdrop').classList.remove('open');
+    const modal    = document.getElementById('followModal');
+    const backdrop = document.getElementById('followModalBackdrop');
+    if (modal)    modal.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
     document.body.style.overflow = '';
 }
 
 function switchTab(tab) {
     activeTab = tab;
-    document.getElementById('list-followers').style.display = tab === 'followers' ? 'block' : 'none';
-    document.getElementById('list-following').style.display = tab === 'following' ? 'block' : 'none';
-    document.getElementById('tab-followers').classList.toggle('active', tab === 'followers');
-    document.getElementById('tab-following').classList.toggle('active', tab === 'following');
+    const followersList = document.getElementById('list-followers');
+    const followingList = document.getElementById('list-following');
+    const tabFollowers  = document.getElementById('tab-followers');
+    const tabFollowing  = document.getElementById('tab-following');
+
+    if (followersList) followersList.style.display = tab === 'followers' ? 'block' : 'none';
+    if (followingList) followingList.style.display = tab === 'following' ? 'block' : 'none';
+    if (tabFollowers)  tabFollowers.classList.toggle('active', tab === 'followers');
+    if (tabFollowing)  tabFollowing.classList.toggle('active', tab === 'following');
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFollowModal(); });
+/* ────────────────────────────────────────────────────────────
+   PRIVATE LIST NOTICE MODAL
+   ──────────────────────────────────────────────────────────── */
+
+function openPrivateListNotice() {
+    const backdrop = document.getElementById('privateListBackdrop');
+    const modal    = document.getElementById('privateListModal');
+    if (!backdrop || !modal) return;
+    backdrop.style.display = 'block';
+    modal.style.display    = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closePrivateListNotice() {
+    const backdrop = document.getElementById('privateListBackdrop');
+    const modal    = document.getElementById('privateListModal');
+    if (!backdrop || !modal) return;
+    backdrop.style.display = 'none';
+    modal.style.display    = 'none';
+    document.body.style.overflow = '';
+}
+
+/* ────────────────────────────────────────────────────────────
+   MESSAGE RESTRICTION NOTICE MODAL
+   ──────────────────────────────────────────────────────────── */
+
+function showPviewMsgNotice() {
+    const backdrop = document.getElementById('msgRestrictBackdrop');
+    const modal    = document.getElementById('msgRestrictModal');
+    if (!backdrop || !modal) return;
+    backdrop.style.display = 'block';
+    modal.style.display    = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closePviewMsgNotice() {
+    const backdrop = document.getElementById('msgRestrictBackdrop');
+    const modal    = document.getElementById('msgRestrictModal');
+    if (!backdrop || !modal) return;
+    backdrop.style.display = 'none';
+    modal.style.display    = 'none';
+    document.body.style.overflow = '';
+}
+
+/* ────────────────────────────────────────────────────────────
+   ESCAPE KEY — close all modals
+   ──────────────────────────────────────────────────────────── */
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeFollowModal();
+        closePrivateListNotice();
+        closePviewMsgNotice();
+    }
+});

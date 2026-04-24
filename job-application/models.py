@@ -219,6 +219,7 @@ class RecruiterEducation(db.Model):
     )
 
     school = db.Column(db.String(200))
+    education_level = db.Column(db.String(100))
     degree = db.Column(db.String(200))
     field_of_study = db.Column(db.String(200))
     start_date = db.Column(db.String(50))
@@ -239,6 +240,7 @@ class HREducation(db.Model):
     id             = db.Column(db.Integer, primary_key=True)
     profile_id     = db.Column(db.Integer, db.ForeignKey("hr_profile.id"), nullable=False)
     school         = db.Column(db.String(200))
+    education_level = db.Column(db.String(100))
     degree         = db.Column(db.String(200))
     field_of_study = db.Column(db.String(200))
     start_date     = db.Column(db.String(50))
@@ -321,6 +323,9 @@ class RecruiterProfile(db.Model):
     headline = db.Column(db.String(200))
     bio      = db.Column(db.Text)
 
+    education_level = db.Column(db.String(100))
+    portfolio_file   = db.Column(db.String(200))
+
     facebook  = db.Column(db.String(200))
     github    = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
@@ -343,7 +348,6 @@ class RecruiterProfile(db.Model):
     # Track whether profile has been submitted for verification
     submitted_for_review = db.Column(db.Boolean, default=False)
 
-    education_level = db.Column(db.String(100)) 
 
     # RELATIONSHIP — recruiter-specific education entries
     educations = db.relationship(
@@ -377,12 +381,15 @@ class HRProfile(db.Model):
     headline = db.Column(db.String(200))
     bio = db.Column(db.Text)
 
+    education_level = db.Column(db.String(100)) 
+    portfolio_file   = db.Column(db.String(200))
+    
     facebook = db.Column(db.String(200))
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
     education_level = db.Column(db.String(100))
-    
+
     educations = db.relationship(
         "HREducation", backref="hr_profile",
         lazy=True, cascade="all, delete-orphan"

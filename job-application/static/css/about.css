@@ -361,7 +361,7 @@
 }
 
 .team-email a {
-    color: var(--brand-green-dark);
+    color: var(--brand-accent);
     text-decoration: none;
 }
 

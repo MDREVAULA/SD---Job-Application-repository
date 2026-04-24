@@ -132,6 +132,7 @@ def update_profile():
         profile.home_address = request.form.get('home_address', '').strip()
         profile.headline     = request.form.get('headline', '').strip()
         profile.bio          = request.form.get('bio', '').strip()
+        profile.education_level = request.form.get('education_level', '').strip()
         dob_str = request.form.get('date_of_birth')
         if dob_str:
             try:
@@ -314,6 +315,79 @@ def delete_education(edu_id):
     db.session.commit()
 
     flash("Education removed.", "success")
+    return redirect(url_for('hr.profile'))
+
+# ===============================
+# UPLOAD PORTFOLIO (HR)
+# ===============================
+@hr_bp.route('/profile/upload-portfolio', methods=['POST'])
+@login_required
+def upload_portfolio():
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    prof = HRProfile.query.filter_by(user_id=current_user.id).first()
+    if not prof:
+        flash("Profile not found. Please complete your profile first.", "danger")
+        return redirect(url_for('hr.profile'))
+
+    file = request.files.get('portfolio_file')
+
+    if not file or file.filename == '':
+        flash("No file selected.", "danger")
+        return redirect(url_for('hr.profile'))
+
+    allowed = {'.pdf', '.jpg', '.jpeg', '.png'}
+    ext = os.path.splitext(file.filename.lower())[1]
+    if ext not in allowed:
+        flash("Portfolio must be a PDF, JPG, or PNG file.", "danger")
+        return redirect(url_for('hr.profile'))
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 10 * 1024 * 1024:
+        flash("Portfolio file exceeds the 10MB limit.", "danger")
+        return redirect(url_for('hr.profile'))
+
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'hr_portfolios')
+    os.makedirs(folder, exist_ok=True)
+
+    if prof.portfolio_file:
+        old = os.path.join(folder, prof.portfolio_file)
+        if os.path.exists(old):
+            os.remove(old)
+
+    filename = f"hr_portfolio_{current_user.id}_{uuid.uuid4().hex[:8]}{ext}"
+    file.save(os.path.join(folder, filename))
+    prof.portfolio_file = filename
+    db.session.commit()
+    flash("Portfolio uploaded successfully!", "success")
+    return redirect(url_for('hr.profile'))
+
+
+# ===============================
+# DELETE PORTFOLIO (HR)
+# ===============================
+@hr_bp.route('/profile/delete-portfolio', methods=['POST'])
+@login_required
+def delete_portfolio():
+    if current_user.role != 'hr':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    prof = HRProfile.query.filter_by(user_id=current_user.id).first()
+    if prof and prof.portfolio_file:
+        path = os.path.join(current_app.root_path, 'static', 'uploads', 'hr_portfolios', prof.portfolio_file)
+        if os.path.exists(path):
+            os.remove(path)
+        prof.portfolio_file = None
+        db.session.commit()
+        flash("Portfolio removed successfully.", "success")
+    else:
+        flash("No portfolio file found to delete.", "warning")
+    
     return redirect(url_for('hr.profile'))
 
 # ===============================

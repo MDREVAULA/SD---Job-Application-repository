@@ -11,8 +11,7 @@
 
     <!-- ── HEADER CARD ── -->
     <div class="pview-header">
-        <div class="pview-cover-strip">
-        </div>
+        <div class="pview-cover-strip"></div>
         <div class="pview-header-inner">
             <div class="pview-header-top-row">
 
@@ -32,18 +31,20 @@
 
                 <!-- Action buttons -->
                 <div class="pview-header-actions">
-                <div class="pam-wrap">
-                    <button class="pam-trigger" id="pamTrigger" onclick="pamToggle()" aria-label="More options">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                </div>
+                    <div class="pam-wrap">
+                        <button class="pam-trigger" id="pamTrigger" onclick="pamToggle()" aria-label="More options">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                    </div>
+                    
                     <div class="pview-verification-badge badge-verified">
                         <i class="fas fa-id-badge"></i> HR Member
                     </div>
 
                     {% if current_user.is_authenticated %}
+                        <!-- Follow button -->
                         <button
                             class="pview-action-btn {% if is_following %}pview-action-btn-outline{% else %}pview-action-btn-primary{% endif %}"
                             id="pview-follow-btn"
@@ -54,14 +55,20 @@
                                 <i class="fas fa-user-plus"></i> Follow
                             {% endif %}
                         </button>
+
+                        <!-- Message button -->
                         {% if can_message %}
                         <a href="{{ url_for('chat.conversation', other_id=viewed_user.id) }}"
                            class="pview-action-btn pview-action-btn-outline">
                             <i class="fas fa-paper-plane"></i> Message
                         </a>
+                        {% else %}
+                        <button class="pview-action-btn pview-action-btn-outline pview-msg-restricted"
+                                onclick="showPviewMsgNotice()">
+                            <i class="fas fa-comment-slash"></i> Message
+                        </button>
                         {% endif %}
                     {% else %}
-                        <!-- Guest — prompt to log in -->
                         <a href="{{ url_for('auth.login') }}"
                            class="pview-action-btn pview-action-btn-primary">
                             <i class="fas fa-user-plus"></i> Join to Connect
@@ -80,7 +87,7 @@
                     {% else %}
                         {{ viewed_user.username }}
                     {% endif %}
-                    <span class="pview-role-pill role-applicant">HR</span>
+                    <span class="pview-role-pill role-hr">HR</span>
                 </h1>
                 
                 <div class="pview-username-row">
@@ -88,12 +95,12 @@
                     {% if show_follow_count or show_follow_list %}
                     <div class="pview-follow-counts">
                         {% if show_follow_count %}
-                        <button class="pview-follow-count-btn" onclick="{% if show_follow_list %}openFollowModal('followers'){% endif %}">
+                        <button class="pview-follow-count-btn" onclick="{% if show_follow_list %}openFollowModal('followers'){% else %}openPrivateListNotice(){% endif %}">
                             <span class="pview-follow-count-val" id="net-followers">{{ follower_count }}</span>
                             <span class="pview-follow-count-lbl">Followers</span>
                         </button>
                         <span class="pview-follow-count-sep"></span>
-                        <button class="pview-follow-count-btn" onclick="{% if show_follow_list %}openFollowModal('following'){% endif %}">
+                        <button class="pview-follow-count-btn" onclick="{% if show_follow_list %}openFollowModal('following'){% else %}openPrivateListNotice(){% endif %}">
                             <span class="pview-follow-count-val" id="net-following">{{ following_count }}</span>
                             <span class="pview-follow-count-lbl">Following</span>
                         </button>
@@ -102,6 +109,7 @@
                     {% endif %}
                 </div>
 
+                {% if show_profile %}
                 <div class="pview-header-meta">
                     {% if profile and profile.city %}
                     <span><i class="fas fa-map-marker-alt"></i>
@@ -115,9 +123,10 @@
                 </div>
 
                 <p class="pview-headline">
-                    Human Resource at <strong>{{ recruiter_profile.company_name }}</strong>
                     {% if profile and profile.headline %}
                         {{ profile.headline }}
+                    {% else %}
+                        Human Resource at <strong>{{ recruiter_profile.company_name if recruiter_profile and recruiter_profile.company_name else '—' }}</strong>
                     {% endif %}
                 </p>
 
@@ -138,9 +147,35 @@
                     </a>
                     {% endif %}
                 </div>
+                {% else %}
+                <p class="pview-headline">HR Professional</p>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- ══ PRIVATE PROFILE NOTICE ══ -->
+    {% if not show_profile %}
+    <div class="pview-private-notice">
+        <div class="pview-private-icon-wrap"><i class="fas fa-lock"></i></div>
+        <h3 class="pview-private-title">This profile is private</h3>
+        <p class="pview-private-text">
+            <strong>{{ viewed_user.username }}</strong> has chosen to limit who can view their profile.
+        </p>
+        {% if not current_user.is_authenticated %}
+        <p class="pview-private-sub">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}" class="pview-private-link">Log in</a>
+            to see if you have access, or
+            <a href="{{ url_for('auth.register') }}" class="pview-private-link">create an account</a>
+            to connect.
+        </p>
+        {% else %}
+        <p class="pview-private-sub">Follow this user — their profile may become visible to followers.</p>
+        {% endif %}
+    </div>
+
+    {% else %}
 
     <!-- ── TWO-COLUMN BODY ── -->
     <div class="pview-body">
@@ -198,6 +233,12 @@
                             <span class="pview-info-value">{{ recruiter_profile.company_address }}</span>
                         </div>
                         {% endif %}
+                        {% if recruiter_profile.company_email_domain %}
+                        <div class="pview-info-item pview-info-full">
+                            <span class="pview-info-label">Company Email Domain</span>
+                            <span class="pview-info-value">{{ recruiter_profile.company_email_domain }}</span>
+                        </div>
+                        {% endif %}
                         {% if recruiter_profile.company_description %}
                         <div class="pview-info-item pview-info-full">
                             <span class="pview-info-label">About the Company</span>
@@ -208,7 +249,8 @@
                 </div>
             </div>
             {% endif %}
-            <!-- ── EDUCATION ── -->
+
+            <!-- ── EDUCATION (with level badges) ── -->
             {% if educations %}
             <div class="pview-card" style="animation-delay:0.11s">
                 <div class="pview-card-header">
@@ -222,7 +264,12 @@
                     <div class="pview-item">
                         <div class="pview-item-icon"><i class="fas fa-graduation-cap"></i></div>
                         <div class="pview-item-body">
-                            <div class="pview-item-title">{{ edu.school }}</div>
+                            <div class="pview-item-title">
+                                {{ edu.school }}
+                                {% if edu.education_level %}
+                                <span class="pview-edu-level-badge">{{ edu.education_level }}</span>
+                                {% endif %}
+                            </div>
                             <div class="pview-item-subtitle">
                                 {{ edu.degree if edu.degree else '' }}
                                 {% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}
@@ -248,8 +295,25 @@
         <!-- ══ SIDEBAR COLUMN ══ -->
         <div class="pview-side">
 
-            <!-- ── COMPANY CARD ── -->
+            <!-- ── STATS ── -->
             <div class="pview-card" style="animation-delay:0.06s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-chart-simple"></i> Stats</div>
+                </div>
+                <div class="pview-stats-grid">
+                    <div class="pview-stat-item">
+                        <span class="pview-stat-value">{{ educations | length }}</span>
+                        <span class="pview-stat-label">Education</span>
+                    </div>
+                    <div class="pview-stat-item">
+                        <span class="pview-stat-value">{{ assigned_jobs | length if assigned_jobs else 0 }}</span>
+                        <span class="pview-stat-label">Jobs Assigned</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── COMPANY CARD ── -->
+            <div class="pview-card" style="animation-delay:0.09s">
                 <div class="pview-card-header">
                     <div class="pview-card-title"><i class="fas fa-building"></i> Company</div>
                 </div>
@@ -290,6 +354,15 @@
                         </div>
                     </div>
                     {% endif %}
+                    {% if recruiter_profile and recruiter_profile.company_email_domain %}
+                    <div class="pview-side-item">
+                        <i class="fas fa-at"></i>
+                        <div class="pview-side-item-text">
+                            <span class="pview-side-item-label">Email Domain</span>
+                            {{ recruiter_profile.company_email_domain }}
+                        </div>
+                    </div>
+                    {% endif %}
                     {% if not recruiter_profile or not recruiter_profile.company_name %}
                     <div class="pview-empty-section" style="padding:12px 0 4px;">
                         <i class="fas fa-building"></i>
@@ -299,8 +372,58 @@
                 </div>
             </div>
 
+            <!-- ── PORTFOLIO (read-only) ── -->
+            <div class="pview-card" style="animation-delay:0.13s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-images"></i> Portfolio</div>
+                </div>
+                <div class="pview-portfolio-body">
+
+                    {% if profile and profile.portfolio_file %}
+                    {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
+                    <div class="pview-doc-file-item">
+                        <div class="pview-doc-file-icon">
+                            {% if pext == 'pdf' %}<i class="fas fa-file-pdf"></i>
+                            {% else %}<i class="fas fa-file-image"></i>{% endif %}
+                        </div>
+                        <div class="pview-doc-file-body">
+                            <div class="pview-doc-file-name">Portfolio File</div>
+                            <div class="pview-doc-file-meta">{{ pext | upper }} · Portfolio</div>
+                        </div>
+                        <div class="pview-doc-file-actions">
+                            <a href="{{ url_for('static', filename='uploads/hr_portfolios/' + profile.portfolio_file) }}"
+                               target="_blank" class="pview-doc-file-btn pview-doc-file-btn-view">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if profile and profile.portfolio %}
+                    <div class="pview-port-link-row">
+                        <div class="pview-port-link-icon"><i class="fas fa-globe"></i></div>
+                        <div class="pview-port-link-body">
+                            <div class="pview-port-link-label">Website</div>
+                            <a href="{{ profile.portfolio }}" target="_blank" class="pview-port-link-url">{{ profile.portfolio }}</a>
+                        </div>
+                        <a href="{{ profile.portfolio }}" target="_blank" class="pview-doc-file-btn pview-doc-file-btn-view pview-port-link-visit">
+                            <i class="fas fa-arrow-up-right-from-square"></i> Visit
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if not (profile and (profile.portfolio_file or profile.portfolio)) %}
+                    <div class="pview-port-empty-hint">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No portfolio shared yet.</p>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
             <!-- ── CONTACT / LINKS ── -->
-            <div class="pview-card" style="animation-delay:0.09s">
+            <div class="pview-card" style="animation-delay:0.12s">
                 <div class="pview-card-header">
                     <div class="pview-card-title"><i class="fas fa-link"></i> Contact & Links</div>
                 </div>
@@ -355,9 +478,9 @@
             {% if not current_user.is_authenticated %}
             <div class="pview-card pview-cta-card" style="animation-delay:0.15s">
                 <div class="pview-cta-inner">
-                    <i class="fas fa-user pview-cta-icon"></i>
+                    <i class="fas fa-user-tie pview-cta-icon"></i>
                     <p class="pview-cta-title">Join to Connect</p>
-                    <p class="pview-cta-text">Sign up to follow this applicant, send messages, and build your network.</p>
+                    <p class="pview-cta-text">Sign up to follow this HR member, send messages, and build your network.</p>
                     <a href="{{ url_for('auth.register') }}" class="pview-cta-btn">
                         <i class="fas fa-user-plus"></i> Create Account
                     </a>
@@ -369,6 +492,36 @@
         </div><!-- /.pview-side -->
 
     </div><!-- /.pview-body -->
+    {% endif %}<!-- end show_profile -->
+
+</div><!-- /.pview-wrapper -->
+
+<!-- ══ PRIVATE LIST NOTICE MODAL ══ -->
+<div class="pview-modal-backdrop" id="privateListBackdrop" onclick="closePrivateListNotice()" style="display:none;"></div>
+<div class="pview-notice-modal" id="privateListModal" style="display:none;">
+    <div class="pview-notice-icon"><i class="fas fa-eye-slash"></i></div>
+    <h4 class="pview-notice-title">Follow list is private</h4>
+    <p class="pview-notice-text">
+        <strong>{{ viewed_user.username }}</strong> has chosen to keep their followers and following list private.
+    </p>
+    <button class="pview-notice-close-btn" onclick="closePrivateListNotice()">Got it</button>
+</div>
+
+<!-- ══ MESSAGE RESTRICTION NOTICE MODAL ══ -->
+<div class="pview-modal-backdrop" id="msgRestrictBackdrop" onclick="closePviewMsgNotice()" style="display:none;"></div>
+<div class="pview-notice-modal" id="msgRestrictModal" style="display:none;">
+    <div class="pview-notice-icon pview-notice-icon-msg"><i class="fas fa-comment-slash"></i></div>
+    <h4 class="pview-notice-title">Messaging restricted</h4>
+    <p class="pview-notice-text">
+        {% if who_can_message == 'recruiters' %}
+            <strong>{{ viewed_user.username }}</strong> only accepts messages from recruiters.
+        {% elif who_can_message == 'mutual' %}
+            <strong>{{ viewed_user.username }}</strong> only accepts messages from mutual followers.
+        {% else %}
+            You don't have permission to message this user.
+        {% endif %}
+    </p>
+    <button class="pview-notice-close-btn" onclick="closePviewMsgNotice()">Got it</button>
 </div>
 
 <!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->
@@ -385,6 +538,8 @@
         </div>
         <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
     </div>
+
+    <!-- Followers list -->
     <div class="follow-modal-list" id="list-followers">
         {% if followers %}
             {% for u in followers %}
@@ -408,9 +563,14 @@
             </a>
             {% endfor %}
         {% else %}
-            <div class="follow-modal-empty"><i class="fas fa-user-friends"></i><p>No followers yet.</p></div>
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-friends"></i>
+                <p>No followers yet.</p>
+            </div>
         {% endif %}
     </div>
+
+    <!-- Following list -->
     <div class="follow-modal-list" id="list-following" style="display:none;">
         {% if following %}
             {% for u in following %}
@@ -434,12 +594,65 @@
             </a>
             {% endfor %}
         {% else %}
-            <div class="follow-modal-empty"><i class="fas fa-user-plus"></i><p>Not following anyone yet.</p></div>
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-plus"></i>
+                <p>Not following anyone yet.</p>
+            </div>
         {% endif %}
     </div>
 </div>
 
-<script>window.PROFILE_USER_ID = {{ viewed_user.id }};</script>
+<script>
+const SHOW_FOLLOW_LIST = {{ 'true' if show_follow_list else 'false' }};
+const PROFILE_USER_ID = {{ viewed_user.id }};
+
+/* ── Private list notice ── */
+function openPrivateListNotice() {
+    document.getElementById('privateListBackdrop').style.display = 'block';
+    document.getElementById('privateListModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closePrivateListNotice() {
+    document.getElementById('privateListBackdrop').style.display = 'none';
+    document.getElementById('privateListModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+/* ── Message restriction notice ── */
+function showPviewMsgNotice() {
+    document.getElementById('msgRestrictBackdrop').style.display = 'block';
+    document.getElementById('msgRestrictModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closePviewMsgNotice() {
+    document.getElementById('msgRestrictBackdrop').style.display = 'none';
+    document.getElementById('msgRestrictModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+/* ── Card entrance animation ── */
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.pview-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(12px)';
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 80 * index);
+    });
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        closeFollowModal();
+        closePrivateListNotice();
+        closePviewMsgNotice();
+    }
+});
+</script>
+
 <script src="{{ url_for('static', filename='js/recruiter/view_profile.js') }}"></script>
+<script src="{{ url_for('static', filename='js/profile_actions.js') }}"></script>
 
 {% endblock %}
