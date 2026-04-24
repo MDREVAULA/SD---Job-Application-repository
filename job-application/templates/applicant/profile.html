@@ -8,50 +8,34 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_completion_banner.css') }}">
 
 
-{# ══════════════════════════════════════════════════════════════════════════════
-   APPLICANT PROFILE — COMPLETION BANNER
-   Only shows when profile is NOT complete.
-   ══════════════════════════════════════════════════════════════════════════════ #}
-
+{# ══ COMPLETION BANNER ══ #}
 {% if current_user.is_authenticated and not current_user.profile_completed %}
 <div class="profile-completion-banner banner--incomplete">
-
-    <div class="pcb-icon">
-        <i class="fas fa-exclamation-triangle"></i>
-    </div>
-
+    <div class="pcb-icon"><i class="fas fa-exclamation-triangle"></i></div>
     <div class="pcb-body">
         <strong>Complete your profile to unlock all features</strong>
         <p>Fill in the required fields below. Once done, you'll have full access to apply for jobs, message recruiters, and more — no waiting required.</p>
     </div>
-
     <div class="pcb-checklist">
         <span class="pcb-check {% if profile and profile.first_name %}done{% endif %}">
-            <i class="fas {% if profile and profile.first_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            First name
+            <i class="fas {% if profile and profile.first_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i> First name
         </span>
         <span class="pcb-check {% if profile and profile.last_name %}done{% endif %}">
-            <i class="fas {% if profile and profile.last_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            Last name
+            <i class="fas {% if profile and profile.last_name %}fa-check-circle{% else %}fa-circle{% endif %}"></i> Last name
         </span>
         <span class="pcb-check {% if profile and profile.phone_number %}done{% endif %}">
-            <i class="fas {% if profile and profile.phone_number %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            Phone number
+            <i class="fas {% if profile and profile.phone_number %}fa-check-circle{% else %}fa-circle{% endif %}"></i> Phone number
         </span>
         <span class="pcb-check {% if profile and profile.country %}done{% endif %}">
-            <i class="fas {% if profile and profile.country %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            Country
+            <i class="fas {% if profile and profile.country %}fa-check-circle{% else %}fa-circle{% endif %}"></i> Country
         </span>
         <span class="pcb-check {% if profile and profile.city %}done{% endif %}">
-            <i class="fas {% if profile and profile.city %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            City
+            <i class="fas {% if profile and profile.city %}fa-check-circle{% else %}fa-circle{% endif %}"></i> City
         </span>
         <span class="pcb-check {% if profile and profile.home_address %}done{% endif %}">
-            <i class="fas {% if profile and profile.home_address %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
-            Home address
+            <i class="fas {% if profile and profile.home_address %}fa-check-circle{% else %}fa-circle{% endif %}"></i> Home address
         </span>
     </div>
-
 </div>
 {% endif %}
 
@@ -63,10 +47,8 @@
     <!-- ── HEADER ── -->
     <div class="prof-header">
         <div class="prof-cover-strip"></div>
-
         <div class="prof-header-inner">
             <div class="prof-header-top-row">
-                <!-- Avatar -->
                 <div class="prof-avatar-wrap" onclick="document.getElementById('pfpFileInput').click()" title="Change photo">
                     {% if current_user.profile_picture %}
                         {% if current_user.profile_picture.startswith('http') %}
@@ -79,25 +61,22 @@
                     {% endif %}
                     <div class="prof-avatar-overlay"><i class="fas fa-camera"></i></div>
                 </div>
-
-                <!-- Action buttons -->
                 <div class="prof-header-actions">
-                        {% if profile_completed %}
-                        <div class="prof-verification-badge badge-verified">
-                            <i class="fas fa-check-circle"></i> Profile Complete
-                        </div>
-                        {% else %}
-                        <div class="prof-verification-badge badge-pending">
-                            <i class="fas fa-circle-exclamation"></i> Incomplete Profile
-                        </div>
-                        {% endif %}
+                    {% if profile_completed %}
+                    <div class="prof-verification-badge badge-verified">
+                        <i class="fas fa-check-circle"></i> Profile Complete
+                    </div>
+                    {% else %}
+                    <div class="prof-verification-badge badge-pending">
+                        <i class="fas fa-circle-exclamation"></i> Incomplete Profile
+                    </div>
+                    {% endif %}
                     <button class="prof-action-btn prof-action-btn-outline" onclick="toggleEdit('personal')" data-edit-target="personal">
                         <i class="fas fa-pen"></i> Edit Profile
                     </button>
                 </div>
             </div>
 
-            <!-- Name / headline / meta -->
             <div class="prof-header-info">
                 <h1>
                     {% if profile and profile.first_name %}
@@ -120,7 +99,6 @@
                         </button>
                     </div>
                 </div>
-                
                 <p class="prof-headline">
                     {{ profile.headline if profile and profile.headline else 'Add a headline to describe yourself' }}
                 </p>
@@ -135,19 +113,13 @@
                 </div>
                 <div class="prof-social-links">
                     {% if profile and profile.facebook %}
-                    <a href="{{ profile.facebook }}" target="_blank" class="prof-social-btn">
-                        <i class="fab fa-facebook"></i> Facebook
-                    </a>
+                    <a href="{{ profile.facebook }}" target="_blank" class="prof-social-btn"><i class="fab fa-facebook"></i> Facebook</a>
                     {% endif %}
                     {% if profile and profile.github %}
-                    <a href="{{ profile.github }}" target="_blank" class="prof-social-btn">
-                        <i class="fab fa-github"></i> GitHub
-                    </a>
+                    <a href="{{ profile.github }}" target="_blank" class="prof-social-btn"><i class="fab fa-github"></i> GitHub</a>
                     {% endif %}
                     {% if profile and profile.portfolio %}
-                    <a href="{{ profile.portfolio }}" target="_blank" class="prof-social-btn">
-                        <i class="fas fa-globe"></i> Portfolio
-                    </a>
+                    <a href="{{ profile.portfolio }}" target="_blank" class="prof-social-btn"><i class="fas fa-globe"></i> Portfolio</a>
                     {% endif %}
                 </div>
             </div>
@@ -160,7 +132,7 @@
         <!-- ══ MAIN COLUMN ══ -->
         <div class="prof-main">
 
-            <!-- ── PERSONAL INFO + ABOUT ── -->
+            <!-- ── PERSONAL INFO ── -->
             <div class="prof-card" id="section-personal" style="animation-delay:0.05s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-id-card"></i> Personal Information</div>
@@ -272,7 +244,7 @@
                         </div>
                         <div class="prof-form-actions">
                             <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save Changes</button>
-                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('personal')" data-edit-target="personal">Cancel</button>
+                            <button type="button" class="prof-btn-cancel" onclick="toggleEdit('personal')">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -298,12 +270,40 @@
                                 <input type="text" name="school" placeholder="e.g. University of the Philippines" required>
                             </div>
                             <div class="prof-form-group">
-                                <label>Degree</label>
-                                <input type="text" name="degree" placeholder="e.g. Bachelor of Science">
+                                <label>Education Level</label>
+                                <div class="prof-edu-level-wrap">
+                                    <select name="education_level" class="prof-edu-level-select">
+                                        <option value="">Select Level</option>
+                                        <optgroup label="Higher Education">
+                                            <option value="Doctorate (PhD)">Doctorate (PhD)</option>
+                                            <option value="Master's Degree">Master's Degree</option>
+                                            <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                            <option value="Associate Degree">Associate Degree</option>
+                                            <option value="Vocational / Technical">Vocational / Technical</option>
+                                        </optgroup>
+                                        <optgroup label="Secondary Education">
+                                            <option value="Senior High School (Grade 11-12)">Senior High School (Grade 11–12)</option>
+                                            <option value="Junior High School (Grade 7-10)">Junior High School (Grade 7–10)</option>
+                                        </optgroup>
+                                        <optgroup label="Primary Education">
+                                            <option value="Elementary School">Elementary School</option>
+                                        </optgroup>
+                                        <optgroup label="Other">
+                                            <option value="Short Course / Certificate">Short Course / Certificate</option>
+                                            <option value="Online Course">Online Course</option>
+                                            <option value="Other">Other</option>
+                                        </optgroup>
+                                    </select>
+                                    <i class="fas fa-chevron-down prof-edu-level-arrow"></i>
+                                </div>
                             </div>
                             <div class="prof-form-group">
-                                <label>Field of Study</label>
-                                <input type="text" name="field_of_study" placeholder="e.g. Computer Science">
+                                <label>Field of Study (Degree / Course / STRAND)</label>
+                                <input type="text" name="degree" placeholder="e.g. BS in Computer Engineering. Leave it blank if not applicable.">
+                            </div>
+                            <div class="prof-form-group">
+                                <label>Specialization</label>
+                                <input type="text" name="field_of_study" placeholder="e.g. Software Engineer. Leave it blank if not applicable.">
                             </div>
                             <div class="prof-form-group">
                                 <label>Start Date</label>
@@ -314,8 +314,9 @@
                                 <input type="month" name="end_date" id="edu-end-date">
                             </div>
                             <div class="prof-form-group prof-form-full">
-                                <label class="prof-checkbox-label">
-                                    <input type="checkbox" name="is_current" value="1" onchange="toggleEndDate('edu-end-date', this)">
+                                <label class="prof-checkbox-label" id="chk-label-edu-current">
+                                    <input type="checkbox" name="is_current" value="1">
+                                    <span class="prof-checkbox-box"><i class="fas fa-check"></i></span>
                                     I am currently studying here
                                 </label>
                             </div>
@@ -337,7 +338,12 @@
                         <div class="prof-item">
                             <div class="prof-item-icon"><i class="fas fa-graduation-cap"></i></div>
                             <div class="prof-item-body">
-                                <div class="prof-item-title">{{ edu.school }}</div>
+                                <div class="prof-item-title">
+                                    {{ edu.school }}
+                                    {% if edu.education_level %}
+                                    <span class="prof-edu-level-badge">{{ edu.education_level }}</span>
+                                    {% endif %}
+                                </div>
                                 <div class="prof-item-subtitle">{{ edu.degree if edu.degree else '' }}{% if edu.field_of_study %} · {{ edu.field_of_study }}{% endif %}</div>
                                 <div class="prof-item-date">
                                     {{ edu.start_date if edu.start_date else '' }}
@@ -347,8 +353,9 @@
                                 </div>
                                 {% if edu.description %}<div class="prof-item-desc">{{ edu.description }}</div>{% endif %}
                             </div>
-                            <form method="POST" action="{{ url_for('applicant.delete_education', edu_id=edu.id) }}" class="prof-item-delete">
-                                <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this education?')">
+                            <form method="POST" action="{{ url_for('applicant.delete_education', edu_id=edu.id) }}" class="prof-item-delete" id="del-edu-form-{{ edu.id }}">
+                                <button type="button" class="prof-btn-delete" title="Delete"
+                                        onclick="confirmDeleteEducation(document.getElementById('del-edu-form-{{ edu.id }}'), '{{ edu.school | replace("'", "\\'") }}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -363,88 +370,21 @@
                 </div>
             </div>
 
-            <!-- ══════════════════════════════════════════════════
-                 WORK EXPERIENCE  (with Portfolio at top + per-exp Certs)
-            ══════════════════════════════════════════════════ -->
+            <!-- ══ EXPERIENCE CARD ══ -->
             <div class="prof-card" id="section-experience" style="animation-delay:0.08s">
                 <div class="prof-card-header">
                     <div class="prof-card-title">
                         <i class="fas fa-briefcase"></i> Experience
                         {% if experiences %}<span class="prof-section-count">{{ experiences | length }}</span>{% endif %}
                     </div>
-                    <div class="prof-card-btns">
-                        <button class="prof-add-btn" onclick="toggleAddForm('add-experience')">
-                            <i class="fas fa-plus"></i> Add
-                        </button>
-                    </div>
+                    <button class="prof-add-btn" onclick="toggleAddForm('add-experience')">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
                 </div>
-
-                <!-- ── PORTFOLIO UPLOAD (top of Experience card) ── -->
-                <div class="exp-portfolio-section">
-                    <div class="exp-portfolio-header">
-                        <div class="exp-portfolio-title">
-                            <i class="fas fa-images"></i> Portfolio
-                        </div>
-                    </div>
-
-                    {% if profile and profile.portfolio_file %}
-                        {# Portfolio exists — show file row only, no upload zone #}
-                        {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
-                        <div class="doc-file-item exp-portfolio-file">
-                            <div class="doc-file-icon">
-                                {% if pext == 'pdf' %}
-                                    <i class="fas fa-file-pdf"></i>
-                                {% else %}
-                                    <i class="fas fa-file-image"></i>
-                                {% endif %}
-                            </div>
-                            <div class="doc-file-body">
-                                <div class="doc-file-name">{{ profile.portfolio_file }}</div>
-                                <div class="doc-file-meta">{{ pext | upper }} · Portfolio</div>
-                            </div>
-                            <div class="doc-file-actions">
-                                <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.portfolio_file) }}"
-                                   target="_blank" class="doc-file-btn doc-file-btn-view">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                                <form method="POST" action="{{ url_for('applicant.delete_portfolio') }}" style="display:inline">
-                                    <button type="submit" class="doc-file-btn doc-file-btn-delete"
-                                            onclick="return confirm('Remove portfolio?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    {% else %}
-                        {# No portfolio — show compact upload zone #}
-                        <div class="exp-portfolio-upload">
-                            <div class="doc-upload-zone exp-upload-zone"
-                                 ondragover="event.preventDefault(); this.classList.add('drag-over')"
-                                 ondragleave="this.classList.remove('drag-over')"
-                                 ondrop="handleDrop(event, 'portfolio_file', ['pdf','jpg','jpeg','png'], 10)">
-                                <i class="fas fa-cloud-upload-alt doc-upload-icon"></i>
-                                <p class="doc-upload-label">Drag & drop your portfolio here</p>
-                                <p class="doc-upload-hint">PDF, JPG, or PNG · Max <strong>10MB</strong></p>
-                                <label class="prof-add-btn doc-upload-btn" for="input-portfolio">
-                                    <i class="fas fa-upload"></i> Choose File
-                                </label>
-                                <input type="file" id="input-portfolio" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
-                                       onchange="validateAndSubmit(this, ['pdf','jpg','jpeg','png'], 10, 'form-portfolio')">
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <form id="form-portfolio" method="POST"
-                          action="{{ url_for('applicant.upload_portfolio') }}"
-                          enctype="multipart/form-data" style="display:none">
-                        <input type="file" name="portfolio_file" id="hidden-portfolio">
-                    </form>
-                </div>
-                <!-- ── END PORTFOLIO ── -->
 
                 <!-- ── ADD EXPERIENCE FORM ── -->
                 <div class="prof-add-form" id="add-experience" style="display:none;">
-                    <form method="POST" action="{{ url_for('applicant.add_experience') }}">
+                    <form method="POST" action="{{ url_for('applicant.add_experience') }}" enctype="multipart/form-data">
                         <div class="prof-form-grid">
                             <div class="prof-form-group">
                                 <label>Job Title</label>
@@ -467,14 +407,31 @@
                                 <input type="month" name="end_date" id="exp-end-date">
                             </div>
                             <div class="prof-form-group prof-form-full">
-                                <label class="prof-checkbox-label">
-                                    <input type="checkbox" name="is_current" value="1" onchange="toggleEndDate('exp-end-date', this)">
+                                <label class="prof-checkbox-label" id="chk-label-exp-current">
+                                    <input type="checkbox" name="is_current" value="1">
+                                    <span class="prof-checkbox-box"><i class="fas fa-check"></i></span>
                                     I currently work here
                                 </label>
                             </div>
                             <div class="prof-form-group prof-form-full">
                                 <label>Description</label>
                                 <textarea name="description" rows="3" placeholder="Key responsibilities and achievements..."></textarea>
+                            </div>
+                            <!-- Certificates attached at creation -->
+                            <div class="prof-form-group prof-form-full">
+                                <label>Certificates &amp; Awards <span class="prof-form-hint">Optional · PDF, JPG, PNG · Max 5MB each · Up to 10 files</span></label>
+                                <div class="exp-cert-dropzone" id="new-exp-cert-dropzone"
+                                     ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                                     ondragleave="this.classList.remove('drag-over')"
+                                     ondrop="handleNewExpCertDrop(event)">
+                                    <i class="fas fa-award"></i>
+                                    <span>Drag & drop certificates here or</span>
+                                    <label class="exp-cert-pick-btn" for="new-exp-cert-input">Browse files</label>
+                                    <input type="file" id="new-exp-cert-input" name="cert_files" multiple
+                                           accept=".pdf,.jpg,.jpeg,.png" style="display:none"
+                                           onchange="previewNewExpCerts(this)">
+                                </div>
+                                <div class="exp-cert-preview-list" id="new-exp-cert-preview"></div>
                             </div>
                         </div>
                         <div class="prof-form-actions">
@@ -484,19 +441,18 @@
                     </form>
                 </div>
 
-                <!-- ── EXPERIENCE LIST (each entry has its own certs) ── -->
-                <div class="prof-items-list exp-items-list">
+                <!-- ── EXPERIENCE LIST ── -->
+                <div class="prof-items-list exp-items-list" id="exp-items-list">
                     {% if experiences %}
-                        {# Parse certificate files once #}
-                        {% set certs = (profile.certificate_files | from_json) if (profile and profile.certificate_files) else [] %}
-
                         {% for exp in experiences %}
-                        <div class="prof-item exp-item-block">
+                        <div class="exp-item-block" id="exp-block-{{ exp.id }}">
 
-                            <!-- Experience header row -->
-                            <div class="exp-item-main">
-                                <div class="prof-item-icon"><i class="fas fa-briefcase"></i></div>
-                                <div class="prof-item-body">
+                            <!-- Header row (always visible) -->
+                            <div class="exp-item-header" onclick="toggleExpCollapse({{ exp.id }})">
+                                <div class="exp-item-icon-wrap">
+                                    <div class="prof-item-icon"><i class="fas fa-briefcase"></i></div>
+                                </div>
+                                <div class="exp-item-summary">
                                     <div class="prof-item-title">{{ exp.job_title }}</div>
                                     <div class="prof-item-subtitle">{{ exp.company }}{% if exp.location %} · {{ exp.location }}{% endif %}</div>
                                     <div class="prof-item-date">
@@ -505,90 +461,120 @@
                                         {% elif exp.end_date %} – {{ exp.end_date }}
                                         {% endif %}
                                     </div>
-                                    {% if exp.description %}<div class="prof-item-desc">{{ exp.description }}</div>{% endif %}
                                 </div>
-                                <form method="POST" action="{{ url_for('applicant.delete_experience', exp_id=exp.id) }}" class="prof-item-delete">
-                                    <button type="submit" class="prof-btn-delete" title="Delete" onclick="return confirm('Delete this experience?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                <div class="exp-item-header-right">
+                                    {% set cert_count = exp.certificates | length %}
+                                    {% if cert_count > 0 %}
+                                    <span class="exp-cert-badge">
+                                        <i class="fas fa-award"></i> {{ cert_count }}
+                                    </span>
+                                    {% endif %}
+                                    <span class="exp-collapse-chevron" id="chevron-{{ exp.id }}">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </span>
+                                </div>
                             </div>
 
-                            <!-- ── Certificates & Awards for this experience ── -->
-                            <div class="exp-certs-section">
-                                <div class="exp-certs-header">
-                                    <span class="exp-certs-title">
-                                        <i class="fas fa-award"></i> Certificates &amp; Awards
-                                    </span>
-                                    {% if certs | length < 5 %}
-                                    <label class="exp-certs-upload-btn" for="input-cert-exp-{{ exp.id }}" title="Upload certificate">
-                                        <i class="fas fa-plus"></i> Add
-                                    </label>
-                                    <input type="file" id="input-cert-exp-{{ exp.id }}"
-                                           accept=".pdf,.jpg,.jpeg,.png" style="display:none"
-                                           onchange="validateAndSubmit(this, ['pdf','jpg','jpeg','png'], 5, 'form-certificate')">
-                                    {% endif %}
+                            <!-- Collapsible body -->
+                            <div class="exp-item-body" id="exp-body-{{ exp.id }}">
+                                {% if exp.description %}
+                                <div class="exp-item-desc-row">
+                                    <div class="prof-item-desc">{{ exp.description }}</div>
                                 </div>
+                                {% endif %}
 
-                                {% if certs %}
-                                <div class="exp-certs-list">
-                                    {% for cf in certs %}
-                                    {% set ext = cf.rsplit('.', 1)[-1].lower() %}
-                                    <div class="exp-cert-item">
-                                        <div class="exp-cert-icon">
-                                            {% if ext == 'pdf' %}
-                                                <i class="fas fa-file-pdf"></i>
-                                            {% else %}
-                                                <i class="fas fa-file-image"></i>
-                                            {% endif %}
-                                        </div>
-                                        <div class="exp-cert-name">{{ cf }}</div>
-                                        <div class="exp-cert-actions">
-                                            <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + cf) }}"
-                                               target="_blank" class="doc-file-btn doc-file-btn-view">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <form method="POST" action="{{ url_for('applicant.delete_certificate', filename=cf) }}" style="display:inline">
-                                                <button type="submit" class="doc-file-btn doc-file-btn-delete"
-                                                        onclick="return confirm('Remove this certificate?')">
+                                <!-- Certificates & Awards -->
+                                <div class="exp-certs-section" id="certs-section-{{ exp.id }}">
+                                    <div class="exp-certs-header">
+                                        <span class="exp-certs-title">
+                                            <i class="fas fa-award"></i> Certificates &amp; Awards
+                                        </span>
+                                        <label class="exp-certs-upload-btn" for="cert-input-{{ exp.id }}" title="Upload certificates">
+                                            <i class="fas fa-plus"></i> Add Files
+                                        </label>
+                                        <input type="file"
+                                               id="cert-input-{{ exp.id }}"
+                                               data-exp-id="{{ exp.id }}"
+                                               multiple
+                                               accept=".pdf,.jpg,.jpeg,.png"
+                                               style="display:none"
+                                               onchange="uploadExpCerts(this, {{ exp.id }})">
+                                    </div>
+
+                                    <div class="exp-certs-list" id="certs-list-{{ exp.id }}">
+                                        {% for cert in exp.certificates %}
+                                        {% set ext = cert.file_path.rsplit('.', 1)[-1].lower() %}
+                                        <div class="exp-cert-item" id="cert-item-{{ cert.id }}">
+                                            <div class="exp-cert-icon">
+                                                {% if ext == 'pdf' %}<i class="fas fa-file-pdf"></i>
+                                                {% else %}<i class="fas fa-file-image"></i>{% endif %}
+                                            </div>
+                                            <div class="exp-cert-name" title="{{ cert.original_name or cert.file_path }}">
+                                                {{ cert.original_name or cert.file_path }}
+                                            </div>
+                                            <div class="exp-cert-actions">
+                                                <a href="{{ url_for('static', filename='uploads/experience_certs/' + cert.file_path) }}"
+                                                   target="_blank" class="doc-file-btn doc-file-btn-view">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button"
+                                                        class="doc-file-btn doc-file-btn-delete"
+                                                        onclick="deleteExpCert({{ cert.id }}, {{ exp.id }}, '{{ url_for('applicant.delete_experience_certificate', cert_id=cert.id) }}', '{{ (cert.original_name or cert.file_path) | replace("'", "\\'") }}')"
+                                                        title="Remove">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            </form>
+                                            </div>
                                         </div>
+                                        {% endfor %}
+
+                                        {% if not exp.certificates %}
+                                        <div class="exp-certs-empty" id="certs-empty-{{ exp.id }}">
+                                            <i class="fas fa-award"></i>
+                                            <span>No certificates added yet. Click "Add Files" to upload.</span>
+                                        </div>
+                                        {% endif %}
                                     </div>
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
 
-                                {% if certs | length >= 5 %}
-                                <div class="doc-limit-notice exp-cert-limit">
-                                    <i class="fas fa-info-circle"></i> Maximum of 5 certificates reached.
-                                </div>
-                                {% endif %}
+                                    <div class="exp-cert-upload-progress" id="cert-progress-{{ exp.id }}" style="display:none;">
+                                        <div class="exp-cert-progress-bar">
+                                            <div class="exp-cert-progress-fill"></div>
+                                        </div>
+                                        <span class="exp-cert-progress-label">Uploading…</span>
+                                    </div>
 
+                                    <div class="doc-limit-notice exp-cert-limit" id="cert-limit-{{ exp.id }}"
+                                         style="{% if exp.certificates | length < 10 %}display:none{% endif %}">
+                                        <i class="fas fa-info-circle"></i> Maximum of 10 certificates per experience reached.
+                                    </div>
+                                </div>
+                                <!-- End Certs -->
+
+                                <!-- Delete experience -->
+                                <div class="exp-item-footer">
+                                    <form method="POST" action="{{ url_for('applicant.delete_experience', exp_id=exp.id) }}" id="del-exp-form-{{ exp.id }}">
+                                        <button type="button" class="exp-delete-btn"
+                                                onclick="confirmDeleteExperience(document.getElementById('del-exp-form-{{ exp.id }}'), '{{ exp.job_title | replace("'", "\\'") }}', '{{ exp.company | replace("'", "\\'") }}')">
+                                            <i class="fas fa-trash"></i> Remove Experience
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                            <!-- ── End Certs ── -->
+                            <!-- End collapsible body -->
 
-                        </div>
+                        </div><!-- /.exp-item-block -->
                         {% endfor %}
 
                     {% else %}
-                        <div class="prof-empty-section">
+                        <div class="prof-empty-section" id="exp-empty-state">
                             <i class="fas fa-briefcase"></i>
                             <p>No work experience added yet.</p>
                         </div>
                     {% endif %}
                 </div>
-
-                <!-- Shared hidden form for certificate uploads (all experiences share the same pool) -->
-                <form id="form-certificate" method="POST"
-                      action="{{ url_for('applicant.upload_certificate') }}"
-                      enctype="multipart/form-data" style="display:none">
-                    <input type="file" name="certificate_file" id="hidden-certificate">
-                </form>
+                <!-- End experience list -->
 
             </div>
-            <!-- ── END EXPERIENCE CARD ── -->
+            <!-- END EXPERIENCE CARD -->
 
         </div><!-- /.prof-main -->
 
@@ -602,14 +588,11 @@
                 </div>
                 <div class="prof-completion-wrap">
                     {% set score = namespace(val=0) %}
-                    {% if profile and profile.first_name and profile.last_name %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.first_name and profile.last_name %}{% set score.val = score.val + 30 %}{% endif %}
                     {% if profile and profile.bio %}{% set score.val = score.val + 15 %}{% endif %}
                     {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
-                    {% if profile and profile.facebook %}{% set score.val = score.val + 10 %}{% endif %}
-                    {% if experiences %}{% set score.val = score.val + 20 %}{% endif %}
-                    {% if educations %}{% set score.val = score.val + 15 %}{% endif %}
-                    {% if skills %}{% set score.val = score.val + 10 %}{% endif %}
-                    {% if certifications %}{% set score.val = score.val + 5 %}{% endif %}
+                    {% if educations %}{% set score.val = score.val + 25 %}{% endif %}
+                    {% if skills %}{% set score.val = score.val + 20 %}{% endif %}
 
                     <div class="prof-completion-title">
                         {% if score.val >= 80 %}All-Star Profile!
@@ -635,10 +618,6 @@
                             <i class="{% if profile and profile.bio %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add a bio / about section
                         </div>
-                        <div class="prof-completion-tip {% if experiences %}done{% endif %}">
-                            <i class="{% if experiences %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
-                            Add work experience
-                        </div>
                         <div class="prof-completion-tip {% if educations %}done{% endif %}">
                             <i class="{% if educations %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add education
@@ -647,15 +626,11 @@
                             <i class="{% if skills %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
                             Add skills
                         </div>
-                        <div class="prof-completion-tip {% if profile and profile.facebook %}done{% endif %}">
-                            <i class="{% if profile and profile.facebook %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
-                            Link your Facebook
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ── CURRENTLY EMPLOYED (sidebar) ── -->
+            <!-- ── CURRENTLY EMPLOYED ── -->
             {% set active_jobs = current_user.employment_records | selectattr('employment_status','equalto','active') | list %}
             {% if active_jobs %}
             <div class="prof-card" style="animation-delay:0.04s">
@@ -666,7 +641,6 @@
                     {% for emp in active_jobs %}
                     <div class="prof-side-item" style="align-items:center;">
                         <div style="width:40px;height:40px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--border-color,#EAEDE8);background:var(--bg-surface-alt,#F9FBF8);display:flex;align-items:center;justify-content:center;">
-                            {% set recruiter = emp.job.company if emp.job else none %}
                             {% set rec_profile = emp.job.poster.recruiter_profile if emp.job and emp.job.poster else none %}
                             {% if rec_profile and rec_profile.company_logo %}
                                 <img src="{{ url_for('static', filename='uploads/company_logos/' + rec_profile.company_logo) }}"
@@ -692,7 +666,7 @@
             </div>
             {% endif %}
 
-            <!-- ── SKILLS (sidebar) ── -->
+            <!-- ── SKILLS ── -->
             <div class="prof-card" id="section-skills" style="animation-delay:0.1s">
                 <div class="prof-card-header">
                     <div class="prof-card-title">
@@ -750,7 +724,122 @@
                 </div>
             </div>
 
-            <!-- ── CONTACT / SOCIAL LINKS (sidebar) ── -->
+            <!-- ── PORTFOLIO (sidebar card) ── -->
+            <div class="prof-card" id="section-portfolio" style="animation-delay:0.13s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title"><i class="fas fa-images"></i> Portfolio</div>
+                </div>
+
+                <div class="portfolio-card-body">
+
+                    {# ── If a file is already uploaded, show it ── #}
+                    {% if profile and profile.portfolio_file %}
+                        {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
+                        <div class="doc-file-item port-file-item">
+                            <div class="doc-file-icon">
+                                {% if pext == 'pdf' %}<i class="fas fa-file-pdf"></i>
+                                {% else %}<i class="fas fa-file-image"></i>{% endif %}
+                            </div>
+                            <div class="doc-file-body">
+                                <div class="doc-file-name">{{ profile.portfolio_file }}</div>
+                                <div class="doc-file-meta">{{ pext | upper }} · Portfolio File</div>
+                            </div>
+                            <div class="doc-file-actions">
+                                <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.portfolio_file) }}"
+                                   target="_blank" class="doc-file-btn doc-file-btn-view">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {# ── Portfolio delete with custom confirm modal ── #}
+                                <form method="POST" action="{{ url_for('applicant.delete_portfolio') }}" style="display:inline" id="form-delete-portfolio">
+                                    <button type="button" class="doc-file-btn doc-file-btn-delete"
+                                            onclick="confirmDeletePortfolio(document.getElementById('form-delete-portfolio'))">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# ── If a portfolio URL is set, show it ── #}
+                    {% if profile and profile.portfolio %}
+                        <div class="port-link-row">
+                            <div class="port-link-icon"><i class="fas fa-globe"></i></div>
+                            <div class="port-link-body">
+                                <div class="port-link-label">Website</div>
+                                <a href="{{ profile.portfolio }}" target="_blank" class="port-link-url">{{ profile.portfolio }}</a>
+                            </div>
+                            <a href="{{ profile.portfolio }}" target="_blank" class="doc-file-btn doc-file-btn-view port-link-visit">
+                                <i class="fas fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    {# ── If neither is set, show the upload/link panel ── #}
+                    {% if not (profile and (profile.portfolio_file or profile.portfolio)) %}
+                        <div class="port-empty-hint">
+                            <i class="fas fa-folder-open"></i>
+                            <p>Showcase your work — upload a file or add a link.</p>
+                        </div>
+                    {% endif %}
+
+                    {# ── Tab switcher to add/replace ── #}
+                    <div class="port-add-section">
+                        <div class="port-tabs">
+                            <button class="port-tab active" id="port-tab-file" onclick="switchPortfolioMode('file')">
+                                <i class="fas fa-file-arrow-up"></i> Upload File
+                            </button>
+                            <button class="port-tab" id="port-tab-link" onclick="switchPortfolioMode('link')">
+                                <i class="fas fa-link"></i> Add Link
+                            </button>
+                        </div>
+
+                        {# File upload panel #}
+                        <div id="port-panel-file">
+                            <div class="doc-upload-zone port-upload-zone"
+                                 ondragover="event.preventDefault(); this.classList.add('drag-over')"
+                                 ondragleave="this.classList.remove('drag-over')"
+                                 ondrop="handleDrop(event, 'portfolio_file', ['pdf','jpg','jpeg','png'], 10)">
+                                <i class="fas fa-cloud-upload-alt doc-upload-icon"></i>
+                                <p class="doc-upload-label">Drag & drop here</p>
+                                <p class="doc-upload-hint">PDF, JPG, or PNG · Max <strong>10MB</strong></p>
+                                <label class="prof-add-btn doc-upload-btn" for="input-portfolio">
+                                    <i class="fas fa-upload"></i> Choose File
+                                </label>
+                                <input type="file" id="input-portfolio" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
+                                       onchange="validateAndSubmit(this, ['pdf','jpg','jpeg','png'], 10, 'form-portfolio')">
+                            </div>
+                            <form id="form-portfolio" method="POST"
+                                  action="{{ url_for('applicant.upload_portfolio') }}"
+                                  enctype="multipart/form-data" style="display:none">
+                                <input type="file" name="portfolio_file" id="hidden-portfolio">
+                            </form>
+                        </div>
+
+                        {# Link panel #}
+                        <div id="port-panel-link" style="display:none;">
+                            <form method="POST" action="{{ url_for('applicant.update_social') }}" class="port-link-form">
+                                <div class="port-link-input-wrap">
+                                    <i class="fas fa-globe port-link-input-icon"></i>
+                                    <input type="url" name="portfolio"
+                                           value="{{ profile.portfolio if profile and profile.portfolio else '' }}"
+                                           placeholder="https://yourportfolio.com"
+                                           class="port-link-input">
+                                    {# Preserve existing social links so they don't get blanked #}
+                                    <input type="hidden" name="facebook" value="{{ profile.facebook if profile and profile.facebook else '' }}">
+                                    <input type="hidden" name="github"   value="{{ profile.github if profile and profile.github else '' }}">
+                                </div>
+                                <button type="submit" class="prof-btn-save port-link-save">
+                                    <i class="fas fa-check"></i> Save Link
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- END PORTFOLIO CARD -->
+
+            <!-- ── CONTACT / SOCIAL LINKS ── -->
             <div class="prof-card" style="animation-delay:0.14s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-link"></i> Links</div>
@@ -814,10 +903,6 @@
                                 <label>GitHub URL</label>
                                 <input type="url" name="github" value="{{ profile.github if profile and profile.github else '' }}" placeholder="https://github.com/yourname">
                             </div>
-                            <div class="prof-form-group prof-form-full">
-                                <label>Portfolio URL</label>
-                                <input type="url" name="portfolio" value="{{ profile.portfolio if profile and profile.portfolio else '' }}" placeholder="https://yourportfolio.com">
-                            </div>
                         </div>
                         <div class="prof-form-actions">
                             <button type="submit" class="prof-btn-save"><i class="fas fa-check"></i> Save</button>
@@ -846,8 +931,6 @@
         </div>
         <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
     </div>
-
-    <!-- Followers list -->
     <div class="follow-modal-list" id="list-followers">
         {% if followers %}
             {% for u in followers %}
@@ -871,14 +954,9 @@
             </a>
             {% endfor %}
         {% else %}
-            <div class="follow-modal-empty">
-                <i class="fas fa-user-friends"></i>
-                <p>No followers yet.</p>
-            </div>
+            <div class="follow-modal-empty"><i class="fas fa-user-friends"></i><p>No followers yet.</p></div>
         {% endif %}
     </div>
-
-    <!-- Following list -->
     <div class="follow-modal-list" id="list-following" style="display:none;">
         {% if following %}
             {% for u in following %}
@@ -902,17 +980,10 @@
             </a>
             {% endfor %}
         {% else %}
-            <div class="follow-modal-empty">
-                <i class="fas fa-user-plus"></i>
-                <p>Not following anyone yet.</p>
-            </div>
+            <div class="follow-modal-empty"><i class="fas fa-user-plus"></i><p>Not following anyone yet.</p></div>
         {% endif %}
     </div>
 </div>
-
-<script src="{{ url_for('static', filename='js/applicant/profile.js') }}"></script>
-<script>window.PROFILE_USER_ID = {{ current_user.id }};</script>
-<script src="{{ url_for('static', filename='js/follow_modal.js') }}"></script>
 
 <!-- ══ FILE SIZE / TYPE ERROR POPUP ══ -->
 <div class="doc-error-overlay" id="doc-error-overlay" onclick="if(event.target===this) closeDocError()">
@@ -921,11 +992,14 @@
         <div class="doc-error-title">File Too Large or Invalid</div>
         <p class="doc-error-body" id="doc-error-message">This file exceeds the allowed size limit.</p>
         <div class="doc-error-actions">
-            <button class="doc-error-btn-retry" onclick="retryDocUpload()">
-                <i class="fas fa-redo"></i> Choose Another File
-            </button>
+            <button class="doc-error-btn-retry" onclick="retryDocUpload()"><i class="fas fa-redo"></i> Choose Another File</button>
             <button class="doc-error-btn-cancel" onclick="closeDocError()">Cancel</button>
         </div>
     </div>
 </div>
+
+<script>window.PROFILE_USER_ID = {{ current_user.id }};</script>
+<script src="{{ url_for('static', filename='js/applicant/profile.js') }}"></script>
+<script src="{{ url_for('static', filename='js/follow_modal.js') }}"></script>
+
 {% endblock %}

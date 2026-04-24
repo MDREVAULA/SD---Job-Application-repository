@@ -69,9 +69,6 @@ def gate_applicant_features():
     if current_user.role != 'applicant':
         return
 
-    # ── Force a fresh read of profile_completed on every request ──
-    # This prevents SQLAlchemy's identity-map cache from serving a
-    # stale False value after update_personal has committed True.
     db.session.expire(current_user)
 
     if getattr(current_user, 'profile_completed', False):
@@ -90,6 +87,9 @@ def gate_applicant_features():
         'applicant.upload_resume',      'applicant.delete_resume',
         'applicant.upload_portfolio',   'applicant.delete_portfolio',
         'applicant.upload_certificate', 'applicant.delete_certificate',
+        # New per-experience cert routes
+        'applicant.upload_experience_certificates',
+        'applicant.delete_experience_certificate',
         'auth.logout',
     }
 
@@ -114,7 +114,6 @@ def profile():
 
     from models import Follow
 
-    # Fresh query — never rely on the cached relationship
     prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
 
     experiences    = WorkExperience.query.filter_by(profile_id=prof.id).order_by(WorkExperience.created_at.desc()).all() if prof else []
@@ -132,10 +131,8 @@ def profile():
     followers = [u for u in followers if u and not u.is_banned]
     following = [u for u in following if u and not u.is_banned]
 
-    # Recalculate from actual field values — never trust the cached flag alone
     profile_complete = is_profile_complete(prof)
 
-    # Sync the DB flag both directions so the gate and other pages are correct
     if profile_complete and not current_user.profile_completed:
         current_user.profile_completed = True
         db.session.commit()
@@ -155,8 +152,8 @@ def profile():
         following_count=len(following),
         followers=followers,
         following=following,
-        profile_complete=profile_complete,    # used by the completion widget
-        profile_completed=profile_complete,   # used by the badge ({% if profile_completed %})
+        profile_complete=profile_complete,
+        profile_completed=profile_complete,
     )
 
 
@@ -206,8 +203,6 @@ def update_personal():
         db.session.add(notif)
 
     db.session.commit()
-
-    # Expire the identity-map entry so the very next access hits the DB
     db.session.expire(current_user)
 
     flash("Personal information updated!", "success")
@@ -265,9 +260,52 @@ def add_experience():
         description = request.form.get('description', '').strip()
     )
     db.session.add(exp)
+    db.session.flush()  # get exp.id before commit
+
+    # Handle certificate uploads attached to this new experience
+    cert_files = request.files.getlist('cert_files')
+    _save_experience_certs(exp.id, cert_files)
+
     db.session.commit()
     flash("Work experience added!", "success")
     return redirect(url_for('applicant.profile'))
+
+
+def _save_experience_certs(experience_id, file_list):
+    """Save multiple certificate files for a given experience_id."""
+    from models import WorkExperienceCertificate
+
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'experience_certs')
+    os.makedirs(folder, exist_ok=True)
+
+    # Count existing certs for this experience
+    existing_count = WorkExperienceCertificate.query.filter_by(experience_id=experience_id).count()
+    allowed = {'.pdf', '.jpg', '.jpeg', '.png'}
+    max_certs = 10
+    saved = 0
+
+    for f in file_list:
+        if not f or not f.filename:
+            continue
+        if existing_count + saved >= max_certs:
+            break
+        ext = os.path.splitext(f.filename.lower())[1]
+        if ext not in allowed:
+            continue
+        f.seek(0, 2)
+        size = f.tell()
+        f.seek(0)
+        if size > 5 * 1024 * 1024:
+            continue
+        filename = f"ecert_{experience_id}_{uuid.uuid4().hex[:10]}{ext}"
+        f.save(os.path.join(folder, filename))
+        cert = WorkExperienceCertificate(
+            experience_id=experience_id,
+            file_path=filename,
+            original_name=secure_filename(f.filename)
+        )
+        db.session.add(cert)
+        saved += 1
 
 
 # ===============================
@@ -281,9 +319,108 @@ def delete_experience(exp_id):
     if not prof or exp.profile_id != prof.id:
         flash("Access denied!", "danger")
         return redirect(url_for('applicant.profile'))
+
+    # Remove cert files from disk
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'experience_certs')
+    for cert in exp.certificates:
+        path = os.path.join(folder, cert.file_path)
+        if os.path.exists(path):
+            os.remove(path)
+
     db.session.delete(exp)
     db.session.commit()
     flash("Work experience removed.", "success")
+    return redirect(url_for('applicant.profile'))
+
+
+# ===============================
+# EXPERIENCE CERTIFICATES — UPLOAD (multi-file, AJAX-friendly)
+# ===============================
+@applicant_bp.route('/profile/experience/<int:exp_id>/upload-certs', methods=['POST'])
+@login_required
+def upload_experience_certificates(exp_id):
+    exp = WorkExperience.query.get_or_404(exp_id)
+    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
+    if not prof or exp.profile_id != prof.id:
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'ok': False, 'error': 'Access denied'}), 403
+        flash("Access denied!", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    from models import WorkExperienceCertificate
+
+    existing_count = WorkExperienceCertificate.query.filter_by(experience_id=exp_id).count()
+    if existing_count >= 10:
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'ok': False, 'error': 'Maximum 10 certificates per experience.'}), 400
+        flash("Maximum of 10 certificates per experience reached.", "warning")
+        return redirect(url_for('applicant.profile'))
+
+    cert_files = request.files.getlist('cert_files')
+    if not cert_files or all(not f.filename for f in cert_files):
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'ok': False, 'error': 'No files provided.'}), 400
+        flash("No files selected.", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    _save_experience_certs(exp_id, cert_files)
+    db.session.commit()
+
+    # Return updated cert list for AJAX
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        certs = WorkExperienceCertificate.query.filter_by(experience_id=exp_id).order_by(WorkExperienceCertificate.created_at).all()
+        return jsonify({
+            'ok': True,
+            'certs': [
+                {
+                    'id': c.id,
+                    'file_path': c.file_path,
+                    'original_name': c.original_name or c.file_path,
+                    'ext': c.file_path.rsplit('.', 1)[-1].lower(),
+                    'url': url_for('static', filename='uploads/experience_certs/' + c.file_path),
+                    'delete_url': url_for('applicant.delete_experience_certificate', cert_id=c.id),
+                }
+                for c in certs
+            ],
+            'count': len(certs),
+        })
+
+    flash("Certificate(s) uploaded!", "success")
+    return redirect(url_for('applicant.profile'))
+
+
+# ===============================
+# EXPERIENCE CERTIFICATES — DELETE
+# ===============================
+@applicant_bp.route('/profile/experience-cert/<int:cert_id>/delete', methods=['POST'])
+@login_required
+def delete_experience_certificate(cert_id):
+    from models import WorkExperienceCertificate
+    cert = WorkExperienceCertificate.query.get_or_404(cert_id)
+
+    # Verify ownership
+    prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
+    if not prof or cert.experience.profile_id != prof.id:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'ok': False, 'error': 'Access denied'}), 403
+        flash("Access denied!", "danger")
+        return redirect(url_for('applicant.profile'))
+
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'experience_certs')
+    path = os.path.join(folder, cert.file_path)
+    if os.path.exists(path):
+        os.remove(path)
+
+    exp_id = cert.experience_id
+    db.session.delete(cert)
+    db.session.commit()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from models import WorkExperienceCertificate as WEC
+        remaining = WEC.query.filter_by(experience_id=exp_id).count()
+        return jsonify({'ok': True, 'remaining': remaining})
+
+    flash("Certificate removed.", "success")
     return redirect(url_for('applicant.profile'))
 
 
@@ -306,6 +443,7 @@ def add_education():
     edu = ApplicantEducation(
         profile_id     = prof.id,
         school         = request.form.get('school', '').strip(),
+        education_level= request.form.get('education_level', '').strip(),
         degree         = request.form.get('degree', '').strip(),
         field_of_study = request.form.get('field_of_study', '').strip(),
         start_date     = request.form.get('start_date', '').strip(),
@@ -880,7 +1018,7 @@ def delete_portfolio():
 
 
 # ===============================
-# UPLOAD CERTIFICATE
+# UPLOAD CERTIFICATE (legacy global — kept for backward compat)
 # ===============================
 @applicant_bp.route('/profile/upload-certificate', methods=['POST'])
 @login_required
@@ -927,7 +1065,7 @@ def upload_certificate():
 
 
 # ===============================
-# DELETE CERTIFICATE
+# DELETE CERTIFICATE (legacy global)
 # ===============================
 @applicant_bp.route('/profile/delete-certificate/<filename>', methods=['POST'])
 @login_required
@@ -997,6 +1135,7 @@ def mark_notifications_read():
         ).update({'is_read': True})
     db.session.commit()
     return jsonify({'ok': True})
+
 
 # ===============================
 # CLEAR ALL NOTIFICATIONS
@@ -1080,7 +1219,6 @@ def saved_jobs():
         applicant_id=current_user.id
     ).order_by(SavedJob.created_at.desc()).all()
 
-    # Also get the job's recruiter to check ban status
     saved = [
         s for s in saved
         if s.job and not s.job.is_taken_down

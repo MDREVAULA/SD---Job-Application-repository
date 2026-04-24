@@ -117,7 +117,6 @@ class ApplicantProfile(db.Model):
     # DOCUMENT UPLOADS
     resume_file      = db.Column(db.String(200))
     portfolio_file   = db.Column(db.String(200))
-    certificate_files = db.Column(db.Text)  # JSON array
 
     # RELATIONSHIPS
     work_experiences = db.relationship(
@@ -163,6 +162,22 @@ class WorkExperience(db.Model):
     created_at = db.Column(db.DateTime, default=get_ph_time)
 
 # =========================
+# WORK EXPERIENCE CERTIFICATE TABLE
+# Per-experience certificates (replaces shared certificate_files on ApplicantProfile)
+# =========================
+class WorkExperienceCertificate(db.Model):
+    """Certificate files linked to a specific work experience entry."""
+    __tablename__ = 'work_experience_certificate'
+ 
+    id            = db.Column(db.Integer, primary_key=True)
+    experience_id = db.Column(db.Integer, db.ForeignKey('work_experience.id', ondelete='CASCADE'), nullable=False)
+    file_path     = db.Column(db.String(300), nullable=False)
+    original_name = db.Column(db.String(300), nullable=True)
+    created_at    = db.Column(db.DateTime, default=get_ph_time)
+ 
+    experience = db.relationship('WorkExperience', backref=db.backref('certificates', cascade='all, delete-orphan', lazy=True))
+
+# =========================
 # APPLICANT EDUCATION  (applicant-only)
 # =========================
 class ApplicantEducation(db.Model):
@@ -176,6 +191,7 @@ class ApplicantEducation(db.Model):
     )
 
     school = db.Column(db.String(200))
+    education_level = db.Column(db.String(100)) 
     degree = db.Column(db.String(200))
     field_of_study = db.Column(db.String(200))
     start_date = db.Column(db.String(50))
