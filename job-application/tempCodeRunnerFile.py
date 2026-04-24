@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from models import db, User, RecruiterProfile, UserBlock, UserReport, ResignationRequest
+from models import db, User, RecruiterProfile, UserBlock, UserReport, ResignationRequest, get_ph_time
 from flask_login import LoginManager
 from flask_mail import Mail
 from authlib.integrations.flask_client import OAuth
@@ -85,9 +85,14 @@ app.jinja_env.filters['from_json'] = _parse_json
 # CONTEXT PROCESSOR
 # ============================================================
 
+import pytz
+from datetime import datetime
+
+ph_tz = pytz.timezone("Asia/Manila")
+
 @app.context_processor
 def inject_now():
-    return {'now': datetime.get_ph_time}
+    return {'now': datetime.now(ph_tz)}
 
 # ============================================================
 # AUTO-UNBAN EXPIRED TIMED BANS
@@ -95,10 +100,11 @@ def inject_now():
 @app.before_request
 def auto_unban_expired():
     try:
+        # ── Auto-unban expired users ──
         expired = User.query.filter(
             User.is_banned == True,
             User.ban_until != None,
-            User.ban_until <= datetime.get_ph_time()
+            User.ban_until <= get_ph_time()
         ).all()
         if expired:
             for u in expired:
@@ -107,9 +113,25 @@ def auto_unban_expired():
                 u.ban_reason = None
                 u.banned_at  = None
             db.session.commit()
+
+        # ── Auto-restore expired job takedowns ──
+        from models import Job
+        expired_jobs = Job.query.filter(
+            Job.is_taken_down == True,
+            Job.takedown_until != None,
+            Job.takedown_until <= get_ph_time()
+        ).all()
+        if expired_jobs:
+            for j in expired_jobs:
+                j.is_taken_down   = False
+                j.takedown_until  = None
+                j.takedown_reason = None
+                j.taken_down_at   = None
+            db.session.commit()
+
     except Exception:
         pass  # never crash the app over this
-
+    
 # ============================================================
 # AUTO-PROCESS EXPIRED RENDERING PERIODS
 # Runs on every request (lightweight — only commits when rows change).
@@ -123,6 +145,29 @@ def auto_process_rendering_periods():
     except Exception:
         pass  # never crash the app over this
 
+@app.before_request
+def check_user_ban():
+    from flask_login import current_user
+    from flask import request, render_template
+
+    # Skip static files and auth routes (login, logout)
+    if request.endpoint and (
+        request.endpoint.startswith('static') or
+        request.endpoint in ('auth.login', 'auth.logout', 'auth.index', 'auth.register',
+                             'auth.google_login', 'auth.google_callback',
+                             'auth.forgot_password', 'auth.reset_password')
+    ):
+        return None
+
+    if current_user.is_authenticated:
+        # Always fetch a fresh copy to avoid stale cache
+        db.session.expire(current_user)
+        if current_user.is_banned:
+            # Allow logout even when banned
+            if request.endpoint == 'auth.logout':
+                return None
+            return render_template("account_banned.html", user=current_user), 403
+
 # ============================================================
 # REGISTER BLUEPRINTS
 # ============================================================
@@ -134,7 +179,7 @@ from routes.admin import admin_bp
 from routes.chat import chat_bp
 from routes.profile_view import profile_view_bp
 from routes.settings import settings_bp
-from routes.report_block import report_block_bp
+from routes.report_block import report_block_bp   
 from routes.employment import employment_bp
 
 app.register_blueprint(auth_bp)
@@ -145,7 +190,8 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(profile_view_bp)
 app.register_blueprint(settings_bp)
-app.register_blueprint(report_block_bp)
+app.register_blueprint(report_block_bp)   
+
 app.register_blueprint(employment_bp)
 
 # ============================================================
@@ -154,7 +200,6 @@ app.register_blueprint(employment_bp)
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-
         if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
             existing_admin = User.query.filter_by(role="admin").first()

@@ -34,6 +34,7 @@
             <div class="jb-nav-right"></div>
         </div>
     </div>
+
     <!-- MAIN CONTENT - TWO COLUMN GRID -->
     <div class="job-board-content">
         <div class="two-column-layout">
@@ -159,7 +160,36 @@
                              data-title="{{ job.title }}"
                              data-posted="{{ job.id }}"
                         >
-                            <div class="job-card-inner">
+                            <!-- Cover Photo Banner -->
+                            <div class="job-card-cover">
+                                {% if job.cover_photo %}
+                                    <img
+                                        src="{{ url_for('static', filename='uploads/job_covers/' ~ job.cover_photo) }}"
+                                        alt="{{ job.title }}"
+                                        class="job-cover-img"
+                                    >
+                                {% else %}
+                                    <div class="job-cover-placeholder">
+                                        <i class="fas fa-briefcase"></i>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Status badge -->
+                                {% if job.expiration_date %}
+                                    {% set today = now %}
+                                    {% set days_left = (job.expiration_date - today.date()).days %}
+                                    {% if days_left <= 7 and days_left >= 0 %}
+                                        <span class="job-status-badge badge-closing">Closes in {{ days_left }}d</span>
+                                    {% elif days_left < 0 %}
+                                        <span class="job-status-badge badge-expired">Expired</span>
+                                    {% else %}
+                                        <span class="job-status-badge badge-active">Active</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="job-status-badge badge-active">Active</span>
+                                {% endif %}
+
+                                <!-- Bookmark button -->
                                 {% if current_user.is_authenticated and current_user.role == "applicant" %}
                                     <button class="btn-bookmark {% if job.id in saved_job_ids %}saved{% endif %}"
                                         data-job-id="{{ job.id }}"
@@ -168,60 +198,61 @@
                                         <i class="{% if job.id in saved_job_ids %}fas{% else %}far{% endif %} fa-bookmark"></i>
                                     </button>
                                 {% endif %}
+                            </div>
 
-                                <div class="job-logo">
-                                    {% if recruiter and recruiter.company_logo %}
-                                        <img
-                                            src="{{ url_for('static', filename='uploads/company_logos/' ~ recruiter.company_logo) }}"
-                                            alt="{{ recruiter.company_name }}"
-                                            class="company-logo-img"
-                                        >
-                                    {% else %}
-                                        <div class="logo-placeholder">
-                                            <i class="fas fa-building"></i>
-                                        </div>
+                            <!-- Card Body -->
+                            <div class="job-card-body">
+                                <!-- Logo + Title + Company -->
+                                <div class="job-card-header-row">
+                                    <div class="job-logo">
+                                        {% if recruiter and recruiter.company_logo %}
+                                            <img
+                                                src="{{ url_for('static', filename='uploads/company_logos/' ~ recruiter.company_logo) }}"
+                                                alt="{{ recruiter.company_name }}"
+                                                class="company-logo-img"
+                                            >
+                                        {% else %}
+                                            <div class="logo-placeholder">
+                                                <i class="fas fa-building"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="job-title-area">
+                                        <h3 class="job-title">{{ job.title }}</h3>
+                                        <p class="job-company">
+                                            {% if recruiter %}
+                                                {{ recruiter.company_name or 'Company' }}
+                                            {% else %}
+                                                Company
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="card-divider"></div>
+
+                                <!-- Tags -->
+                                <div class="job-tags">
+                                    <span class="tag tag-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        {{ job.location or 'Remote' }}
+                                    </span>
+                                    <span class="tag tag-type tag-{{ job.job_type | lower | replace(' ', '-') if job.job_type else 'other' }}">
+                                        {{ job.job_type or 'N/A' }}
+                                    </span>
+                                    {% if job.field %}
+                                    <span class="tag tag-field">
+                                        {{ job.field }}
+                                    </span>
                                     {% endif %}
                                 </div>
 
-                                <div class="job-content">
-                                    <div class="job-header">
-                                        <div class="job-title-area">
-                                            {% if job.expiration_date %}
-                                                {% set today = now %}
-                                                {% set days_left = (job.expiration_date - today.date()).days %}
-                                                {% if days_left <= 7 and days_left >= 0 %}
-                                                    <span class="closes-badge">Closes in {{ days_left }}d</span>
-                                                {% endif %}
-                                            {% endif %}
-                                            <h3 class="job-title">{{ job.title }}</h3>
-                                            <p class="job-company">
-                                                {% if recruiter %}
-                                                    {{ recruiter.company_name or 'Company' }}
-                                                {% else %}
-                                                    Company
-                                                {% endif %}
-                                            </p>
-                                        </div>
-                                    </div>
+                                <div class="card-divider"></div>
 
-                                    <div class="job-tags">
-                                        <span class="tag tag-location">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            {{ job.location or 'Remote' }}
-                                        </span>
-                                        <span class="tag tag-type tag-{{ job.job_type | lower | replace(' ', '-') if job.job_type else 'other' }}">
-                                            {{ job.job_type or 'N/A' }}
-                                        </span>
-                                    </div>
-
-                                    <p class="job-description">
-                                        {{ job.description[:120] }}{% if job.description|length > 120 %}...{% endif %}
-                                    </p>
-
-                                    <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-apply">
-                                        View Details
-                                    </a>
-                                </div>
+                                <!-- View Details Button -->
+                                <a href="{{ url_for('applicant.job_details', job_id=job.id) }}" class="btn-view-details">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
                             </div>
                         </div>
                         {% endfor %}
