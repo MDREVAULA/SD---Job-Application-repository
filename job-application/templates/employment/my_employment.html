@@ -48,46 +48,61 @@
     <div class="emp-records-grid">
         {% for emp in records %}
         <div class="emp-record-card {% if emp.employment_status != 'active' %}emp-record-inactive{% endif %}">
-            <div class="emp-record-header">
-                <div class="emp-record-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+            <!-- Cover Area -->
+            <div class="emp-card-cover">
+                <div class="emp-cover-placeholder">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
                         <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                     </svg>
                 </div>
-                <div class="emp-record-status">
-                    {% if emp.employment_status == 'active' %}
-                    <span class="emp-status-chip chip-done">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                        Active
-                    </span>
-                    {% elif emp.employment_status == 'resigned' %}
-                    <span class="emp-status-chip chip-warning">Resigned</span>
-                    {% elif emp.employment_status == 'resignation_pending' %}
-                    <span class="emp-status-chip chip-warning">Pending Resignation</span>
-                    {% elif emp.employment_status == 'rendering' %}
-                    <span class="emp-status-chip chip-info">Rendering Period</span>
-                    {% else %}
-                    <span class="emp-status-chip chip-error">Terminated</span>
-                    {% endif %}
-                </div>
+                <!-- Status Badge -->
+                {% if emp.employment_status == 'active' %}
+                <span class="emp-status-badge badge-active">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    Active
+                </span>
+                {% elif emp.employment_status == 'resigned' %}
+                <span class="emp-status-badge badge-resigned">Resigned</span>
+                {% elif emp.employment_status == 'resignation_pending' %}
+                <span class="emp-status-badge badge-warning">Pending Resignation</span>
+                {% elif emp.employment_status == 'rendering' %}
+                <span class="emp-status-badge badge-info">Rendering Period</span>
+                {% else %}
+                <span class="emp-status-badge badge-danger">Terminated</span>
+                {% endif %}
             </div>
 
-            <div class="emp-record-body">
-                <h3 class="emp-record-title">{{ emp.job_title }}</h3>
-                <div class="emp-record-company">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    </svg>
-                    {{ emp.company_name }}
+            <!-- Card Body -->
+            <div class="emp-card-body">
+
+                <!-- Icon + Title + Company -->
+                <div class="emp-card-header-row">
+                    <div class="emp-record-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        </svg>
+                    </div>
+                    <div class="emp-title-area">
+                        <h3 class="emp-record-title">{{ emp.job_title }}</h3>
+                        <div class="emp-record-company">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            </svg>
+                            {{ emp.company_name }}
+                        </div>
+                    </div>
                 </div>
 
+                <div class="emp-card-divider"></div>
+
+                <!-- Timeline / Meta -->
                 <div class="emp-record-timeline">
                     {% if emp.start_date %}
                     <div class="emp-timeline-item">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12 6 12 12 16 14"/>
                         </svg>
@@ -96,7 +111,7 @@
                     {% endif %}
                     {% if emp.ended_at %}
                     <div class="emp-timeline-item emp-timeline-ended">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/>
                             <line x1="15" y1="9" x2="9" y2="15"/>
                             <line x1="9" y1="9" x2="15" y2="15"/>
@@ -108,7 +123,7 @@
 
                 {% if emp.fire_reason %}
                 <div class="emp-record-note emp-record-note-danger">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <line x1="12" y1="8" x2="12" y2="12"/>
                         <line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -116,27 +131,31 @@
                     <span>{{ emp.fire_reason }}</span>
                 </div>
                 {% endif %}
-            </div>
 
-            <div class="emp-record-footer">
-                <a href="{{ url_for('employment.employment_status', app_id=emp.application_id) }}"
-                   class="emp-record-btn emp-record-btn-primary">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                    View Details
-                </a>
-                {% if emp.employment_status == 'active' %}
-                <a href="{{ url_for('employment.submit_resignation', employee_id=emp.id) }}"
-                   class="emp-record-btn emp-record-btn-warning">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    Submit Resignation
-                </a>
-                {% endif %}
+                <div class="emp-card-divider"></div>
+
+                <!-- Action Buttons -->
+                <div class="emp-record-footer">
+                    <a href="{{ url_for('employment.employment_status', app_id=emp.application_id) }}"
+                       class="emp-record-btn emp-record-btn-primary">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        View Details
+                    </a>
+                    {% if emp.employment_status == 'active' %}
+                    <a href="{{ url_for('employment.submit_resignation', employee_id=emp.id) }}"
+                       class="emp-record-btn emp-record-btn-warning">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        Submit Resignation
+                    </a>
+                    {% endif %}
+                </div>
+
             </div>
         </div>
         {% endfor %}

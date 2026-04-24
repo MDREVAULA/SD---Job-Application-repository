@@ -1,7 +1,6 @@
 /* ================================
    MY EMPLOYMENT PAGE
-   Modern Design with Brand Colors
-   Light/Dark Mode Support
+   Matches Job Board Card Design
    ================================ */
 
 /* ===== CSS VARIABLES ===== */
@@ -83,9 +82,7 @@
     text-decoration: none;
 }
 
-.back-btn:hover {
-    background: var(--bg-hover);
-}
+.back-btn:hover { background: var(--bg-hover); }
 
 .job-title-section {
     display: flex;
@@ -116,9 +113,7 @@
     color: var(--text-secondary);
 }
 
-.meta-dot {
-    color: var(--text-tertiary);
-}
+.meta-dot { color: var(--text-tertiary); }
 
 /* ===== MAIN WRAPPER ===== */
 .emp-wrapper {
@@ -167,45 +162,101 @@
     gap: 20px;
 }
 
-/* ===== RECORD CARD ===== */
+/* ===================================
+   RECORD CARD — Job Board Style
+   =================================== */
 .emp-record-card {
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.2s ease;
+    border-radius: 14px;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
 }
 
 .emp-record-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    border-color: var(--brand-green);
+    box-shadow: 0 10px 32px var(--shadow-color);
+    transform: translateY(-4px);
 }
 
 .emp-record-card.emp-record-inactive {
-    opacity: 0.7;
+    opacity: 0.75;
 }
 
 .emp-record-card.emp-record-inactive:hover {
     opacity: 1;
 }
 
-/* ===== RECORD HEADER ===== */
-.emp-record-header {
+/* ===== COVER AREA ===== */
+.emp-card-cover {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.emp-cover-placeholder {
+    width: 100%;
+    height: 100%;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg-surface-alt) 0%, var(--border-color) 100%);
+}
+
+.emp-cover-placeholder svg {
+    color: var(--text-muted);
+    opacity: 0.4;
+}
+
+/* ===== STATUS BADGE (on cover, top-right) ===== */
+.emp-status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 2;
+}
+
+.badge-active   { background: rgba(157, 200, 141, 0.88); color: #1e4620; }
+.badge-resigned { background: rgba(180, 180, 180, 0.88); color: #2a2a2a; }
+.badge-warning  { background: rgba(241, 178, 74, 0.88);  color: #7a4a00; }
+.badge-info     { background: rgba(100, 181, 246, 0.88); color: #0d3661; }
+.badge-danger   { background: rgba(229, 115, 115, 0.88); color: #7a1919; }
+
+/* ===== CARD BODY ===== */
+.emp-card-body {
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* ===== HEADER ROW: Icon + Title + Company ===== */
+.emp-card-header-row {
+    display: flex;
+    align-items: center;
     gap: 12px;
+    margin-bottom: 14px;
 }
 
 .emp-record-icon {
     width: 48px;
     height: 48px;
-    border-radius: 12px;
-    background: var(--accent-light);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4D774E 0%, #9DC88D 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -213,89 +264,68 @@
 }
 
 .emp-record-icon svg {
-    color: var(--accent-primary);
+    color: white;
 }
 
-.emp-record-status {
-    flex-shrink: 0;
-}
-
-/* ===== STATUS CHIPS ===== */
-.emp-status-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.chip-info {
-    background: var(--info-light);
-    color: var(--info);
-}
-
-.chip-warning {
-    background: var(--warning-light);
-    color: var(--warning);
-}
-
-.chip-done {
-    background: var(--success-light);
-    color: var(--success);
-}
-
-.chip-error {
-    background: var(--danger-light);
-    color: var(--danger);
-}
-
-/* ===== RECORD BODY ===== */
-.emp-record-body {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.emp-title-area {
     flex: 1;
+    min-width: 0;
 }
 
 .emp-record-title {
-    font-size: 18px;
+    font-size: 0.9375rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin: 0;
-    line-height: 1.3;
+    margin: 0 0 3px 0;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease;
+}
+
+.emp-record-card:hover .emp-record-title {
+    color: var(--brand-green-dark);
 }
 
 .emp-record-company {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-secondary);
+    gap: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--brand-green-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .emp-record-company svg {
-    color: var(--text-tertiary);
+    color: var(--brand-green-dark);
     flex-shrink: 0;
+}
+
+/* ===== DIVIDER ===== */
+.emp-card-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 0 0 14px 0;
 }
 
 /* ===== TIMELINE ===== */
 .emp-record-timeline {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 12px 0;
-    border-top: 1px solid var(--border-color);
+    gap: 7px;
+    margin-bottom: 14px;
+    flex: 1;
 }
 
 .emp-timeline-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
+    gap: 7px;
+    font-size: 0.8rem;
     color: var(--text-secondary);
 }
 
@@ -304,69 +334,62 @@
     flex-shrink: 0;
 }
 
-.emp-timeline-item.emp-timeline-ended svg {
-    color: var(--danger);
-}
+.emp-timeline-item.emp-timeline-ended svg { color: var(--danger); }
+.emp-timeline-item.emp-timeline-ended     { color: var(--text-tertiary); }
 
-.emp-timeline-item.emp-timeline-ended {
-    color: var(--text-tertiary);
-}
-
-/* ===== RECORD NOTE ===== */
+/* ===== TERMINATION NOTE ===== */
 .emp-record-note {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
+    gap: 8px;
+    padding: 10px 12px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 0.8rem;
     line-height: 1.5;
+    margin-bottom: 14px;
 }
 
-.emp-record-note svg {
-    flex-shrink: 0;
-    margin-top: 2px;
-}
+.emp-record-note svg { flex-shrink: 0; margin-top: 2px; }
 
 .emp-record-note-danger {
     background: var(--danger-light);
     color: var(--danger);
-    border: 1px solid var(--danger);
+    border: 1px solid rgba(229, 115, 115, 0.3);
 }
 
-.emp-record-note-danger svg {
-    color: var(--danger);
-}
+.emp-record-note-danger svg { color: var(--danger); }
 
-/* ===== RECORD FOOTER ===== */
+/* ===== ACTION BUTTONS — pill outlined style ===== */
 .emp-record-footer {
     display: flex;
-    gap: 10px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
+    flex-direction: row;
+    gap: 8px;
+    margin-top: auto;
 }
 
 .emp-record-btn {
     flex: 1;
+    min-width: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 5px;
     padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 13px;
+    border-radius: 50px;
+    font-size: 0.8125rem;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
-    border: 1px solid;
+    border: 1.5px solid;
+    background: transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.emp-record-btn svg {
-    flex-shrink: 0;
-}
+.emp-record-btn svg { flex-shrink: 0; }
 
 .emp-record-btn-primary {
-    background: var(--accent-light);
     border-color: var(--accent-primary);
     color: var(--accent-primary);
 }
@@ -375,10 +398,10 @@
     background: var(--accent-primary);
     color: white;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(77, 119, 78, 0.3);
 }
 
 .emp-record-btn-warning {
-    background: var(--warning-light);
     border-color: var(--warning);
     color: var(--warning);
 }
@@ -387,9 +410,10 @@
     background: var(--warning);
     color: white;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(241, 178, 74, 0.3);
 }
 
-/* ===== SUBMIT BUTTON ===== */
+/* ===== SUBMIT BUTTON (empty state) ===== */
 .emp-submit-btn {
     display: inline-flex;
     align-items: center;
@@ -404,6 +428,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 .emp-submit-btn:hover {
@@ -412,11 +437,7 @@
     box-shadow: var(--shadow-md);
 }
 
-.emp-submit-btn svg {
-    flex-shrink: 0;
-}
-
-/* ===== CARD (for compatibility) ===== */
+/* ===== CARD (compatibility) ===== */
 .emp-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -425,90 +446,28 @@
     box-shadow: var(--shadow-sm);
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
     .emp-records-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
 }
 
 @media (max-width: 768px) {
-    .job-view-nav {
-        position: static;
-    }
+    .job-view-nav  { position: static; }
+    .nav-container { padding: 12px 16px; }
+    .job-title-main { font-size: 16px; }
+    .job-meta { font-size: 12px; flex-wrap: wrap; }
 
-    .nav-container {
-        padding: 12px 16px;
-    }
-
-    .job-title-main {
-        font-size: 16px;
-    }
-
-    .job-meta {
-        font-size: 12px;
-        flex-wrap: wrap;
-    }
-
-    .emp-wrapper {
-        padding: 16px;
-    }
-
-    .emp-records-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .emp-record-card {
-        padding: 20px;
-    }
-
-    .emp-empty-state {
-        padding: 60px 24px;
-    }
-
-    .emp-record-footer {
-        flex-direction: column;
-    }
-
-    .emp-record-btn {
-        width: 100%;
-    }
+    .emp-wrapper { padding: 16px; }
+    .emp-records-grid { grid-template-columns: 1fr; gap: 16px; }
+    .emp-card-cover { height: 100px; }
+    .emp-empty-state { padding: 60px 24px; }
 }
 
 @media (max-width: 480px) {
-    .emp-record-card {
-        padding: 16px;
-    }
-
-    .emp-record-header {
-        flex-wrap: wrap;
-    }
-
-    .emp-record-icon {
-        width: 40px;
-        height: 40px;
-    }
-
-    .emp-record-icon svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .emp-record-title {
-        font-size: 16px;
-    }
-
-    .emp-empty-state {
-        padding: 48px 20px;
-    }
-
-    .emp-empty-state svg {
-        width: 48px;
-        height: 48px;
-    }
-
-    .emp-empty-state h3 {
-        font-size: 18px;
-    }
+    .emp-card-cover     { height: 90px; }
+    .emp-record-title   { font-size: 0.9rem; }
+    .emp-empty-state    { padding: 48px 20px; }
+    .emp-empty-state h3 { font-size: 18px; }
 }
