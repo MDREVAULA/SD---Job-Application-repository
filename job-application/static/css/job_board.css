@@ -622,8 +622,8 @@
     gap: 8px;
     width: 100%;
     padding: 10px 20px;
-    background: transparent;
-    color: var(--brand-green-dark);
+    background: var(--brand-green-dark);
+    color: #ffffff;
     border: 1.5px solid var(--brand-green-dark);
     border-radius: 50px;
     font-weight: 600;
@@ -640,7 +640,8 @@
 }
 
 .btn-view-details:hover {
-    background: var(--brand-green-dark);
+    background: var(--brand-accent);
+    border: var(--brand-accent);
     color: white;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(77, 119, 78, 0.3);
