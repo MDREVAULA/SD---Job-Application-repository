@@ -1,10 +1,3 @@
-/* ================================
-   APPLICANT STATUS PAGE - MODERN DESIGN
-   with Light/Dark Mode Support
-   (Matches Recruiter Job List Design)
-   ================================ */
-
-/* ===== CSS VARIABLES ===== */
 :root[data-theme="light"] {
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -112,28 +105,34 @@
     gap: 12px;
 }
 
-.btn-apply-nav {
+.btn-apply-nav, 
+.browse-jobs-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
     background: var(--accent-primary);
     border: 1px solid var(--accent-primary);
-    color: white;
-    text-decoration: none;
+    color: #ffffff !important; 
+    text-decoration: none !important; 
 }
 
-.btn-apply-nav:hover {
+:root[data-theme="dark"] .btn-apply-nav,
+:root[data-theme="dark"] .browse-jobs-btn {
+    color: #164A41 !important; 
+}
+
+.btn-apply-nav:hover, 
+.browse-jobs-btn:hover {
+    text-decoration: none !important;
     background: var(--accent-hover);
     border-color: var(--accent-hover);
-    color: white;
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
 }
 
 /* ===== GLOBAL STYLES ===== */
@@ -663,12 +662,45 @@
     background: var(--bg-hover);
 }
 
+/* ===== MATCH EMPLOYMENT BUTTON HOVER TO VIEW BUTTON ===== */
 .action-btn-employee {
-    background: #EAF3DE !important;
-    border-color: #9DC88D !important;
-    color: #164A41 !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    padding: 0 !important;
+    
+    /* Default Gray State */
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-color) !important;
 }
- 
+
+.action-btn-employee svg {
+    width: 20px !important;
+    height: 20px !important;
+    color: var(--text-secondary) !important;
+    transition: all 0.2s ease;
+}
+
+/* Hover State - Matching the 'View' button exactly */
+.action-btn-employee:hover:not(:disabled) {
+    background: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+}
+
+.action-btn-employee:hover:not(:disabled) svg {
+    color: white !important;
+}
+
+/* Specific Dark Mode Hover Text contrast */
+:root[data-theme="dark"] .action-btn-employee:hover:not(:disabled) svg {
+    color: #fffff !important; /* Dark green for better legibility on light accent */
+}
+
 .action-btn-onboard {
     background: #FAEEDA !important;
     border-color: #FAC775 !important;
