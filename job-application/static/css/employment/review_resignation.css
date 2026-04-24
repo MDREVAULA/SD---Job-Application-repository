@@ -1,5 +1,5 @@
 /* ================================
-   RESIGNATION DETAILS PAGE
+   RESIGNATION REVIEW PAGE
    Modern Design with Brand Colors
    Light/Dark Mode Support
    ================================ */
@@ -122,22 +122,22 @@
 
 /* ===== META STATUS BADGES ===== */
 .meta-status-pending {
-    color: var(--warning);
+    color: #d97706;
     font-weight: 600;
 }
 
 .meta-status-approved {
-    color: var(--success);
+    color: #059669;
     font-weight: 600;
 }
 
 .meta-status-rejected {
-    color: var(--danger);
+    color: #dc2626;
     font-weight: 600;
 }
 
 .meta-status-revision {
-    color: var(--warning);
+    color: #7c3aed;
     font-weight: 600;
 }
 
@@ -153,7 +153,7 @@
 /* ===== LAYOUT ===== */
 .emp-layout {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 420px;
     gap: 24px;
     align-items: start;
 }
@@ -167,7 +167,7 @@
     top: 89px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
 }
 
 /* ===== CARDS ===== */
@@ -175,9 +175,9 @@
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    padding: 24px;
+    overflow: hidden;
     box-shadow: var(--shadow-sm);
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .emp-card:last-child {
@@ -185,9 +185,9 @@
 }
 
 .emp-card-header {
-    margin-bottom: 20px;
-    padding-bottom: 16px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border-color);
+    background: var(--bg-surface-alt);
 }
 
 .emp-card-title {
@@ -206,7 +206,7 @@
 
 /* ===== CARD BODY ===== */
 .emp-card-body {
-    padding: 0 20px 20px;
+    padding: 24px;
 }
 
 /* ===== APPLICANT INFO BANNER ===== */
@@ -214,15 +214,15 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px;
+    padding: 16px;
     background: var(--bg-tertiary);
     border-radius: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .emp-avatar-sm {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: var(--accent-light);
     border: 2px solid var(--border-color);
@@ -240,7 +240,7 @@
 }
 
 .emp-avatar-sm span {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--accent-primary);
 }
@@ -249,11 +249,12 @@
     font-weight: 600;
     font-size: 15px;
     color: var(--text-primary);
+    margin-bottom: 4px;
 }
 
 .emp-applicant-email {
-    font-size: 12px;
-    color: var(--text-tertiary);
+    font-size: 13px;
+    color: var(--text-muted);
 }
 
 .emp-submission-date {
@@ -263,58 +264,64 @@
 
 .emp-submission-label {
     font-size: 11px;
-    color: var(--text-tertiary);
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-bottom: 4px;
 }
 
 .emp-submission-value {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-primary);
     font-weight: 600;
 }
 
 /* ===== LAST DAY HIGHLIGHT BOX ===== */
 .emp-last-day-box {
-    background: var(--info-light);
-    border: 1px solid var(--info);
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 20px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .emp-last-day-box svg {
-    color: var(--info);
+    color: #3B82F6;
     flex-shrink: 0;
 }
 
 .emp-last-day-label {
     font-size: 12px;
-    color: var(--info);
+    color: #3B82F6;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-bottom: 6px;
 }
 
 .emp-last-day-date {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #1E40AF;
 }
 
 .emp-last-day-remaining {
     margin-left: auto;
-    font-size: 12px;
-    color: var(--info);
+    font-size: 13px;
+    color: #3B82F6;
     font-weight: 600;
 }
 
-/* ===== REASON SECTION ===== */
+/* ===== SECTION ===== */
 .emp-section {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+}
+
+.emp-section:last-child {
+    margin-bottom: 0;
 }
 
 .emp-section-label {
@@ -323,17 +330,18 @@
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .emp-reason-box {
     background: var(--bg-tertiary);
-    border-radius: 8px;
-    padding: 14px;
+    border-radius: 10px;
+    padding: 16px;
     font-size: 14px;
     color: var(--text-primary);
-    line-height: 1.6;
+    line-height: 1.7;
     white-space: pre-wrap;
+    border: 1px solid var(--border-color);
 }
 
 /* ===== FILE DISPLAY ===== */
@@ -341,20 +349,20 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    padding: 14px;
+    background: var(--bg-primary);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
 }
 
 .emp-file-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--accent-light);
-    border-radius: 8px;
+    border-radius: 10px;
     flex-shrink: 0;
 }
 
@@ -368,7 +376,7 @@
 }
 
 .emp-file-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
     white-space: nowrap;
@@ -380,11 +388,11 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     background: var(--accent-light);
-    border: 1px solid var(--accent-primary);
+    border: 1.5px solid var(--accent-primary);
     color: var(--accent-primary);
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
@@ -397,6 +405,7 @@
     background: var(--accent-primary);
     color: white;
     transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .emp-view-btn svg {
@@ -405,38 +414,38 @@
 
 /* ===== NO FILE MESSAGE ===== */
 .emp-no-file {
-    font-size: 13px;
-    color: var(--text-tertiary);
+    font-size: 14px;
+    color: var(--text-muted);
     font-style: italic;
+    margin: 0;
 }
 
 /* ===== REVIEWER NOTE BOX ===== */
 .emp-reviewer-note-box {
-    background: var(--warning-light);
-    border: 1px solid var(--warning);
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin-bottom: 20px;
+    background: rgba(217, 119, 6, 0.08);
+    border: 2px solid rgba(217, 119, 6, 0.3);
+    border-radius: 10px;
+    padding: 16px 18px;
 }
 
 .emp-reviewer-note-label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--warning);
-    margin-bottom: 4px;
+    color: #d97706;
+    margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .emp-reviewer-note-text {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-primary);
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 /* ===== FORM ELEMENTS ===== */
 .emp-form-group {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .emp-form-label {
@@ -444,43 +453,46 @@
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 .emp-form-hint {
     font-weight: 400;
-    color: var(--text-tertiary);
+    color: var(--text-muted);
     font-size: 13px;
+    margin-left: 4px;
 }
 
 .emp-modal-textarea {
     width: 100%;
-    padding: 10px 14px;
+    padding: 12px 16px;
     background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
     font-size: 14px;
     color: var(--text-primary);
     font-family: inherit;
     resize: vertical;
     transition: all 0.2s ease;
     box-sizing: border-box;
+    line-height: 1.6;
 }
 
 .emp-modal-textarea:focus {
     outline: none;
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px var(--accent-light);
+    background: var(--bg-secondary);
 }
 
 .emp-modal-textarea::placeholder {
-    color: var(--text-tertiary);
+    color: var(--text-muted);
 }
 
 /* ===== ACTION BUTTONS ===== */
 .emp-action-buttons {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
@@ -488,17 +500,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border: 1px solid;
-    border-radius: 8px;
+    gap: 10px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
     color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .emp-revision-btn svg {
@@ -506,67 +517,76 @@
 }
 
 .emp-revision-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .emp-btn-approve {
-    background: var(--success);
-    border-color: var(--success);
+    background: #059669;
 }
 
 .emp-btn-approve:hover {
-    background: #81c784;
+    background: #047857;
 }
 
 .emp-btn-revision {
-    background: var(--warning);
-    border-color: var(--warning);
+    background: #7c3aed;
 }
 
 .emp-btn-revision:hover {
-    background: #d97706;
+    background: #6d28d9;
 }
 
 .emp-btn-reject {
-    background: var(--danger);
-    border-color: var(--danger);
+    background: #dc2626;
 }
 
 .emp-btn-reject:hover {
-    background: #dc2626;
+    background: #b91c1c;
 }
 
 /* ===== STATUS CARDS ===== */
 .emp-status-card-approved {
-    border-left: 4px solid var(--success);
+    border-left: 4px solid #059669;
 }
 
 .emp-status-card-approved .emp-card-title {
-    color: var(--success);
+    color: #059669;
+}
+
+.emp-status-card-approved .emp-card-title svg {
+    color: #059669;
 }
 
 .emp-status-card-rejected {
-    border-left: 4px solid var(--danger);
+    border-left: 4px solid #dc2626;
 }
 
 .emp-status-card-rejected .emp-card-title {
-    color: var(--danger);
+    color: #dc2626;
+}
+
+.emp-status-card-rejected .emp-card-title svg {
+    color: #dc2626;
 }
 
 .emp-status-card-revision {
-    border-left: 4px solid var(--warning);
+    border-left: 4px solid #7c3aed;
 }
 
 .emp-status-card-revision .emp-card-title {
-    color: var(--warning);
+    color: #7c3aed;
+}
+
+.emp-status-card-revision .emp-card-title svg {
+    color: #7c3aed;
 }
 
 .emp-status-card-body {
-    padding: 0 20px 16px;
+    padding: 24px;
     font-size: 14px;
     color: var(--text-secondary);
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
 .emp-status-card-body strong {
@@ -578,87 +598,86 @@
 .emp-status-chip {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 12px;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
 }
 
 .chip-info {
-    background: var(--info-light);
-    color: var(--info);
+    background: rgba(217, 119, 6, 0.15);
+    color: #d97706;
+    border: 1.5px solid rgba(217, 119, 6, 0.3);
 }
 
 .chip-warning {
-    background: var(--warning-light);
-    color: var(--warning);
+    background: rgba(124, 58, 237, 0.15);
+    color: #7c3aed;
+    border: 1.5px solid rgba(124, 58, 237, 0.3);
 }
 
 .chip-done {
-    background: var(--success-light);
-    color: var(--success);
+    background: rgba(5, 150, 105, 0.15);
+    color: #059669;
+    border: 1.5px solid rgba(5, 150, 105, 0.3);
 }
 
 .chip-error {
-    background: var(--danger-light);
-    color: var(--danger);
+    background: rgba(220, 38, 38, 0.15);
+    color: #dc2626;
+    border: 1.5px solid rgba(220, 38, 38, 0.3);
 }
 
 /* ===== INFO CARD ===== */
 .emp-info-card {
-    background: var(--accent-light);
-    border-color: rgba(157, 200, 141, 0.3);
-}
-
-.emp-info-card .emp-card-header {
-    border-bottom-color: rgba(157, 200, 141, 0.2);
+    border: 2px solid var(--border-color);
 }
 
 .emp-info-body {
-    padding: 16px 20px;
+    padding: 24px;
 }
 
 .emp-review-date {
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--text-tertiary);
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
 }
 
 /* ===== TIMELINE ===== */
 .emp-timeline {
-    padding: 0 20px 16px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
 }
 
 .emp-timeline-item {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     align-items: flex-start;
-    font-size: 13px;
 }
 
 .emp-timeline-dot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     flex-shrink: 0;
-    margin-top: 4px;
+    margin-top: 5px;
 }
 
 .emp-timeline-dot-success {
-    background: var(--success);
+    background: #059669;
 }
 
 .emp-timeline-dot-danger {
-    background: var(--danger);
+    background: #dc2626;
 }
 
 .emp-timeline-dot-warning {
-    background: var(--warning);
+    background: #7c3aed;
 }
 
 .emp-timeline-dot-neutral {
@@ -668,18 +687,20 @@
 .emp-timeline-label {
     font-weight: 600;
     color: var(--text-primary);
+    font-size: 14px;
+    margin-bottom: 4px;
 }
 
 .emp-timeline-date {
-    color: var(--text-tertiary);
-    font-size: 12px;
+    color: var(--text-muted);
+    font-size: 13px;
 }
 
 .emp-timeline-highlight {
-    color: var(--info);
+    color: #3B82F6;
     font-weight: 600;
     font-size: 12px;
-    margin-top: 2px;
+    margin-top: 4px;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -691,6 +712,9 @@
     .emp-sidebar {
         position: static;
         order: -1;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 }
 
@@ -716,12 +740,16 @@
         padding: 16px;
     }
 
-    .emp-card {
-        padding: 20px;
+    .emp-sidebar {
+        grid-template-columns: 1fr;
+    }
+
+    .emp-card-header {
+        padding: 16px 20px;
     }
 
     .emp-card-body {
-        padding: 0 16px 16px;
+        padding: 20px;
     }
 
     .emp-applicant-banner {
@@ -732,7 +760,7 @@
         margin-left: 0;
         width: 100%;
         text-align: left;
-        padding-top: 8px;
+        padding-top: 12px;
         border-top: 1px solid var(--border-color);
     }
 
@@ -743,6 +771,7 @@
     .emp-last-day-remaining {
         margin-left: 0;
         width: 100%;
+        margin-top: 8px;
     }
 
     .emp-action-buttons {
@@ -751,7 +780,6 @@
 
     .emp-revision-btn {
         width: 100%;
-        justify-content: center;
     }
 
     .emp-existing-file {
@@ -762,31 +790,40 @@
         width: 100%;
         justify-content: center;
     }
+
+    .emp-timeline {
+        padding: 20px;
+    }
 }
 
 @media (max-width: 480px) {
-    .emp-card {
-        padding: 16px;
+    .emp-card-header {
+        padding: 14px 16px;
     }
 
     .emp-card-body {
-        padding: 0 12px 12px;
+        padding: 16px;
     }
 
     .emp-applicant-banner {
-        padding: 12px;
+        padding: 14px;
     }
 
     .emp-last-day-box {
-        padding: 12px;
+        padding: 14px 16px;
     }
 
     .emp-existing-file {
-        padding: 10px;
+        padding: 12px;
     }
 
     .emp-file-icon {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .emp-timeline {
+        padding: 16px;
+        gap: 14px;
     }
 }

@@ -273,7 +273,7 @@ def people():
     query       = request.args.get("q", "").strip()
     role_filter = request.args.get("role", "").strip()
 
-    users_query = User.query.filter(User.role != "admin")
+    users_query = User.query.filter(User.role != "admin", User.is_banned == False)
 
     if current_user.is_authenticated:
         from models import UserBlock
@@ -381,7 +381,7 @@ def inbox():
     conversations = []
     for uid in contact_ids:
         user = User.query.get(uid)
-        if not user:
+        if not user or user.is_banned:
             continue
         # Skip users who have a block relationship with current user
         from models import UserBlock
@@ -435,6 +435,10 @@ def inbox():
 def conversation(other_id):
     other = User.query.get_or_404(other_id)
 
+    if other.is_banned:
+        flash("This user is not available.", "warning")
+        return redirect(url_for('chat.inbox'))
+
     # Mark incoming messages as read
     Message.query.filter_by(
         sender_id=other_id,
@@ -464,8 +468,10 @@ def conversation(other_id):
     conversations = []
     for uid in contact_ids:
         u = User.query.get(uid)
-        if not u:
+        if not u or u.is_banned:
             continue
+
+        # ── block check — uses top-level or_ / and_ imports ──
 
         # ── block check — uses top-level or_ / and_ imports ──
         _blk = UserBlock.query.filter(
@@ -540,6 +546,9 @@ def conversation(other_id):
 @login_required
 def send_message(receiver_id):
     receiver = User.query.get_or_404(receiver_id)
+
+    if receiver.is_banned:
+        return jsonify({'error': 'You cannot message this user.'}), 403
 
     from models import UserBlock
     

@@ -1301,3 +1301,93 @@
     color: #f87171;
     border-color: rgba(220,38,38,0.3);
 }
+
+/* ================================================================
+   ADMIN NAV TABS — mirrors job-view-tabs pattern
+   ================================================================ */
+
+.admin-nav-tabs {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 65px;
+    z-index: 99;
+    box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+.admin-tabs-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.admin-tabs-container::-webkit-scrollbar { display: none; }
+
+.admin-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 16px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    cursor: pointer;
+}
+
+.admin-tab-btn:hover {
+    color: var(--text-primary);
+    border-bottom-color: var(--border-color);
+}
+
+.admin-tab-btn.active {
+    color: #4D774E;
+    border-bottom-color: #4D774E;
+}
+
+[data-theme="dark"] .admin-tab-btn.active {
+    color: #9DC88D;
+    border-bottom-color: #9DC88D;
+}
+
+.admin-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+[data-theme="dark"] .admin-tab-badge {
+    background: rgba(220, 38, 38, 0.15);
+    color: #f87171;
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+@media (max-width: 768px) {
+    .admin-tabs-container { padding: 0 16px; gap: 0; }
+    .admin-tab-btn { padding: 12px 12px; font-size: 0.75rem; }
+}

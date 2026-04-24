@@ -97,8 +97,8 @@ def profile():
     following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
     followers = [User.query.get(r.follower_id) for r in follower_rows]
     following = [User.query.get(r.followed_id) for r in following_rows]
-    followers = [u for u in followers if u]
-    following = [u for u in following if u]
+    followers = [u for u in followers if u and not u.is_banned]
+    following = [u for u in following if u and not u.is_banned]
 
     profile_complete = is_recruiter_profile_complete(rec_profile)
 
@@ -641,7 +641,8 @@ def hr_accounts():
     hrs = User.query.filter_by(
         created_by=current_user.id,
         role="hr",
-        is_deleted=False
+        is_deleted=False,
+        is_banned=False
     ).all()
 
     return render_template("recruiter/hr_accounts.html", hrs=hrs, temp_password=temp_password)
@@ -873,16 +874,25 @@ def view_job_applications(job_id):
     _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
     _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
 
-    applications = Application.query.filter(
-        Application.job_id == job_id,
-        Application.status.in_(_ACTIVE_STATUSES)
-    ).all()
+    applications = (
+            Application.query
+            .join(User, Application.applicant_id == User.id)
+            .filter(
+                Application.job_id == job_id,
+                Application.status.in_(_ACTIVE_STATUSES),
+                User.is_banned == False
+            ).all()
+        )
 
-    archived_applications = Application.query.filter(
-        Application.job_id == job_id,
-        Application.status.in_(_ARCHIVED_STATUSES)
-    ).all()
-
+    archived_applications = (
+            Application.query
+            .join(User, Application.applicant_id == User.id)
+            .filter(
+                Application.job_id == job_id,
+                Application.status.in_(_ARCHIVED_STATUSES),
+                User.is_banned == False
+            ).all()
+        )
     return render_template(
         "recruiter/job_applications.html",
         job=job,
@@ -1161,7 +1171,8 @@ def edit_job(job_id):
     hr_list = User.query.filter_by(
         created_by=current_user.id,
         role='hr',
-        is_deleted=False
+        is_deleted=False,
+        is_banned=False
     ).all()
 
     assigned_hr_ids = {tm.hr_id for tm in job.team_members}

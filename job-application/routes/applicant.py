@@ -129,8 +129,8 @@ def profile():
     from models import User as UserModel
     followers = [UserModel.query.get(r.follower_id) for r in follower_rows]
     following = [UserModel.query.get(r.followed_id) for r in following_rows]
-    followers = [u for u in followers if u]
-    following = [u for u in following if u]
+    followers = [u for u in followers if u and not u.is_banned]
+    following = [u for u in following if u and not u.is_banned]
 
     # Recalculate from actual field values — never trust the cached flag alone
     profile_complete = is_profile_complete(prof)
@@ -538,9 +538,12 @@ def status():
 
     applications = (
         Application.query
+        .join(Job, Application.job_id == Job.id)
+        .join(User, Job.company_id == User.id)
         .filter(
             Application.applicant_id == current_user.id,
-            Application.status.in_(_ACTIVE_STATUSES)
+            Application.status.in_(_ACTIVE_STATUSES),
+            User.is_banned == False
         )
         .options(joinedload(Application.job))
         .order_by(Application.created_at.desc())
@@ -1077,11 +1080,9 @@ def saved_jobs():
         applicant_id=current_user.id
     ).order_by(SavedJob.created_at.desc()).all()
 
-    saved = [s for s in saved if s.job and not s.job.is_taken_down]
-    saved_job_ids = {s.job_id for s in saved}
-
-    return render_template(
-        'applicant/saved_jobs.html',
-        saved=saved,
-        saved_job_ids=saved_job_ids
-    )
+    # Also get the job's recruiter to check ban status
+    saved = [
+        s for s in saved
+        if s.job and not s.job.is_taken_down
+        and not User.query.get(s.job.company_id).is_banned
+    ]

@@ -145,6 +145,29 @@ def auto_process_rendering_periods():
     except Exception:
         pass  # never crash the app over this
 
+@app.before_request
+def check_user_ban():
+    from flask_login import current_user
+    from flask import request, render_template
+
+    # Skip static files and auth routes (login, logout)
+    if request.endpoint and (
+        request.endpoint.startswith('static') or
+        request.endpoint in ('auth.login', 'auth.logout', 'auth.index', 'auth.register',
+                             'auth.google_login', 'auth.google_callback',
+                             'auth.forgot_password', 'auth.reset_password')
+    ):
+        return None
+
+    if current_user.is_authenticated:
+        # Always fetch a fresh copy to avoid stale cache
+        db.session.expire(current_user)
+        if current_user.is_banned:
+            # Allow logout even when banned
+            if request.endpoint == 'auth.logout':
+                return None
+            return render_template("account_banned.html", user=current_user), 403
+
 # ============================================================
 # REGISTER BLUEPRINTS
 # ============================================================

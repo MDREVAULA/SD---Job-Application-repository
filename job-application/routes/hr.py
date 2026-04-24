@@ -44,8 +44,8 @@ def profile():
     following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
     followers = [User.query.get(r.follower_id) for r in follower_rows]
     following = [User.query.get(r.followed_id) for r in following_rows]
-    followers = [u for u in followers if u]
-    following = [u for u in following if u]
+    followers = [u for u in followers if u and not u.is_banned]
+    following = [u for u in following if u and not u.is_banned]
 
     return render_template(
         "hr/profile.html",
@@ -333,7 +333,8 @@ def job_list():
     }
 
     # All jobs by their recruiter boss
-    all_jobs = Job.query.filter_by(company_id=current_user.created_by).all()
+    recruiter = User.query.get(current_user.created_by)
+    all_jobs = [] if (recruiter and recruiter.is_banned) else Job.query.filter_by(company_id=current_user.created_by).all()
 
     return render_template(
         "hr/job_list.html",
@@ -369,16 +370,25 @@ def job_applications(job_id):
     _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
     _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
 
-    applications = Application.query.filter(
-        Application.job_id == job_id,
-        Application.status.in_(_ACTIVE_STATUSES)
-    ).all()
+    applications = (
+        Application.query
+        .join(User, Application.applicant_id == User.id)
+        .filter(
+            Application.job_id == job_id,
+            Application.status.in_(_ACTIVE_STATUSES),
+            User.is_banned == False
+        ).all()
+    )
 
-    archived_applications = Application.query.filter(
-        Application.job_id == job_id,
-        Application.status.in_(_ARCHIVED_STATUSES)
-    ).all()
-
+    archived_applications = (
+        Application.query
+        .join(User, Application.applicant_id == User.id)
+        .filter(
+            Application.job_id == job_id,
+            Application.status.in_(_ARCHIVED_STATUSES),
+            User.is_banned == False
+        ).all()
+    )
     recruiter_user = User.query.get(job.company_id)
 
     return render_template(

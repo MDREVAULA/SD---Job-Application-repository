@@ -381,22 +381,206 @@ def unban_user(user_id):
 @admin_bp.route('/delete-user/<int:user_id>', methods=['POST'])
 @login_required
 def delete_user(user_id):
-
     if current_user.role != 'admin':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
     user = db.session.get(User, user_id)
-
     if not user or user.role == 'admin':
         flash("User not found or cannot delete admin!", "danger")
         return redirect(url_for('admin.banned_users'))
 
-    db.session.delete(user)
-    db.session.commit()
+    try:
+        from sqlalchemy import text
 
-    flash("User has been permanently deleted.", "warning")
-    return redirect(url_for('admin.banned_users'))
+        uid = user_id
+
+        # 1. Messages (sent and received)
+        db.session.execute(text("""
+            DELETE FROM message WHERE sender_id = :uid OR receiver_id = :uid
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 2. Message reactions
+        db.session.execute(text("""
+            DELETE FROM message_reaction WHERE user_id = :uid
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 3. Resignation requests
+        db.session.execute(text("""
+            DELETE FROM resignation_request
+            WHERE applicant_id = :uid OR reviewed_by = :uid
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 4. Employees confirmed by this user, or where this user is the employee
+        db.session.execute(text("""
+            DELETE FROM employee
+            WHERE user_id = :uid
+            OR confirmed_by = :uid
+            OR application_id IN (
+                SELECT id FROM application WHERE applicant_id = :uid
+            )
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 5. Employment onboarding
+        db.session.execute(text("""
+            DELETE FROM employment_onboarding
+            WHERE application_id IN (
+                SELECT id FROM application WHERE applicant_id = :uid
+            )
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 6. Employment submissions
+        db.session.execute(text("""
+            DELETE FROM employment_submission
+            WHERE application_id IN (
+                SELECT id FROM application WHERE applicant_id = :uid
+            )
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 7. Employment requirements for jobs posted by this user (if recruiter)
+        db.session.execute(text("""
+            DELETE FROM employment_requirement
+            WHERE job_id IN (SELECT id FROM job WHERE company_id = :uid)
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 8. HR feedback written by or about applications of this user
+        db.session.execute(text("""
+            DELETE FROM hr_feedback
+            WHERE hr_id = :uid
+            OR application_id IN (
+                SELECT id FROM application WHERE applicant_id = :uid
+            )
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 9. All notifications
+        db.session.execute(text("DELETE FROM applicant_notification WHERE applicant_id = :uid OR sender_id = :uid"), {"uid": uid})
+        db.session.execute(text("DELETE FROM recruiter_notification WHERE recruiter_id = :uid OR sender_id = :uid"), {"uid": uid})
+        db.session.execute(text("DELETE FROM hr_notification WHERE hr_id = :uid OR sender_id = :uid"), {"uid": uid})
+        db.session.execute(text("DELETE FROM admin_notifications WHERE user_id = :uid"), {"uid": uid})
+        db.session.flush()
+
+        # 10. Saved jobs
+        db.session.execute(text("DELETE FROM saved_job WHERE applicant_id = :uid"), {"uid": uid})
+        db.session.flush()
+
+        # 11. Follows
+        db.session.execute(text("""
+            DELETE FROM follow WHERE follower_id = :uid OR followed_id = :uid
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 12. Blocks and reports
+        db.session.execute(text("""
+            DELETE FROM user_block WHERE blocker_id = :uid OR blocked_id = :uid
+        """), {"uid": uid})
+        db.session.execute(text("""
+            DELETE FROM user_report
+            WHERE reporter_id = :uid OR reported_id = :uid
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 13. Job team memberships (HR assignments)
+        db.session.execute(text("DELETE FROM job_team_member WHERE hr_id = :uid"), {"uid": uid})
+        db.session.flush()
+
+        # 14. Notifications referencing applications of this user's jobs
+        db.session.execute(text("""
+            DELETE FROM applicant_notification
+            WHERE application_id IN (
+                SELECT id FROM application
+                WHERE job_id IN (SELECT id FROM job WHERE company_id = :uid)
+            )
+        """), {"uid": uid})
+        db.session.execute(text("""
+            DELETE FROM recruiter_notification
+            WHERE application_id IN (
+                SELECT id FROM application
+                WHERE job_id IN (SELECT id FROM job WHERE company_id = :uid)
+            )
+            OR job_id IN (SELECT id FROM job WHERE company_id = :uid)
+        """), {"uid": uid})
+        db.session.execute(text("""
+            DELETE FROM hr_notification
+            WHERE application_id IN (
+                SELECT id FROM application
+                WHERE job_id IN (SELECT id FROM job WHERE company_id = :uid)
+            )
+            OR job_id IN (SELECT id FROM job WHERE company_id = :uid)
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 15. Applications (for jobs posted by this recruiter too)
+        db.session.execute(text("""
+            DELETE FROM application
+            WHERE applicant_id = :uid
+            OR job_id IN (SELECT id FROM job WHERE company_id = :uid)
+        """), {"uid": uid})
+        db.session.flush()
+
+        # 16. Job images (disk + DB) for jobs posted by this user
+        from models import Job as JobModel, JobImage as JobImageModel
+        jobs = JobModel.query.filter_by(company_id=uid).all()
+        import os
+        for job in jobs:
+            for img in job.images:
+                path = os.path.join(current_app.root_path, 'static', 'uploads', 'job_posters', img.image_path)
+                if os.path.exists(path):
+                    os.remove(path)
+            if job.cover_photo:
+                cover = os.path.join(current_app.root_path, 'static', 'uploads', 'job_covers', job.cover_photo)
+                if os.path.exists(cover):
+                    os.remove(cover)
+
+        db.session.execute(text("DELETE FROM job WHERE company_id = :uid"), {"uid": uid})
+        db.session.flush()
+
+        # 17. Profiles
+        db.session.execute(text("DELETE FROM applicant_education WHERE profile_id IN (SELECT id FROM applicant_profile WHERE user_id = :uid)"), {"uid": uid})
+        db.session.execute(text("DELETE FROM work_experience WHERE profile_id IN (SELECT id FROM applicant_profile WHERE user_id = :uid)"), {"uid": uid})
+        db.session.execute(text("DELETE FROM skill WHERE profile_id IN (SELECT id FROM applicant_profile WHERE user_id = :uid)"), {"uid": uid})
+        db.session.execute(text("DELETE FROM project WHERE profile_id IN (SELECT id FROM applicant_profile WHERE user_id = :uid)"), {"uid": uid})
+        db.session.execute(text("DELETE FROM certification WHERE profile_id IN (SELECT id FROM applicant_profile WHERE user_id = :uid)"), {"uid": uid})
+        db.session.execute(text("DELETE FROM applicant_profile WHERE user_id = :uid"), {"uid": uid})
+
+        db.session.execute(text("DELETE FROM recruiter_education WHERE profile_id IN (SELECT id FROM recruiter_profile WHERE user_id = :uid)"), {"uid": uid})
+        db.session.execute(text("DELETE FROM recruiter_profile WHERE user_id = :uid"), {"uid": uid})
+
+        db.session.execute(text("DELETE FROM hr_education WHERE profile_id IN (SELECT id FROM hr_profile WHERE user_id = :uid)"), {"uid": uid})
+        db.session.execute(text("DELETE FROM hr_profile WHERE user_id = :uid"), {"uid": uid})
+
+        db.session.flush()
+
+        # 18. User settings
+        db.session.execute(text("DELETE FROM user_settings WHERE user_id = :uid"), {"uid": uid})
+        db.session.flush()
+
+        # 19. Profile picture from disk
+        if user.profile_picture and not user.profile_picture.startswith('http'):
+            pfp_path = os.path.join(current_app.root_path, 'static', 'uploads', 'profile_pictures', user.profile_picture)
+            if os.path.exists(pfp_path):
+                os.remove(pfp_path)
+
+        # 20. Finally delete the user
+        db.session.execute(text("DELETE FROM user WHERE id = :uid"), {"uid": uid})
+        db.session.commit()
+
+        push_admin_notif('user_deleted', f'User account permanently deleted by admin.')
+
+        flash("User and all associated data have been permanently deleted.", "warning")
+        return redirect(url_for('admin.banned_users'))
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Deletion failed: {str(e)}", "danger")
+        return redirect(url_for('admin.banned_users'))
 
 
 # ==============================
