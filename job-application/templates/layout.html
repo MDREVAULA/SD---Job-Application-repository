@@ -652,6 +652,20 @@ setInterval(updateUnreadBadge, 10000);
     const ROLE           = 'applicant';
     {% endif %}
 
+    // ── Read CSRF token once from the <meta> tag ──
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function postJSON(url, body) {
+        return fetch(url, {
+            method:  'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken':  CSRF
+            },
+            body: body ? JSON.stringify(body) : undefined
+        });
+    }
+
     const btn      = document.getElementById('notifBtn');
     const panel    = document.getElementById('notifPanel');
     const badge    = document.getElementById('notifBadge');
@@ -662,15 +676,16 @@ setInterval(updateUnreadBadge, 10000);
     let lastUnread = 0;
     let knownIds   = new Set();
     let knownMsgMap = {};
+    let isCleared  = false;
 
     const ICONS = {
-        new_application:    { cls: 'type-new_application',   icon: 'fa-file-alt' },
-        interview_scheduled:{ cls: 'type-interview_scheduled',icon: 'fa-calendar-check' },
-        new_message:        { cls: 'type-new_message',        icon: 'fa-comment-dots' },
-        new_follow:         { cls: 'type-new_follow',         icon: 'fa-user-plus' },
-        job_update:         { cls: 'type-job_update',         icon: 'fa-briefcase' },
-        application_status: { cls: 'type-application_status', icon: 'fa-clipboard-check' },
-        profile_complete:   { cls: 'type-profile_complete',   icon: 'fa-user-check' },
+        new_application:    { cls: 'type-new_application',    icon: 'fa-file-alt'        },
+        interview_scheduled:{ cls: 'type-interview_scheduled', icon: 'fa-calendar-check'  },
+        new_message:        { cls: 'type-new_message',         icon: 'fa-comment-dots'    },
+        new_follow:         { cls: 'type-new_follow',          icon: 'fa-user-plus'       },
+        job_update:         { cls: 'type-job_update',          icon: 'fa-briefcase'       },
+        application_status: { cls: 'type-application_status',  icon: 'fa-clipboard-check' },
+        profile_complete:   { cls: 'type-profile_complete',    icon: 'fa-user-check'      },
     };
 
     function typeInfo(type) {
@@ -678,68 +693,85 @@ setInterval(updateUnreadBadge, 10000);
     }
 
     function getNotifUrl(n) {
-        if (n.type === 'new_message') {
+        if (n.type === 'new_message')
             return n.sender_id ? '/chat/inbox/' + n.sender_id : '/chat/inbox';
-        }
-        if (n.type === 'new_follow') {
+        if (n.type === 'new_follow')
             return n.sender_id ? '/profile/' + n.sender_id : '#';
-        }
         if (n.type === 'new_application' && n.job_id) {
             if (ROLE === 'recruiter') return '/recruiter/job-applications/' + n.job_id;
             if (ROLE === 'hr')        return '/hr/job-applications/' + n.job_id;
         }
-        if ((n.type === 'application_status' || n.type === 'interview_scheduled') && n.application_id) {
+        if ((n.type === 'application_status' || n.type === 'interview_scheduled') && n.application_id)
             return '/applicant/status';
-        }
-        if (n.type === 'job_update' && n.job_id) return '/applicant/job/' + n.job_id;
-        if (n.type === 'profile_complete') {
-            if (ROLE === 'applicant') return '/applicant/status';
-        }
+        if (n.type === 'job_update' && n.job_id)
+            return '/applicant/job/' + n.job_id;
+        if (n.type === 'profile_complete' && ROLE === 'applicant')
+            return '/applicant/status';
         return '#';
     }
 
-    function markOneRead(notifId, el) {
-        if (!el.classList.contains('unread')) return;
-        el.classList.remove('unread');
-        fetch(MARK_READ_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: notifId })
-        }).then(() => {
-            lastUnread = Math.max(0, lastUnread - 1);
-            if (lastUnread > 0) {
-                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
-            } else {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
-            }
-        }).catch(() => {});
+    function updateBadge(count) {
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'inline-flex';
+            btn.classList.add('has-unread');
+        } else {
+            badge.style.display = 'none';
+            btn.classList.remove('has-unread');
+        }
+    }
+
+    // Redirect only AFTER mark-read fetch completes so the DB is updated
+    function markAndRedirect(notifId, el, url) {
+        const wasUnread = el.classList.contains('unread');
+        if (wasUnread) el.classList.remove('unread');
+
+        if (!wasUnread) {
+            // Already read — navigate straight away
+            if (url && url !== '#') window.location.href = url;
+            return;
+        }
+
+        postJSON(MARK_READ_API, { id: notifId })
+            .then(() => {
+                lastUnread = Math.max(0, lastUnread - 1);
+                updateBadge(lastUnread);
+            })
+            .catch(() => {})
+            .finally(() => {
+                if (url && url !== '#') window.location.href = url;
+            });
     }
 
     function attachNotifClicks() {
         list.querySelectorAll('.notif-item').forEach(el => {
-            el.addEventListener('click', function(e) {
+            el.addEventListener('click', function (e) {
                 e.stopPropagation();
-                const id  = parseInt(this.dataset.id);
-                const url = this.dataset.url;
-                markOneRead(id, this);
-                if (url && url !== '#') setTimeout(() => window.location.href = url, 150);
+                markAndRedirect(
+                    parseInt(this.dataset.id),
+                    this,
+                    this.dataset.url
+                );
             });
         });
     }
 
     function renderNotifs(notifs) {
         if (!notifs.length) {
-            list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
+            list.innerHTML = `<div class="notif-empty">
+                <i class="fas fa-bell-slash"></i><p>No notifications yet</p>
+            </div>`;
             return;
         }
         list.innerHTML = notifs.map(n => {
             const t   = typeInfo(n.type);
             const url = getNotifUrl(n);
-            return `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" data-url="${url}" style="cursor:pointer;">
-                <div class="notif-icon ${t.cls}"><i class="fas ${t.icon}"></i></div>
-                <div class="notif-body">
+            return `<div class="notif-item ${n.is_read ? '' : 'unread'}"
+                         data-id="${n.id}" data-url="${url}" style="cursor:pointer;">
+                <div class="notif-icon ${t.cls}" style="pointer-events:none;">
+                    <i class="fas ${t.icon}"></i>
+                </div>
+                <div class="notif-body" style="pointer-events:none;">
                     <p class="notif-msg">${n.message}</p>
                     <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
                 </div>
@@ -752,10 +784,13 @@ setInterval(updateUnreadBadge, 10000);
         if (document.querySelectorAll('.notif-toast').length >= 3) return;
         const t = typeInfo(n.type);
         const titleMap = {
-            new_application:'New Application', interview_scheduled:'Interview Scheduled',
-            new_message:'New Message', new_follow:'New Follower',
-            job_update:'Job Update', application_status:'Application Update',
-            profile_complete:'Profile Complete',
+            new_application:    'New Application',
+            interview_scheduled:'Interview Scheduled',
+            new_message:        'New Message',
+            new_follow:         'New Follower',
+            job_update:         'Job Update',
+            application_status: 'Application Update',
+            profile_complete:   'Profile Complete',
         };
         const url   = getNotifUrl(n);
         const toast = document.createElement('div');
@@ -766,7 +801,8 @@ setInterval(updateUnreadBadge, 10000);
                 <div class="notif-toast-title">${titleMap[n.type] || 'Notification'}</div>
                 <div class="notif-toast-msg">${n.message}</div>
             </div>
-            <button class="notif-toast-close" onclick="event.stopPropagation();this.parentElement.remove()">
+            <button class="notif-toast-close"
+                    onclick="event.stopPropagation();this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>`;
         toast.addEventListener('click', function (e) {
@@ -780,46 +816,34 @@ setInterval(updateUnreadBadge, 10000);
         }, 5000);
     }
 
+    // Poll: badge only — never re-render the open panel
     function fetchNotifs() {
-    fetch(NOTIF_API)
-        .then(r => r.json())
-        .then(data => {
-            const count = data.unread_count || 0;
-            if (count > 0) {
-                badge.textContent = count > 99 ? '99+' : count;
-                badge.style.display = 'inline-flex';
-                btn.classList.add('has-unread');
-            } else {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
-            }
-            if (data.notifications) {
-                data.notifications.forEach(n => {
-                    if (!n.is_read) {
-                        const prev = knownMsgMap[n.id];
-                        if (!prev || prev !== n.message) {
-                            showToast(n);
+        if (isCleared) { isCleared = false; return; }
+        fetch(NOTIF_API)
+            .then(r => r.json())
+            .then(data => {
+                updateBadge(data.unread_count || 0);
+                lastUnread = data.unread_count || 0;
+                if (data.notifications) {
+                    data.notifications.forEach(n => {
+                        if (!knownIds.has(n.id)) {
+                            knownIds.add(n.id);
+                            knownMsgMap[n.id] = n.message;
+                            if (!n.is_read) showToast(n);
                         }
-                        knownMsgMap[n.id] = n.message;
-                    }
-                    knownIds.add(n.id);
-                });
-                if (panel.classList.contains('open')) renderNotifs(data.notifications);
-            }
-            lastUnread = count;
-        })
-        .catch(() => {});
-}
-    // Initial silent load — populate knownMsgMap without showing toasts
+                    });
+                }
+                // Never re-render while panel is open — that destroys click listeners
+            })
+            .catch(() => {});
+    }
+
+    // Initial silent load
     fetch(NOTIF_API)
         .then(r => r.json())
         .then(data => {
             lastUnread = data.unread_count || 0;
-            if (lastUnread > 0) {
-                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
-                badge.style.display = 'inline-flex';
-                btn.classList.add('has-unread');
-            }
+            updateBadge(lastUnread);
             if (data.notifications) {
                 data.notifications.forEach(n => {
                     knownIds.add(n.id);
@@ -828,42 +852,50 @@ setInterval(updateUnreadBadge, 10000);
             }
         }).catch(() => {});
 
-    // Poll every 5 seconds for new notifications
     setInterval(fetchNotifs, 5000);
 
-    // Bell button toggle
+    // Bell open — always fetch fresh and re-render
     btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = panel.classList.toggle('open');
         if (isOpen) {
-            fetch(NOTIF_API).then(r => r.json()).then(data => renderNotifs(data.notifications || [])).catch(() => {});
+            fetch(NOTIF_API)
+                .then(r => r.json())
+                .then(data => {
+                    updateBadge(data.unread_count || 0);
+                    lastUnread = data.unread_count || 0;
+                    renderNotifs(data.notifications || []);
+                })
+                .catch(() => {});
         }
     });
 
     document.addEventListener('click', (e) => {
-        if (!document.getElementById('notifWrapper').contains(e.target)) {
+        if (!document.getElementById('notifWrapper').contains(e.target))
             panel.classList.remove('open');
-        }
     });
 
     markBtn.addEventListener('click', () => {
-        fetch(MARK_READ_API, { method: 'POST' })
+        postJSON(MARK_READ_API)
             .then(() => {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
                 lastUnread = 0;
-                list.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+                updateBadge(0);
+                list.querySelectorAll('.notif-item.unread')
+                    .forEach(el => el.classList.remove('unread'));
             }).catch(() => {});
     });
 
     clearBtn.addEventListener('click', () => {
-        fetch(CLEAR_API, { method: 'POST' })
+        postJSON(CLEAR_API)
             .then(() => {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
                 lastUnread = 0;
+                updateBadge(0);
                 knownIds.clear();
-                list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
+                knownMsgMap = {};
+                isCleared = true;
+                list.innerHTML = `<div class="notif-empty">
+                    <i class="fas fa-bell-slash"></i><p>No notifications yet</p>
+                </div>`;
             }).catch(() => {});
     });
 })();
@@ -878,23 +910,38 @@ setInterval(updateUnreadBadge, 10000);
     const MARK_READ_API = '/admin/notifications/mark-read';
     const CLEAR_API     = '/admin/notifications/clear-all';
 
-    const btn      = document.getElementById('adminNotifBtn');
-    const panel    = document.getElementById('adminNotifPanel');
-    const badge    = document.getElementById('adminNotifBadge');
-    const list     = document.getElementById('adminNotifList');
-    const markBtn  = document.getElementById('adminMarkAllBtn');
-    const clearBtn = document.getElementById('adminClearBtn');
+    // ── Read CSRF token once from the <meta> tag ──
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function postJSON(url, body) {
+        return fetch(url, {
+            method:  'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken':  CSRF
+            },
+            body: body ? JSON.stringify(body) : undefined
+        });
+    }
+
+    const btn          = document.getElementById('adminNotifBtn');
+    const panel        = document.getElementById('adminNotifPanel');
+    const badge        = document.getElementById('adminNotifBadge');
+    const list         = document.getElementById('adminNotifList');
+    const markBtn      = document.getElementById('adminMarkAllBtn');
+    const clearBtn     = document.getElementById('adminClearBtn');
     const sidebarBadge = document.getElementById('adminSidebarBadge');
 
     let lastUnread = 0;
     let knownIds   = new Set();
     let knownMsgMap = {};
+    let isCleared  = false;
 
     const ICONS = {
-        new_message:      { cls: 'type-new_message',      icon: 'fa-comment-dots'    },
-        account_request:  { cls: 'type-account_request',  icon: 'fa-user-clock'      },
-        account_approved: { cls: 'type-account_approved', icon: 'fa-user-check'      },
-        account_rejected: { cls: 'type-account_rejected', icon: 'fa-user-times'      },
+        new_message:      { cls: 'type-new_message',      icon: 'fa-comment-dots' },
+        account_request:  { cls: 'type-account_request',  icon: 'fa-user-clock'   },
+        account_approved: { cls: 'type-account_approved', icon: 'fa-user-check'   },
+        account_rejected: { cls: 'type-account_rejected', icon: 'fa-user-times'   },
     };
 
     const TITLES = {
@@ -910,14 +957,15 @@ setInterval(updateUnreadBadge, 10000);
 
     function getNotifUrl(n) {
         if (n.type === 'new_message')      return '/chat/inbox';
-        if (n.type === 'account_request')  return '/admin/dashboard';
-        if (n.type === 'account_approved' || n.type === 'account_rejected') return '/admin/dashboard';
+        if (n.type === 'account_request'
+         || n.type === 'account_approved'
+         || n.type === 'account_rejected') return '/admin/dashboard';
         return '#';
     }
 
     function updateBadge(count) {
+        const label = count > 99 ? '99+' : count;
         if (count > 0) {
-            const label = count > 99 ? '99+' : count;
             badge.textContent = label;
             badge.style.display = 'inline-flex';
             btn.classList.add('has-unread');
@@ -931,43 +979,65 @@ setInterval(updateUnreadBadge, 10000);
             if (sidebarBadge) sidebarBadge.style.display = 'none';
         }
     }
-    function markOneRead(notifId, el) {
-        if (!el.classList.contains('unread')) return;
-        el.classList.remove('unread');
-        fetch(MARK_READ_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: notifId })
-        }).then(() => {
-            lastUnread = Math.max(0, lastUnread - 1);
-            if (lastUnread > 0) {
-                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
-            } else {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
-            }
-        }).catch(() => {});
+
+    // Redirect only AFTER mark-read fetch completes so the DB is updated
+    function markAndRedirect(notifId, el, url) {
+        const wasUnread = el.classList.contains('unread');
+        if (wasUnread) el.classList.remove('unread');
+
+        if (!wasUnread) {
+            if (url && url !== '#') window.location.href = url;
+            return;
+        }
+
+        postJSON(MARK_READ_API, { id: notifId })
+            .then(() => {
+                lastUnread = Math.max(0, lastUnread - 1);
+                updateBadge(lastUnread);
+            })
+            .catch(() => {})
+            .finally(() => {
+                if (url && url !== '#') window.location.href = url;
+            });
     }
+
+    function attachNotifClicks() {
+        list.querySelectorAll('.notif-item').forEach(el => {
+            el.addEventListener('click', function (e) {
+                e.stopPropagation();
+                markAndRedirect(
+                    parseInt(this.dataset.id),
+                    this,
+                    this.dataset.url
+                );
+            });
+        });
+    }
+
     function renderNotifs(notifs) {
-    if (!notifs.length) {
-        list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
-        return;
-    }
-    list.innerHTML = notifs.map(n => {
-        const t   = typeInfo(n.type);
-        const url = getNotifUrl(n);
-        return `
-        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
-             onclick="event.stopPropagation(); markOneRead(${n.id}, this); if('${url}' !== '#') setTimeout(() => window.location.href='${url}', 150);" style="cursor:pointer;">
-                <div class="notif-icon ${t.cls}">
+        if (!notifs.length) {
+            list.innerHTML = `<div class="notif-empty">
+                <i class="fas fa-bell-slash"></i><p>No notifications yet</p>
+            </div>`;
+            return;
+        }
+        list.innerHTML = notifs.map(n => {
+            const t   = typeInfo(n.type);
+            const url = getNotifUrl(n);
+            return `<div class="notif-item ${n.is_read ? '' : 'unread'}"
+                         data-id="${n.id}" data-url="${url}" style="cursor:pointer;">
+                <div class="notif-icon ${t.cls}" style="pointer-events:none;">
                     <i class="fas ${t.icon}"></i>
                 </div>
-                <div class="notif-body">
+                <div class="notif-body" style="pointer-events:none;">
                     <p class="notif-msg">${n.message}</p>
-                    <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
+                    <span class="notif-time">
+                        <i class="fas fa-clock"></i> ${n.created_at}
+                    </span>
                 </div>
             </div>`;
         }).join('');
+        attachNotifClicks();
     }
 
     function showToast(n) {
@@ -983,7 +1053,8 @@ setInterval(updateUnreadBadge, 10000);
                 <div class="notif-toast-title">${title}</div>
                 <div class="notif-toast-msg">${n.message}</div>
             </div>
-            <button class="notif-toast-close" onclick="event.stopPropagation();this.parentElement.remove()">
+            <button class="notif-toast-close"
+                    onclick="event.stopPropagation();this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>`;
         toast.addEventListener('click', e => {
@@ -997,22 +1068,23 @@ setInterval(updateUnreadBadge, 10000);
         }, 5500);
     }
 
-    function fetchNotifs(silent) {
+    // Poll: badge only — never re-render the open panel
+    function fetchNotifs() {
+        if (isCleared) { isCleared = false; return; }
         fetch(NOTIF_API)
             .then(r => r.json())
             .then(data => {
-                const count = data.unread_count || 0;
-                updateBadge(count);
+                updateBadge(data.unread_count || 0);
+                lastUnread = data.unread_count || 0;
                 if (data.notifications) {
                     data.notifications.forEach(n => {
                         if (!knownIds.has(n.id)) {
                             knownIds.add(n.id);
-                            if (!silent && !n.is_read) showToast(n);
+                            knownMsgMap[n.id] = n.message;
+                            if (!n.is_read) showToast(n);
                         }
                     });
-                    if (panel.classList.contains('open')) renderNotifs(data.notifications);
                 }
-                lastUnread = count;
             }).catch(() => {});
     }
 
@@ -1020,40 +1092,59 @@ setInterval(updateUnreadBadge, 10000);
     fetch(NOTIF_API).then(r => r.json()).then(data => {
         lastUnread = data.unread_count || 0;
         updateBadge(lastUnread);
-        if (data.notifications) data.notifications.forEach(n => knownIds.add(n.id));
+        if (data.notifications) {
+            data.notifications.forEach(n => {
+                knownIds.add(n.id);
+                knownMsgMap[n.id] = n.message;
+            });
+        }
     }).catch(() => {});
 
-    setInterval(() => fetchNotifs(false), 15000);
+    setInterval(fetchNotifs, 15000);
 
+    // Bell open — always fetch fresh and re-render
     btn.addEventListener('click', e => {
         e.stopPropagation();
         const isOpen = panel.classList.toggle('open');
         if (isOpen) {
-            fetch(NOTIF_API).then(r => r.json())
-                .then(data => renderNotifs(data.notifications || []))
+            fetch(NOTIF_API)
+                .then(r => r.json())
+                .then(data => {
+                    updateBadge(data.unread_count || 0);
+                    lastUnread = data.unread_count || 0;
+                    renderNotifs(data.notifications || []);
+                })
                 .catch(() => {});
         }
     });
 
     document.addEventListener('click', e => {
-        if (!document.getElementById('adminNotifWrapper').contains(e.target)) {
+        if (!document.getElementById('adminNotifWrapper').contains(e.target))
             panel.classList.remove('open');
-        }
     });
 
     markBtn.addEventListener('click', () => {
-        fetch(MARK_READ_API, { method: 'POST' }).then(() => {
-            updateBadge(0);
-            list.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
-        }).catch(() => {});
+        postJSON(MARK_READ_API)
+            .then(() => {
+                lastUnread = 0;
+                updateBadge(0);
+                list.querySelectorAll('.notif-item.unread')
+                    .forEach(el => el.classList.remove('unread'));
+            }).catch(() => {});
     });
 
     clearBtn.addEventListener('click', () => {
-        fetch(CLEAR_API, { method: 'POST' }).then(() => {
-            updateBadge(0);
-            knownIds.clear();
-            list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
-        }).catch(() => {});
+        postJSON(CLEAR_API)
+            .then(() => {
+                lastUnread = 0;
+                updateBadge(0);
+                knownIds.clear();
+                knownMsgMap = {};
+                isCleared = true;
+                list.innerHTML = `<div class="notif-empty">
+                    <i class="fas fa-bell-slash"></i><p>No notifications yet</p>
+                </div>`;
+            }).catch(() => {});
     });
 })();
 </script>

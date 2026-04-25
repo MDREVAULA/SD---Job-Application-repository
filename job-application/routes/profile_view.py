@@ -256,7 +256,15 @@ def view_recruiter_profile(user_id):
 
     profile     = RecruiterProfile.query.filter_by(user_id=user_id).first()
     educations  = Education.query.filter_by(profile_id=profile.id).order_by(Education.created_at.desc()).all() if profile else []
-    posted_jobs = Job.query.filter_by(company_id=user_id, is_taken_down=False).order_by(Job.id.desc()).all()
+    posted_jobs = Job.query.filter_by(
+        company_id=user_id,
+        is_taken_down=False
+    ).order_by(Job.id.desc()).all()
+
+    posted_jobs = [
+        job for job in posted_jobs
+        if job.expiration_date is not None
+    ]
     is_following = False
     if current_user.is_authenticated:
         is_following = Follow.query.filter_by(
@@ -392,3 +400,4 @@ def follow_list(user_id):
         'following_count': len(following) if show_count else None,
         'list_is_private': False,
     })
+
