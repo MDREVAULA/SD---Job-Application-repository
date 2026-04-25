@@ -466,9 +466,7 @@ def inbox():
         user = User.query.get(uid)
         if not user or user.is_banned:
             continue
-        # Skip users who have a block relationship with current user
         from models import UserBlock
-        
         _blk = UserBlock.query.filter(
             or_(
                 and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == uid),
@@ -504,6 +502,11 @@ def inbox():
 
     total_unread = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
 
+    # Redirect to most recent conversation if one exists
+    if conversations:
+        most_recent_id = conversations[0]["user"].id
+        return redirect(url_for("chat.conversation", other_id=most_recent_id))
+
     return render_template(
         "chat/inbox.html",
         conversations=conversations,
@@ -522,24 +525,7 @@ def conversation(other_id):
         flash("This user is not available.", "warning")
         return redirect(url_for('chat.inbox'))
 
-    # Mark incoming messages as read
-    Message.query.filter_by(
-        sender_id=other_id,
-        receiver_id=current_user.id,
-        is_read=False
-    ).update({"is_read": True})
-    db.session.commit()
-
-    messages = Message.query.filter(
-        or_(
-            and_(Message.sender_id == current_user.id, Message.receiver_id == other_id),
-            and_(Message.sender_id == other_id, Message.receiver_id == current_user.id)
-        )
-    ).order_by(Message.created_at.asc()).all()
-
-    messages = [m for m in messages if not (m.hidden_for and str(current_user.id) in m.hidden_for.split(','))]
-
-    # Build sidebar conversation list
+    # Build sidebar FIRST — captures unread counts before marking read
     sent_to       = db.session.query(Message.receiver_id).filter_by(sender_id=current_user.id)
     received_from = db.session.query(Message.sender_id).filter_by(receiver_id=current_user.id)
     contact_ids   = set(
@@ -556,9 +542,6 @@ def conversation(other_id):
         if not u or u.is_banned:
             continue
 
-        # ── block check — uses top-level or_ / and_ imports ──
-
-        # ── block check — uses top-level or_ / and_ imports ──
         _blk = UserBlock.query.filter(
             or_(
                 and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == uid),
@@ -575,14 +558,15 @@ def conversation(other_id):
             )
         ).order_by(Message.created_at.desc()).first()
 
+        # Count unread BEFORE marking as read so badge shows correctly
         unread_count = Message.query.filter_by(
             sender_id=uid, receiver_id=current_user.id, is_read=False
         ).count()
 
         conversations.append({
-            "user":         u,                    # fixed: was `u`
-            "display_name": get_display_name(u),  # fixed: was `u`
-            "company":      get_company_name(u),  # fixed: was `u`
+            "user":         u,
+            "display_name": get_display_name(u),
+            "company":      get_company_name(u),
             "last_message": last_msg,
             "unread_count": unread_count,
         })
@@ -592,13 +576,30 @@ def conversation(other_id):
         reverse=True
     )
 
+    # Mark incoming messages as read AFTER sidebar is built
+    Message.query.filter_by(
+        sender_id=other_id,
+        receiver_id=current_user.id,
+        is_read=False
+    ).update({"is_read": True})
+    db.session.commit()
+
+    # Active conversation messages
+    messages = Message.query.filter(
+        or_(
+            and_(Message.sender_id == current_user.id, Message.receiver_id == other_id),
+            and_(Message.sender_id == other_id, Message.receiver_id == current_user.id)
+        )
+    ).order_by(Message.created_at.asc()).all()
+
+    messages = [m for m in messages if not (m.hidden_for and str(current_user.id) in m.hidden_for.split(','))]
+
     total_unread = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
 
     is_following = Follow.query.filter_by(
         follower_id=current_user.id, followed_id=other_id
     ).first() is not None
 
-    # ── Pre-build reaction data for each message ──
     msg_ids = [m.id for m in messages]
     all_rxns = MessageReaction.query.filter(
         MessageReaction.message_id.in_(msg_ids)
@@ -622,7 +623,6 @@ def conversation(other_id):
         total_unread=total_unread,
         is_following=is_following,
     )
-
 
 # =========================
 # SEND MESSAGE  (AJAX POST)
