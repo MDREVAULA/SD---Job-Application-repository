@@ -13,13 +13,21 @@
                 <div class="job-meta">
                     <span>{{ applications|length }} Active</span>
                     <span class="meta-dot">•</span>
-                    <span>{{ archived_applications|length }} Archived</span>
-                    <span class="meta-dot">•</span>
                     <span>{{ applications | selectattr('status', 'equalto', 'accepted') | list | length }} Accepted</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ applications | selectattr('status', 'equalto', 'employed') | list | length }} Employed</span>
                 </div>
             </div>
         </div>
         <div class="nav-right">
+            <a href="{{ url_for('applicant.archived') }}" class="btn-secondary-nav">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="21 8 21 21 3 21 3 8"/>
+                    <rect x="1" y="3" width="22" height="5"/>
+                    <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+                Archived
+            </a>
             <a href="{{ url_for('auth.jobs') }}" class="btn-apply-nav">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -229,6 +237,7 @@
 
                         <td class="actions">
                             <div class="action-buttons">
+                                <!-- VIEW APPLICATION DETAIL -->
                                 <button class="action-btn" title="View Application"
                                         onclick="window.location.href='{{ url_for('applicant.application_detail', app_id=app.id) }}'">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -240,7 +249,8 @@
                                 {% if app.status|lower == 'accepted' %}
                                     {% if app.employee_record %}
                                         {% if app.employee_record.employment_status == 'active' %}
-                                        <a href="{{ url_for('employment.my_employment') }}"
+                                        <!-- Employed + active → go to THIS specific employment status -->
+                                        <a href="{{ url_for('employment.employment_status', app_id=app.id) }}"
                                            class="action-btn action-btn-employee" title="View Employment">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -249,6 +259,7 @@
                                         </a>
                                         {% endif %}
                                     {% else %}
+                                        <!-- Accepted but no employee record yet → submit documents -->
                                         <a href="{{ url_for('employment.submit_documents', app_id=app.id) }}"
                                            class="action-btn action-btn-onboard" title="Submit Employment Documents">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -260,7 +271,8 @@
                                         </a>
                                     {% endif %}
                                 {% elif app.status|lower == 'employed' %}
-                                    <a href="{{ url_for('employment.my_employment') }}"
+                                    <!-- Employed status → go to THIS specific employment status -->
+                                    <a href="{{ url_for('employment.employment_status', app_id=app.id) }}"
                                        class="action-btn action-btn-employee" title="View Employment">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -269,6 +281,7 @@
                                     </a>
                                 {% endif %}
 
+                                <!-- MEETING LINK -->
                                 {% if app.status|lower == 'interview' and app.meeting_link %}
                                 <a href="{{ app.meeting_link }}" target="_blank" class="action-btn action-btn-meeting" title="Join Online Meeting">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -317,135 +330,6 @@
         </div>
         {% endif %}
     </div>
-
-    <!-- ═══════════════════════════════════════
-         ARCHIVED APPLICATIONS
-         (rejected / resigned / fired)
-         Slot released — record preserved
-    ═══════════════════════════════════════ -->
-    {% if archived_applications %}
-    <div class="job-list-section archive-section">
-        <div class="section-header">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-secondary)">
-                    <polyline points="21 8 21 21 3 21 3 8"/>
-                    <rect x="1" y="3" width="22" height="5"/>
-                    <line x1="10" y1="12" x2="14" y2="12"/>
-                </svg>
-                <h2 class="section-title">Archived Applications</h2>
-                <span class="archive-count-badge">{{ archived_applications|length }}</span>
-            </div>
-            <span class="archive-note">Slot released — record kept for reference</span>
-        </div>
-
-        <div class="jobs-table-wrapper">
-            <table class="jobs-table archive-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Job Title</th>
-                        <th>Company</th>
-                        <th>Department</th>
-                        <th>Reason</th>
-                        <th>Applied Date</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for app in archived_applications %}
-                    {% set job = app.job %}
-                    {% set recruiter = job.company_id | get_recruiter_profile if job else None %}
-                    <tr class="job-row archive-row">
-                        <td class="row-number">{{ loop.index }}</td>
-
-                        <td class="job-title-cell">
-                            <div class="job-title-wrapper">
-                                <div class="company-logo">
-                                    {% if recruiter and recruiter.company_logo %}
-                                    <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter.company_logo) }}" alt="Logo">
-                                    {% else %}
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                                    </svg>
-                                    {% endif %}
-                                </div>
-                                <div class="job-info">
-                                    <div class="job-name">{{ job.title if job else 'Job Removed' }}</div>
-                                    <div class="job-meta-small">
-                                        {% if job and job.job_type %}{{ job.job_type }}{% endif %}
-                                        {% if job and job.location %} • {{ job.location }}{% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td class="company-name">
-                            {% if recruiter and recruiter.company_name %}{{ recruiter.company_name }}{% else %}Unknown Company{% endif %}
-                        </td>
-
-                        <td class="department">
-                            <span class="department-badge">{{ job.field if job and job.field else 'General' }}</span>
-                        </td>
-
-                        <td class="status">
-                            {% set s = app.status|lower %}
-                            {% if s == 'rejected' %}
-                            <span class="status-badge status-rejected">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                Rejected
-                            </span>
-                            {% elif s == 'resigned' %}
-                            <span class="status-badge status-resigned">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                                Resigned
-                            </span>
-                            {% elif s == 'fired' %}
-                            <span class="status-badge status-fired">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                Terminated
-                            </span>
-                            {% elif s == 'job removed' or s == 'job_removed' %}
-                            <span class="status-badge status-job-removed">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                Job Removed ⚠️
-                            </span>
-                            {% else %}
-                            <span class="status-badge status-pending">{{ app.status|capitalize }}</span>
-                            {% endif %}
-                        </td>
-
-                        <td class="date">
-                            {% if app.created_at %}{{ app.created_at.strftime('%b %d, %Y') }}{% else %}N/A{% endif %}
-                        </td>
-
-                        <td class="actions">
-                            <div class="action-buttons">
-                                <button class="action-btn" title="View Application"
-                                        onclick="window.location.href='{{ url_for('applicant.application_detail', app_id=app.id) }}'">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                        <circle cx="12" cy="12" r="3"/>
-                                    </svg>
-                                </button>
-                                {% if job and job.allow_applications %}
-                                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}"
-                                   class="action-btn action-btn-reapply" title="Re-apply for this job">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="1 4 1 10 7 10"/>
-                                        <path d="M3.51 15a9 9 0 1 0 .49-3.54"/>
-                                    </svg>
-                                </a>
-                                {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
 
 </div>
 

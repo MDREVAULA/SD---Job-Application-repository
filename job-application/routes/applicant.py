@@ -6,7 +6,7 @@ from models import (
     ApplicantEducation,
     Skill, Project, Certification,
     RecruiterNotification, HRNotification, ApplicantNotification,
-    SavedJob
+    SavedJob, Employee
 )
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
@@ -89,6 +89,7 @@ def gate_applicant_features():
         'applicant.upload_certificate', 'applicant.delete_certificate',
         'applicant.upload_experience_certificates',
         'applicant.delete_experience_certificate',
+        'applicant.archived',
         'auth.logout',
     }
 
@@ -796,11 +797,11 @@ def status():
     banned = check_banned()
     if banned:
         return banned
-
+ 
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
-
+ 
     applications = (
         Application.query
         .join(Job, Application.job_id == Job.id)
@@ -814,7 +815,23 @@ def status():
         .order_by(Application.created_at.desc())
         .all()
     )
+ 
+    return render_template(
+        'applicant/status.html',
+        applications=applications,
+    )
 
+@applicant_bp.route('/archived')
+@login_required
+def archived():
+    banned = check_banned()
+    if banned:
+        return banned
+ 
+    if current_user.role != 'applicant':
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+ 
     archived_applications = (
         Application.query
         .filter(
@@ -825,13 +842,11 @@ def status():
         .order_by(Application.created_at.desc())
         .all()
     )
-
+ 
     return render_template(
-        'applicant/status.html',
-        applications=applications,
+        'applicant/archived.html',
         archived_applications=archived_applications,
     )
-
 
 # ===============================
 # APPLICATION DETAIL PAGE
@@ -905,6 +920,10 @@ def job_details(job_id):
         Application.status.in_(_ACTIVE_STATUSES)
     ).count()
 
+    employee_count = Employee.query.join(
+        Job, Employee.job_id == Job.id
+    ).filter(Job.company_id == job.company_id).count()
+
     return render_template(
         "applicant/job_details.html",
         job=job,
@@ -912,6 +931,7 @@ def job_details(job_id):
         saved_job_ids=saved_job_ids,
         existing_application=existing_application,
         active_application_count=active_application_count,
+        employee_count=employee_count,   # ← add this
     )
 
 

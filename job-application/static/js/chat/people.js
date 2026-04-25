@@ -1,30 +1,55 @@
 // ============================================================
 // people.js — Follow/Unfollow + Message restriction notices
-// Enhanced version matching job-details design
 // ============================================================
+
+function getCsrf() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
 
 function toggleFollow(userId, btn) {
     fetch(`/chat/follow/${userId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrf(),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(r => r.json())
     .then(data => {
         if (data.error) return;
 
-        const isNowFollowing = data.action === "followed";
-        btn.classList.toggle("following", isNowFollowing);
-        btn.innerHTML = isNowFollowing
-            ? '<i class="fas fa-user-check"></i> Following'
-            : '<i class="fas fa-user-plus"></i> Follow';
-
-        // Update follower count
         const fc = document.getElementById(`fc-${userId}`);
-        if (fc) fc.textContent = data.follower_count;
+
+        if (data.action === 'followed') {
+            // Successfully followed (auto-approved)
+            btn.classList.remove('btn-outline-primary', 'btn-requested');
+            btn.classList.add('btn-primary', 'following');
+            btn.innerHTML = '<i class="fas fa-user-check"></i> Following';
+            if (fc && data.follower_count !== undefined) fc.textContent = data.follower_count;
+
+        } else if (data.action === 'unfollowed') {
+            // Unfollowed
+            btn.classList.remove('btn-primary', 'following', 'btn-requested');
+            btn.classList.add('btn-outline-primary');
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+            if (fc && data.follower_count !== undefined) fc.textContent = data.follower_count;
+
+        } else if (data.action === 'request_sent') {
+            // Follow request sent - needs approval
+            btn.classList.remove('btn-outline-primary', 'btn-primary', 'following');
+            btn.classList.add('btn-requested');
+            btn.innerHTML = '<i class="fas fa-hourglass-half"></i> Requested';
+            // Don't update follower count for pending requests
+
+        } else if (data.action === 'request_cancelled') {
+            // Follow request cancelled
+            btn.classList.remove('btn-primary', 'following', 'btn-requested');
+            btn.classList.add('btn-outline-primary');
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+        }
     })
-    .catch(err => {
-        console.error('Follow toggle error:', err);
-    });
+    .catch(err => console.error('Follow toggle error:', err));
 }
 
 // ── Message restriction toast ──
@@ -48,9 +73,9 @@ function showMsgRestriction(btn) {
         text = `You don't have permission to message ${displayName}.`;
     }
 
-    const toast    = document.getElementById('msgRestrictionToast');
-    const titleEl  = document.getElementById('msgToastTitle');
-    const textEl   = document.getElementById('msgToastText');
+    const toast   = document.getElementById('msgRestrictionToast');
+    const titleEl = document.getElementById('msgToastTitle');
+    const textEl  = document.getElementById('msgToastText');
 
     if (!toast || !titleEl || !textEl) return;
 
@@ -67,20 +92,16 @@ function closeMsgToast() {
     if (toast) toast.classList.remove('show');
 }
 
-// Close toast on outside click
 document.addEventListener('click', (e) => {
     const toast = document.getElementById('msgRestrictionToast');
     if (toast && toast.classList.contains('show')) {
         const toastInner = toast.querySelector('.msg-toast-inner');
-        if (!toastInner.contains(e.target) && !e.target.closest('.btn-message-restricted')) {
+        if (toastInner && !toastInner.contains(e.target) && !e.target.closest('.btn-message-restricted')) {
             closeMsgToast();
         }
     }
 });
 
-// Close toast on ESC key
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeMsgToast();
-    }
+    if (e.key === 'Escape') closeMsgToast();
 });

@@ -762,10 +762,9 @@
             </div>
           </div>
 
-          <!-- Company Information Grid -->
+          <!-- Company Overview Card -->
           <div class="content-card">
-            <h3 class="card-title-main">Company Information</h3>
-            
+            <h3 class="card-title-main">Company Overview</h3>
             <div class="company-info-grid">
               <div class="company-info-box">
                 <div class="info-box-header">
@@ -789,7 +788,7 @@
                   </div>
                   <h4 class="info-box-title">Industry</h4>
                 </div>
-                <p class="info-box-value">{{ job.field }}</p>
+                <p class="info-box-value">{{ job_owner.recruiter_profile.company_industry or job.field or 'Not specified' }}</p>
               </div>
 
               <div class="company-info-box">
@@ -797,25 +796,29 @@
                   <div class="info-box-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                      <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                       <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                   </div>
                   <h4 class="info-box-title">Company Size</h4>
                 </div>
-                <p class="info-box-value">Growing Company</p>
+                <p class="info-box-value">{{ employee_count }} Employee{{ 's' if employee_count != 1 else '' }}</p>
               </div>
 
               <div class="company-info-box">
                 <div class="info-box-header">
                   <div class="info-box-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
                     </svg>
                   </div>
-                  <h4 class="info-box-title">Founded</h4>
+                  <h4 class="info-box-title">Active Since</h4>
                 </div>
-                <p class="info-box-value">{{ job.created_at.strftime('%Y') if job.created_at else '2020' }}</p>
+                <p class="info-box-value">{{ job_owner.created_at.strftime('%Y') if job_owner.created_at else '—' }}</p>
               </div>
             </div>
           </div>
@@ -869,34 +872,33 @@
             </div>
           </div>
 
-          <!-- Hiring Manager Card -->
+          <!-- ========== HIRING TEAM CARD ========== -->
           <div class="content-card">
-            <h3 class="card-title-main">Meet the Hiring Manager</h3>
-            
-            <div class="hiring-manager-profile">
+            <h3 class="card-title-main" style="margin-bottom: 20px;">Hiring Team</h3>
+
+            <!-- Recruiter (always shown) -->
+            <div class="hiring-manager-profile" style="margin-bottom: {% if job.team_members %}20px{% else %}0{% endif %};">
               <div class="manager-avatar-section">
                 <div class="manager-avatar-large">
                   {% if job_owner.profile_picture %}
                     {% if job_owner.profile_picture.startswith('http') %}
-                    <img src="{{ job_owner.profile_picture }}" alt="Hiring Manager">
+                      <img src="{{ job_owner.profile_picture }}" alt="Hiring Manager">
                     {% else %}
-                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + job_owner.profile_picture) }}" alt="Hiring Manager">
+                      <img src="{{ url_for('static', filename='uploads/profile_pictures/' + job_owner.profile_picture) }}" alt="Hiring Manager">
                     {% endif %}
                   {% else %}
-                  <div class="manager-avatar-placeholder">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                  </div>
+                    <div class="manager-avatar-placeholder">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                    </div>
                   {% endif %}
                 </div>
               </div>
-
               <div class="manager-info-section">
                 <h4 class="manager-name">{{ job_owner.recruiter_profile.first_name }} {{ job_owner.recruiter_profile.surname }}</h4>
-                <p class="manager-role">Recruiter • {{ job_owner.recruiter_profile.company_name }}</p>
+                <p class="manager-role">Recruiter · {{ job_owner.recruiter_profile.company_name }}</p>
                 <p class="manager-bio">Passionate about connecting talented individuals with exciting career opportunities. I'm here to help you find your next great role!</p>
-                
                 <div class="manager-actions">
                   <a href="{{ url_for('profile_view.view_profile', user_id=job_owner.id) }}" class="btn-manager-profile">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -907,7 +909,63 @@
                 </div>
               </div>
             </div>
+
+            <!-- Assigned HR Team Members -->
+            {% set visible_members = [] %}
+            {% for member in job.team_members %}
+              {% if member.hr and not member.hr.is_banned and not member.hr.is_deleted %}
+                {% set _ = visible_members.append(member) %}
+              {% endif %}
+            {% endfor %}
+
+            {% if visible_members %}
+              <div class="divider-line"></div>
+              <h4 class="subsection-title" style="margin-bottom: 16px;">HR Team</h4>
+              {% for member in visible_members %}
+                {% set hr_user = member.hr %}
+                {% set hr_profile = hr_user.hr_profile %}
+                <div class="hiring-manager-profile" style="margin-bottom: {% if not loop.last %}20px{% else %}0{% endif %};">
+                  <div class="manager-avatar-section">
+                    <div class="manager-avatar-large">
+                      {% if hr_user.profile_picture %}
+                        {% if hr_user.profile_picture.startswith('http') %}
+                          <img src="{{ hr_user.profile_picture }}" alt="{{ hr_user.username }}">
+                        {% else %}
+                          <img src="{{ url_for('static', filename='uploads/profile_pictures/' + hr_user.profile_picture) }}" alt="{{ hr_user.username }}">
+                        {% endif %}
+                      {% else %}
+                        <div class="manager-avatar-placeholder">
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                          </svg>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="manager-info-section">
+                    <h4 class="manager-name">
+                      {% if hr_profile and (hr_profile.first_name or hr_profile.last_name) %}
+                        {{ hr_profile.first_name or '' }} {{ hr_profile.last_name or '' }}
+                      {% else %}
+                        {{ hr_user.username }}
+                      {% endif %}
+                    </h4>
+                    <p class="manager-role">HR · {{ job_owner.recruiter_profile.company_name }}</p>
+                    <p class="manager-bio">Part of the hiring team for this position, helping to review and manage applications.</p>
+                    <div class="manager-actions">
+                      <a href="{{ url_for('profile_view.view_profile', user_id=hr_user.id) }}" class="btn-manager-profile">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        View Full Profile
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% endif %}
           </div>
+          <!-- ========== END HIRING TEAM CARD ========== -->
 
           <!-- Why Join Us Card -->
           <div class="content-card highlight-card">

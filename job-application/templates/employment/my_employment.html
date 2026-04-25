@@ -6,7 +6,7 @@
 <div class="job-view-nav">
     <div class="nav-container">
         <div class="nav-left">
-            <a href="{{ url_for('applicant.profile') }}" class="back-btn">
+            <a href="{{ url_for('applicant.status') }}" class="back-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 18 9 12 15 6"/>
                 </svg>
@@ -51,12 +51,21 @@
 
             <!-- Cover Area -->
             <div class="emp-card-cover">
-                <div class="emp-cover-placeholder">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                    </svg>
-                </div>
+                {% if emp.job and emp.job.cover_photo %}
+                    <img
+                        src="{{ url_for('static', filename='uploads/job_covers/' + emp.job.cover_photo) }}"
+                        alt="{{ emp.job_title }}"
+                        class="emp-cover-img"
+                    >
+                {% else %}
+                    <div class="emp-cover-placeholder">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                        </svg>
+                    </div>
+                {% endif %}
+
                 <!-- Status Badge -->
                 {% if emp.employment_status == 'active' %}
                 <span class="emp-status-badge badge-active">

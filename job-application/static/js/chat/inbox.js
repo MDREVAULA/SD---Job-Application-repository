@@ -279,11 +279,23 @@ function toggleFollowHeader(userId, btn) {
     .then(r => r.json())
     .then(data => {
         if (data.error) return;
-        const isNowFollowing = data.action === 'followed';
-        btn.classList.toggle('following', isNowFollowing);
-        btn.innerHTML = isNowFollowing
-            ? '<i class="fas fa-user-check"></i> Following'
-            : '<i class="fas fa-user-plus"></i> Follow';
+ 
+        if (data.action === 'followed') {
+            btn.classList.add('following');
+            btn.innerHTML = '<i class="fas fa-user-check"></i> Following';
+ 
+        } else if (data.action === 'unfollowed') {
+            btn.classList.remove('following');
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+ 
+        } else if (data.action === 'request_sent') {
+            btn.classList.remove('following');
+            btn.innerHTML = '<i class="fas fa-hourglass-half"></i> Requested';
+ 
+        } else if (data.action === 'request_cancelled') {
+            btn.classList.remove('following');
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+        }
     });
 }
 
