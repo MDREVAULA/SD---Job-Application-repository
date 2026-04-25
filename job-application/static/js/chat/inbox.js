@@ -715,7 +715,9 @@ function ctxReportClick() {
     _ctxJustActioned = true;
     ctxTargetEl = null;
     hideContextMenu();
-    alert('Report submitted. Thank you for helping keep the platform safe.');
+    if (typeof pamOpenReport === 'function') {
+        pamOpenReport();
+    }
 }
 
 // ============================================================

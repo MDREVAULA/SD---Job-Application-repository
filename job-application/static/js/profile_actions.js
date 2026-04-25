@@ -458,12 +458,16 @@
         formData.append('description', desc);
         evidenceFiles.forEach(f => formData.append('evidence', f));
 
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         fetch(`/user/report/${uid}`, {
             method : 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            // NOTE: do NOT set Content-Type header — browser sets multipart boundary automatically
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken,
+            },
             body   : formData,
         })
+        
         .then(r => r.json())
         .then(data => {
             if (btn) {
