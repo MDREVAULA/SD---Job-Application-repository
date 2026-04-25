@@ -30,6 +30,7 @@
                 </div>
 
                 <!-- Action buttons -->
+                {% if not current_user.is_authenticated or current_user.role != 'admin' %}
                 <div class="pview-header-actions">
                     <div class="pam-wrap">
                         <button class="pam-trigger" id="pamTrigger" onclick="pamToggle()" aria-label="More options">
@@ -75,7 +76,9 @@
                         </a>
                     {% endif %}
                 </div>
+                {% endif %}
             </div>
+    
 
             <!-- Name / meta -->
             <div class="pview-header-info">

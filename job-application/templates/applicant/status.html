@@ -213,6 +213,11 @@
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                 Employed
                             </span>
+                            {% elif s == 'job removed' or s == 'job_removed' %}
+                            <span class="status-badge status-job-removed">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                Job Removed
+                            </span>
                             {% else %}
                             <span class="status-badge status-pending">{{ app.status|capitalize }}</span>
                             {% endif %}
@@ -399,6 +404,11 @@
                             <span class="status-badge status-fired">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                                 Terminated
+                            </span>
+                            {% elif s == 'job removed' or s == 'job_removed' %}
+                            <span class="status-badge status-job-removed">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                Job Removed ⚠️
                             </span>
                             {% else %}
                             <span class="status-badge status-pending">{{ app.status|capitalize }}</span>

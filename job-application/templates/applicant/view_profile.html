@@ -29,7 +29,8 @@
                     {% endif %}
                 </div>
 
-                <!-- Action buttons -->
+                <!-- Action buttons — hidden entirely for admin -->
+                {% if not current_user.is_authenticated or current_user.role != 'admin' %}
                 <div class="prof-header-actions">
                     <!-- More options (profile_actions.js) -->
                     <div class="pam-wrap">
@@ -72,6 +73,7 @@
                         </a>
                     {% endif %}
                 </div>
+                {% endif %}
             </div>
 
             <!-- Name / headline / meta -->

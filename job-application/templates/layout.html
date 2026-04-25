@@ -130,9 +130,11 @@
                     data-text="My Profile">My Profile</a>
                 {% endif %}
 
+                {% if current_user.role != 'admin' %}
                 <a href="{{ url_for('chat.inbox') }}" 
                 class="nav-link {% if 'chat.inbox' in request.endpoint %}active{% endif %}" 
                 data-text="Messages">Messages</a>
+                {% endif %}
             {% endif %}
             
             <a href="{{ url_for('auth.about') }}" 
@@ -295,13 +297,15 @@
                 <span>Browse Jobs</span>
             </a>
         </li>
+        {% if not current_user.is_authenticated or current_user.role != 'admin' %}
         <li>
             <a href="{{ url_for('chat.people') }}" class="sidebar-link">
                 <i class="fas fa-users"></i>
                 <span>People</span>
             </a>
         </li>
-        {% if current_user.is_authenticated %}
+        {% endif %}
+        {% if current_user.is_authenticated and current_user.role != 'admin' %}
         <li>
             <a href="{{ url_for('chat.inbox') }}" class="sidebar-link">
                 <i class="fas fa-comment-dots"></i>

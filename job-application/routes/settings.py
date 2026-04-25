@@ -22,7 +22,7 @@ def _role_allowed():
 
 
 # ─────────────────────────────────────────────────────────────
-#  GET  /settings   — render the settings page
+#  GET  /settings
 # ─────────────────────────────────────────────────────────────
 @settings_bp.route('/', methods=['GET'])
 @login_required
@@ -46,9 +46,9 @@ def settings_page():
     else:
         user_settings.profile_audience = []
 
-    # Load blocked users for the Blocked tab
+    # Load blocked users
     from models import UserBlock, User
-    blocked_rows = UserBlock.query.filter_by(blocker_id=current_user.id).all()
+    blocked_rows  = UserBlock.query.filter_by(blocker_id=current_user.id).all()
     blocked_users = []
     for row in blocked_rows:
         u = User.query.get(row.blocked_id)
@@ -58,11 +58,11 @@ def settings_page():
                 pic = u.profile_picture if u.profile_picture.startswith('http') \
                       else '/static/uploads/profile_pictures/' + u.profile_picture
             blocked_users.append({
-                'id':          u.id,
-                'username':    u.username,
-                'role':        u.role,
-                'pic':         pic,
-                'blocked_at':  row.created_at.strftime('%b %d, %Y'),
+                'id':         u.id,
+                'username':   u.username,
+                'role':       u.role,
+                'pic':        pic,
+                'blocked_at': row.created_at.strftime('%b %d, %Y'),
             })
 
     return render_template('settings.html', settings=user_settings, blocked_users=blocked_users)
@@ -77,7 +77,7 @@ def save_settings():
     if not _role_allowed():
         return jsonify({'success': False, 'message': 'Access denied.'}), 403
 
-    data = request.get_json(silent=True) or {}
+    data    = request.get_json(silent=True) or {}
     section = data.get('section', '')
 
     user_settings = UserSettings.query.filter_by(user_id=current_user.id).first()
@@ -100,40 +100,48 @@ def save_settings():
         if 'who_can_message' in data:
             user_settings.who_can_message = data['who_can_message']
 
-    # ── Auto-accept pending follow requests if profile is now open ──
+        # Auto-accept pending follow requests if profile is now open
         if 'show_profile' in data or 'profile_audience' in data:
-            from models import FollowRequest, Follow, User as UserModel
-            import json as _json
-
-            new_show   = user_settings.show_profile or 'everyone'
             try:
-                new_audience = _json.loads(user_settings.profile_audience_json) if user_settings.profile_audience_json else []
-            except Exception:
-                new_audience = []
+                from models import FollowRequest, Follow, User as UserModel
 
-            pending = FollowRequest.query.filter_by(
-                receiver_id=current_user.id, status='pending'
-            ).all()
+                new_show = user_settings.show_profile or 'everyone'
+                try:
+                    new_audience = json.loads(user_settings.profile_audience_json) \
+                                   if user_settings.profile_audience_json else []
+                except Exception:
+                    new_audience = []
 
-            for req in pending:
-                sender = UserModel.query.get(req.sender_id)
-                if not sender:
-                    continue
-                auto = False
-                if new_show == 'everyone':
-                    auto = True
-                elif new_show == 'specific':
-                    if sender.role == 'recruiter' and 'recruiter' in new_audience:
+                pending = FollowRequest.query.filter_by(
+                    receiver_id=current_user.id, status='pending'
+                ).all()
+
+                for req in pending:
+                    sender = UserModel.query.get(req.sender_id)
+                    if not sender:
+                        continue
+                    auto = False
+                    if new_show == 'everyone':
                         auto = True
-                    elif sender.role == 'hr' and 'hr' in new_audience:
-                        auto = True
-                if auto:
-                    req.status = 'accepted'
-                    exists = Follow.query.filter_by(
-                        follower_id=req.sender_id, followed_id=current_user.id
-                    ).first()
-                    if not exists:
-                        db.session.add(Follow(follower_id=req.sender_id, followed_id=current_user.id))
+                    elif new_show == 'specific':
+                        if sender.role == 'recruiter' and 'recruiter' in new_audience:
+                            auto = True
+                        elif sender.role == 'hr' and 'hr' in new_audience:
+                            auto = True
+                    if auto:
+                        req.status = 'accepted'
+                        exists = Follow.query.filter_by(
+                            follower_id=req.sender_id,
+                            followed_id=current_user.id
+                        ).first()
+                        if not exists:
+                            db.session.add(Follow(
+                                follower_id=req.sender_id,
+                                followed_id=current_user.id
+                            ))
+            except Exception as e:
+                # Never let the follow-request logic crash the whole save
+                print(f'[settings] follow-request auto-accept error: {e}')
 
     # ── Notifications ─────────────────────────────────────────
     elif section == 'notifications':
@@ -145,9 +153,8 @@ def save_settings():
     # ── Security (2FA toggle) ─────────────────────────────────
     elif section == 'security':
         if 'two_factor' in data:
-            user_settings.two_factor = bool(data['two_factor'])
-            # Clear any leftover code when toggling
-            user_settings.two_factor_code   = None
+            user_settings.two_factor        = bool(data['two_factor'])
+            user_settings.two_factor_code   = None   # clear any leftover PIN
             user_settings.two_factor_expiry = None
 
     # ── Email ─────────────────────────────────────────────────
@@ -168,6 +175,8 @@ def save_settings():
         new_pass     = data.get('new_password', '')
         confirm_pass = data.get('confirm_password', '')
 
+        if not current_user.password:
+            return jsonify({'success': False, 'message': 'Password change not available for Google accounts.'}), 400
         if not check_password_hash(current_user.password, current_pass):
             return jsonify({'success': False, 'message': 'Current password is incorrect.'}), 400
         if new_pass != confirm_pass:
@@ -200,6 +209,8 @@ def save_settings():
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Database error. Please try again.'}), 500
 
 

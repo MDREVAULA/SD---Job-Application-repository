@@ -1282,17 +1282,30 @@ function admSubmitTakedown(jobId) {
     const duration = document.querySelector('input[name="duration"]:checked').value;
     const reason   = document.getElementById('admTdReason').value.trim();
     const days     = duration === 'permanent' ? null : parseInt(duration);
- 
+    const csrf     = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
     fetch(`/admin/job/${jobId}/takedown`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf,
+        },
         body: JSON.stringify({ reason, days })
     })
     .then(r => r.json())
     .then(data => {
-        if (data.ok) { admCloseTakedown(); location.reload(); }
-        else alert(data.error || 'Something went wrong.');
-    })
+    if (data.ok) { 
+        admCloseTakedown(); 
+        // Show success toast before reload
+        const toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#4D774E;color:white;padding:12px 24px;border-radius:10px;font-weight:600;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.2);';
+        toast.textContent = data.message || 'Job taken down successfully.';
+        document.body.appendChild(toast);
+        setTimeout(() => location.reload(), 1800);
+    } else {
+        alert(data.error || 'Something went wrong.');
+    }
+})
     .catch(() => alert('Something went wrong.'));
 }
  

@@ -916,3 +916,9 @@
     background: #FCEBEB;
     color: #791F1F;
 }
+
+.status-job-removed {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}

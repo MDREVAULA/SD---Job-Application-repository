@@ -262,7 +262,6 @@
     </main>
 </div>
 
-<!-- ── CONTEXT MENU ── -->
 <div class="bubble-context-menu" id="bubbleContextMenu">
     <button class="ctx-item" id="ctxReply" onclick="ctxReplyClick()">
         <i class="fas fa-reply"></i> Reply
@@ -289,8 +288,14 @@
     const CURRENT_USER_ID  = {{ current_user.id }};
     const ACTIVE_DISP_NAME = {{ active_display_name | tojson }};
     let lastMessageId      = {{ messages[-1].id if messages else 0 }};
+    window.PROFILE_USER_ID = {{ active_user.id }};
 </script>
 {% endif %}
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile_actions.css') }}">
 <script src="{{ url_for('static', filename='js/chat/inbox.js') }}"></script>
+{% if active_user %}
+<script src="{{ url_for('static', filename='js/profile_actions.js') }}"></script>
+{% endif %}
+
 {% endblock %}

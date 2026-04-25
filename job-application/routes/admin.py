@@ -889,7 +889,9 @@ def takedown_job(job_id):
     if current_user.role != 'admin':
         return jsonify({'error': 'Forbidden'}), 403
 
-    from models import Job, RecruiterNotification
+    from models import (Job, RecruiterNotification, ApplicantNotification,
+                        HRNotification, Application, get_ph_time)
+
     job = db.session.get(Job, job_id)
     if not job:
         return jsonify({'error': 'Job not found'}), 404
@@ -898,37 +900,102 @@ def takedown_job(job_id):
     reason = (data.get('reason') or '').strip() or 'Violated platform guidelines.'
     days   = data.get('days')
 
-    # ── Fixed column names ──
-    job.is_taken_down   = True
-    job.takedown_reason = reason
-    job.taken_down_at   = get_ph_time()
+    try:
+        job.is_taken_down   = True
+        job.takedown_reason = reason
+        job.taken_down_at   = get_ph_time()
+        job.takedown_until  = (
+            get_ph_time() + timedelta(days=int(days))
+            if days and str(days).isdigit() and int(days) > 0
+            else None
+        )
 
-    if days and str(days).isdigit() and int(days) > 0:
-        job.takedown_until = get_ph_time() + timedelta(days=int(days))
-    else:
-        job.takedown_until = None
+        # ── 1. Notify recruiter ──
+        db.session.add(RecruiterNotification(
+            recruiter_id = job.company_id,
+            type         = 'job_takedown',
+            message      = (
+                f'Your job posting <strong>"{job.title}"</strong> has been taken down by an admin. '
+                f'Reason: {reason}. '
+                + (f'It will be restored after {days} day(s) if resolved.'
+                   if days else 'Contact support to resolve this.')
+            ),
+            job_id = job.id,
+        ))
 
-    notif = RecruiterNotification(
-        recruiter_id = job.company_id,
-        type         = 'job_takedown',
-        message      = (
-            f'Your job posting <strong>"{job.title}"</strong> has been temporarily taken down by an admin. '
-            f'Reason: {reason}. '
-            + (f'It will be restored after {days} day(s) if resolved.'
-               if days else 'Please contact support to resolve this.')
-        ),
-        job_id = job.id,
-    )
-    db.session.add(notif)
-    db.session.commit()
+        # ── 2. Active applicants ──
+        try:
+            active_apps = Application.query.filter(
+                Application.job_id == job_id,
+                Application.status.in_(['Pending', 'Interview', 'Under Review'])
+            ).all()
+            for app in active_apps:
+                app.status = 'Job Removed'
+                db.session.add(ApplicantNotification(
+                    applicant_id = app.applicant_id,
+                    type         = 'job_update',
+                    job_id       = job.id,
+                    message      = (
+                        f'⚠️ The job <strong>"{job.title}"</strong> you applied to has been '
+                        f'removed by an admin for policy violations. '
+                        f'Your application is now marked <strong>Job Removed</strong>. '
+                        f'We recommend caution if you have been in contact with this employer outside the platform.'
+                    ),
+                ))
+        except Exception as e:
+            print(f'[TAKEDOWN] applicant notify error: {e}')
 
-    push_admin_notif(
-        'job_takedown',
-        f'Job <strong>"{job.title}"</strong> taken down by admin.',
-        user_id=job.company_id,
-    )
+        # ── 3. Saved jobs ──
+        try:
+            from models import SavedJob
+            saved = SavedJob.query.filter_by(job_id=job_id).all()
+            for s in saved:
+                db.session.add(ApplicantNotification(
+                    applicant_id = s.applicant_id,
+                    type         = 'job_update',
+                    job_id       = job.id,
+                    message      = (
+                        f'A job you saved — <strong>"{job.title}"</strong> — '
+                        f'has been removed from the platform and is no longer available.'
+                    ),
+                ))
+                db.session.delete(s)
+        except Exception as e:
+            print(f'[TAKEDOWN] saved job error: {e}')
 
-    return jsonify({'ok': True, 'message': f'Job "{job.title}" has been taken down.'})
+        # ── 4. HR team members ──
+        try:
+            from models import JobTeamMember
+            hr_members = JobTeamMember.query.filter_by(job_id=job_id).all()
+            for member in hr_members:
+                db.session.add(HRNotification(
+                    hr_id   = member.hr_id,
+                    type    = 'job_update',
+                    job_id  = job.id,
+                    message = (
+                        f'⚠️ The job <strong>"{job.title}"</strong> you were assigned to '
+                        f'has been taken down by an admin. Reason: {reason}.'
+                    ),
+                ))
+        except Exception as e:
+            print(f'[TAKEDOWN] HR notify error: {e}')
+
+        db.session.commit()
+
+        push_admin_notif(
+            'job_takedown',
+            f'Job <strong>"{job.title}"</strong> taken down by admin.',
+            user_id=job.company_id,
+        )
+
+        return jsonify({'ok': True, 'message': f'Job "{job.title}" taken down successfully.'})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f'[TAKEDOWN ERROR] {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 # ==============================
@@ -940,24 +1007,42 @@ def restore_job(job_id):
     if current_user.role != 'admin':
         return jsonify({'error': 'Forbidden'}), 403
 
-    from models import Job, RecruiterNotification
+    from models import Job, RecruiterNotification, ApplicantNotification, Application
+
     job = db.session.get(Job, job_id)
     if not job:
         return jsonify({'error': 'Job not found'}), 404
 
-    # ── Fixed column names ──
     job.is_taken_down   = False
     job.takedown_reason = None
     job.takedown_until  = None
     job.taken_down_at   = None
 
-    notif = RecruiterNotification(
+    db.session.add(RecruiterNotification(
         recruiter_id = job.company_id,
         type         = 'job_restored',
         message      = f'Your job posting <strong>"{job.title}"</strong> has been restored and is now visible again.',
         job_id       = job.id,
-    )
-    db.session.add(notif)
+    ))
+
+    # Notify applicants whose applications were marked Job Removed
+    removed_apps = Application.query.filter_by(
+        job_id=job_id, status='Job Removed'
+    ).all()
+
+    for app in removed_apps:
+        app.status = 'Pending'
+        db.session.add(ApplicantNotification(
+            applicant_id = app.applicant_id,
+            type         = 'job_update',
+            job_id       = job.id,
+            message      = (
+                f'Good news! The job posting <strong>"{job.title}"</strong> '
+                f'has been restored. Your application status has been reset to '
+                f'<strong>Pending</strong>.'
+            ),
+        ))
+
     db.session.commit()
 
     return jsonify({'ok': True, 'message': f'Job "{job.title}" has been restored.'})

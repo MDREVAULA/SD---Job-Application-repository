@@ -32,7 +32,9 @@
                 </div>
 
                 <!-- Action buttons -->
+                 
                 <div class="pview-header-actions">
+                    {% if not current_user.is_authenticated or current_user.role != 'admin' %}
                     <div class="pam-wrap">
                         <button class="pam-trigger" id="pamTrigger" onclick="pamToggle()" aria-label="More options">
                             <span></span>
@@ -40,7 +42,7 @@
                             <span></span>
                         </button>
                     </div>
-
+                    {%endif%}
                     <!-- Verification badge -->
                     <div class="pview-verification-badge
                         {% if viewed_user.verification_status == 'Approved' %}badge-verified
@@ -54,7 +56,7 @@
                             <i class="fas fa-times-circle"></i> Not Verified
                         {% endif %}
                     </div>
-
+                    {% if not current_user.is_authenticated or current_user.role != 'admin' %}
                     {% if current_user.is_authenticated %}
                         <!-- Follow button -->
                         <button
@@ -67,6 +69,7 @@
                                 <i class="fas fa-user-plus"></i> Follow
                             {% endif %}
                         </button>
+                    
 
                         <!-- Message button -->
                         {% if can_message %}
@@ -85,6 +88,7 @@
                            class="pview-action-btn pview-action-btn-primary">
                             <i class="fas fa-user-plus"></i> Join to Connect
                         </a>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>
