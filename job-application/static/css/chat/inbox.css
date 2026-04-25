@@ -42,6 +42,12 @@
     transition: background 0.3s ease;
 }
 
+/* Keep toolbar visible while its context menu is open */
+.message-bubble.menu-open .bubble-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 /* ── SIDEBAR ── */
 .inbox-sidebar {
     width: 320px;
@@ -859,7 +865,7 @@
    ============================================================ */
 .bubble-context-menu {
     position: fixed;
-    z-index: 9999;
+    z-index: 900;   /* was 9999 — must be below navbar */
     background: var(--chat-surface);
     border: 1px solid var(--chat-border);
     border-radius: 10px;

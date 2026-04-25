@@ -3,15 +3,11 @@
 //            + Reply / Edit / Unsend + Reactions
 // ============================================================
 
-// Variables injected by the template before this file loads:
-//   RECEIVER_ID, CURRENT_USER_ID, ACTIVE_DISP_NAME, lastMessageId
-
-// ── STATE ──
 let replyToId   = null;
 let editMsgId   = null;
 let ctxTargetEl = null;
+let _activeMenuAnchorBtn = null;
 
-// ── REACTION CONFIG ──
 const REACTIONS = [
     { key: "like",  emoji: "👍", label: "Like"  },
     { key: "heart", emoji: "❤️", label: "Heart" },
@@ -21,7 +17,6 @@ const REACTIONS = [
     { key: "angry", emoji: "😡", label: "Angry" },
 ];
 
-// ── EMOJI DATA ──
 const EMOJI_DATA = {
     smileys: [
         '😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃',
@@ -94,21 +89,30 @@ const EMOJI_DATA = {
     ]
 };
 
-// ── AUTO-RESIZE TEXTAREA ──
+function csrfFetch(url, options = {}) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    return fetch(url, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+            ...(options.headers || {}),
+        }
+    });
+}
+
 function autoResize(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
-// ── SCROLL TO BOTTOM ──
 function scrollToBottom() {
     const thread = document.getElementById('messageThread');
     if (thread) thread.scrollTop = thread.scrollHeight;
 }
 
-// ── ESCAPE HTML ──
 function escapeHtml(str) {
-    return str
+    return String(str)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -116,7 +120,6 @@ function escapeHtml(str) {
         .replace(/\n/g, "<br>");
 }
 
-// ── BUILD REACTION BAR HTML ──
 function buildReactionBarHtml(counts, myReaction) {
     if (!counts || Object.keys(counts).length === 0) return '';
     const chips = REACTIONS
@@ -129,7 +132,13 @@ function buildReactionBarHtml(counts, myReaction) {
     return chips ? `<div class="reaction-bar">${chips}</div>` : '';
 }
 
-// ── APPEND A MESSAGE BUBBLE ──
+function removeBubbleFromDom(el) {
+    el.style.transition = 'opacity 0.25s, transform 0.25s';
+    el.style.opacity    = '0';
+    el.style.transform  = 'scale(0.92)';
+    setTimeout(() => el.remove(), 270);
+}
+
 function appendBubble(msg) {
     const thread = document.getElementById('messageThread');
     if (!thread) return;
@@ -139,8 +148,8 @@ function appendBubble(msg) {
 
     const div = document.createElement('div');
     div.className = `message-bubble ${msg.is_mine ? 'mine' : 'theirs'}`;
-    div.dataset.msgId  = msg.id;
-    div.dataset.isMine = msg.is_mine ? 'true' : 'false';
+    div.dataset.msgId      = msg.id;
+    div.dataset.isMine     = msg.is_mine ? 'true' : 'false';
     div.dataset.myReaction = '';
 
     let replyHtml = '';
@@ -177,7 +186,6 @@ function appendBubble(msg) {
     lastMessageId = msg.id;
 }
 
-// ── SEND ON ENTER ──
 function handleKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -206,9 +214,8 @@ function sendMessage() {
     input.style.height = 'auto';
     cancelReply();
 
-    fetch(`/chat/send/${RECEIVER_ID}`, {
+    csrfFetch(`/chat/send/${RECEIVER_ID}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     })
     .then(r => r.json())
@@ -218,22 +225,44 @@ function sendMessage() {
     });
 }
 
-// ── POLL NEW MESSAGES ──
 function poll() {
-    fetch(`/chat/poll/${RECEIVER_ID}?since=${lastMessageId}`)
+    const knownIds = Array.from(
+        document.querySelectorAll('.message-bubble[data-msg-id]')
+    ).map(el => el.dataset.msgId).join(',');
+
+    fetch(`/chat/poll/${RECEIVER_ID}?since=${lastMessageId}&known_ids=${knownIds}`)
         .then(r => r.json())
-        .then(messages => {
-            messages.forEach(msg => {
+        .then(data => {
+            const newMsgs = Array.isArray(data) ? data : (data.messages || []);
+            const edited  = Array.isArray(data) ? [] : (data.edited  || []);
+            const deleted = Array.isArray(data) ? [] : (data.deleted || []);
+
+            newMsgs.forEach(msg => {
                 if (!msg.is_mine) {
                     appendBubble(msg);
                 } else if (msg.id > lastMessageId) {
                     lastMessageId = msg.id;
                 }
             });
+
+            edited.forEach(msg => {
+                const bubble = document.querySelector(`.message-bubble[data-msg-id="${msg.id}"]`);
+                if (!bubble) return;
+                const textEl = bubble.querySelector('.bubble-text');
+                if (textEl) textEl.innerHTML = escapeHtml(msg.body);
+                const timeEl = bubble.querySelector('.bubble-time');
+                if (timeEl && !timeEl.querySelector('.edited-label')) {
+                    timeEl.insertAdjacentHTML('beforeend', ' <span class="edited-label">· edited</span>');
+                }
+            });
+
+            deleted.forEach(msgId => {
+                const bubble = document.querySelector(`.message-bubble[data-msg-id="${msgId}"]`);
+                if (bubble) removeBubbleFromDom(bubble);
+            });
         });
 }
 
-// ── POLL REACTIONS (real-time reaction sync) ──
 function pollReactions() {
     fetch(`/chat/poll-reactions/${RECEIVER_ID}`)
         .then(r => r.json())
@@ -242,13 +271,11 @@ function pollReactions() {
                 updateReactionBar(parseInt(msgId), info.counts, info.my_reaction);
             });
         })
-        .catch(() => {
-            // Silently ignore network errors for reaction polling
-        });
+        .catch(() => {});
 }
 
 function toggleFollowHeader(userId, btn) {
-    fetch(`/chat/follow/${userId}`, { method: 'POST' })
+    csrfFetch(`/chat/follow/${userId}`, { method: 'POST' })
     .then(r => r.json())
     .then(data => {
         if (data.error) return;
@@ -264,12 +291,12 @@ function toggleFollowHeader(userId, btn) {
 //  REACTION PICKER
 // ============================================================
 
-let reactionPickerEl = null;      // the floating picker DOM node
-let reactionPickerMsgId = null;   // which bubble it's attached to
+let reactionPickerEl    = null;
+let reactionPickerMsgId = null;
 
 function createReactionPicker() {
     const el = document.createElement('div');
-    el.id = 'reactionPicker';
+    el.id        = 'reactionPicker';
     el.className = 'bubble-reaction-picker';
     el.innerHTML = REACTIONS.map(r =>
         `<button class="rp-btn" data-r="${r.key}" title="${r.label}" onclick="pickReaction('${r.key}', this)">
@@ -284,9 +311,8 @@ function createReactionPicker() {
 function showReactionPicker(triggerEl, msgId) {
     if (!reactionPickerEl) reactionPickerEl = createReactionPicker();
 
-    // Mark current user's reaction
     const bubble = document.querySelector(`.message-bubble[data-msg-id="${msgId}"]`);
-    const myR = bubble ? (bubble.dataset.myReaction || '') : '';
+    const myR    = bubble ? (bubble.dataset.myReaction || '') : '';
     reactionPickerEl.querySelectorAll('.rp-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.r === myR);
     });
@@ -294,17 +320,14 @@ function showReactionPicker(triggerEl, msgId) {
     reactionPickerMsgId = msgId;
     reactionPickerEl.classList.add('open');
 
-    // Position above the trigger button
     const rect = triggerEl.getBoundingClientRect();
     const pw   = reactionPickerEl.offsetWidth  || 260;
     const ph   = reactionPickerEl.offsetHeight || 60;
     let x = rect.left + rect.width / 2 - pw / 2;
     let y = rect.top - ph - 8;
-
     if (x < 8) x = 8;
     if (x + pw > window.innerWidth - 8) x = window.innerWidth - pw - 8;
     if (y < 8) y = rect.bottom + 8;
-
     reactionPickerEl.style.left = x + 'px';
     reactionPickerEl.style.top  = y + 'px';
 }
@@ -317,16 +340,11 @@ function hideReactionPicker() {
 function pickReaction(reactionKey, btn) {
     const msgId = reactionPickerMsgId;
     if (!msgId) return;
-
-    // Optimistically toggle active state in picker
     reactionPickerEl.querySelectorAll('.rp-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-
     hideReactionPicker();
-
-    fetch(`/chat/react/${msgId}`, {
+    csrfFetch(`/chat/react/${msgId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reaction: reactionKey })
     })
     .then(r => r.json())
@@ -336,17 +354,13 @@ function pickReaction(reactionKey, btn) {
     });
 }
 
-// Called when user clicks an existing chip under a bubble
 function onChipClick(chipEl) {
     const bubble = chipEl.closest('.message-bubble');
     if (!bubble) return;
-
-    const msgId  = parseInt(bubble.dataset.msgId);
-    const rKey   = chipEl.dataset.r;
-
-    fetch(`/chat/react/${msgId}`, {
+    const msgId = parseInt(bubble.dataset.msgId);
+    const rKey  = chipEl.dataset.r;
+    csrfFetch(`/chat/react/${msgId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reaction: rKey })
     })
     .then(r => r.json())
@@ -359,10 +373,7 @@ function onChipClick(chipEl) {
 function updateReactionBar(msgId, counts, myReaction) {
     const bubble = document.querySelector(`.message-bubble[data-msg-id="${msgId}"]`);
     if (!bubble) return;
-
-    // Store my reaction on the bubble for picker to read later
     bubble.dataset.myReaction = myReaction || '';
-
     let wrap = bubble.querySelector('.reaction-bar-wrap');
     if (!wrap) {
         wrap = document.createElement('div');
@@ -372,13 +383,11 @@ function updateReactionBar(msgId, counts, myReaction) {
     wrap.innerHTML = buildReactionBarHtml(counts, myReaction);
 }
 
-// ── BUBBLE REACT BUTTON CLICK ──
 function bubbleReact(e, btn) {
     e.stopPropagation();
     const bubble = btn.closest('.message-bubble');
     if (!bubble) return;
     const msgId = parseInt(bubble.dataset.msgId);
-
     if (reactionPickerEl && reactionPickerEl.classList.contains('open') && reactionPickerMsgId === msgId) {
         hideReactionPicker();
         return;
@@ -391,25 +400,69 @@ function bubbleReact(e, btn) {
 // ============================================================
 const ctxMenu = () => document.getElementById('bubbleContextMenu');
 
+function positionMenuNearBtn(btn) {
+    const menu      = ctxMenu();
+    const rect      = btn.getBoundingClientRect();
+    const mw        = menu.offsetWidth  || 160;
+    const mh        = menu.offsetHeight || 180;
+
+    // Boundaries: top = bottom of chat header, bottom = top of input bar
+    const chatHeader = document.querySelector('.chat-header');
+    const inputBar   = document.querySelector('.message-input-bar');
+    const topBound   = chatHeader ? chatHeader.getBoundingClientRect().bottom : 64;
+    const botBound   = inputBar  ? inputBar.getBoundingClientRect().top      : window.innerHeight - 80;
+
+    let x = rect.left;
+    let y = rect.bottom + 6;
+
+    // Prefer above the button if below would overflow
+    if (y + mh > botBound) y = rect.top - mh - 6;
+
+    // If it still goes out of bounds on either edge, close instead
+    if (y < topBound || y + mh > botBound) {
+        hideContextMenu();
+        return;
+    }
+
+    if (x + mw > window.innerWidth) x = window.innerWidth - mw - 8;
+
+    menu.style.left = x + 'px';
+    menu.style.top  = y + 'px';
+}
+
 function showContextMenu(e, bubbleEl) {
     e.preventDefault();
-    ctxTargetEl = bubbleEl;
-    const menu  = ctxMenu();
+    ctxTargetEl  = bubbleEl;
+    const menu   = ctxMenu();
     const isMine = bubbleEl.dataset.isMine === 'true';
+
     menu.querySelectorAll('.ctx-mine-only').forEach(el => {
         el.style.display = isMine ? 'flex' : 'none';
     });
+
+    const removeForYouBtn = document.getElementById('ctxRemoveForYou');
+    if (removeForYouBtn) removeForYouBtn.style.display = 'flex';
+
     menu.classList.add('open');
+
+    // Right-click: position at cursor, not anchored to a button
+    _activeMenuAnchorBtn = null;
     const mw = menu.offsetWidth, mh = menu.offsetHeight;
     let x = e.clientX, y = e.clientY;
     if (x + mw > window.innerWidth)  x = window.innerWidth  - mw - 8;
     if (y + mh > window.innerHeight) y = window.innerHeight - mh - 8;
     menu.style.left = x + 'px';
     menu.style.top  = y + 'px';
+
+    // Keep toolbar visible on the right-clicked bubble
+    document.querySelectorAll('.message-bubble.menu-open').forEach(b => b.classList.remove('menu-open'));
+    bubbleEl.classList.add('menu-open');
 }
 
 function hideContextMenu() {
     ctxMenu().classList.remove('open');
+    document.querySelectorAll('.message-bubble.menu-open').forEach(b => b.classList.remove('menu-open'));
+    _activeMenuAnchorBtn = null;
 }
 
 let _ctxJustActioned = false;
@@ -446,14 +499,27 @@ function ctxUnsendClick() {
     ctxTargetEl = null;
     hideContextMenu();
     if (!confirm('Unsend this message? It will be removed for everyone.')) return;
-    fetch(`/chat/unsend/${msgId}`, { method: 'POST' })
+    csrfFetch(`/chat/unsend/${msgId}`, { method: 'POST' })
     .then(r => r.json())
     .then(data => {
         if (data.error) { alert(data.error); return; }
-        el.style.transition = 'opacity 0.25s, transform 0.25s';
-        el.style.opacity    = '0';
-        el.style.transform  = 'scale(0.92)';
-        setTimeout(() => el.remove(), 270);
+        removeBubbleFromDom(el);
+    });
+}
+
+function ctxRemoveForYouClick() {
+    if (!ctxTargetEl) return;
+    const msgId = parseInt(ctxTargetEl.dataset.msgId);
+    const el    = ctxTargetEl;
+    _ctxJustActioned = true;
+    ctxTargetEl = null;
+    hideContextMenu();
+    if (!confirm('Remove this message for you only? The other person can still see it.')) return;
+    csrfFetch(`/chat/remove-for-me/${msgId}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { alert(data.error); return; }
+        removeBubbleFromDom(el);
     });
 }
 
@@ -471,7 +537,7 @@ function startReply(msgId, author, bodyText) {
     if (editBar) editBar.style.display = 'none';
     const sendBtn = document.getElementById('sendBtn');
     if (sendBtn) sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-    replyToId = msgId;
+    replyToId            = msgId;
     authorEl.textContent = author;
     textEl.textContent   = bodyText.length > 70 ? bodyText.substring(0, 70) + '…' : bodyText;
     bar.style.display    = 'flex';
@@ -483,9 +549,9 @@ function cancelReply() {
     const bar      = document.getElementById('replyPreviewBar');
     const authorEl = document.getElementById('replyPreviewAuthor');
     const textEl   = document.getElementById('replyPreviewText');
-    if (bar)      bar.style.display     = 'none';
-    if (authorEl) authorEl.textContent  = '';
-    if (textEl)   textEl.textContent    = '';
+    if (bar)      bar.style.display    = 'none';
+    if (authorEl) authorEl.textContent = '';
+    if (textEl)   textEl.textContent   = '';
 }
 
 // ============================================================
@@ -503,8 +569,8 @@ function startEdit(msgId, currentText) {
     if (bar)      bar.style.display    = 'none';
     if (authorEl) authorEl.textContent = '';
     if (textEl)   textEl.textContent   = '';
-    editMsgId         = msgId;
-    input.value       = currentText;
+    editMsgId              = msgId;
+    input.value            = currentText;
     autoResize(input);
     input.focus();
     input.selectionStart = input.selectionEnd = input.value.length;
@@ -517,9 +583,9 @@ function cancelEdit() {
     const editBar = document.getElementById('editModeBar');
     const input   = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
-    if (editBar) editBar.style.display  = 'none';
+    if (editBar) editBar.style.display = 'none';
     if (input)   { input.value = ''; input.style.height = 'auto'; }
-    if (sendBtn) sendBtn.innerHTML      = '<i class="fas fa-paper-plane"></i>';
+    if (sendBtn) sendBtn.innerHTML     = '<i class="fas fa-paper-plane"></i>';
 }
 
 function saveEdit() {
@@ -528,9 +594,8 @@ function saveEdit() {
     if (!body) return;
     const msgId = editMsgId;
     cancelEdit();
-    fetch(`/chat/edit/${msgId}`, {
+    csrfFetch(`/chat/edit/${msgId}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body })
     })
     .then(r => r.json())
@@ -555,10 +620,10 @@ function buildEmojiGrid(category) {
     if (!grid) return;
     grid.innerHTML = '';
     (EMOJI_DATA[category] || []).forEach(emoji => {
-        const btn = document.createElement('button');
-        btn.className = 'emoji-btn';
+        const btn       = document.createElement('button');
+        btn.className   = 'emoji-btn';
         btn.textContent = emoji;
-        btn.type = 'button';
+        btn.type        = 'button';
         btn.addEventListener('click', () => insertEmoji(emoji));
         grid.appendChild(btn);
     });
@@ -604,7 +669,7 @@ function initEmojiPicker() {
 //  BUBBLE HOVER TOOLBAR
 // ============================================================
 function bubbleReplyBtn(btn) {
-    const bubble = btn.closest('.message-bubble');
+    const bubble   = btn.closest('.message-bubble');
     if (!bubble) return;
     const msgId    = parseInt(bubble.dataset.msgId);
     const isMine   = bubble.dataset.isMine === 'true';
@@ -618,29 +683,39 @@ function bubbleMoreBtn(e, btn) {
     e.stopPropagation();
     const bubble = btn.closest('.message-bubble');
     if (!bubble) return;
-    ctxTargetEl = bubble;
+
     const menu   = ctxMenu();
     const isMine = bubble.dataset.isMine === 'true';
+
+    // Toggle off if already open for this exact button
+    if (menu.classList.contains('open') && _activeMenuAnchorBtn === btn) {
+        hideContextMenu();
+        return;
+    }
+
+    ctxTargetEl          = bubble;
+    _activeMenuAnchorBtn = btn;
+
     menu.querySelectorAll('.ctx-mine-only').forEach(el => {
         el.style.display = isMine ? 'flex' : 'none';
     });
+
+    const removeForYouBtn = document.getElementById('ctxRemoveForYou');
+    if (removeForYouBtn) removeForYouBtn.style.display = 'flex';
+
+    // Mark this bubble so its toolbar stays visible
+    document.querySelectorAll('.message-bubble.menu-open').forEach(b => b.classList.remove('menu-open'));
+    bubble.classList.add('menu-open');
+
     menu.classList.add('open');
-    const rect = btn.getBoundingClientRect();
-    const mw   = menu.offsetWidth;
-    const mh   = menu.offsetHeight;
-    let x = rect.left;
-    let y = rect.bottom + 6;
-    if (x + mw > window.innerWidth)  x = window.innerWidth  - mw - 8;
-    if (y + mh > window.innerHeight) y = rect.top - mh - 6;
-    menu.style.left = x + 'px';
-    menu.style.top  = y + 'px';
+    positionMenuNearBtn(btn);
 }
 
 function ctxReportClick() {
     _ctxJustActioned = true;
     ctxTargetEl = null;
     hideContextMenu();
-    alert('Report submitted. Thank you for helping keep HireBon safe.');
+    alert('Report submitted. Thank you for helping keep the platform safe.');
 }
 
 // ============================================================
@@ -649,11 +724,13 @@ function ctxReportClick() {
 function initContextMenu() {
     const thread = document.getElementById('messageThread');
     if (!thread) return;
+
     thread.addEventListener('contextmenu', (e) => {
         const bubble = e.target.closest('.message-bubble');
         if (!bubble) return;
         showContextMenu(e, bubble);
     });
+
     let pressTimer = null;
     thread.addEventListener('touchstart', (e) => {
         const bubble = e.target.closest('.message-bubble');
@@ -669,24 +746,34 @@ function initContextMenu() {
     thread.addEventListener('touchend', () => {
         clearTimeout(pressTimer);
     }, { passive: true });
+
+    // Reposition dropdown when thread scrolls
+    thread.addEventListener('scroll', () => {
+        const menu = ctxMenu();
+        if (menu.classList.contains('open') && _activeMenuAnchorBtn) {
+            positionMenuNearBtn(_activeMenuAnchorBtn);
+        }
+    }, { passive: true });
+
     document.addEventListener('click', (e) => {
         if (_ctxJustActioned) { _ctxJustActioned = false; return; }
         const menu = ctxMenu();
         if (menu && !menu.contains(e.target)) {
             menu.classList.remove('open');
+            document.querySelectorAll('.message-bubble.menu-open').forEach(b => b.classList.remove('menu-open'));
+            _activeMenuAnchorBtn = null;
             ctxTargetEl = null;
         }
-        // Hide reaction picker on outside click
         if (reactionPickerEl && reactionPickerEl.classList.contains('open')) {
             if (!reactionPickerEl.contains(e.target) && !e.target.closest('.bubble-action-react')) {
                 hideReactionPicker();
             }
         }
     });
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            ctxMenu().classList.remove('open');
-            ctxTargetEl = null;
+            hideContextMenu();
             cancelReply();
             cancelEdit();
             hideReactionPicker();
@@ -702,14 +789,9 @@ document.addEventListener('DOMContentLoaded', function () {
     initEmojiPicker();
     initContextMenu();
 
-    // Load existing reactions for all bubbles on page load
     document.querySelectorAll('.message-bubble[data-msg-id]').forEach(bubble => {
         let rawCounts = {};
-        try {
-            rawCounts = JSON.parse(bubble.dataset.reactionCounts || '{}');
-        } catch(e) {
-            rawCounts = {};
-        }
+        try { rawCounts = JSON.parse(bubble.dataset.reactionCounts || '{}'); } catch(e) {}
         const myReaction = bubble.dataset.myReaction || '';
         if (Object.keys(rawCounts).length > 0) {
             updateReactionBar(parseInt(bubble.dataset.msgId), rawCounts, myReaction);
@@ -717,9 +799,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     if (typeof RECEIVER_ID !== 'undefined') {
-        // Poll new messages every 3 seconds
         setInterval(poll, 3000);
-        // Poll reactions every 3 seconds for real-time reaction updates
         setInterval(pollReactions, 3000);
     }
 });

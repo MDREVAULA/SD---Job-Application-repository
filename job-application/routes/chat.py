@@ -537,6 +537,8 @@ def conversation(other_id):
         )
     ).order_by(Message.created_at.asc()).all()
 
+    messages = [m for m in messages if not (m.hidden_for and str(current_user.id) in m.hidden_for.split(','))]
+
     # Build sidebar conversation list
     sent_to       = db.session.query(Message.receiver_id).filter_by(sender_id=current_user.id)
     received_from = db.session.query(Message.sender_id).filter_by(receiver_id=current_user.id)
@@ -717,6 +719,8 @@ def poll_messages(other_id):
         Message.id > since_id
     ).order_by(Message.created_at.asc()).all()
 
+    new_messages = [m for m in new_messages if not (m.hidden_for and str(current_user.id) in m.hidden_for.split(','))]
+
     # Mark incoming as read
     for m in new_messages:
         if m.receiver_id == current_user.id and not m.is_read:
@@ -725,10 +729,37 @@ def poll_messages(other_id):
 
     other_display = get_display_name(other)
 
-    return jsonify([
-        serialize_message(m, current_user.id, other_display)
-        for m in new_messages
-    ])
+    # Edited messages the client already knows about (id <= since_id)
+    edited_messages = Message.query.filter(
+        or_(
+            and_(Message.sender_id == current_user.id, Message.receiver_id == other_id),
+            and_(Message.sender_id == other_id,        Message.receiver_id == current_user.id)
+        ),
+        Message.edited == True,
+        Message.id <= since_id
+    ).all() if since_id > 0 else []
+
+    # Deleted / hidden: client sends comma-separated known_ids; we return which are gone or hidden for current user
+    known_ids_param = request.args.get("known_ids", "")
+    client_known = set(int(i) for i in known_ids_param.split(",") if i.strip().isdigit())
+    deleted_ids = []
+    if client_known:
+        existing_msgs = Message.query.filter(
+            Message.id.in_(client_known)
+        ).all()
+        existing_map = {m.id: m for m in existing_msgs}
+        for kid in client_known:
+            msg_obj = existing_map.get(kid)
+            if msg_obj is None:
+                deleted_ids.append(kid)
+            elif msg_obj.hidden_for and str(current_user.id) in msg_obj.hidden_for.split(','):
+                deleted_ids.append(kid)
+
+    return jsonify({
+        "messages": [serialize_message(m, current_user.id, other_display) for m in new_messages],
+        "edited":   [{"id": m.id, "body": m.body} for m in edited_messages],
+        "deleted":  deleted_ids,
+    })
 
 
 # =========================
@@ -834,6 +865,23 @@ def unsend_message(msg_id):
 
     return jsonify({"deleted": True, "id": msg_id})
 
+@chat_bp.route("/remove-for-me/<int:msg_id>", methods=["POST"])
+@login_required
+def remove_for_me(msg_id):
+    msg = Message.query.get_or_404(msg_id)
+    if not (msg.sender_id == current_user.id or msg.receiver_id == current_user.id):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    # Store which users have hidden this message
+    if not msg.hidden_for:
+        msg.hidden_for = str(current_user.id)
+    else:
+        ids = msg.hidden_for.split(',')
+        if str(current_user.id) not in ids:
+            ids.append(str(current_user.id))
+            msg.hidden_for = ','.join(ids)
+    db.session.commit()
+    return jsonify({"deleted": True, "id": msg_id})
 
 # =========================
 # REACT MESSAGE  (AJAX POST)

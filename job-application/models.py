@@ -699,6 +699,8 @@ class Message(db.Model):
         backref="replies"
     )
 
+    hidden_for = db.Column(db.String(255), nullable=True)
+
 
 # =========================
 # MESSAGE REACTION TABLE

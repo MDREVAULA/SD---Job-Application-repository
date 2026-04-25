@@ -136,7 +136,6 @@
                         {% set ns.prev_date = msg_date %}
                     {% endif %}
 
-                    {# ── Build reaction counts dict safely in Python-passed reaction_map ── #}
                     {%- set rxn_data    = reaction_map.get(msg.id, {'counts': {}, 'my_reaction': ''}) -%}
                     {%- set rxn_counts  = rxn_data['counts'] -%}
                     {%- set my_reaction = rxn_data['my_reaction'] -%}
@@ -179,7 +178,6 @@
                         {% if msg.edited %}<span class="edited-label"> · edited</span>{% endif %}
                     </div>
 
-                    {# ── REACTION BAR rendered by JS on DOMContentLoaded ── #}
                     <div class="reaction-bar-wrap"></div>
                 </div>
                 {% endfor %}
@@ -191,7 +189,7 @@
             {% endif %}
         </div>
 
-        <!-- ── REPLY PREVIEW BAR (shown above input when replying) ── -->
+        <!-- ── REPLY PREVIEW BAR ── -->
         <div class="reply-preview-bar" id="replyPreviewBar" style="display:none;">
             <div class="reply-preview-inner">
                 <div class="reply-preview-line"></div>
@@ -205,7 +203,7 @@
             </button>
         </div>
 
-        <!-- ── EDIT MODE BAR (shown above input when editing) ── -->
+        <!-- ── EDIT MODE BAR ── -->
         <div class="edit-mode-bar" id="editModeBar" style="display:none;">
             <div class="edit-mode-inner">
                 <i class="fas fa-pen" style="color:var(--chat-primary); font-size:0.8rem;"></i>
@@ -218,8 +216,6 @@
 
         <!-- MESSAGE INPUT -->
         <div class="message-input-bar">
-
-            <!-- EMOJI PICKER -->
             <div class="emoji-picker-wrapper">
                 <button class="emoji-toggle-btn" id="emojiToggleBtn" type="button" title="Emoji">
                     <i class="far fa-smile"></i>
@@ -253,7 +249,6 @@
         </div>
 
         {% else %}
-        <!-- NO CONVERSATION SELECTED -->
         <div class="no-chat-selected">
             <i class="fas fa-comments"></i>
             <h3>Your Messages</h3>
@@ -267,7 +262,7 @@
     </main>
 </div>
 
-<!-- ── CONTEXT MENU (right-click on bubble) ── -->
+<!-- ── CONTEXT MENU ── -->
 <div class="bubble-context-menu" id="bubbleContextMenu">
     <button class="ctx-item" id="ctxReply" onclick="ctxReplyClick()">
         <i class="fas fa-reply"></i> Reply
@@ -276,7 +271,11 @@
         <i class="fas fa-pen"></i> Edit
     </button>
     <button class="ctx-item ctx-mine-only ctx-danger" id="ctxUnsend" onclick="ctxUnsendClick()">
-        <i class="fas fa-trash"></i> Unsend
+        <i class="fas fa-trash"></i> Unsend for Everyone
+    </button>
+    <div class="ctx-divider"></div>
+    <button class="ctx-item ctx-danger" id="ctxRemoveForYou" onclick="ctxRemoveForYouClick()">
+        <i class="fas fa-eye-slash"></i> Remove for You
     </button>
     <div class="ctx-divider"></div>
     <button class="ctx-item ctx-danger" id="ctxReport" onclick="ctxReportClick()">
@@ -285,7 +284,6 @@
 </div>
 
 {% if active_user %}
-<!-- Inject conversation variables for inbox.js -->
 <script>
     const RECEIVER_ID      = {{ active_user.id }};
     const CURRENT_USER_ID  = {{ current_user.id }};
