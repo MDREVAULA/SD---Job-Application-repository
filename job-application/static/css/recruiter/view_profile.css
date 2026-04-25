@@ -308,15 +308,15 @@
 }
 
 .pview-role-pill.role-recruiter {
-    background: #EAF3DE;
-    border-color: #C0DD97;
-    color: #27500A;
+    background: rgba(241, 178, 74, 0.15);
+    color: #b07000;
+    border: 1px solid rgba(241, 178, 74, 0.4);
 }
 
 .pview-role-pill.role-hr {
-    background: #FAEEDA;
-    border-color: #FAC775;
-    color: #633806;
+    background: rgba(77, 108, 119, 0.1);
+    color: #2271b1;
+    border: 1px solid #64b5f6;
 }
 
 /* Social links */
@@ -1465,15 +1465,15 @@
 [data-theme="dark"] .follow-modal-empty i { color: rgba(157,200,141,0.2); }
 
 [data-theme="dark"] .pview-role-pill.role-recruiter {
-    background: rgba(39,80,10,0.2);
-    border-color: rgba(192,221,151,0.3);
-    color: #9DC88D;
+    background: rgba(241, 178, 74, 0.18);
+    color: #F1B24A;
+    border: 1px solid rgba(241, 178, 74, 0.35);
 }
 
 [data-theme="dark"] .pview-role-pill.role-hr {
-    background: rgba(99,56,6,0.2);
-    border-color: rgba(250,199,117,0.3);
-    color: #F5C97A;
+    background: rgba(77, 101, 119, 0.506);
+    color: #64b4f6;
+    border: 1px solid #64b4f6e9;
 }
 
 [data-theme="dark"] .pview-role-pill.role-applicant {

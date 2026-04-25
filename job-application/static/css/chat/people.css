@@ -302,15 +302,15 @@
 }
 
 .card-cover.role-applicant {
-  background: linear-gradient(135deg, #164A41 0%, #0d2e28 100%)
+  background: #164A41;
 }
 
 .card-cover.role-recruiter {
-  background: linear-gradient(135deg, #F1B24A 0%, #e09a30 100%);
+  background: var(--brand-accent);
 }
 
 .card-cover.role-hr {
-  background: linear-gradient(135deg, #9DC88D 0%, #4D774E 100%);
+  background: #2271b1;
 }
 
 /* Avatar */
@@ -443,8 +443,8 @@
 }
 
 .person-role-pill.role-hr {
-  background: rgba(157, 200, 141, 0.2);
-  color: #164A41;
+  background: #2271b1;
+  color: #64b5f6;
   border: 1px solid rgba(157, 200, 141, 0.5);
 }
 
@@ -879,9 +879,9 @@
 }
 
 .person-role-pill.role-hr {
-  background: rgba(157, 200, 141, 0.18);
-  color: #9DC88D;
-  border: 1px solid rgba(157, 200, 141, 0.35);
+  background: rgba(77, 101, 119, 0.506);
+  color: #64b4f6;
+  border: 1px solid #64b4f6e9;
 }
 
 /* LIGHT MODE — use dark colors for readability on white */
@@ -898,7 +898,7 @@
 }
 
 [data-theme="light"] .person-role-pill.role-hr {
-  background: rgba(77, 119, 78, 0.1);
-  color: #164A41;
-  border: 1px solid rgba(77, 119, 78, 0.3);
+  background: rgba(77, 108, 119, 0.1);
+  color: #2271b1;
+  border: 1px solid #64b5f6;
 }

@@ -1,0 +1,373 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/applicant/status.css') }}">
+
+<!-- TOP NAVIGATION BAR -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="{{ url_for('applicant.status') }}" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">MY APPLICATIONS</div>
+                <h1 class="job-title-main">Archived Applications</h1>
+                <div class="job-meta">
+                    <span>{{ archived_applications|length }} Archived</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ archived_applications | selectattr('status', 'equalto', 'rejected') | list | length }} Rejected</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ archived_applications | selectattr('status', 'equalto', 'resigned') | list | length }} Resigned</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ archived_applications | selectattr('status', 'equalto', 'fired') | list | length }} Terminated</span>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <a href="{{ url_for('auth.jobs') }}" class="btn-apply-nav">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                Browse Jobs
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="job-list-wrapper">
+
+    <!-- STATS CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Total Archived</span>
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="21 8 21 21 3 21 3 8"/>
+                        <rect x="1" y="3" width="22" height="5"/>
+                        <line x1="10" y1="12" x2="14" y2="12"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value">{{ archived_applications|length }} Records</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Rejected</span>
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value">{{ archived_applications | selectattr('status', 'equalto', 'rejected') | list | length }} Rejected</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-label">Resigned / Terminated</span>
+                <div class="stat-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value">
+                {{ (archived_applications | selectattr('status', 'equalto', 'resigned') | list | length) +
+                   (archived_applications | selectattr('status', 'equalto', 'fired') | list | length) }} Records
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         ARCHIVED APPLICATIONS TABLE
+    ═══════════════════════════════════════ -->
+    <div class="job-list-section archive-section-page">
+        <div class="section-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-secondary)">
+                    <polyline points="21 8 21 21 3 21 3 8"/>
+                    <rect x="1" y="3" width="22" height="5"/>
+                    <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+                <h2 class="section-title">Archived Applications</h2>
+                <span class="archive-count-badge">{{ archived_applications|length }}</span>
+            </div>
+
+            <div class="section-controls">
+                <!-- SEARCH -->
+                <div class="search-box-inline">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="archiveSearchInput" placeholder="Search job or company..." oninput="applyArchiveFilters()">
+                </div>
+
+                <!-- STATUS FILTER -->
+                <div class="date-filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    <select id="archiveStatusFilter" onchange="applyArchiveFilters()">
+                        <option value="all">All Reasons</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="resigned">Resigned</option>
+                        <option value="fired">Terminated</option>
+                    </select>
+                </div>
+
+                <!-- SORT -->
+                <div class="date-filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/>
+                    </svg>
+                    <select id="archiveSortSelect" onchange="applyArchiveFilters()">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="a-z">Company A-Z</option>
+                        <option value="z-a">Company Z-A</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="jobs-table-wrapper">
+            {% if not archived_applications %}
+            <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <polyline points="21 8 21 21 3 21 3 8"/>
+                    <rect x="1" y="3" width="22" height="5"/>
+                    <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+                <h3>No archived applications</h3>
+                <p>Rejected, resigned, or terminated applications will appear here</p>
+            </div>
+            {% else %}
+            <table class="jobs-table archive-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Department</th>
+                        <th>Reason</th>
+                        <th>Applied Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="archiveTableBody">
+                    {% for app in archived_applications %}
+                    {% set job = app.job %}
+                    {% set recruiter = job.company_id | get_recruiter_profile if job else None %}
+                    <tr class="job-row archive-row"
+                        data-title="{{ job.title|lower if job else '' }}"
+                        data-company="{{ recruiter.company_name|lower if recruiter and recruiter.company_name else '' }}"
+                        data-status="{{ app.status|lower }}"
+                        data-date="{{ app.created_at.strftime('%Y%m%d%H%M%S') if app.created_at else '00000000000000' }}">
+
+                        <td class="row-number">{{ loop.index }}</td>
+
+                        <td class="job-title-cell">
+                            <div class="job-title-wrapper">
+                                <div class="company-logo">
+                                    {% if recruiter and recruiter.company_logo %}
+                                    <img src="{{ url_for('static', filename='uploads/company_logos/' + recruiter.company_logo) }}" alt="Logo">
+                                    {% else %}
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                    </svg>
+                                    {% endif %}
+                                </div>
+                                <div class="job-info">
+                                    <div class="job-name">{{ job.title if job else 'Job Removed' }}</div>
+                                    <div class="job-meta-small">
+                                        {% if job and job.job_type %}{{ job.job_type }}{% endif %}
+                                        {% if job and job.location %} • {{ job.location }}{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="company-name">
+                            {% if recruiter and recruiter.company_name %}{{ recruiter.company_name }}{% else %}Unknown Company{% endif %}
+                        </td>
+
+                        <td class="department">
+                            <span class="department-badge">{{ job.field if job and job.field else 'General' }}</span>
+                        </td>
+
+                        <td class="status">
+                            {% set s = app.status|lower %}
+                            {% if s == 'rejected' %}
+                            <span class="status-badge status-rejected">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="15" y1="9" x2="9" y2="15"/>
+                                    <line x1="9" y1="9" x2="15" y2="15"/>
+                                </svg>
+                                Rejected
+                            </span>
+                            {% elif s == 'resigned' %}
+                            <span class="status-badge status-resigned">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Resigned
+                            </span>
+                            {% elif s == 'fired' %}
+                            <span class="status-badge status-fired">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+                                    <line x1="15" y1="9" x2="9" y2="15"/>
+                                    <line x1="9" y1="9" x2="15" y2="15"/>
+                                </svg>
+                                Terminated
+                            </span>
+                            {% else %}
+                            <span class="status-badge status-pending">{{ app.status|capitalize }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="date">
+                            {% if app.created_at %}{{ app.created_at.strftime('%b %d, %Y') }}{% else %}N/A{% endif %}
+                        </td>
+
+                        <td class="actions">
+                            <div class="action-buttons">
+                                <button class="action-btn" title="View Application"
+                                        onclick="window.location.href='{{ url_for('applicant.application_detail', app_id=app.id) }}'">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                                {% if job and job.allow_applications %}
+                                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}"
+                                   class="action-btn action-btn-reapply" title="Re-apply for this job">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="1 4 1 10 7 10"/>
+                                        <path d="M3.51 15a9 9 0 1 0 .49-3.54"/>
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div id="archiveNoResults" class="empty-state" style="display:none;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <h3>No results found</h3>
+                <p>Try adjusting your search or filter</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ================================
+// ARCHIVED APPLICATIONS - JavaScript
+// ================================
+let allArchiveRows = [];
+
+document.addEventListener('DOMContentLoaded', function () {
+    const tbody = document.getElementById('archiveTableBody');
+    if (tbody) {
+        allArchiveRows = Array.from(tbody.querySelectorAll('.archive-row'));
+    }
+
+    // Animate rows on load
+    allArchiveRows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 30);
+    });
+});
+
+function applyArchiveFilters() {
+    const search = (document.getElementById('archiveSearchInput')?.value || '').toLowerCase().trim();
+    const status = document.getElementById('archiveStatusFilter')?.value || 'all';
+    const sort   = document.getElementById('archiveSortSelect')?.value  || 'newest';
+
+    // Filter
+    allArchiveRows.forEach(row => {
+        const title   = row.dataset.title   || '';
+        const company = row.dataset.company || '';
+        const rowStatus = row.dataset.status || '';
+
+        const matchesSearch = !search || title.includes(search) || company.includes(search);
+        const matchesStatus = status === 'all' || rowStatus === status;
+
+        row.classList.toggle('hidden', !(matchesSearch && matchesStatus));
+    });
+
+    // Sort visible rows
+    const tbody = document.getElementById('archiveTableBody');
+    if (!tbody) return;
+
+    const visible = allArchiveRows.filter(r => !r.classList.contains('hidden'));
+    visible.sort((a, b) => {
+        switch (sort) {
+            case 'newest':  return b.dataset.date.localeCompare(a.dataset.date);
+            case 'oldest':  return a.dataset.date.localeCompare(b.dataset.date);
+            case 'a-z':     return a.dataset.company.localeCompare(b.dataset.company);
+            case 'z-a':     return b.dataset.company.localeCompare(a.dataset.company);
+            default:        return 0;
+        }
+    });
+
+    visible.forEach(row => tbody.appendChild(row));
+
+    // Re-number
+    let idx = 1;
+    allArchiveRows.forEach(row => {
+        const num = row.querySelector('.row-number');
+        if (!num) return;
+        if (row.classList.contains('hidden')) {
+            num.style.opacity = '0';
+        } else {
+            num.textContent = idx++;
+            num.style.opacity = '1';
+        }
+    });
+
+    // Show/hide no-results
+    const noResults = document.getElementById('archiveNoResults');
+    if (noResults) {
+        noResults.style.display = visible.length === 0 ? 'block' : 'none';
+    }
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        const input = document.getElementById('archiveSearchInput');
+        if (input) { input.focus(); input.select(); }
+    }
+});
+</script>
+
+{% endblock %}

@@ -94,7 +94,7 @@
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--brand-accent);
     text-transform: uppercase;
 }
 
@@ -122,6 +122,18 @@
     padding: 24px;
     background: var(--bg-primary);
     min-height: calc(100vh - 65px);
+}
+
+.emp-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+ 
+.emp-record-card:hover .emp-cover-img {
+    transform: scale(1.04);
 }
 
 /* ===== EMPTY STATE ===== */
@@ -390,27 +402,28 @@
 .emp-record-btn svg { flex-shrink: 0; }
 
 .emp-record-btn-primary {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
+    border-color: var(--brand-green);
+    background: var(--brand-green);
+    color: #ffffff;
 }
 
 .emp-record-btn-primary:hover {
-    background: var(--accent-primary);
+    background: var(--brand-green-dark);
     color: white;
+    border-color: var(--brand-green-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(77, 119, 78, 0.3);
 }
 
 .emp-record-btn-warning {
-    border-color: var(--warning);
-    color: var(--warning);
+    border-color: var(--brand-accent);
+    background: var(--brand-accent);
+    color: white;
 }
 
 .emp-record-btn-warning:hover {
-    background: var(--warning);
-    color: white;
+    background: var(--brand-accent-dark);
+    border-color: var(--brand-accent-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(241, 178, 74, 0.3);
 }
 
 /* ===== SUBMIT BUTTON (empty state) ===== */

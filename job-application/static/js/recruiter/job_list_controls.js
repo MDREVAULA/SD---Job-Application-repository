@@ -276,10 +276,23 @@ document.addEventListener('DOMContentLoaded', function () {
             confirmBtn.disabled = true;
             confirmBtn.textContent = 'Deleting…';
             try {
+                // Get CSRF token from the meta tag or cookie
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
                 const res = await fetch(`/recruiter/force-delete-job/${deleteJobId}`, {
                     method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken || ''
+                    }
                 });
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error('Server error:', res.status, text);
+                    throw new Error(`Server returned ${res.status}`);
+                }
+
                 const data = await res.json();
                 if (data.success) {
                     const row = document.querySelector(`tr[data-job-id="${deleteJobId}"]`);
@@ -296,12 +309,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     confirmBtn.textContent = 'Delete permanently';
                 }
             } catch (err) {
-                alert('Network error. Please try again.');
+                console.error('Delete error:', err);
+                alert('Delete failed: ' + err.message);
                 confirmBtn.disabled = false;
                 confirmBtn.textContent = 'Delete permanently';
             }
         });
-    }
+}
 
     const modal = document.getElementById('deleteModal');
     if (modal) {

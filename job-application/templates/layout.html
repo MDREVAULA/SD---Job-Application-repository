@@ -437,17 +437,24 @@
             </a>
             <ul class="submenu">
                 <li>
-                    <a href="{{ url_for('applicant.saved_jobs') }}"
-                       class="{% if request.endpoint == 'applicant.saved_jobs' %}active{% endif %}">
-                        <i class="fas fa-bookmark"></i>
-                        <span>Saved Jobs</span>
-                    </a>
-                </li>
-                <li>
                     <a href="{{ url_for('applicant.status') }}"
                        class="{% if request.endpoint == 'applicant.status' %}active{% endif %}">
                         <i class="fas fa-paper-plane"></i>
                         <span>Status</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('employment.my_employment') }}"
+                    class="{% if request.endpoint == 'employment.my_employment' %}active{% endif %}">
+                        <i class="fa fa-address-book"></i>
+                        <span>My Employment</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('applicant.saved_jobs') }}"
+                       class="{% if request.endpoint == 'applicant.saved_jobs' %}active{% endif %}">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Saved Jobs</span>
                     </a>
                 </li>
             </ul>

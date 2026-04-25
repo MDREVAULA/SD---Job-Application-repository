@@ -59,7 +59,7 @@
 }
 
 .meta-dot {
-    color: var(--brand-green);
+    color: var(--brand-green-dark);
 }
 
 /* Main Wrapper */
@@ -91,7 +91,7 @@
 .stat-card:hover {
     box-shadow: 0 4px 16px var(--shadow-color);
     transform: translateY(-2px);
-    border-color: var(--brand-green);
+    border-color: var(--brand-green-dark);
 }
 
 .stat-header {
@@ -206,7 +206,7 @@
 }
 
 .section-title svg {
-    color: var(--brand-green);
+    color: var(--brand-green-dark);
 }
 
 .section-controls {
@@ -224,7 +224,7 @@
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--brand-green);
+    color: var(--brand-green-dark);
     pointer-events: none;
 }
 
@@ -241,7 +241,7 @@
 
 .search-box-inline input:focus {
     outline: none;
-    border-color: var(--brand-green);
+    border-color: var(--brand-green-dark);
     box-shadow: 0 0 0 3px rgba(157, 200, 141, 0.15);
 }
 
@@ -269,8 +269,8 @@
 }
 
 .filter-btn-modern:hover {
-    background: var(--brand-green);
-    border-color: var(--brand-green);
+    background: var(--brand-green-dark);
+    border-color: var(--brand-green-dark);
     color: white;
 }
 
@@ -316,7 +316,7 @@
 }
 
 .filter-option-modern svg {
-    color: var(--brand-green);
+    color: var(--brand-green-dark);
 }
 
 .filter-option-modern:hover {
@@ -352,13 +352,13 @@
 }
 
 .status-filter-btn:hover {
-    border-color: var(--brand-green);
-    color: var(--brand-green);
+    border-color: var(--brand-green-dark);
+    color: var(--brand-green-dark);
 }
 
 .status-filter-btn.active {
-    background: var(--brand-green);
-    border-color: var(--brand-green);
+    background: var(--brand-green-dark);
+    border-color: var(--brand-green-dark);
     color: white;
 }
 
@@ -389,11 +389,11 @@
 }
 
 .form-group-modern label svg {
-    color: var(--brand-green);
+    color: var(--brand-green-dark);
 }
 
 .form-group-modern .required {
-    color: var(--brand-danger);
+    color: var(--brand-green-dark);
 }
 
 .form-group-modern input {
@@ -410,7 +410,7 @@
 
 .form-group-modern input:focus {
     outline: none;
-    border-color: var(--brand-green);
+    border-color: var(--brand-green-dark);
     box-shadow: 0 0 0 3px rgba(157, 200, 141, 0.15);
 }
 
@@ -426,7 +426,7 @@
     gap: 8px;
     width: 100%;
     padding: 12px 20px;
-    background: var(--brand-green);
+    background: var(--brand-accent);
     color: white;
     border: none;
     border-radius: 8px;
@@ -437,7 +437,7 @@
 }
 
 .btn-create-modern:hover {
-    background: var(--brand-green-dark);
+    background: var(--brand-accent-dark);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(77, 119, 78, 0.3);
 }
@@ -1059,11 +1059,11 @@
 }
 
 .hra-notification-success {
-    border-left: 4px solid var(--brand-green);
+    border-left: 4px solid var(--brand-green-dark);
 }
 
 .hra-notification-success svg {
-    color: var(--brand-green);
+    color: var(--brand-green-dark);
 }
 
 .hra-notification-error {
@@ -1122,7 +1122,7 @@
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    background: var(--brand-green);
+    background: var(--brand-green-dark);
     color: white;
     border: none;
     border-radius: 6px;

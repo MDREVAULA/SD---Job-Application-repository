@@ -186,12 +186,14 @@
           {% if current_user.is_authenticated %}
       
             <button
-              class="btn-follow {% if card.is_following %}following{% endif %}"
+              class="btn-follow {% if card.is_following %}following{% elif card.has_pending_request %}requested{% endif %}"
               id="follow-btn-{{ card.id }}"
               onclick="toggleFollow({{ card.id }}, this)"
             >
               {% if card.is_following %}
                 <i class="fas fa-user-check"></i> Following
+              {% elif card.has_pending_request %}
+                <i class="fas fa-hourglass-half"></i> Requested
               {% else %}
                 <i class="fas fa-user-plus"></i> Follow
               {% endif %}

@@ -118,6 +118,8 @@
                 >
                     {% if is_following %}
                         <i class="fas fa-user-check"></i> Following
+                    {% elif has_pending_request %}
+                        <i class="fas fa-hourglass-half"></i> Requested
                     {% else %}
                         <i class="fas fa-user-plus"></i> Follow
                     {% endif %}

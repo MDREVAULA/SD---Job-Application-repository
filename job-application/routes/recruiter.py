@@ -1261,11 +1261,16 @@ def edit_job(job_id):
 
     assigned_hr_ids = {tm.hr_id for tm in job.team_members}
 
+    employee_count = Employee.query.join(
+        Job, Employee.job_id == Job.id
+    ).filter(Job.company_id == current_user.id).count()
+
     return render_template(
         "recruiter/edit_job.html",
         job=job,
         hr_list=hr_list,
         assigned_hr_ids=assigned_hr_ids,
+        employee_count=employee_count, 
     )
 
 

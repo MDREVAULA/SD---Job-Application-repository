@@ -66,6 +66,25 @@
     gap: 16px;
 }
 
+.back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: var(--bg-hover);
+}
+
 .job-title-section {
     display: flex;
     flex-direction: column;
@@ -76,7 +95,7 @@
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--brand-accent);
     text-transform: uppercase;
 }
 
@@ -120,6 +139,35 @@
     border: 1px solid var(--accent-primary);
     color: #ffffff !important; 
     text-decoration: none !important; 
+}
+
+.btn-secondary-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+}
+ 
+.btn-secondary-nav:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary) !important;
+    text-decoration: none !important;
+    transform: translateY(-1px);
+}
+ 
+/* Archive page section (full-page, not embedded snippet) */
+.archive-section-page {
+    border-color: var(--border-color);
 }
 
 :root[data-theme="dark"] .btn-apply-nav,
@@ -698,7 +746,7 @@
 
 /* Specific Dark Mode Hover Text contrast */
 :root[data-theme="dark"] .action-btn-employee:hover:not(:disabled) svg {
-    color: #fffff !important; /* Dark green for better legibility on light accent */
+    color: #ffffff !important; /* Dark green for better legibility on light accent */
 }
 
 .action-btn-onboard {
