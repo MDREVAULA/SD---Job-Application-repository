@@ -85,6 +85,7 @@
 
   <!-- Main Form -->
   <form method="POST" action="{{ url_for('recruiter.edit_job', job_id=job.id) }}" enctype="multipart/form-data" id="editJobForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="allow_applications" id="allowApplicationsHidden"
   value="{{ 'on' if job.allow_applications else '' }}">
 

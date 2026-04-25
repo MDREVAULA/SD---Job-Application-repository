@@ -143,18 +143,16 @@
                     </tr>
                 </thead>
                 <tbody id="jobTableBody">
-                    {% for job in jobs %}
-                    {# Only count active (non-archived) applications #}
-                    {% set active_apps = job.applications | selectattr('status', 'in', ['pending','interview','accepted','employed']) | list %}
-                    {% set active_count = active_apps | length %}
-                    <tr class="job-row"
-                        data-job-id="{{ job.id }}"
-                        data-title="{{ job.title|lower }}"
-                        data-field="{{ job.field|lower if job.field else '' }}"
-                        data-location="{{ job.location|lower if job.location else '' }}"
-                        data-date="{{ job.created_at.strftime('%Y%m%d%H%M%S') if job.created_at else '00000000000000' }}"
-                        data-deadline="{{ job.expiration_date.strftime('%Y%m%d%H%M%S') if job.expiration_date else '99999999999999' }}"
-                        data-applicants="{{ active_count }}">
+                {% for job in jobs %}
+                {% set active_count = job_active_counts[job.id] %}
+                <tr class="job-row"
+                    data-job-id="{{ job.id }}"
+                    data-title="{{ job.title|lower }}"
+                    data-field="{{ job.field|lower if job.field else '' }}"
+                    data-location="{{ job.location|lower if job.location else '' }}"
+                    data-date="{{ job.created_at.strftime('%Y%m%d%H%M%S') if job.created_at else '00000000000000' }}"
+                    data-deadline="{{ job.expiration_date.strftime('%Y%m%d%H%M%S') if job.expiration_date else '99999999999999' }}"
+                    data-applicants="{{ active_count }}">
                         
                         <td class="row-number">{{ loop.index }}</td>
                         

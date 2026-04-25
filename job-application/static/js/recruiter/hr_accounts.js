@@ -17,6 +17,18 @@ var undoTimers = {};
 // Duration (ms) the undo toast stays alive before committing
 var UNDO_DURATION = 8000;
 
+// Add this at the very top of hr_accounts.js, before $(document).ready
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
+            xhr.setRequestHeader(
+                'X-CSRFToken',
+                $('meta[name="csrf-token"]').attr('content')
+            );
+        }
+    }
+});
+
 $(document).ready(function() {
 
     function storeAllRows() {

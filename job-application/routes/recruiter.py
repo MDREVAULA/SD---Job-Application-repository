@@ -683,10 +683,21 @@ def my_job_list():
 
     jobs = Job.query.filter_by(company_id=current_user.id).all()
 
+    # Pre-compute active counts per job
+    _ACTIVE = ('pending', 'interview', 'accepted', 'employed')
+    job_active_counts = {}
+    for job in jobs:
+        count = Application.query.filter(
+            Application.job_id == job.id,
+            Application.status.in_(_ACTIVE)
+        ).count()
+        job_active_counts[job.id] = count
+
     return render_template(
         "recruiter/my_job_list.html",
         jobs=jobs,
-        current_date=date.today()
+        current_date=date.today(),
+        job_active_counts=job_active_counts
     )
 
 
