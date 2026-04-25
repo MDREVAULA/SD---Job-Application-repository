@@ -120,12 +120,14 @@ function deleteImage(imageId) {
   const imageCard = document.getElementById('image-' + imageId);
   if (!imageCard) return;
  
+// In deleteImage(), replace the fetch headers:
   fetch('/recruiter/delete-job-image/' + imageId, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest',
-    },
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
   })
     .then(function (r) { return r.json(); })
     .then(function (data) {

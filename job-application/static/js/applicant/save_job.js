@@ -1,7 +1,12 @@
 // ============================================
 // Save / Unsave Job Toggle
-// Used on: index.html, job_details.html
+// Used on: jobs.html, job_details.html
 // ============================================
+
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
 
 function toggleSaveJob(btn, jobId) {
     const isAuth = btn.dataset.auth === 'true';
@@ -10,18 +15,24 @@ function toggleSaveJob(btn, jobId) {
         return;
     }
 
+    // Prevent double-clicks
+    if (btn.dataset.loading === 'true') return;
+    btn.dataset.loading = 'true';
+
     fetch('/applicant/save-job/' + jobId, {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCsrfToken()
+        }
     })
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Sync ALL bookmark buttons on the page for this same job
-            // (handles header btn + sidebar btn both updating at once)
             const allBtns = document.querySelectorAll(`[data-job-id="${jobId}"]`);
             allBtns.forEach(function (b) {
                 const icon = b.querySelector('i');
+                const svgFill = b.querySelector('svg');
                 const span = b.querySelector('span');
 
                 if (data.saved) {
@@ -29,11 +40,8 @@ function toggleSaveJob(btn, jobId) {
                         icon.classList.remove('far');
                         icon.classList.add('fas');
                     }
-                    if (span) {
-                        span.textContent = b.classList.contains('btn-sidebar-save')
-                            ? 'Saved'
-                            : 'Saved';
-                    }
+                    if (svgFill) svgFill.setAttribute('fill', 'currentColor');
+                    if (span) span.textContent = b.classList.contains('btn-sidebar-save') ? 'Saved' : 'Saved';
                     b.classList.add('saved');
                     b.title = 'Saved';
                 } else {
@@ -41,18 +49,18 @@ function toggleSaveJob(btn, jobId) {
                         icon.classList.remove('fas');
                         icon.classList.add('far');
                     }
-                    if (span) {
-                        span.textContent = b.classList.contains('btn-sidebar-save')
-                            ? 'Save for Later'
-                            : 'Save';
-                    }
+                    if (svgFill) svgFill.setAttribute('fill', 'none');
+                    if (span) span.textContent = b.classList.contains('btn-sidebar-save') ? 'Save for Later' : 'Save';
                     b.classList.remove('saved');
                     b.title = 'Save this job';
                 }
+                b.dataset.loading = 'false';
             });
         }
     })
-    .catch(() => {});
+    .catch(() => {
+        btn.dataset.loading = 'false';
+    });
 }
 
 // ============================================
@@ -60,9 +68,15 @@ function toggleSaveJob(btn, jobId) {
 // ============================================
 
 function unsaveJob(btn, jobId) {
+    if (btn.dataset.loading === 'true') return;
+    btn.dataset.loading = 'true';
+
     fetch('/applicant/save-job/' + jobId, {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCsrfToken()
+        }
     })
     .then(r => r.json())
     .then(data => {
@@ -73,11 +87,17 @@ function unsaveJob(btn, jobId) {
             card.style.transform = 'scale(0.95)';
             setTimeout(() => {
                 card.remove();
-                if (document.querySelectorAll('.saved-card').length === 0) {
-                    location.reload();
-                }
+                // Update the count in the header
+                const countEl = document.getElementById('savedCount');
+                const remaining = document.querySelectorAll('.saved-card').length;
+                if (countEl) countEl.textContent = remaining + ' job' + (remaining !== 1 ? 's' : '');
+                if (remaining === 0) location.reload();
             }, 300);
+        } else {
+            btn.dataset.loading = 'false';
         }
     })
-    .catch(() => {});
+    .catch(() => {
+        btn.dataset.loading = 'false';
+    });
 }

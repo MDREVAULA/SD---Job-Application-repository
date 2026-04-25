@@ -122,9 +122,9 @@
 }
 
 .btn-save-nav.saved {
-  background: var(--bg-hover);
-  color: var(--brand-green-dark);
-  border-color: var(--brand-green-dark);
+  background: var(--brand-accent);
+  color: var(--bg-primary);
+  border-color: var(--brand-accent);
 }
 
 .btn-save-nav.saved svg {
@@ -453,9 +453,9 @@
 }
 
 .btn-sidebar-save.saved {
-  background: var(--bg-hover);
-  color: var(--brand-green-dark);
-  border-color: var(--brand-green-dark);
+  background: var(--brand-accent);
+  color: var(--bg-primary);
+  border-color: var(--brand-accent);
 }
 
 .btn-sidebar-save.saved svg {

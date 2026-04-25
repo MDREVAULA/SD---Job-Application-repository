@@ -85,7 +85,6 @@
 
   <!-- Main Form -->
   <form method="POST" action="{{ url_for('recruiter.edit_job', job_id=job.id) }}" enctype="multipart/form-data" id="editJobForm">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="allow_applications" id="allowApplicationsHidden"
   value="{{ 'on' if job.allow_applications else '' }}">
 
@@ -1074,9 +1073,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const action = _teamQueue[hrId];
       const url    = '/recruiter/job-team/' + JOB_ID + '/' + action;
       return fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hr_id: parseInt(hrId, 10) }),
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify({ hr_id: parseInt(hrId, 10) }),
       }).then(function (r) { return r.json(); });
     });
  
@@ -1116,7 +1118,13 @@ document.addEventListener('DOMContentLoaded', function () {
           'Are you sure you want to permanently delete this job posting?';
       }
       document.getElementById('confirmDeleteJobBtn').onclick = function () {
-        fetch('/recruiter/force-delete-job/' + JOB_ID, { method: 'POST' })
+        fetch('/recruiter/force-delete-job/' + JOB_ID, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+              }
+          })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (data.success) {

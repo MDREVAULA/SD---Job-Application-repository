@@ -127,14 +127,14 @@
 }
 
 .btn-browse-nav {
-  background: #14b8a6;
-  border-color: #14b8a6;
+  background: var(--brand-green-dark);
+  border-color: var(--brand-green-dark);
   color: white;
 }
 
 .btn-browse-nav:hover {
-  background: #0f9488;
-  border-color: #0f9488;
+  background: var(--brand-accent);
+  border-color: var(--brand-accent);
   color: white;
 }
 

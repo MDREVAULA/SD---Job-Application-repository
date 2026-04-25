@@ -191,28 +191,25 @@
                   <span>{{ job_owner.recruiter_profile.first_name }} {{ job_owner.recruiter_profile.surname }}</span>
                 </div>
               </div>
-            <div class="detail-item">
-              <div class="detail-label">Recruitment Quota</div>
-              <div class="detail-value">
-                {% set current = active_application_count %}
-                {% set max = job.max_applications %}
-
-                {% if not max %}
-                  {{ current }} / Unlimited
-                  <span class="quota-badge quota-ok">OPEN</span>
-
-                {% elif current >= max %}
-                  {{ current }}/{{ max }}
-                  <span class="quota-badge quota-full">FULL</span>
-
-                {% else %}
-                  {{ current }}/{{ max }}
-                  <span class="quota-badge quota-ok">
-                    {{ max - current }} slots left
-                  </span>
-                {% endif %}
+              <div class="detail-item">
+                <div class="detail-label">Recruitment Quota</div>
+                <div class="detail-value">
+                  {% set current = active_application_count %}
+                  {% set max = job.max_applications %}
+                  {% if not max %}
+                    {{ current }} / Unlimited
+                    <span class="quota-badge quota-ok">OPEN</span>
+                  {% elif current >= max %}
+                    {{ current }}/{{ max }}
+                    <span class="quota-badge quota-full">FULL</span>
+                  {% else %}
+                    {{ current }}/{{ max }}
+                    <span class="quota-badge quota-ok">
+                      {{ max - current }} slots left
+                    </span>
+                  {% endif %}
+                </div>
               </div>
-            </div>
               <div class="detail-item">
                 <div class="detail-label">Job Type</div>
                 <div class="detail-value">{{ job.job_type }}</div>
@@ -245,7 +242,7 @@
               {% if current_user.is_authenticated and current_user.role == "applicant" %}
                 {% set quota_full = job.max_applications is not none and active_application_count >= job.max_applications %}
                 {% if existing_application %}
-                  <div class="btn-sidebar-apply" style="background:#0f9488;cursor:default;justify-content:center;display:flex;align-items:center;gap:8px;">
+                  <div class="btn-sidebar-apply" style="background:var(--brand-green-dark);cursor:default;justify-content:center;display:flex;align-items:center;gap:8px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
@@ -438,7 +435,20 @@
               </div>
               <div class="detail-item">
                 <div class="detail-label">Recruitment Quota</div>
-                <div class="detail-value">{{ job.applications|length if job.applications else '0' }}</div>
+                <div class="detail-value">
+                  {% set current = active_application_count %}
+                  {% set max = job.max_applications %}
+                  {% if not max %}
+                    {{ current }} / Unlimited
+                    <span class="quota-badge quota-ok">OPEN</span>
+                  {% elif current >= max %}
+                    {{ current }}/{{ max }}
+                    <span class="quota-badge quota-full">FULL</span>
+                  {% else %}
+                    {{ current }}/{{ max }}
+                    <span class="quota-badge quota-ok">{{ max - current }} slots left</span>
+                  {% endif %}
+                </div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">Job Type</div>
@@ -470,17 +480,25 @@
             <!-- Apply Button in Sidebar -->
             <div class="sidebar-apply-section">
               {% if current_user.is_authenticated and current_user.role == "applicant" %}
-                {% if job.allow_applications %}
-                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-sidebar-apply">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                  </svg>
-                  Apply for this Job
-                </a>
+                {% set quota_full = job.max_applications is not none and active_application_count >= job.max_applications %}
+                {% if existing_application %}
+                  <div class="btn-sidebar-apply" style="background:var(--brand-green-dark);cursor:default;justify-content:center;display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Applied — {{ existing_application.status|capitalize }}
+                  </div>
+                {% elif not job.allow_applications or quota_full %}
+                  <button class="btn-sidebar-apply" disabled style="opacity:0.5;cursor:not-allowed;">
+                    {% if quota_full %}Quota Full{% else %}Applications Closed{% endif %}
+                  </button>
                 {% else %}
-                <button class="btn-sidebar-apply" disabled style="opacity:0.5;cursor:not-allowed;">
-                  Applications Closed
-                </button>
+                  <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-sidebar-apply">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                    Apply for this Job
+                  </a>
                 {% endif %}
                 <button class="btn-sidebar-save {% if job.id in saved_job_ids %}saved{% endif %}"
                         data-job-id="{{ job.id }}"
@@ -492,13 +510,13 @@
                   <span>{% if job.id in saved_job_ids %}Saved{% else %}Save for Later{% endif %}</span>
                 </button>
               {% elif not current_user.is_authenticated %}
-              <a href="{{ url_for('auth.login') }}" class="btn-sidebar-apply">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                  <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-                </svg>
-                Sign in to Apply
-              </a>
+                <a href="{{ url_for('auth.login') }}" class="btn-sidebar-apply">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                  </svg>
+                  Sign in to Apply
+                </a>
               {% endif %}
             </div>
           </div>
@@ -624,7 +642,20 @@
               </div>
               <div class="detail-item">
                 <div class="detail-label">Recruitment Quota</div>
-                <div class="detail-value">{{ job.applications|length if job.applications else '0' }}</div>
+                <div class="detail-value">
+                  {% set current = active_application_count %}
+                  {% set max = job.max_applications %}
+                  {% if not max %}
+                    {{ current }} / Unlimited
+                    <span class="quota-badge quota-ok">OPEN</span>
+                  {% elif current >= max %}
+                    {{ current }}/{{ max }}
+                    <span class="quota-badge quota-full">FULL</span>
+                  {% else %}
+                    {{ current }}/{{ max }}
+                    <span class="quota-badge quota-ok">{{ max - current }} slots left</span>
+                  {% endif %}
+                </div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">Job Type</div>
@@ -656,17 +687,25 @@
             <!-- Apply Button in Sidebar -->
             <div class="sidebar-apply-section">
               {% if current_user.is_authenticated and current_user.role == "applicant" %}
-                {% if job.allow_applications %}
-                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-sidebar-apply">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                  </svg>
-                  Apply for this Job
-                </a>
+                {% set quota_full = job.max_applications is not none and active_application_count >= job.max_applications %}
+                {% if existing_application %}
+                  <div class="btn-sidebar-apply" style="background:var(--brand-green-dark);cursor:default;justify-content:center;display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Applied — {{ existing_application.status|capitalize }}
+                  </div>
+                {% elif not job.allow_applications or quota_full %}
+                  <button class="btn-sidebar-apply" disabled style="opacity:0.5;cursor:not-allowed;">
+                    {% if quota_full %}Quota Full{% else %}Applications Closed{% endif %}
+                  </button>
                 {% else %}
-                <button class="btn-sidebar-apply" disabled style="opacity:0.5;cursor:not-allowed;">
-                  Applications Closed
-                </button>
+                  <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-sidebar-apply">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                    Apply for this Job
+                  </a>
                 {% endif %}
                 <button class="btn-sidebar-save {% if job.id in saved_job_ids %}saved{% endif %}"
                         data-job-id="{{ job.id }}"
@@ -678,13 +717,13 @@
                   <span>{% if job.id in saved_job_ids %}Saved{% else %}Save for Later{% endif %}</span>
                 </button>
               {% elif not current_user.is_authenticated %}
-              <a href="{{ url_for('auth.login') }}" class="btn-sidebar-apply">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                  <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-                </svg>
-                Sign in to Apply
-              </a>
+                <a href="{{ url_for('auth.login') }}" class="btn-sidebar-apply">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                  </svg>
+                  Sign in to Apply
+                </a>
               {% endif %}
             </div>
           </div>
@@ -786,7 +825,6 @@
             <h3 class="card-title-main">About {{ job_owner.recruiter_profile.company_name }}</h3>
             <div class="company-about-text">
           
-              {# Use job-specific about_company if set, else fall back to recruiter profile description #}
               {% if job.about_company %}
                 <p>{{ job.about_company }}</p>
               {% elif job_owner.recruiter_profile.company_description %}
@@ -800,7 +838,6 @@
                 </p>
               {% endif %}
           
-              {# ── Company Values ─────────────────────────────────────────── #}
               {% set default_values = [
                 {"title": "Innovation First",      "description": "We embrace new ideas and cutting-edge technologies to stay ahead."},
                 {"title": "Team Collaboration",    "description": "We work together to achieve remarkable results and support each other."},
@@ -951,7 +988,20 @@
               </div>
               <div class="detail-item">
                 <div class="detail-label">Recruitment Quota</div>
-                <div class="detail-value">{{ job.applications|length if job.applications else '0' }}</div>
+                <div class="detail-value">
+                  {% set current = active_application_count %}
+                  {% set max = job.max_applications %}
+                  {% if not max %}
+                    {{ current }} / Unlimited
+                    <span class="quota-badge quota-ok">OPEN</span>
+                  {% elif current >= max %}
+                    {{ current }}/{{ max }}
+                    <span class="quota-badge quota-full">FULL</span>
+                  {% else %}
+                    {{ current }}/{{ max }}
+                    <span class="quota-badge quota-ok">{{ max - current }} slots left</span>
+                  {% endif %}
+                </div>
               </div>
               <div class="detail-item">
                 <div class="detail-label">Job Type</div>
@@ -983,17 +1033,25 @@
             <!-- Apply Button in Sidebar -->
             <div class="sidebar-apply-section">
               {% if current_user.is_authenticated and current_user.role == "applicant" %}
-                {% if job.allow_applications %}
-                <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-sidebar-apply">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                  </svg>
-                  Apply for this Job
-                </a>
+                {% set quota_full = job.max_applications is not none and active_application_count >= job.max_applications %}
+                {% if existing_application %}
+                  <div class="btn-sidebar-apply" style="background:var(--brand-green-dark);cursor:default;justify-content:center;display:flex;align-items:center;gap:8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Applied — {{ existing_application.status|capitalize }}
+                  </div>
+                {% elif not job.allow_applications or quota_full %}
+                  <button class="btn-sidebar-apply" disabled style="opacity:0.5;cursor:not-allowed;">
+                    {% if quota_full %}Quota Full{% else %}Applications Closed{% endif %}
+                  </button>
                 {% else %}
-                <button class="btn-sidebar-apply" disabled style="opacity:0.5;cursor:not-allowed;">
-                  Applications Closed
-                </button>
+                  <a href="{{ url_for('applicant.apply_job', job_id=job.id) }}" class="btn-sidebar-apply">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                    Apply for this Job
+                  </a>
                 {% endif %}
                 <button class="btn-sidebar-save {% if job.id in saved_job_ids %}saved{% endif %}"
                         data-job-id="{{ job.id }}"
@@ -1005,13 +1063,13 @@
                   <span>{% if job.id in saved_job_ids %}Saved{% else %}Save for Later{% endif %}</span>
                 </button>
               {% elif not current_user.is_authenticated %}
-              <a href="{{ url_for('auth.login') }}" class="btn-sidebar-apply">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                  <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-                </svg>
-                Sign in to Apply
-              </a>
+                <a href="{{ url_for('auth.login') }}" class="btn-sidebar-apply">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                  </svg>
+                  Sign in to Apply
+                </a>
               {% endif %}
             </div>
           </div>
@@ -1021,12 +1079,7 @@
     </div>
 
   </div>
-{# ================================================================
-   PASTE THIS BLOCK inside job_details.html, right before the
-   closing </div> of .job-view-wrapper (end of the file).
-   It is 100% wrapped in {% if current_user.role == 'admin' %}
-   so it never renders for any other user.
-   ================================================================ #}
+
 {% if current_user.is_authenticated and current_user.role == 'admin' %}
 
 <!-- ── Admin Ribbon ───────────────────────────────────────── -->
@@ -1150,9 +1203,6 @@
 
 <script>
 
-console.log('Modal element:', document.getElementById('admTdModal'));
-console.log('Overlay element:', document.getElementById('admTdOverlay'));
-
 // ── Ribbon toggle (with persistent re-open tab) ──────────────
 function admToggleRibbon() {
     const ribbon  = document.getElementById('admJobRibbon');
@@ -1162,12 +1212,11 @@ function admToggleRibbon() {
     ribbon.classList.toggle('collapsed');
     const isCollapsed = ribbon.classList.contains('collapsed');
  
-    // Show the floating tab only when ribbon is hidden
     tab.style.display = isCollapsed ? 'flex' : 'none';
  
     chevron.className = isCollapsed
-        ? 'fas fa-chevron-up'   // chevron points up = "click to open"
-        : 'fas fa-chevron-down'; // chevron points down = "click to close"
+        ? 'fas fa-chevron-up'
+        : 'fas fa-chevron-down';
 }
  
 // ── Restore job ──────────────────────────────────────────────
@@ -1192,12 +1241,12 @@ function admOpenTakedown() {
         return;
     }
 
-    overlay.style.display = 'flex';   // ← already correct
-    modal.style.display   = 'flex';   // ← already correct
+    overlay.style.display = 'flex';
+    modal.style.display   = 'flex';
 
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-            modal.style.opacity   = '1';          // ← add these two lines
+            modal.style.opacity   = '1';
             modal.style.transform = 'translateY(0)';
             modal.classList.add('open');
         });
@@ -1222,7 +1271,6 @@ function admCloseTakedown() {
     document.body.style.overflow = '';
 }
  
-// Close only when clicking the backdrop (not the modal itself)
 function admCloseTakedownOutside(event) {
     if (event.target === document.getElementById('admTdOverlay')) {
         admCloseTakedown();
@@ -1283,9 +1331,6 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') admCloseTakedown();
 });
 </script>
-
-
-
 
 {% endif %}
 

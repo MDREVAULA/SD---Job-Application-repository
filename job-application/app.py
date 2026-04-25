@@ -26,6 +26,7 @@ connection.close()
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken']
 
 csrf = CSRFProtect()
 csrf.init_app(app)

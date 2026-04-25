@@ -1349,4 +1349,4 @@ def saved_jobs():
         and not User.query.get(s.job.company_id).is_banned
     ]
     
-    return render_template('applicant/saved_jobs.html', saved_jobs=saved)
+    return render_template('applicant/saved_jobs.html', saved=saved)
