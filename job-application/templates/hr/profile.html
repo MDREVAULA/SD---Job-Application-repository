@@ -64,11 +64,10 @@
                     </div>
                 </div>
                 <p class="prof-headline">
-                    {% if profile and profile.headline %}
+                HR at <strong>{{ recruiter_profile.company_name }}</strong>
+                {% if recruiter_profile.company_industry %} · {{ recruiter_profile.company_industry }}{% endif %}
+                    <br>{% if profile and profile.headline %}
                         {{ profile.headline }}
-                    {% elif recruiter_profile and recruiter_profile.company_name %}
-                        HR at <strong>{{ recruiter_profile.company_name }}</strong>
-                        {% if recruiter_profile.company_industry %} · {{ recruiter_profile.company_industry }}{% endif %}
                     {% else %}
                         Add a headline to describe yourself
                     {% endif %}

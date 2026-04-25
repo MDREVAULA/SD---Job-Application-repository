@@ -2,6 +2,8 @@
    SETTINGS PAGE — settings.js
    ============================================================ */
 
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
 /* ── Section navigation ─────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -86,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fetch('/settings/save', {
                 method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json','X-CSRFToken': CSRF_TOKEN }, 
                 body:    JSON.stringify({
                     section:    'security',
                     two_factor: enabled
@@ -197,7 +199,7 @@ function showToast(message, isError = false) {
 /* ── Deactivate account ─────────────────────────────────── */
 function confirmDeactivate() {
     if (!confirm('Are you sure you want to deactivate your account? You can reactivate it by logging back in.')) return;
-    fetch('/settings/deactivate', { method: 'POST' })
+    fetch('/settings/deactivate', { method: 'POST', headers: { 'X-CSRFToken': CSRF_TOKEN } })
         .then(r => r.json())
         .then(data => {
             if (data.success) window.location.href = '/login';
@@ -209,7 +211,7 @@ function confirmDeactivate() {
 /* ── Logout all devices ─────────────────────────────────── */
 function confirmLogoutAll() {
     if (!confirm('Log out from all other devices?')) return;
-    fetch('/settings/logout-all', { method: 'POST' })
+    fetch('/settings/logout-all', { method: 'POST', headers: { 'X-CSRFToken': CSRF_TOKEN } })
         .then(r => r.json())
         .then(data => {
             if (data.success) showToast('Logged out from all other devices.');
@@ -232,7 +234,7 @@ function setTheme(theme) {
 
     fetch('/settings/save', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json','X-CSRFToken': CSRF_TOKEN },
         body:    JSON.stringify({ section: 'appearance', theme: theme })
     })
     .then(r => r.json())
@@ -321,7 +323,7 @@ function saveSettings(section) {
 
     fetch('/settings/save', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json','X-CSRFToken': CSRF_TOKEN },
         body:    JSON.stringify(payload)
     })
     .then(r => r.json())
@@ -344,7 +346,7 @@ function saveSettings(section) {
 function unblockUser(userId, username) {
     if (!confirm(`Unblock ${username}? They will be able to see your profile and message you again.`)) return;
 
-    fetch(`/settings/unblock/${userId}`, { method: 'POST' })
+    fetch(`/settings/unblock/${userId}`, { method: 'POST', headers: { 'X-CSRFToken': CSRF_TOKEN } })
         .then(r => r.json())
         .then(data => {
             if (data.success) {

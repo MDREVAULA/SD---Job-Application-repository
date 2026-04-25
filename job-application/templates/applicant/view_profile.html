@@ -41,11 +41,13 @@
                     {% if current_user.is_authenticated %}
                         <!-- Follow / Unfollow -->
                         <button
-                            class="prof-action-btn {% if is_following %}prof-action-btn-outline{% else %}prof-action-btn-primary{% endif %}"
+                            class="prof-action-btn {% if is_following %}prof-action-btn-outline{% elif has_pending_request %}prof-action-btn-outline{% else %}prof-action-btn-primary{% endif %}"
                             id="pview-follow-btn"
                             onclick="pviewToggleFollow({{ viewed_user.id }}, this)">
                             {% if is_following %}
                                 <i class="fas fa-user-minus"></i> Unfollow
+                            {% elif has_pending_request %}
+                                <i class="fas fa-hourglass-half"></i> Requested
                             {% else %}
                                 <i class="fas fa-user-plus"></i> Follow
                             {% endif %}
@@ -164,60 +166,17 @@
         <!-- ══ MAIN COLUMN ══ -->
         <div class="prof-main">
 
-            <!-- ── PERSONAL INFO ── -->
-            <div class="prof-card" id="section-personal" style="animation-delay:0.05s">
-                <div class="prof-card-header">
-                    <div class="prof-card-title"><i class="fas fa-id-card"></i> Personal Information</div>
+            <!-- ── ABOUT / BIO ── -->
+            {% if profile and profile.bio %}
+            <div class="pview-card" style="animation-delay:0.05s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title"><i class="fas fa-user"></i> About</div>
                 </div>
-                <div class="prof-view" id="view-personal">
-                    <div class="prof-info-grid">
-                        <div class="prof-info-item">
-                            <span class="prof-info-label">First Name</span>
-                            <span class="prof-info-value">{{ profile.first_name if profile and profile.first_name else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item">
-                            <span class="prof-info-label">Last Name</span>
-                            <span class="prof-info-value">{{ profile.last_name if profile and profile.last_name else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item">
-                            <span class="prof-info-label">Middle Name</span>
-                            <span class="prof-info-value">{{ profile.middle_name if profile and profile.middle_name else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item">
-                            <span class="prof-info-label">Date of Birth</span>
-                            <span class="prof-info-value">{{ profile.date_of_birth.strftime('%B %d, %Y') if profile and profile.date_of_birth else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item">
-                            <span class="prof-info-label">Gender</span>
-                            <span class="prof-info-value">{{ profile.gender if profile and profile.gender else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item">
-                            <span class="prof-info-label">Phone</span>
-                            <span class="prof-info-value">{{ profile.phone_number if profile and profile.phone_number else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item">
-                            <span class="prof-info-label">Country</span>
-                            <span class="prof-info-value">{{ profile.country if profile and profile.country else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item">
-                            <span class="prof-info-label">City</span>
-                            <span class="prof-info-value">{{ profile.city if profile and profile.city else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item prof-info-full">
-                            <span class="prof-info-label">Address</span>
-                            <span class="prof-info-value">{{ profile.home_address if profile and profile.home_address else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item prof-info-full">
-                            <span class="prof-info-label">Headline</span>
-                            <span class="prof-info-value">{{ profile.headline if profile and profile.headline else '—' }}</span>
-                        </div>
-                        <div class="prof-info-item prof-info-full">
-                            <span class="prof-info-label">About / Bio</span>
-                            <span class="prof-info-value prof-bio-text">{{ profile.bio if profile and profile.bio else '—' }}</span>
-                        </div>
-                    </div>
+                <div class="pview-view">
+                    <p class="pview-bio-text">{{ profile.bio }}</p>
                 </div>
             </div>
+            {% endif %}
 
             <!-- ── EDUCATION ── -->
             <div class="prof-card" id="section-education" style="animation-delay:0.11s">
@@ -288,12 +247,15 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                                <!-- cert badge — only shown to logged-in users -->
                                 <div class="exp-item-header-right">
-                                    {% set cert_count = exp.certificates | length %}
-                                    {% if cert_count > 0 %}
-                                    <span class="exp-cert-badge">
-                                        <i class="fas fa-award"></i> {{ cert_count }}
-                                    </span>
+                                    {% if current_user.is_authenticated %}
+                                        {% set cert_count = exp.certificates | length %}
+                                        {% if cert_count > 0 %}
+                                        <span class="exp-cert-badge">
+                                            <i class="fas fa-award"></i> {{ cert_count }}
+                                        </span>
+                                        {% endif %}
                                     {% endif %}
                                     <span class="exp-collapse-chevron" id="chevron-{{ exp.id }}">
                                         <i class="fas fa-chevron-down"></i>
@@ -301,8 +263,11 @@
                                 </div>
                             </div>
 
-                            <!-- Collapsible body — certs only, no upload/delete -->
+                            <!-- Collapsible body -->
                             <div class="exp-item-body" id="exp-body-{{ exp.id }}">
+
+                                {% if current_user.is_authenticated %}
+                                <!-- ── Certificates & Awards — logged-in users only ── -->
                                 <div class="exp-certs-section" id="certs-section-{{ exp.id }}">
                                     <div class="exp-certs-header">
                                         <span class="exp-certs-title">
@@ -337,8 +302,22 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <!-- No footer / delete button in view mode -->
+
+                                {% else %}
+                                <!-- ── Guest lock notice ── -->
+                                <div class="exp-certs-section">
+                                    <div class="exp-certs-empty" style="display:flex; align-items:center; gap:8px; padding:14px 0; color:var(--text-muted);">
+                                        <i class="fas fa-lock" style="color:#9DC88D; font-size:0.85rem;"></i>
+                                        <span style="font-size:0.83rem;">
+                                            <a href="{{ url_for('auth.login') }}" style="color:#4D774E; font-weight:600; text-decoration:none;">Log in</a>
+                                            to view certificates &amp; awards.
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endif %}
+
                             </div>
+                            <!-- End collapsible body -->
 
                         </div><!-- /.exp-item-block -->
                         {% endfor %}

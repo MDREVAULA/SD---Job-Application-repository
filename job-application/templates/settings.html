@@ -180,20 +180,20 @@
               </span>
             </label>
             <label class="checkbox-option">
-              <input type="checkbox" name="profile_audience" value="follower"
-                {% if 'follower' in (settings.profile_audience or []) or 'mutual' in (settings.profile_audience or []) %}checked{% endif %}>
+              <input type="checkbox" name="profile_audience" value="hr"
+                {% if 'hr' in (settings.profile_audience or []) %}checked{% endif %}>
               <span class="checkbox-custom"></span>
               <span>
                 <i class="fas fa-user-check" style="width:16px; color:#4D774E; margin-right:6px;"></i>
-                <strong>Followers</strong>
-                <small style="display:block; margin-left:22px; color:var(--text-muted);">Anyone who follows you can view your profile</small>
+                <strong>HR</strong>
+                <small style="display:block; margin-left:22px; color:var(--text-muted);">Verofied HR accounts</small>
               </span>
             </label>
             {% endif %}
 
             <label class="checkbox-option">
               <input type="checkbox" name="profile_audience" value="follower"
-                {% if 'follower' in (settings.profile_audience or []) or 'mutual' in (settings.profile_audience or []) %}checked{% endif %}>
+                {% if 'follower' in (settings.profile_audience or []) %}checked{% endif %}>
               <span class="checkbox-custom"></span>
               <span>
                 <i class="fas fa-user-check" style="width:16px; color:#4D774E; margin-right:6px;"></i>

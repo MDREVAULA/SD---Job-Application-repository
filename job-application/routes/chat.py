@@ -4,7 +4,7 @@ from models import db, User, Follow, Message, ApplicantProfile, RecruiterProfile
 from models import ApplicantNotification, RecruiterNotification, HRNotification, get_ph_time
 from datetime import datetime
 from sqlalchemy import or_, and_
-from models import MessageReaction 
+from models import MessageReaction
 import json
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
@@ -264,7 +264,32 @@ def _notify_new_follow(follower, followed):
         )
         db.session.add(notif)
 
+def _notify_follow_request(sender, receiver):
+    """Notify the receiver that someone sent a follow request."""
+    msg_text = f"<strong>{sender.username}</strong> sent you a follow request."
 
+    if receiver.role == 'applicant':
+        db.session.add(ApplicantNotification(
+            applicant_id=receiver.id,
+            type='follow_request',
+            message=msg_text,
+            sender_id=sender.id,
+        ))
+    elif receiver.role == 'recruiter':
+        db.session.add(RecruiterNotification(
+            recruiter_id=receiver.id,
+            type='follow_request',
+            message=msg_text,
+            sender_id=sender.id,
+        ))
+    elif receiver.role == 'hr':
+        db.session.add(HRNotification(
+            hr_id=receiver.id,
+            type='follow_request',
+            message=msg_text,
+            sender_id=sender.id,
+        ))
+    
 # =========================
 # PEOPLE PAGE
 # =========================
@@ -337,31 +362,89 @@ def people():
 @chat_bp.route("/follow/<int:target_id>", methods=["POST"])
 @login_required
 def follow(target_id):
+    from models import FollowRequest
+
     target = User.query.get_or_404(target_id)
 
     if target.id == current_user.id:
         return jsonify({"error": "Cannot follow yourself"}), 400
 
+    # ── If already following, unfollow immediately ──
     existing = Follow.query.filter_by(
         follower_id=current_user.id, followed_id=target.id
     ).first()
-
     if existing:
         db.session.delete(existing)
         db.session.commit()
-        action = "unfollowed"
-    else:
+        follower_count = Follow.query.filter_by(followed_id=target.id).count()
+        return jsonify({"action": "unfollowed", "follower_count": follower_count})
+
+    # ── Determine if approval is needed ──
+    settings = get_user_settings(target.id)
+    show_profile = settings["show_profile"]
+    audience     = settings["profile_audience"]
+
+    # Approval is needed ONLY when profile is 'specific' AND 'follower' is
+    # in the audience list AND the current viewer is NOT already in a
+    # privileged role that bypasses approval (recruiter/hr who are in audience).
+    viewer_role = current_user.role
+    viewer_in_privileged_audience = (
+        (viewer_role == "recruiter" and "recruiter" in audience) or
+        (viewer_role == "hr"        and "hr"        in audience)
+    )
+
+    requires_approval = (
+        show_profile == "specific"
+        and "follower" in audience
+        and not viewer_in_privileged_audience
+    )
+
+    # If profile is public or viewer already has privileged access,
+    # auto-accept any stale pending request then follow immediately.
+    if not requires_approval:
+        # Clean up any stale pending request
+        stale = FollowRequest.query.filter_by(
+            sender_id=current_user.id,
+            receiver_id=target.id,
+        ).first()
+        if stale:
+            db.session.delete(stale)
+
         new_follow = Follow(follower_id=current_user.id, followed_id=target.id)
         db.session.add(new_follow)
-
-        # Notify the followed user
         _notify_new_follow(current_user, target)
-
         db.session.commit()
-        action = "followed"
 
-    follower_count = Follow.query.filter_by(followed_id=target.id).count()
-    return jsonify({"action": action, "follower_count": follower_count})
+        follower_count = Follow.query.filter_by(followed_id=target.id).count()
+        return jsonify({"action": "followed", "follower_count": follower_count})
+
+    # ── Approval needed ──
+    existing_req = FollowRequest.query.filter_by(
+        sender_id=current_user.id,
+        receiver_id=target.id
+    ).first()
+
+    if existing_req:
+        if existing_req.status == 'pending':
+            # Cancel the pending request
+            db.session.delete(existing_req)
+            db.session.commit()
+            return jsonify({"action": "request_cancelled"})
+        else:
+            # Re-send a previously rejected request
+            existing_req.status = 'pending'
+            existing_req.created_at = get_ph_time()
+            db.session.commit()
+            _notify_follow_request(current_user, target)
+            db.session.commit()
+            return jsonify({"action": "request_sent"})
+
+    # Create new follow request
+    req = FollowRequest(sender_id=current_user.id, receiver_id=target.id)
+    db.session.add(req)
+    _notify_follow_request(current_user, target)
+    db.session.commit()
+    return jsonify({"action": "request_sent"})
 
 
 # =========================

@@ -60,6 +60,7 @@
                     {% endif %}
                     <div class="prof-avatar-overlay"><i class="fas fa-camera"></i></div>
                 </div>
+
                 <div class="prof-header-actions">
                     {% if profile_completed %}
                     <div class="prof-verification-badge badge-verified">
@@ -70,6 +71,17 @@
                         <i class="fas fa-circle-exclamation"></i> Incomplete Profile
                     </div>
                     {% endif %}
+
+                    <!-- Follow Requests trigger — hidden until JS confirms pending requests exist -->
+                    <button class="prof-follow-req-trigger"
+                            id="followReqTriggerBtn"
+                            onclick="openFollowReqModal()"
+                            style="display:none;"
+                            title="Pending follow requests">
+                        <i class="fas fa-user-clock"></i>
+                        <span class="prof-follow-req-label">Requests</span>
+                        <span class="prof-follow-req-badge" id="followReqBadge">0</span>
+                    </button>
                 </div>
             </div>
 
@@ -890,7 +902,6 @@
                                 <label>GitHub URL</label>
                                 <input type="url" name="github" value="{{ profile.github if profile and profile.github else '' }}" placeholder="https://github.com/yourname">
                             </div>
-                            <!-- ADD THIS: preserve portfolio when saving social links -->
                             <input type="hidden" name="portfolio" value="{{ profile.portfolio if profile and profile.portfolio else '' }}">
                         </div>
                         <div class="prof-form-actions">
@@ -904,6 +915,29 @@
         </div><!-- /.prof-side -->
 
     </div><!-- /.prof-body -->
+</div>
+
+<!-- ══ FOLLOW REQUESTS MODAL ══ -->
+<div class="follow-modal-backdrop" id="followReqBackdrop" onclick="closeFollowReqModal()"></div>
+<div class="follow-modal" id="followReqModal">
+    <div class="follow-modal-header">
+        <div class="follow-modal-tabs">
+            <span class="follow-tab active" style="cursor:default; pointer-events:none;">
+                <i class="fas fa-user-clock" style="margin-right:4px; font-size:0.8rem;"></i>
+                Follow Requests
+                <span class="follow-tab-count" id="followReqModalCount">0</span>
+            </span>
+        </div>
+        <button class="follow-modal-close" onclick="closeFollowReqModal()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="follow-modal-list" id="followReqModalList">
+        <div class="follow-modal-empty">
+            <i class="fas fa-user-clock"></i>
+            <p>Loading…</p>
+        </div>
+    </div>
 </div>
 
 <!-- ══ FOLLOWERS / FOLLOWING MODAL ══ -->

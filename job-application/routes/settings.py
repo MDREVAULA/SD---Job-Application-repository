@@ -100,6 +100,41 @@ def save_settings():
         if 'who_can_message' in data:
             user_settings.who_can_message = data['who_can_message']
 
+    # ── Auto-accept pending follow requests if profile is now open ──
+        if 'show_profile' in data or 'profile_audience' in data:
+            from models import FollowRequest, Follow, User as UserModel
+            import json as _json
+
+            new_show   = user_settings.show_profile or 'everyone'
+            try:
+                new_audience = _json.loads(user_settings.profile_audience_json) if user_settings.profile_audience_json else []
+            except Exception:
+                new_audience = []
+
+            pending = FollowRequest.query.filter_by(
+                receiver_id=current_user.id, status='pending'
+            ).all()
+
+            for req in pending:
+                sender = UserModel.query.get(req.sender_id)
+                if not sender:
+                    continue
+                auto = False
+                if new_show == 'everyone':
+                    auto = True
+                elif new_show == 'specific':
+                    if sender.role == 'recruiter' and 'recruiter' in new_audience:
+                        auto = True
+                    elif sender.role == 'hr' and 'hr' in new_audience:
+                        auto = True
+                if auto:
+                    req.status = 'accepted'
+                    exists = Follow.query.filter_by(
+                        follower_id=req.sender_id, followed_id=current_user.id
+                    ).first()
+                    if not exists:
+                        db.session.add(Follow(follower_id=req.sender_id, followed_id=current_user.id))
+
     # ── Notifications ─────────────────────────────────────────
     elif section == 'notifications':
         user_settings.notif_app_status = bool(data.get('notif_app_status', False))

@@ -3,9 +3,6 @@
    Ported from applicant/view_profile.js — keeps pview- class prefix
    ============================================================ */
 
-const PROFILE_USER_ID  = window.PROFILE_USER_ID;
-const SHOW_FOLLOW_LIST = window.SHOW_FOLLOW_LIST !== undefined ? window.SHOW_FOLLOW_LIST : true;
-
 /* ────────────────────────────────────────────────────────────
    CARD ENTRANCE ANIMATION
    ──────────────────────────────────────────────────────────── */
@@ -32,8 +29,14 @@ function refreshFollowLists(callback) {
         .then(data => {
             renderList('list-followers', data.followers, 'No followers yet.',         'fa-user-friends');
             renderList('list-following', data.following, 'Not following anyone yet.', 'fa-user-plus');
-            document.querySelectorAll('#net-followers, #tab-count-followers').forEach(el => el.textContent = data.follower_count);
-            document.querySelectorAll('#net-following, #tab-count-following').forEach(el => el.textContent = data.following_count);
+            if (data.follower_count !== null && data.follower_count !== undefined) {
+                document.querySelectorAll('#net-followers, #tab-count-followers')
+                    .forEach(el => el.textContent = data.follower_count);
+            }
+            if (data.following_count !== null && data.following_count !== undefined) {
+                document.querySelectorAll('#net-following, #tab-count-following')
+                    .forEach(el => el.textContent = data.following_count);
+            }
             if (callback) callback(data);
         })
         .catch(err => console.error('Follow list fetch failed:', err));
@@ -67,9 +70,13 @@ function renderList(listId, users, emptyMsg, emptyIcon) {
    ──────────────────────────────────────────────────────────── */
 
 function pviewToggleFollow(userId, btn) {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
     fetch('/chat/follow/' + userId, {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrf
+        }
     })
     .then(r => r.json())
     .then(data => {
@@ -77,15 +84,34 @@ function pviewToggleFollow(userId, btn) {
             btn.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
             btn.classList.remove('pview-action-btn-primary');
             btn.classList.add('pview-action-btn-outline');
+
+            // Increment follower count immediately
+            document.querySelectorAll('#net-followers, #tab-count-followers').forEach(el => {
+                const current = parseInt(el.textContent) || 0;
+                el.textContent = current + 1;
+            });
+
+            // If profile was private, reload so content becomes visible
+            if (document.querySelector('.pview-private-notice')) {
+                window.location.reload();
+                return;
+            }
         } else {
             btn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
             btn.classList.remove('pview-action-btn-outline');
             btn.classList.add('pview-action-btn-primary');
+
+            // Decrement follower count immediately
+            document.querySelectorAll('#net-followers, #tab-count-followers').forEach(el => {
+                const current = parseInt(el.textContent) || 0;
+                el.textContent = Math.max(0, current - 1);
+            });
         }
         refreshFollowLists();
     })
     .catch(err => console.error('Follow toggle failed:', err));
 }
+
 
 /* ────────────────────────────────────────────────────────────
    FOLLOWERS / FOLLOWING MODAL

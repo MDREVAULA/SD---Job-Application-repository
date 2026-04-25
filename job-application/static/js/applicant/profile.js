@@ -126,6 +126,9 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.transform = 'translateY(0)';
         }, 80 * index);
     });
+
+    // Poll for pending follow requests and show/hide trigger button
+    pollFollowRequestCount();
 });
 
 /* ────────────────────────────────────────────────────────────
@@ -416,6 +419,341 @@ function switchPortfolioMode(mode) {
 }
 
 /* ────────────────────────────────────────────────────────────
+   FOLLOW REQUESTS MODAL
+   ──────────────────────────────────────────────────────────── */
+
+function pollFollowRequestCount() {
+    fetch('/applicant/follow-requests', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        const btn   = document.getElementById('followReqTriggerBtn');
+        const badge = document.getElementById('followReqBadge');
+        if (!btn || !badge) return;
+        if (data.count > 0) {
+            badge.textContent = data.count;
+            btn.style.display = 'inline-flex';
+        } else {
+            btn.style.display = 'none';
+        }
+    })
+    .catch(() => {});
+}
+
+function openFollowReqModal() {
+    const backdrop = document.getElementById('followReqBackdrop');
+    const modal    = document.getElementById('followReqModal');
+    if (!backdrop || !modal) return;
+    backdrop.classList.add('open');
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    _loadFollowReqModalList();
+}
+
+function closeFollowReqModal() {
+    const backdrop = document.getElementById('followReqBackdrop');
+    const modal    = document.getElementById('followReqModal');
+    if (!backdrop || !modal) return;
+    backdrop.classList.remove('open');
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function _buildReqAvatarHTML(req) {
+    if (req.pic) {
+        return `<img src="${req.pic}" alt="${req.username}">`;
+    }
+    return `<div class="follow-modal-avatar-default">${req.username[0].toUpperCase()}</div>`;
+}
+
+function _loadFollowReqModalList() {
+    const list  = document.getElementById('followReqModalList');
+    const count = document.getElementById('followReqModalCount');
+    if (!list) return;
+
+    list.innerHTML = `
+        <div class="follow-modal-empty">
+            <i class="fas fa-user-clock"></i>
+            <p>Loading…</p>
+        </div>`;
+
+    fetch('/applicant/follow-requests', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (count) count.textContent = data.count;
+
+        // Keep trigger button in sync
+        const btn   = document.getElementById('followReqTriggerBtn');
+        const badge = document.getElementById('followReqBadge');
+        if (btn && badge) {
+            badge.textContent = data.count;
+            btn.style.display = data.count > 0 ? 'inline-flex' : 'none';
+        }
+
+        if (!data.requests || data.requests.length === 0) {
+            list.innerHTML = `
+                <div class="follow-modal-empty">
+                    <i class="fas fa-user-clock"></i>
+                    <p>No pending follow requests.</p>
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = data.requests.map(req => `
+            <div class="follow-modal-item freq-modal-item" id="freq-item-${req.id}">
+                <a href="${req.profile_url}" class="follow-modal-avatar" style="text-decoration:none; display:block; flex-shrink:0;">
+                    ${_buildReqAvatarHTML(req)}
+                </a>
+                <div class="follow-modal-info">
+                    <a href="${req.profile_url}" class="follow-modal-name" style="text-decoration:none;">${req.username}</a>
+                    <span class="follow-modal-role">${req.created_at}</span>
+                </div>
+                <div class="freq-modal-actions">
+                    <button class="follow-req-btn follow-req-accept"
+                            onclick="respondFollowRequest(${req.id}, 'accept', this)">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="follow-req-btn follow-req-reject"
+                            onclick="respondFollowRequest(${req.id}, 'reject', this)"
+                            title="Decline">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    })
+    .catch(() => {
+        list.innerHTML = `
+            <div class="follow-modal-empty">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>Failed to load requests. Please try again.</p>
+            </div>`;
+    });
+}
+
+/* ────────────────────────────────────────────────────────────
+   RESPOND TO FOLLOW REQUEST
+   Reads the CSRF token from the meta tag that Flask-WTF injects,
+   OR falls back to reading it from a cookie named "csrf_token".
+   Sends as a form-encoded POST so Flask-WTF's standard CSRF check
+   passes, then parses the JSON response body.
+   ──────────────────────────────────────────────────────────── */
+
+/* ────────────────────────────────────────────────────────────
+   GET CSRF TOKEN FROM META TAG OR COOKIE
+   ──────────────────────────────────────────────────────────── */
+
+function _getCsrfToken() {
+    // 1) Standard Flask-WTF meta tag: <meta name="csrf-token" content="...">
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content) return meta.content;
+
+    // 2) Flask-WTF also sets a "csrf_token" cookie by default
+    const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/);
+    if (match) return decodeURIComponent(match[1]);
+
+    return '';
+}
+
+/* ────────────────────────────────────────────────────────────
+   RESPOND TO FOLLOW REQUEST - FIXED VERSION
+   Sends as form-urlencoded with csrf_token field
+   ──────────────────────────────────────────────────────────── */
+
+function respondFollowRequest(reqId, action, triggerBtn) {
+    // Disable both buttons in this row immediately to prevent double-clicks
+    const item = document.getElementById('freq-item-' + reqId);
+    if (item) {
+        item.querySelectorAll('button').forEach(b => {
+            b.disabled = true;
+            b.style.opacity = '0.5';
+        });
+    }
+
+    const csrfToken = _getCsrfToken();
+    
+    // Send as form-urlencoded instead of JSON
+    const formData = new URLSearchParams();
+    formData.append('action', action);
+    formData.append('csrf_token', csrfToken);  // Add token as form field
+
+    fetch(`/applicant/follow-request/${reqId}/respond`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData.toString()
+    })
+    .then(r => {
+        // If the server returned a non-JSON error page, handle it
+        const ct = r.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) {
+            return r.text().then(text => {
+                console.error('Non-JSON response from server:', r.status, text.slice(0, 200));
+                throw new Error('Server returned status ' + r.status);
+            });
+        }
+        return r.json();
+    })
+    .then(data => {
+        if (!data.ok) {
+            console.error('Follow request respond error:', data.error);
+            // Re-enable buttons so user can try again
+            if (item) {
+                item.querySelectorAll('button').forEach(b => {
+                    b.disabled = false;
+                    b.style.opacity = '';
+                });
+            }
+            _showFollowReqToast('Something went wrong. Please try again.');
+            return;
+        }
+
+        // Animate item out
+        if (item) {
+            item.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+            item.style.opacity    = '0';
+            item.style.transform  = 'translateX(18px)';
+            setTimeout(() => {
+                item.remove();
+                _recheckFollowReqEmpty();
+            }, 240);
+        }
+
+        // Decrement badge & trigger button
+        const badge    = document.getElementById('followReqBadge');
+        const countEl  = document.getElementById('followReqModalCount');
+        const trigBtn  = document.getElementById('followReqTriggerBtn');
+        const newCount = Math.max(0, parseInt(badge ? badge.textContent : '1') - 1);
+        if (badge)    badge.textContent    = newCount;
+        if (countEl)  countEl.textContent  = newCount;
+        if (trigBtn)  trigBtn.style.display = newCount > 0 ? 'inline-flex' : 'none';
+
+        if (action === 'accept') {
+            // Bump follower count shown in the profile header
+            document.querySelectorAll('#net-followers, #tab-count-followers').forEach(el => {
+                el.textContent = (parseInt(el.textContent) || 0) + 1;
+            });
+            _showFollowReqToast('Follow request accepted.');
+
+            // Refresh the followers/following modal list if it is currently open
+            const followModal = document.getElementById('followModal');
+            if (followModal && followModal.classList.contains('open')) {
+                if (typeof refreshFollowLists === 'function') refreshFollowLists();
+            }
+        } else {
+            _showFollowReqToast('Follow request declined.');
+        }
+    })
+    .catch(err => {
+        console.error('Failed to respond to follow request:', err);
+        // Re-enable buttons
+        if (item) {
+            item.querySelectorAll('button').forEach(b => {
+                b.disabled = false;
+                b.style.opacity = '';
+            });
+        }
+        _showFollowReqToast('Network error. Please try again.');
+    });
+}
+
+function _recheckFollowReqEmpty() {
+    const list = document.getElementById('followReqModalList');
+    if (!list) return;
+    if (!list.querySelector('[id^="freq-item-"]')) {
+        list.innerHTML = `
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-clock"></i>
+                <p>No pending follow requests.</p>
+            </div>`;
+    }
+}
+
+function _showFollowReqToast(message) {
+    let toast = document.getElementById('freq-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'freq-toast';
+        toast.style.cssText = [
+            'position:fixed',
+            'bottom:24px',
+            'left:50%',
+            'transform:translateX(-50%)',
+            'background:#164A41',
+            'color:#fff',
+            'padding:10px 22px',
+            'border-radius:20px',
+            'font-size:0.84rem',
+            'font-weight:500',
+            'font-family:DM Sans,system-ui,sans-serif',
+            'z-index:9999',
+            'opacity:0',
+            'transition:opacity 0.2s ease',
+            'pointer-events:none',
+            'white-space:nowrap',
+        ].join(';');
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2800);
+}
+
+function _recheckFollowReqEmpty() {
+    const list = document.getElementById('followReqModalList');
+    if (!list) return;
+    if (!list.querySelector('[id^="freq-item-"]')) {
+        list.innerHTML = `
+            <div class="follow-modal-empty">
+                <i class="fas fa-user-clock"></i>
+                <p>No pending follow requests.</p>
+            </div>`;
+    }
+}
+
+function _showFollowReqToast(message) {
+    let toast = document.getElementById('freq-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'freq-toast';
+        toast.style.cssText = [
+            'position:fixed',
+            'bottom:24px',
+            'left:50%',
+            'transform:translateX(-50%)',
+            'background:#164A41',
+            'color:#fff',
+            'padding:10px 22px',
+            'border-radius:20px',
+            'font-size:0.84rem',
+            'font-weight:500',
+            'font-family:DM Sans,system-ui,sans-serif',
+            'z-index:9999',
+            'opacity:0',
+            'transition:opacity 0.2s ease',
+            'pointer-events:none',
+            'white-space:nowrap',
+        ].join(';');
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.opacity = '1';
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2800);
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeFollowReqModal();
+});
+
+/* ────────────────────────────────────────────────────────────
    FILE VALIDATION — portfolio, certificates
    Shows the custom doc-error-overlay modal instead of the
    browser's default error page / form submission.
@@ -435,7 +773,6 @@ function showDocError(message, inputId, allowedExts, maxMB, formId) {
     const msgEl   = document.getElementById('doc-error-message');
     const overlay = document.getElementById('doc-error-overlay');
     if (!msgEl || !overlay) {
-        // Fallback — overlay missing from DOM; show a plain alert
         alert('File error: ' + message);
         return;
     }
@@ -462,11 +799,6 @@ function retryDocUpload() {
     input.click();
 }
 
-/**
- * Validates a file chosen by the user, then submits a hidden form.
- * Always prevents the actual form submission when validation fails —
- * the error modal is shown instead of navigating away.
- */
 function validateAndSubmit(inputEl, allowedExt, maxMB, formId) {
     const file = inputEl.files && inputEl.files[0];
     if (!file) return;
@@ -477,7 +809,6 @@ function validateAndSubmit(inputEl, allowedExt, maxMB, formId) {
 
     if (!allowedExt.includes(ext)) {
         const allowed = allowedExt.map(e => e.toUpperCase()).join(', ');
-        // Clear the input BEFORE showing the error so no submit can sneak through
         inputEl.value = '';
         showDocError(
             `"${file.name}" is not a supported file type. Please upload a ${allowed} file.`,
@@ -495,7 +826,6 @@ function validateAndSubmit(inputEl, allowedExt, maxMB, formId) {
         return;
     }
 
-    // Validation passed — copy to the hidden form input and submit
     const dt = new DataTransfer();
     dt.items.add(file);
     const hiddenInput = document.getElementById(hiddenInputId);

@@ -87,7 +87,6 @@ def gate_applicant_features():
         'applicant.upload_resume',      'applicant.delete_resume',
         'applicant.upload_portfolio',   'applicant.delete_portfolio',
         'applicant.upload_certificate', 'applicant.delete_certificate',
-        # New per-experience cert routes
         'applicant.upload_experience_certificates',
         'applicant.delete_experience_certificate',
         'auth.logout',
@@ -198,9 +197,45 @@ def update_personal():
         notif = ApplicantNotification(
             applicant_id=current_user.id,
             type='profile_complete',
-            message='🎉 Your profile is now <strong>complete</strong>! You can now browse and apply for jobs on the platform.',
+            message='Your profile is now <strong>complete</strong>! You can now browse and apply for jobs on the platform.',
         )
         db.session.add(notif)
+
+    from models import FollowRequest, UserSettings, Follow
+    settings = UserSettings.query.filter_by(user_id=current_user.id).first()
+
+    show_profile = (settings.show_profile if settings else 'everyone') or 'everyone'
+    try:
+        audience = json.loads(settings.profile_audience_json) if (settings and settings.profile_audience_json) else ['recruiter', 'hr', 'follower']
+    except Exception:
+        audience = ['recruiter', 'hr', 'follower']
+
+    pending_reqs = FollowRequest.query.filter_by(
+        receiver_id=current_user.id, status='pending'
+    ).all()
+
+    for req in pending_reqs:
+        sender = User.query.get(req.sender_id)
+        if not sender:
+            continue
+
+        should_auto_accept = False
+
+        if show_profile == 'everyone':
+            should_auto_accept = True
+        elif show_profile == 'specific':
+            if sender.role == 'recruiter' and 'recruiter' in audience:
+                should_auto_accept = True
+            elif sender.role == 'hr' and 'hr' in audience:
+                should_auto_accept = True
+
+        if should_auto_accept:
+            req.status = 'accepted'
+            existing = Follow.query.filter_by(
+                follower_id=req.sender_id, followed_id=current_user.id
+            ).first()
+            if not existing:
+                db.session.add(Follow(follower_id=req.sender_id, followed_id=current_user.id))
 
     db.session.commit()
     db.session.expire(current_user)
@@ -260,9 +295,8 @@ def add_experience():
         description = request.form.get('description', '').strip()
     )
     db.session.add(exp)
-    db.session.flush()  # get exp.id before commit
+    db.session.flush()
 
-    # Handle certificate uploads attached to this new experience
     cert_files = request.files.getlist('cert_files')
     _save_experience_certs(exp.id, cert_files)
 
@@ -272,13 +306,11 @@ def add_experience():
 
 
 def _save_experience_certs(experience_id, file_list):
-    """Save multiple certificate files for a given experience_id."""
     from models import WorkExperienceCertificate
 
     folder = os.path.join(current_app.root_path, 'static', 'uploads', 'experience_certs')
     os.makedirs(folder, exist_ok=True)
 
-    # Count existing certs for this experience
     existing_count = WorkExperienceCertificate.query.filter_by(experience_id=experience_id).count()
     allowed = {'.pdf', '.jpg', '.jpeg', '.png'}
     max_certs = 10
@@ -320,7 +352,6 @@ def delete_experience(exp_id):
         flash("Access denied!", "danger")
         return redirect(url_for('applicant.profile'))
 
-    # Remove cert files from disk
     folder = os.path.join(current_app.root_path, 'static', 'uploads', 'experience_certs')
     for cert in exp.certificates:
         path = os.path.join(folder, cert.file_path)
@@ -334,7 +365,7 @@ def delete_experience(exp_id):
 
 
 # ===============================
-# EXPERIENCE CERTIFICATES — UPLOAD (multi-file, AJAX-friendly)
+# EXPERIENCE CERTIFICATES — UPLOAD
 # ===============================
 @applicant_bp.route('/profile/experience/<int:exp_id>/upload-certs', methods=['POST'])
 @login_required
@@ -366,7 +397,6 @@ def upload_experience_certificates(exp_id):
     _save_experience_certs(exp_id, cert_files)
     db.session.commit()
 
-    # Return updated cert list for AJAX
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         certs = WorkExperienceCertificate.query.filter_by(experience_id=exp_id).order_by(WorkExperienceCertificate.created_at).all()
         return jsonify({
@@ -398,7 +428,6 @@ def delete_experience_certificate(cert_id):
     from models import WorkExperienceCertificate
     cert = WorkExperienceCertificate.query.get_or_404(cert_id)
 
-    # Verify ownership
     prof = ApplicantProfile.query.filter_by(user_id=current_user.id).first()
     if not prof or cert.experience.profile_id != prof.id:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -658,6 +687,104 @@ def upload_profile_picture():
 
 
 # ===============================
+# FOLLOW REQUESTS — LIST (AJAX)
+# ===============================
+@applicant_bp.route('/follow-requests')
+@login_required
+def get_follow_requests():
+    from models import FollowRequest
+    if current_user.role != 'applicant':
+        return jsonify({'error': 'forbidden'}), 403
+
+    pending = FollowRequest.query.filter_by(
+        receiver_id=current_user.id,
+        status='pending'
+    ).order_by(FollowRequest.created_at.desc()).all()
+
+    return jsonify({
+        'count': len(pending),
+        'requests': [
+            {
+                'id':          r.id,
+                'sender_id':   r.sender_id,
+                'username':    r.sender.username,
+                'profile_url': f'/profile/{r.sender_id}',
+                'pic': (
+                    r.sender.profile_picture
+                    if r.sender.profile_picture and r.sender.profile_picture.startswith('http')
+                    else ('/static/uploads/profile_pictures/' + r.sender.profile_picture
+                          if r.sender.profile_picture else None)
+                ),
+                'created_at': r.created_at.strftime('%b %d, %Y'),
+            }
+            for r in pending
+        ]
+    })
+
+
+# ===============================
+# FOLLOW REQUESTS — RESPOND (AJAX) - FIXED VERSION
+# ===============================
+@applicant_bp.route('/follow-request/<int:req_id>/respond', methods=['POST'])
+@login_required
+def respond_follow_request(req_id):
+    from models import FollowRequest, Follow
+    req = FollowRequest.query.get_or_404(req_id)
+
+    if req.receiver_id != current_user.id:
+        return jsonify({'ok': False, 'error': 'Access denied'}), 403
+
+    # Get action from form data (not JSON)
+    action = request.form.get('action')  # 'accept' or 'reject'
+
+    if action == 'accept':
+        req.status = 'accepted'
+        # Create the actual Follow record if it doesn't already exist
+        existing = Follow.query.filter_by(
+            follower_id=req.sender_id, followed_id=current_user.id
+        ).first()
+        if not existing:
+            db.session.add(Follow(follower_id=req.sender_id, followed_id=current_user.id))
+
+        # Notify the requester
+        sender = User.query.get(req.sender_id)
+        if sender and sender.role == 'applicant':
+            notif = ApplicantNotification(
+                applicant_id=req.sender_id,
+                type='follow_accepted',
+                message=f"<strong>{current_user.username}</strong> accepted your follow request.",
+                sender_id=current_user.id,
+            )
+            db.session.add(notif)
+        elif sender and sender.role == 'recruiter':
+            from models import RecruiterNotification
+            db.session.add(RecruiterNotification(
+                recruiter_id=req.sender_id,
+                type='follow_accepted',
+                message=f"<strong>{current_user.username}</strong> accepted your follow request.",
+                sender_id=current_user.id,
+            ))
+        elif sender and sender.role == 'hr':
+            from models import HRNotification
+            db.session.add(HRNotification(
+                hr_id=req.sender_id,
+                type='follow_accepted',
+                message=f"<strong>{current_user.username}</strong> accepted your follow request.",
+                sender_id=current_user.id,
+            ))
+
+        db.session.commit()
+        return jsonify({'ok': True, 'action': 'accepted'})
+
+    elif action == 'reject':
+        req.status = 'rejected'
+        db.session.commit()
+        return jsonify({'ok': True, 'action': 'rejected'})
+
+    return jsonify({'ok': False, 'error': 'Invalid action'}), 400
+
+
+# ===============================
 # APPLICATION STATUS PAGE
 # ===============================
 _ACTIVE_STATUSES   = ('pending', 'interview', 'accepted', 'employed')
@@ -751,8 +878,6 @@ def application_detail(app_id):
 # ===============================
 # JOB DETAILS
 # ===============================
-_ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
-
 @applicant_bp.route('/job/<int:job_id>')
 def job_details(job_id):
     job = Job.query.get_or_404(job_id)
@@ -814,7 +939,6 @@ def apply_job(job_id):
         flash("This job posting is currently unavailable.", "warning")
         return redirect(url_for('auth.jobs'))
 
-    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
     existing = Application.query.filter(
         Application.applicant_id == current_user.id,
         Application.job_id == job_id,
@@ -1018,7 +1142,7 @@ def delete_portfolio():
 
 
 # ===============================
-# UPLOAD CERTIFICATE (legacy global — kept for backward compat)
+# UPLOAD CERTIFICATE (legacy global)
 # ===============================
 @applicant_bp.route('/profile/upload-certificate', methods=['POST'])
 @login_required
@@ -1224,3 +1348,5 @@ def saved_jobs():
         if s.job and not s.job.is_taken_down
         and not User.query.get(s.job.company_id).is_banned
     ]
+    
+    return render_template('applicant/saved_jobs.html', saved_jobs=saved)

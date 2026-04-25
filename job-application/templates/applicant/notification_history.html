@@ -34,6 +34,12 @@
         {% if n.type == 'new_message' %}
             {% set icon_cls = 'type-new_message' %}
             {% set icon     = 'fa-comment-dots' %}
+        {% elif n.type == 'follow_request' %}
+            {% set icon_cls = 'type-new_follow' %}
+            {% set icon     = 'fa-user-clock' %}
+        {% elif n.type == 'follow_accepted' %}
+            {% set icon_cls = 'type-new_follow' %}
+            {% set icon     = 'fa-user-check' %}
         {% elif n.type == 'profile_complete' %}
             {% set icon_cls = 'type-profile_complete' %}
             {% set icon     = 'fa-circle-check' %}
@@ -67,6 +73,14 @@
             {% else %}
                 {% set notif_url = '#' %}
             {% endif %}
+        {% elif n.type == 'follow_request' %}
+        {% set notif_url = url_for('applicant.profile') ~ '#section-follow-requests' %}
+            {% elif n.type == 'follow_accepted' %}
+        {% if n.sender_id %}
+            {% set notif_url = '/profile/' ~ n.sender_id %}
+        {% else %}
+            {% set notif_url = '#' %}
+        {% endif %}
         {% elif n.type in ('application_status', 'interview_scheduled') %}
             {% set notif_url = url_for('applicant.status') %}
         {% elif n.type == 'job_update' and n.job_id %}

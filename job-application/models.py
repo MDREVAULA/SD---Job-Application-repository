@@ -654,7 +654,22 @@ class Follow(db.Model):
     follower = db.relationship("User", foreign_keys=[follower_id], backref="following")
     followed = db.relationship("User", foreign_keys=[followed_id], backref="followers")
 
+class FollowRequest(db.Model):
+    __tablename__ = 'follow_request'
 
+    id          = db.Column(db.Integer, primary_key=True)
+    sender_id   = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    status      = db.Column(db.String(20), default='pending', nullable=False)  # pending | accepted | rejected
+    created_at  = db.Column(db.DateTime, default=get_ph_time)
+
+    __table_args__ = (
+        db.UniqueConstraint('sender_id', 'receiver_id', name='unique_follow_request'),
+    )
+
+    sender   = db.relationship('User', foreign_keys=[sender_id],   backref='sent_follow_requests')
+    receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_follow_requests')
+       
 # =========================
 # MESSAGE TABLE
 # =========================

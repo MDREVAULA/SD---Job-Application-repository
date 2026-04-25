@@ -7,6 +7,7 @@ from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 import os
 import pymysql
 import secrets
@@ -25,6 +26,9 @@ connection.close()
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+csrf = CSRFProtect()
+csrf.init_app(app)
 
 class NoStaticFilter(logging.Filter):
     def filter(self, record):

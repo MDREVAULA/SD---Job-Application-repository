@@ -123,10 +123,10 @@
                 </div>
 
                 <p class="pview-headline">
-                    {% if profile and profile.headline %}
+                HR at <strong>{{ recruiter_profile.company_name }}</strong>
+                {% if recruiter_profile.company_industry %} · {{ recruiter_profile.company_industry }}{% endif %}
+                    <br>{% if profile and profile.headline %}
                         {{ profile.headline }}
-                    {% else %}
-                        Human Resource at <strong>{{ recruiter_profile.company_name if recruiter_profile and recruiter_profile.company_name else '—' }}</strong>
                     {% endif %}
                 </p>
 

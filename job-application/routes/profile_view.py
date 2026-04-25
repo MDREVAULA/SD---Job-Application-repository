@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, abort, j
 from flask_login import login_required, current_user
 from models import (
     db, User, ApplicantProfile, WorkExperience,
-    Education, Skill, Project, Certification, Job, Follow, UserSettings
+    Education, Skill, Project, Certification, Job, Follow, FollowRequest, UserSettings
 )
 from datetime import date
 import json
@@ -186,6 +186,27 @@ def view_applicant_profile(user_id):
             follower_id=current_user.id, followed_id=user_id
         ).first() is not None
 
+    # ── Check for a pending follow request from current viewer ──
+    has_pending_request = False
+    if current_user.is_authenticated and not is_following:
+        settings_obj = _get_settings(user_id)
+        audience = settings_obj.profile_audience if hasattr(settings_obj, 'profile_audience') else []
+        viewer_role = current_user.role
+
+        # Privileged viewers (recruiter/hr in audience) follow directly — no request shown
+        viewer_bypasses = (
+            (viewer_role == "recruiter" and "recruiter" in audience) or
+            (viewer_role == "hr"        and "hr"        in audience) or
+            settings_obj.show_profile == "everyone"
+        )
+
+        if not viewer_bypasses:
+            has_pending_request = bool(FollowRequest.query.filter_by(
+                sender_id=current_user.id,
+                receiver_id=user_id,
+                status='pending'
+            ).first())
+
     return render_template(
         'applicant/view_profile.html',
         viewed_user=viewed_user,
@@ -196,6 +217,7 @@ def view_applicant_profile(user_id):
         projects=projects,
         certifications=certifications,
         is_following=is_following,
+        has_pending_request=has_pending_request,
         followers=followers  if show_follow_list  else [],
         following=following  if show_follow_list  else [],
         follower_count=len(followers)  if show_follow_count else None,
@@ -331,7 +353,10 @@ def view_hr_profile(user_id):
 def follow_list(user_id):
     settings = _get_settings(user_id)
 
-    list_is_private = not _can_see_follow_list(settings)
+    # ── Owner always sees their own list ──
+    is_owner = current_user.is_authenticated and current_user.id == user_id
+
+    list_is_private = not is_owner and not _can_see_follow_list(settings)
 
     if list_is_private:
         return jsonify({
