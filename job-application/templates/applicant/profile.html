@@ -198,6 +198,7 @@
 
                 <div class="prof-edit-form" id="edit-personal" style="display:none;">
                     <form method="POST" action="{{ url_for('applicant.update_personal') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group">
                                 <label>First Name</label>
@@ -272,6 +273,7 @@
 
                 <div class="prof-add-form" id="add-education" style="display:none;">
                     <form method="POST" action="{{ url_for('applicant.add_education') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group">
                                 <label>School / University</label>
@@ -362,6 +364,7 @@
                                 {% if edu.description %}<div class="prof-item-desc">{{ edu.description }}</div>{% endif %}
                             </div>
                             <form method="POST" action="{{ url_for('applicant.delete_education', edu_id=edu.id) }}" class="prof-item-delete" id="del-edu-form-{{ edu.id }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="button" class="prof-btn-delete" title="Delete"
                                         onclick="confirmDeleteEducation(document.getElementById('del-edu-form-{{ edu.id }}'), '{{ edu.school | replace("'", "\\'") }}')">
                                     <i class="fas fa-trash"></i>
@@ -393,6 +396,7 @@
                 <!-- ── ADD EXPERIENCE FORM ── -->
                 <div class="prof-add-form" id="add-experience" style="display:none;">
                     <form method="POST" action="{{ url_for('applicant.add_experience') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group">
                                 <label>Job Title</label>
@@ -551,6 +555,7 @@
                                 <!-- Delete experience -->
                                 <div class="exp-item-footer">
                                     <form method="POST" action="{{ url_for('applicant.delete_experience', exp_id=exp.id) }}" id="del-exp-form-{{ exp.id }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="button" class="exp-delete-btn"
                                                 onclick="confirmDeleteExperience(document.getElementById('del-exp-form-{{ exp.id }}'), '{{ exp.job_title | replace("'", "\\'") }}', '{{ exp.company | replace("'", "\\'") }}')">
                                             <i class="fas fa-trash"></i> Remove Experience
@@ -679,6 +684,7 @@
 
                 <div class="prof-add-form" id="add-skill" style="display:none;">
                     <form method="POST" action="{{ url_for('applicant.add_skill') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group prof-form-full">
                                 <label>Skill Name</label>
@@ -708,6 +714,7 @@
                             <span class="prof-skill-name">{{ skill.name }}</span>
                             <span class="prof-skill-level">{{ skill.level }}</span>
                             <form method="POST" action="{{ url_for('applicant.delete_skill', skill_id=skill.id) }}" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="prof-skill-delete" title="Remove" onclick="return confirm('Remove this skill?')">
                                     <i class="fas fa-xmark"></i>
                                 </button>
@@ -750,6 +757,7 @@
                                 </a>
                                 {# ── Portfolio delete with custom confirm modal ── #}
                                 <form method="POST" action="{{ url_for('applicant.delete_portfolio') }}" style="display:inline" id="form-delete-portfolio">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="button" class="doc-file-btn doc-file-btn-delete"
                                             onclick="confirmDeletePortfolio(document.getElementById('form-delete-portfolio'))">
                                         <i class="fas fa-trash"></i>
@@ -811,12 +819,14 @@
                                   action="{{ url_for('applicant.upload_portfolio') }}"
                                   enctype="multipart/form-data" style="display:none">
                                 <input type="file" name="portfolio_file" id="hidden-portfolio">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             </form>
                         </div>
 
                         {# Link panel #}
                         <div id="port-panel-link" style="display:none;">
                             <form method="POST" action="{{ url_for('applicant.update_social') }}" class="port-link-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="port-link-input-wrap">
                                     <i class="fas fa-globe port-link-input-icon"></i>
                                     <input type="url" name="portfolio"
@@ -893,6 +903,7 @@
                 </div>
                 <div class="prof-edit-form" id="edit-social" style="display:none;">
                     <form method="POST" action="{{ url_for('applicant.update_social') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group prof-form-full">
                                 <label>Facebook URL</label>

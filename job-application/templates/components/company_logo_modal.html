@@ -29,6 +29,7 @@
 
 <!-- Hidden form -->
 <form method="POST" action="{{ logo_upload_url }}" id="logoUploadForm" style="display:none">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="cropped_image" id="logoCroppedData">
 </form>
 

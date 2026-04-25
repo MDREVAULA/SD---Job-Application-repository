@@ -121,6 +121,7 @@
             <h3 class="emp-modal-title">Confirm Resignation</h3>
             <p class="emp-modal-text">Are you sure you want to resign from <strong>{{ employee_record.job_title }}</strong> at <strong>{{ employee_record.company_name }}</strong>? This action cannot be undone.</p>
             <form method="POST" action="{{ url_for('employment.resign', employee_id=employee_record.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <textarea name="resignation_note" rows="3" placeholder="Optional: add a note for your resignation..." class="emp-modal-textarea"></textarea>
                 <div class="emp-modal-actions">
                     <button type="button" class="emp-modal-cancel" onclick="document.getElementById('resignModal').style.display='none'">Cancel</button>

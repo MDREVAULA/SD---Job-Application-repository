@@ -28,6 +28,7 @@
 
         <!-- Form -->
         <form method="POST" class="register-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <!-- Role -->
             <div class="register-role-group">

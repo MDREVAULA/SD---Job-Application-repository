@@ -64,6 +64,7 @@
             <!-- FORM CARD -->
             <div class="apply-form-card">
                 <form method="POST" enctype="multipart/form-data" id="applyForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                     <!-- RESUME SECTION -->
                     <div class="apply-section">

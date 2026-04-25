@@ -24,6 +24,7 @@
         {% endwith %}
 
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="register-role-group">
                 <label class="register-role-option">
                     <input type="radio" name="role" value="applicant" checked>

@@ -12,6 +12,7 @@
         </div>
         {% if notifications %}
         <form method="POST" action="{{ url_for('applicant.clear_all_notifications') }}" onsubmit="return confirm('Clear all notifications?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="notif-history-clear-btn">
                 <i class="fas fa-trash"></i> Clear All
             </button>

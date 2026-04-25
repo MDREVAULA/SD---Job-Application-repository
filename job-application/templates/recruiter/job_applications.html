@@ -534,6 +534,7 @@
                     <form method="POST"
                           action="{{ url_for('recruiter.update_application_status', app_id=app.id) }}"
                           class="update-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <h3 class="form-title">Update Application</h3>
 
                         <div class="form-group">

@@ -19,6 +19,7 @@
             {% endif %}
         {% endwith %}
         <form method="POST" action="{{ url_for('admin.admin_login', token=token) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="admin-field">
                 <label for="email"><i class="fas fa-envelope"></i> Email</label>
                 <input type="email" id="email" name="email" placeholder="Admin email" required autofocus>

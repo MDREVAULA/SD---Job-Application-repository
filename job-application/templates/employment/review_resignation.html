@@ -177,6 +177,7 @@
                               onsubmit="return confirmAction('approve')">
                             <input type="hidden" name="action" value="approve">
                             <input type="hidden" name="reviewer_note" id="note-approve">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="emp-revision-btn emp-btn-approve">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="20 6 9 17 4 12"/>
@@ -192,6 +193,7 @@
                               onsubmit="return confirmAction('revision')">
                             <input type="hidden" name="action" value="request_revision">
                             <input type="hidden" name="reviewer_note" id="note-revision">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="emp-revision-btn emp-btn-revision">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -206,6 +208,7 @@
                               action="{{ url_for('employment.review_resignation', resignation_id=resignation.id) }}"
                               id="form-reject"
                               onsubmit="return confirmAction('reject')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="action" value="reject">
                             <input type="hidden" name="reviewer_note" id="note-reject">
                             <button type="submit" class="emp-revision-btn emp-btn-reject">

@@ -86,6 +86,7 @@
                         {% if user.is_banned %}
                             <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
                                   onsubmit="return confirm('Unban {{ user.username }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="next" value="{{ request.url }}">
                                 <button type="submit" class="btn-restore">
                                     <i class="fas fa-unlock"></i> Unban
@@ -129,6 +130,7 @@
             </p>
             <form method="POST" id="banForm">
                 <input type="hidden" name="next" value="{{ request.url }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <!-- Duration chips -->
                 <div class="admin-modal-field">

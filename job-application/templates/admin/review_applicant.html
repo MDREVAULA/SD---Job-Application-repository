@@ -115,6 +115,7 @@
                     <p>This will verify and activate the applicant's account.</p>
                 </div>
                 <form method="POST" action="{{ url_for('admin.verify', user_id=applicant.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-approve">
                         <i class="fas fa-check-circle"></i> Approve &amp; Verify
                     </button>
@@ -126,6 +127,7 @@
                 <h4>Reject Applicant</h4>
                 <p>Provide a clear reason — this will be stored in the system for reference.</p>
                 <form method="POST" action="{{ url_for('admin.reject', user_id=applicant.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <textarea
                         class="admin-textarea"
                         name="remarks"

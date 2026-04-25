@@ -171,6 +171,7 @@
                     <p>This will verify the recruiter and allow them to post jobs on HireBon.</p>
                 </div>
                 <form method="POST" action="{{ url_for('admin.verify', user_id=recruiter.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-approve">
                         <i class="fas fa-check-circle"></i> Approve &amp; Verify
                     </button>
@@ -182,6 +183,7 @@
                 <h4>Reject &amp; Flag as Scammer</h4>
                 <p>Provide a detailed reason — this will be recorded and the account will be flagged.</p>
                 <form method="POST" action="{{ url_for('admin.reject', user_id=recruiter.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <textarea
                         class="admin-textarea"
                         name="remarks"

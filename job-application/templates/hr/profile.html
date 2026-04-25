@@ -168,6 +168,7 @@
                 <div class="prof-edit-form" id="edit-personal" style="display:none;">
                     <form method="POST" action="{{ url_for('hr.update_profile') }}">
                         <input type="hidden" name="section" value="personal">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group">
                                 <label>First Name</label>
@@ -284,6 +285,7 @@
 
                 <div class="prof-add-form" id="add-education" style="display:none;">
                     <form method="POST" action="{{ url_for('hr.add_education') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group">
                                 <label>School / University</label>
@@ -374,6 +376,7 @@
                                 {% if edu.description %}<div class="prof-item-desc">{{ edu.description }}</div>{% endif %}
                             </div>
                             <form method="POST" action="{{ url_for('hr.delete_education', edu_id=edu.id) }}" class="prof-item-delete" id="del-edu-form-{{ edu.id }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="button" class="prof-btn-delete" title="Delete"
                                         onclick="confirmDeleteEducation(document.getElementById('del-edu-form-{{ edu.id }}'), '{{ edu.school | replace("'", "\\'") }}')">
                                     <i class="fas fa-trash"></i>
@@ -492,6 +495,7 @@
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 <form method="POST" action="{{ url_for('hr.delete_portfolio') }}" style="display:inline" id="form-delete-portfolio">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="button" class="doc-file-btn doc-file-btn-delete"
                                             onclick="confirmDeletePortfolio(document.getElementById('form-delete-portfolio'))">
                                         <i class="fas fa-trash"></i>
@@ -553,12 +557,14 @@
                                   action="{{ url_for('hr.upload_portfolio') }}"
                                   enctype="multipart/form-data" style="display:none">
                                 <input type="file" name="portfolio_file" id="hidden-portfolio">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             </form>
                         </div>
 
                         {# Link panel #}
                         <div id="port-panel-link" style="display:none;">
                             <form method="POST" action="{{ url_for('hr.update_social') }}" class="port-link-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="port-link-input-wrap">
                                     <i class="fas fa-globe port-link-input-icon"></i>
                                     <input type="url" name="portfolio"
@@ -712,6 +718,7 @@
 
                 <div class="prof-edit-form" id="edit-social" style="display:none;">
                     <form method="POST" action="{{ url_for('hr.update_social') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="prof-form-grid">
                             <div class="prof-form-group prof-form-full">
                                 <label>Facebook URL</label>

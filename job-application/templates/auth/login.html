@@ -39,6 +39,7 @@
             {% endwith %}
 
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="input-group">
                     <input type="email" name="email" id="email-input" placeholder="Email" required>

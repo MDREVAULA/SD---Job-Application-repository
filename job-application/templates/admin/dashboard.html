@@ -199,7 +199,8 @@
                                 </a>
                                 <form method="POST" action="{{ url_for('admin.verify', user_id=recruiter.id) }}"
                                       onsubmit="return confirm('Verify {{ recruiter.username }}?')">
-                                    <button type="submit" class="admin-action-btn admin-action-btn--approve">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                      <button type="submit" class="admin-action-btn admin-action-btn--approve">
                                         <i class="fas fa-check"></i> Approve
                                     </button>
                                 </form>
@@ -262,13 +263,15 @@
                         <div class="admin-item-actions">
                             <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
                                   onsubmit="return confirm('Unban {{ user.username }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="admin-action-btn admin-action-btn--approve">
                                     <i class="fas fa-unlock"></i> Unban
                                 </button>
                             </form>
                             <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
                                   onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
-                                <button type="submit" class="admin-action-btn admin-action-btn--delete">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                  <button type="submit" class="admin-action-btn admin-action-btn--delete">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
                             </form>
@@ -299,6 +302,7 @@
                 Rejecting <strong id="rejectUsername"></strong>. They will be notified and locked out.
             </p>
             <form method="POST" id="rejectForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="admin-modal-field">
                     <label class="admin-modal-label">
                         <i class="fas fa-comment-alt"></i> Remarks (shown to recruiter)

@@ -52,6 +52,7 @@
                     </td>
                     <td>
                         <form method="POST" action="{{ url_for('admin.restore', user_id=rec.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn-restore">
                                 <i class="fas fa-undo-alt"></i> Restore
                             </button>

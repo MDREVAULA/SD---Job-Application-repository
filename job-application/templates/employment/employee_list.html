@@ -329,6 +329,7 @@
                             <h3 class="emp-modal-title">Terminate Employment</h3>
                             <p class="emp-modal-text">You are about to terminate <strong>{{ emp.user.username }}</strong>'s employment as <strong>{{ emp.job_title }}</strong>. This cannot be undone.</p>
                             <form method="POST" action="{{ url_for('employment.fire_employee', employee_id=emp.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <textarea name="fire_reason" rows="3" class="emp-modal-textarea"
                                           placeholder="Reason for termination (optional)..."></textarea>
                                 <div class="emp-modal-actions">

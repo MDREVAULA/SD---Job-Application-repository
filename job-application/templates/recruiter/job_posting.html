@@ -56,6 +56,7 @@
 
   <!-- Main Form -->
   <form method="POST" action="{{ url_for('recruiter.post_job') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     
     <div class="job-view-content">
       

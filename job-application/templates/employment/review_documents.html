@@ -169,6 +169,7 @@
                     <p class="emp-review-hint">All documents look good? Confirm to make {{ applicant.username }} an official employee.</p>
                     <form method="POST">
                         <input type="hidden" name="action" value="confirm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="emp-confirm-btn"
                                 onclick="return confirm('Confirm {{ applicant.username }} as an employee? This cannot be undone.')">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -187,6 +188,7 @@
                     <p class="emp-review-hint">Something missing or incorrect? Send it back with a note.</p>
                     <form method="POST">
                         <input type="hidden" name="action" value="request_revision">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <textarea name="reviewer_note" rows="3"
                                   class="emp-review-textarea"
                                   placeholder="Explain what needs to be corrected or re-uploaded..."></textarea>

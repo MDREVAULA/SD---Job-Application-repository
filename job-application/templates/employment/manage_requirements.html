@@ -80,6 +80,7 @@
                             <form method="POST" action="{{ url_for('employment.manage_requirements', job_id=job.id) }}" style="margin:0;">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="req_id" value="{{ req.id }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="emp-delete-req-btn"
                                         onclick="return confirm('Remove this requirement?')"
                                         title="Delete">
@@ -113,6 +114,7 @@
                     </div>
                 </div>
                 <form method="POST" action="{{ url_for('employment.manage_requirements', job_id=job.id) }}" class="emp-add-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="action" value="add">
                     <div class="emp-form-group">
                         <label>Document Title <span class="emp-req-star">*</span></label>

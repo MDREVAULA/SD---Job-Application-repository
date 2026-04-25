@@ -36,6 +36,7 @@
       {% endwith %}
 
       <form method="POST" action="{{ url_for('auth.verify_2fa') }}" id="twoFaForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label class="pin-label">Enter 6-digit verification code</label>
 
         <!-- Visual PIN boxes -->
@@ -67,6 +68,7 @@
       <p>Didn't receive the code?</p>
 
       <form method="POST" action="{{ url_for('auth.resend_2fa') }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="btn-resend">
           <i class="fas fa-redo-alt"></i> Resend Code
         </button>

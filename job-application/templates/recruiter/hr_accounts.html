@@ -91,6 +91,7 @@
 
                 <div class="hr-form-container">
                     <form method="POST" action="{{ url_for('recruiter.create_hr') }}" class="hr-form-modern" id="createHrForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="form-group-modern">
                             <label>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

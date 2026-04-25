@@ -47,6 +47,7 @@ No resume uploaded
 
 <!-- REVIEW FORM -->
 <form method="POST" action="{{ url_for('hr.review', app_id=app.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
 <label>Status:</label>
 

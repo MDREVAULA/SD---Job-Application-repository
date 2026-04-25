@@ -12,6 +12,7 @@
             <h2 class="register-title">Complete Your Profile</h2>
         </div>
         <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <h3>Personal Information</h3>
             <div class="register-field">
                 <label class="register-label">Last Name / Surname</label>

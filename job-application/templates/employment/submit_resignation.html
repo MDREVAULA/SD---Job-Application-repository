@@ -66,6 +66,7 @@
                       action="{{ url_for('employment.submit_resignation', employee_id=emp.id) }}"
                       enctype="multipart/form-data"
                       class="emp-resign-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                     <!-- Reason -->
                     <div class="emp-form-group">

@@ -58,12 +58,14 @@
                     <td style="display:flex; gap:8px; flex-wrap:wrap;">
                         <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
                               onsubmit="return confirm('Unban {{ user.username }}?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn-restore">
                                 <i class="fas fa-unlock"></i> Unban
                             </button>
                         </form>
                         <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
-                              onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                                onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn-ban">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
