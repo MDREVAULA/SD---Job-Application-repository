@@ -18,8 +18,8 @@ profile_view_bp = Blueprint('profile_view', __name__, url_prefix='/profile')
 def _get_follow_lists(user_id):
     follower_rows  = Follow.query.filter_by(followed_id=user_id).all()
     following_rows = Follow.query.filter_by(follower_id=user_id).all()
-    followers = [u for u in (User.query.get(r.follower_id) for r in follower_rows) if u and not u.is_banned]
-    following = [u for u in (User.query.get(r.followed_id) for r in following_rows) if u and not u.is_banned]
+    followers = [u for u in (User.query.get(r.follower_id) for r in follower_rows) if u and not u.is_banned and not u.is_deleted]
+    following = [u for u in (User.query.get(r.followed_id) for r in following_rows) if u and not u.is_banned and not u.is_deleted]
     return followers, following
 
 
@@ -116,6 +116,8 @@ def view_profile(user_id):
     from sqlalchemy import or_, and_
 
     user = User.query.get_or_404(user_id)
+    if user.is_deleted:
+        abort(404)
 
     if user.is_banned:
         flash("This profile is not available.", "warning")
@@ -388,9 +390,9 @@ def follow_list(user_id):
                 'pic': pic, 'profile_url': '/profile/' + str(u.id)}
 
     followers = [serialize(u) for r in follower_rows
-                 for u in [User.query.get(r.follower_id)] if u and not u.is_banned]
+                for u in [User.query.get(r.follower_id)] if u and not u.is_banned and not u.is_deleted]
     following = [serialize(u) for r in following_rows
-                 for u in [User.query.get(r.followed_id)] if u and not u.is_banned]
+                for u in [User.query.get(r.followed_id)] if u and not u.is_banned and not u.is_deleted]
 
     show_count = _can_see_follow_count(settings)
     return jsonify({

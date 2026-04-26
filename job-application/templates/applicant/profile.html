@@ -592,10 +592,13 @@
                 </div>
                 <div class="prof-completion-wrap">
                     {% set score = namespace(val=0) %}
-                    {% if profile and profile.first_name and profile.last_name %}{% set score.val = score.val + 30 %}{% endif %}
-                    {% if profile and profile.bio %}{% set score.val = score.val + 15 %}{% endif %}
+                    {% if profile and profile.first_name and profile.last_name %}{% set score.val = score.val + 10 %}{% endif %}
                     {% if profile and profile.headline %}{% set score.val = score.val + 10 %}{% endif %}
-                    {% if educations %}{% set score.val = score.val + 25 %}{% endif %}
+                    {% if profile and profile.bio %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.phone_number %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.home_address %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if profile and profile.date_of_birth %}{% set score.val = score.val + 10 %}{% endif %}
+                    {% if educations %}{% set score.val = score.val + 20 %}{% endif %}
                     {% if skills %}{% set score.val = score.val + 20 %}{% endif %}
 
                     <div class="prof-completion-title">
@@ -620,7 +623,19 @@
                         </div>
                         <div class="prof-completion-tip {% if profile and profile.bio %}done{% endif %}">
                             <i class="{% if profile and profile.bio %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
-                            Add a bio / about section
+                            Add a bio
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.phone_number %}done{% endif %}">
+                            <i class="{% if profile and profile.phone_number %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add a phone number
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.home_address %}done{% endif %}">
+                            <i class="{% if profile and profile.home_address %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add your home address
+                        </div>
+                        <div class="prof-completion-tip {% if profile and profile.date_of_birth %}done{% endif %}">
+                            <i class="{% if profile and profile.date_of_birth %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>
+                            Add your date of birth
                         </div>
                         <div class="prof-completion-tip {% if educations %}done{% endif %}">
                             <i class="{% if educations %}fas fa-check-circle{% else %}far fa-circle{% endif %} prof-tip-icon"></i>

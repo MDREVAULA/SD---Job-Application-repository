@@ -545,11 +545,11 @@ def register():
         if not username:
             username = email.split("@")[0]
 
-        if User.query.filter_by(email=email).first():
+        if User.query.filter_by(email=email, is_deleted=False).first():
             flash("Email already exists", "register_error")
             return redirect(url_for("auth.register"))
 
-        if User.query.filter_by(username=username).first():
+        if User.query.filter_by(username=username, is_deleted=False).first():
             flash("Username already exists", "register_error")
             return redirect(url_for("auth.register"))
 
@@ -659,8 +659,8 @@ def check_availability():
     email    = data.get("email", "").strip()
     username = data.get("username", "").strip()
 
-    email_taken    = User.query.filter_by(email=email).first() is not None
-    username_taken = User.query.filter_by(username=username).first() is not None
+    email_taken    = User.query.filter_by(email=email, is_deleted=False).first() is not None
+    username_taken = User.query.filter_by(username=username, is_deleted=False).first() is not None
 
     return jsonify({
         "email_taken":    email_taken,

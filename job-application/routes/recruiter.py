@@ -97,8 +97,8 @@ def profile():
     following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
     followers = [User.query.get(r.follower_id) for r in follower_rows]
     following = [User.query.get(r.followed_id) for r in following_rows]
-    followers = [u for u in followers if u and not u.is_banned]
-    following = [u for u in following if u and not u.is_banned]
+    followers = [u for u in followers if u and not u.is_banned and not u.is_deleted]
+    following = [u for u in following if u and not u.is_banned and not u.is_deleted]
 
     profile_complete = is_recruiter_profile_complete(rec_profile)
 
@@ -138,6 +138,7 @@ def profile():
         following=following,
         profile_complete=profile_complete,
         verify_state=verify_state,
+        today=date.today(),
     )
 
 
@@ -751,33 +752,69 @@ def create_hr():
         return redirect(url_for('recruiter.profile'))
 
     username = request.form.get('username')
-    email = request.form.get('email')
+    email    = request.form.get('email')
 
-    existing_username = User.query.filter_by(username=username).first()
+    # Check against active (non-deleted) users only
+    existing_username = User.query.filter_by(username=username, is_deleted=False).first()
     if existing_username:
         flash("Username already exists. Please choose another.", "danger")
         return redirect(url_for('recruiter.hr_accounts'))
 
-    existing_email = User.query.filter_by(email=email).first()
+    existing_email = User.query.filter_by(email=email, is_deleted=False).first()
     if existing_email:
         flash("Email is already registered.", "danger")
         return redirect(url_for('recruiter.hr_accounts'))
 
     temp_password = generate_temp_password()
 
-    new_hr = User(
-        username=username,
-        email=email,
-        password=generate_password_hash(temp_password),
-        role="hr",
-        created_by=current_user.id,
-        must_change_password=True
-    )
+    # Reuse soft-deleted row if username or email matches one
+    ghost = User.query.filter(
+        User.is_deleted == True,
+        db.or_(User.username == username, User.email == email)
+    ).first()
 
-    db.session.add(new_hr)
-    db.session.commit()
+    if ghost:
+        # Overwrite the old soft-deleted record in-place
+        ghost.username             = username
+        ghost.email                = email
+        ghost.password             = generate_password_hash(temp_password)
+        ghost.role                 = 'hr'
+        ghost.created_by           = current_user.id
+        ghost.must_change_password = True
+        ghost.is_deleted           = False
+        ghost.deleted_at           = None
+        ghost.deleted_by           = None
+        ghost.is_banned            = False
+        ghost.ban_reason           = None
+        ghost.banned_at            = None
+        ghost.ban_until            = None
+        ghost.is_verified          = False
+        ghost.verification_status  = 'Pending'
+        ghost.profile_completed    = False
+        ghost.profile_picture      = None
+        ghost.reset_token          = None
+        ghost.reset_token_expiry   = None
+        ghost.created_at           = get_ph_time()
 
-    # Store in session then redirect
+        # Also wipe the old HR profile if one exists
+        old_profile = HRProfile.query.filter_by(user_id=ghost.id).first()
+        if old_profile:
+            db.session.delete(old_profile)
+            db.session.flush()
+
+        db.session.commit()
+    else:
+        new_hr = User(
+            username=username,
+            email=email,
+            password=generate_password_hash(temp_password),
+            role="hr",
+            created_by=current_user.id,
+            must_change_password=True
+        )
+        db.session.add(new_hr)
+        db.session.commit()
+
     session['temp_password'] = temp_password
     return redirect(url_for('recruiter.hr_accounts'))
 

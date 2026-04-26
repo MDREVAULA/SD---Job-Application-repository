@@ -86,10 +86,6 @@
         <!-- CHAT HEADER -->
         <div class="chat-header">
             <div class="chat-header-left">
-                <a href="{{ url_for('chat.inbox') }}" class="back-btn">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
-
                 {% if active_user.profile_picture %}
                     {% if active_user.profile_picture.startswith('http') %}
                         <img src="{{ active_user.profile_picture }}" class="chat-avatar" alt="">

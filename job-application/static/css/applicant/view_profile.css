@@ -53,7 +53,7 @@
 
 .pview-cover-strip {
     height: 130px;
-    background: linear-gradient(135deg, #164A41 0%, #2d6e5e 60%, #4D774E 100%);
+    background: #4D774E;
     position: relative;
 }
 
@@ -831,7 +831,7 @@
 ══════════════════════════════════════════ */
 
 [data-theme="dark"] .pview-header { background: var(--bg-card); border-color: var(--border-color); }
-[data-theme="dark"] .pview-cover-strip { background: linear-gradient(135deg, #0a2419 0%, #164A41 60%, #2d5e2e 100%); }
+[data-theme="dark"] .pview-cover-strip { background: #2d5e2e; }
 [data-theme="dark"] .pview-avatar-wrap { border-color: var(--bg-card); }
 [data-theme="dark"] .pview-avatar-default { background: #1a2e1a; color: #9DC88D; }
 [data-theme="dark"] .pview-header-info h1 { color: var(--text-primary); }

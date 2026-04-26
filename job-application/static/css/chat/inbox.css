@@ -48,6 +48,92 @@
     pointer-events: auto;
 }
 
+.message-bubble.reply-active .bubble-actions,
+.message-bubble.react-active .bubble-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ── Reaction viewer tooltip ── */
+.reaction-viewer {
+    position: fixed;
+    z-index: 10001;
+    background: var(--chat-surface);
+    border: 1px solid var(--chat-border);
+    border-radius: 12px;
+    padding: 0.5rem 0;
+    min-width: 160px;
+    max-width: 220px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    animation: ctxFadeIn 0.12s ease;
+    pointer-events: none;
+}
+
+.reaction-viewer.open {
+    display: flex;
+    pointer-events: auto;
+}
+
+.reaction-viewer-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.35rem 0.875rem 0.25rem;
+    border-bottom: 1px solid var(--chat-border);
+    margin-bottom: 0.25rem;
+}
+
+.reaction-viewer-emoji {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.reaction-viewer-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--chat-text);
+}
+
+.reaction-viewer-count {
+    font-size: 0.72rem;
+    color: var(--chat-muted);
+    margin-left: auto;
+}
+
+.reaction-viewer-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.875rem;
+    font-size: 0.8rem;
+    color: var(--chat-text);
+}
+
+.reaction-viewer-user img,
+.reaction-viewer-user .rvu-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--chat-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: var(--chat-muted);
+    flex-shrink: 0;
+}
+
+.reaction-viewer-empty {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.78rem;
+    color: var(--chat-muted);
+    font-style: italic;
+}
+
 /* ── SIDEBAR ── */
 .inbox-sidebar {
     width: 320px;

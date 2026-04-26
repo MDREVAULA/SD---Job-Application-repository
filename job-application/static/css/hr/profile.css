@@ -86,7 +86,7 @@
 /* ── Cover strip ── */
 .prof-cover-strip {
     height: 130px;
-    background: linear-gradient(135deg, #164A41 0%, #2d6e5e 60%, #4D774E 100%);
+    background: #2271b1;
     position: relative;
 }
 
@@ -259,6 +259,8 @@
     font-size: 0.92rem;
     color: var(--text-secondary, #374151);
     font-weight: 400;
+    overflow-wrap: break-word;  /* ADD THIS */
+    word-break: break-word;     /* ADD THIS */
 }
 
 .prof-headline strong {
@@ -1473,7 +1475,7 @@
 ══════════════════════════════════════════ */
 
 [data-theme="dark"] .prof-header { background: var(--bg-card); border-color: var(--border-color); }
-[data-theme="dark"] .prof-cover-strip { background: linear-gradient(135deg, #0a2419 0%, #164A41 60%, #2d5e2e 100%); }
+[data-theme="dark"] .prof-cover-strip { background: #1a5a8a; }
 [data-theme="dark"] .prof-avatar-wrap { border-color: var(--bg-card); }
 [data-theme="dark"] .prof-avatar-default { background: #1a2e1a; color: #9DC88D; }
 [data-theme="dark"] .prof-company-logo-wrap { border-color: rgba(255,255,255,0.2); background: var(--bg-card); }

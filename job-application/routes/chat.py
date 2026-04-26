@@ -312,7 +312,7 @@ def people():
     query       = request.args.get("q", "").strip()
     role_filter = request.args.get("role", "").strip()
 
-    users_query = User.query.filter(User.role != "admin", User.is_banned == False)
+    users_query = User.query.filter(User.role != "admin", User.is_banned == False, User.is_deleted == False)
 
     if current_user.is_authenticated:
         from models import UserBlock
@@ -488,7 +488,7 @@ def inbox():
     conversations = []
     for uid in contact_ids:
         user = User.query.get(uid)
-        if not user or user.is_banned:
+        if not user or user.is_banned or user.is_deleted:
             continue
         from models import UserBlock
         _blk = UserBlock.query.filter(
@@ -563,7 +563,7 @@ def conversation(other_id):
     conversations = []
     for uid in contact_ids:
         u = User.query.get(uid)
-        if not u or u.is_banned:
+        if not u or u.is_banned or u.is_deleted:
             continue
 
         _blk = UserBlock.query.filter(

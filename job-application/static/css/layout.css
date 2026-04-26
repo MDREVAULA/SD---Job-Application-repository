@@ -1451,6 +1451,113 @@ body {
     color: var(--text-primary);
 }
 
+/* ================================================
+   OVERFLOW FIX — Long unspaced text in all profiles
+   Save as: static/css/profile_overflow_fix.css
+   Link in layout.html AFTER all other profile CSS:
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_overflow_fix.css') }}">
+   ================================================ */
+
+/* ── Shared prof- elements ── */
+.prof-headline,
+.prof-info-value,
+.prof-bio-text,
+.prof-item-title,
+.prof-item-subtitle,
+.prof-item-date,
+.prof-item-desc,
+.prof-side-item-text,
+.prof-sidebar-company-name,
+.prof-sidebar-company-industry,
+.prof-completion-title,
+.prof-section-count,
+.prof-link,
+.port-link-url,
+.doc-file-name {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* ── Shared pview- elements ── */
+.pview-headline,
+.pview-info-value,
+.pview-bio-text,
+.pview-item-title,
+.pview-item-subtitle,
+.pview-item-date,
+.pview-item-desc,
+.pview-side-item-text,
+.pview-sidebar-company-name,
+.pview-sidebar-company-industry,
+.pview-link,
+.pview-port-link-url,
+.pview-doc-file-name,
+.pview-notice-text,
+.pview-private-text,
+.pview-private-sub,
+.pview-cta-text,
+.pview-stat-label {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* ── Card headers and titles ── */
+.prof-card-title,
+.pview-card-title {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
+}
+
+/* ── Follow modal names ── */
+.follow-modal-name,
+.follow-req-name {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* ── Exp / cert item names ── */
+.exp-cert-name,
+.exp-item-summary .prof-item-title,
+.exp-item-summary .prof-item-subtitle {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* ── Ensure flex children with text don't blow out their container ── */
+.prof-item-body,
+.pview-item-body,
+.prof-side-item-text,
+.pview-side-item-text,
+.exp-item-summary,
+.doc-file-body,
+.pview-doc-file-body,
+.port-link-body,
+.pview-port-link-body,
+.follow-modal-info,
+.follow-req-info,
+.pcm-message,
+.pview-notice-text {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* ── Badges and chips — prevent overflow but don't break ── */
+.prof-edu-level-badge,
+.pview-edu-level-badge,
+.pview-status-chip,
+.prof-section-count,
+.pview-section-count,
+.exp-cert-badge,
+.prof-verification-badge,
+.pview-verification-badge,
+.pview-role-pill {
+    word-break: normal;
+    overflow-wrap: normal;
+    flex-shrink: 0;
+}
+
 @keyframes toastSlideIn {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
