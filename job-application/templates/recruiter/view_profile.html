@@ -386,8 +386,9 @@
                     </div>
                     <div class="pview-stat-item">
                         <span class="pview-stat-value">
-                            {{ posted_jobs | selectattr('expiration_date', 'undefined') | list | length
-                               + posted_jobs | selectattr('expiration_date', '>=', today) | list | length }}
+                            {{ posted_jobs | selectattr('expiration_date', 'none') | list | length
+                            + posted_jobs | rejectattr('expiration_date', 'none')
+                                            | selectattr('expiration_date', 'ge', today) | list | length }}
                         </span>
                         <span class="pview-stat-label">Active</span>
                     </div>

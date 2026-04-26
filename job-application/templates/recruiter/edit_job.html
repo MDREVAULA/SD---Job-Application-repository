@@ -445,56 +445,61 @@
             <div class="content-card" id="companyOverviewCard">
               <div class="card-header">
                 <h3 class="card-title-main">Company Overview</h3>
-                <button type="button" class="btn-edit-text" onclick="toggleEditMode('overview')">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                  Edit
-                </button>
               </div>
-              <div class="company-info-grid" id="overviewDisplay">
+              <div class="company-info-grid">
                 <div class="company-info-box">
-                  <div class="info-box-header"><div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><h4 class="info-box-title">Company</h4></div>
+                  <div class="info-box-header">
+                    <div class="info-box-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                      </svg>
+                    </div>
+                    <h4 class="info-box-title">Company</h4>
+                  </div>
                   <p class="info-box-value">{{ current_user.recruiter_profile.company_name }}</p>
                 </div>
+            
                 <div class="company-info-box">
-                  <div class="info-box-header"><div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><h4 class="info-box-title">Industry</h4></div>
-                  <p class="info-box-value" id="overviewIndustry">{{ current_user.recruiter_profile.company_industry or job.field }}</p>
+                  <div class="info-box-header">
+                    <div class="info-box-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                      </svg>
+                    </div>
+                    <h4 class="info-box-title">Industry</h4>
+                  </div>
+                  <p class="info-box-value">{{ current_user.recruiter_profile.company_industry or job.field or 'Not specified' }}</p>
                 </div>
+            
                 <div class="company-info-box">
-                  <div class="info-box-header"><div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h4 class="info-box-title">Company Size</h4></div>
-                  <p class="info-box-value" id="overviewSize">Growing Company</p>
+                  <div class="info-box-header">
+                    <div class="info-box-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                    </div>
+                    <h4 class="info-box-title">Company Size</h4>
+                  </div>
+                  <p class="info-box-value">{{ employee_count }} Employee{{ 's' if employee_count != 1 else '' }}</p>
                 </div>
+            
                 <div class="company-info-box">
-                  <div class="info-box-header"><div class="info-box-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h4 class="info-box-title">Active Since</h4></div>
+                  <div class="info-box-header">
+                    <div class="info-box-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                    </div>
+                    <h4 class="info-box-title">Active Since</h4>
+                  </div>
                   <p class="info-box-value">{{ current_user.created_at.strftime('%Y') if current_user.created_at else '2020' }}</p>
-                </div>
-              </div>
-              <!-- Edit form (hidden by default) -->
-              <div id="overviewEditForm" style="display:none;">
-                <div class="field-grid" style="margin-top:16px;">
-                  <div class="field">
-                    <label class="field-label">Industry / Field</label>
-                    <input type="text" id="editIndustry" class="input-text"
-                           value="{{ current_user.recruiter_profile.company_industry or job.field }}"
-                           placeholder="e.g. Technology, Healthcare">
-                  </div>
-                  <div class="field">
-                    <label class="field-label">Company Size</label>
-                    <select id="editCompanySize" class="input-select">
-                      <option>1–10 employees</option>
-                      <option>11–50 employees</option>
-                      <option selected>Growing Company</option>
-                      <option>51–200 employees</option>
-                      <option>201–500 employees</option>
-                      <option>500+ employees</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="edit-actions">
-                  <button type="button" class="btn-save-section" onclick="saveOverview()">Save Overview</button>
-                  <button type="button" class="btn-cancel-section" onclick="toggleEditMode('overview')">Cancel</button>
                 </div>
               </div>
             </div>
@@ -888,7 +893,6 @@ function handleAllowToggle(checkbox) {
  
 /* ── toggle between display and edit form ── */
 const _editSections = {
-  overview: { display: 'overviewDisplay',  form: 'overviewEditForm'  },
   about:    { display: 'aboutDisplay',     form: 'aboutEditForm'     },
   values:   { display: 'valuesDisplay',    form: 'valuesEditForm'    },
   whyjoin:  { display: 'whyjoinDisplay',   form: 'whyjoinEditForm'   },
@@ -963,17 +967,6 @@ function saveValues() {
   toggleEditMode('values');
   markDirty();
   showToast('Company values updated — click Save Changes to persist.');
-}
- 
-/* ── Company Overview (local display only; carried by main form) ── */
-function saveOverview() {
-  const industry = document.getElementById('editIndustry').value.trim();
-  const size     = document.getElementById('editCompanySize').value;
-  document.getElementById('overviewIndustry').textContent = industry;
-  document.getElementById('overviewSize').textContent     = size;
-  toggleEditMode('overview');
-  markDirty();
-  showToast('Overview updated — click Save Changes to persist.');
 }
  
 /* ── Why Join Us ── */

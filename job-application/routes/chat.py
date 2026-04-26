@@ -84,7 +84,7 @@ def is_mutual_follow(user_a_id, user_b_id):
     return bool(a_follows_b and b_follows_a)
 
 
-def build_user_card(user, current_user_id=None, current_user_role=None, following_ids=None):
+def build_user_card(user, current_user_id=None, current_user_role=None, following_ids=None, pending_request_ids=None):
     """
     Return a dict with everything needed to render a user card,
     including privacy and messaging settings from UserSettings.
@@ -97,6 +97,19 @@ def build_user_card(user, current_user_id=None, current_user_role=None, followin
         is_following = Follow.query.filter_by(
             follower_id=current_user_id, followed_id=user.id
         ).first() is not None
+    
+    # ── Check for pending follow request ──
+    has_pending_request = False
+    if pending_request_ids is not None:
+        has_pending_request = user.id in pending_request_ids
+    elif current_user_id:
+        from models import FollowRequest
+        pending = FollowRequest.query.filter_by(
+            sender_id=current_user_id, 
+            receiver_id=user.id,
+            status='pending'
+        ).first()
+        has_pending_request = pending is not None
 
     follower_count = Follow.query.filter_by(followed_id=user.id).count()
 
@@ -133,6 +146,7 @@ def build_user_card(user, current_user_id=None, current_user_role=None, followin
         "company":         company,
         "profile_picture": user.profile_picture,
         "is_following":    is_following,
+        "has_pending_request": has_pending_request,
         "is_mutual":       mutual,
         "follower_count":  follower_count,
         # ── privacy fields (used by template badges) ──
@@ -334,17 +348,27 @@ def people():
     users = users_query.order_by(User.username).all()
 
     # Pre-fetch all follow relationships for the current viewer in one query
-    # to avoid N+1 queries inside build_user_card
     current_id   = current_user.id   if current_user.is_authenticated else None
     current_role = current_user.role if current_user.is_authenticated else None
 
     following_ids = set()
+    pending_request_ids = set()
+    
     if current_id:
+        # Get actual follows
         rows = Follow.query.filter_by(follower_id=current_id).all()
         following_ids = {r.followed_id for r in rows}
+        
+        # Get pending follow requests
+        from models import FollowRequest
+        pending_requests = FollowRequest.query.filter_by(
+            sender_id=current_id, 
+            status='pending'
+        ).all()
+        pending_request_ids = {req.receiver_id for req in pending_requests}
 
     user_cards = [
-        build_user_card(u, current_id, current_role, following_ids)
+        build_user_card(u, current_id, current_role, following_ids, pending_request_ids)
         for u in users
     ]
 
@@ -600,6 +624,13 @@ def conversation(other_id):
         follower_id=current_user.id, followed_id=other_id
     ).first() is not None
 
+    from models import FollowRequest
+    has_pending_request = (not is_following) and FollowRequest.query.filter_by(
+        sender_id=current_user.id,
+        receiver_id=other_id,
+        status='pending'
+    ).first() is not None
+
     msg_ids = [m.id for m in messages]
     all_rxns = MessageReaction.query.filter(
         MessageReaction.message_id.in_(msg_ids)
@@ -622,6 +653,7 @@ def conversation(other_id):
         reaction_map=reaction_map,
         total_unread=total_unread,
         is_following=is_following,
+        has_pending_request=has_pending_request,
     )
 
 # =========================

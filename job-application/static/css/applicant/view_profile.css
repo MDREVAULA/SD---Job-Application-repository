@@ -263,9 +263,15 @@
 }
 
 .pview-role-pill.role-applicant {
-    background: #ffeacc;
-    border-color: #ecd8bc;
-    color: #c79038;
+    background: rgba(77, 119, 78, 0.1);
+    color: #4D774E;
+    border: 1px solid rgba(77, 119, 78, 0.3);
+}
+
+[data-theme="dark"] .pview-role-pill.role-applicant {
+    background: rgba(77, 119, 78, 0.18);
+    color: #9DC88D;
+    border: 1px solid rgba(157, 200, 141, 0.35);
 }
 
 /* Social links */
