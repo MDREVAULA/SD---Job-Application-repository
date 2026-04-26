@@ -4,7 +4,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/notification_history.css') }}">
 <style>
-/* ── Admin-only: filter bar & action buttons ── */
 .notif-history-filter-bar {
     display: flex;
     align-items: center;
@@ -12,7 +11,6 @@
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
-
 .notif-filter-btn {
     padding: 7px 16px;
     border-radius: 20px;
@@ -25,20 +23,17 @@
     transition: all 0.2s ease;
     font-family: 'DM Sans', sans-serif;
 }
-
 .notif-filter-btn:hover,
 .notif-filter-btn.active {
     background: rgba(157,200,141,0.12);
     border-color: #9DC88D;
     color: var(--brand-green);
 }
-
 .notif-history-actions {
     display: flex;
     gap: 10px;
     margin-left: auto;
 }
-
 .notif-action-btn {
     display: inline-flex;
     align-items: center;
@@ -55,11 +50,8 @@
     font-family: 'DM Sans', sans-serif;
     text-decoration: none;
 }
-
 .notif-action-btn:hover        { background: var(--bg-hover); color: var(--text-primary); }
 .notif-action-btn.danger:hover { background: rgba(255,107,107,0.12); color: #ff6b6b; border-color: #ff6b6b; }
-
-/* ── Admin-only: type badges ── */
 .notif-history-meta {
     display: flex;
     align-items: center;
@@ -67,7 +59,6 @@
     flex-wrap: wrap;
     margin-top: 4px;
 }
-
 .notif-history-type-badge {
     font-size: 11px;
     font-weight: 700;
@@ -76,13 +67,10 @@
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
-
 .badge-account_request  { background: rgba(241,178,74,0.15);  color: var(--brand-accent); border: 1px solid rgba(241,178,74,0.3); }
 .badge-account_approved { background: rgba(157,200,141,0.15); color: #9DC88D;             border: 1px solid rgba(157,200,141,0.3); }
 .badge-account_rejected { background: rgba(255,107,107,0.15); color: #ff6b6b;             border: 1px solid rgba(255,107,107,0.3); }
 .badge-new_message      { background: rgba(100,181,246,0.15); color: #64b5f6;             border: 1px solid rgba(100,181,246,0.3); }
-
-/* ── Override: items are individual cards, not grouped in one box ── */
 .notif-history-list {
     display: flex;
     flex-direction: column;
@@ -92,7 +80,6 @@
     border-radius: 0;
     overflow: visible;
 }
-
 .notif-history-item {
     border-radius: 12px;
     border: 1px solid var(--border-color);
@@ -100,12 +87,10 @@
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease;
 }
-
 .notif-history-item:hover {
     border-color: #9DC88D;
     background: rgba(157,200,141,0.04);
 }
-
 .notif-history-item:last-child {
     border-bottom: 1px solid var(--border-color);
 }
@@ -123,7 +108,6 @@
         </div>
     </div>
 
-    <!-- Filter + Actions bar -->
     <div class="notif-history-filter-bar">
         <button class="notif-filter-btn active" data-filter="all">All</button>
         <button class="notif-filter-btn" data-filter="account_request">Account Requests</button>
@@ -186,28 +170,40 @@
         {# ── Resolve redirect URL ── #}
         {% if n.type == 'new_message' %}
             {% set notif_url = '/chat/inbox' %}
-        {% elif n.type == 'account_request' %}
-            {% set notif_url = '/admin/dashboard' %}
-        {% elif n.type in ['account_approved', 'account_rejected'] and n.user_id %}
-            {% set notif_url = '/profile/' ~ n.user_id %}
+
+        {% elif n.type == 'account_request' and n.user_id %}
+            {% if user_roles.get(n.user_id) == 'applicant' %}
+                {% set notif_url = url_for('admin.all_users') %}
+            {% else %}
+                {% set notif_url = url_for('admin.review_recruiter', user_id=n.user_id) %}
+            {% endif %}
+
+        {% elif n.type == 'account_approved' %}
+            {% set notif_url = url_for('admin.all_users') %}
+        {% elif n.type == 'account_rejected' and n.user_id %}
+            {% set notif_url = url_for('admin.review_recruiter', user_id=n.user_id) %}
+
         {% elif n.type == 'account_banned' %}
-            {% set notif_url = '/admin/banned' %}
+            {% set notif_url = url_for('admin.banned_users') %}
+
         {% elif n.type in ['job_takedown', 'job_deleted', 'job_restored'] %}
-            {% set notif_url = '/admin/jobs' %}
+            {% set notif_url = url_for('admin.all_jobs') %}
+
         {% elif n.user_id %}
-            {% set notif_url = '/profile/' ~ n.user_id %}
+            {% set notif_url = url_for('admin.review_recruiter', user_id=n.user_id) %}
+
         {% else %}
-            {% set notif_url = '#' %}
+            {% set notif_url = url_for('admin.dashboard') %}
         {% endif %}
 
         <div class="notif-history-item {% if not n.is_read %}unread{% endif %}"
              data-type="{{ n.type }}"
              data-id="{{ n.id }}"
              data-url="{{ notif_url }}">
-            <div class="notif-history-icon {{ icon_cls }}">
+            <div class="notif-history-icon {{ icon_cls }}" style="pointer-events:none;">
                 <i class="fas {{ type_icons.get(n.type, 'fa-bell') }}"></i>
             </div>
-            <div class="notif-history-body">
+            <div class="notif-history-body" style="pointer-events:none;">
                 <p class="notif-history-msg">{{ n.message | safe }}</p>
                 <div class="notif-history-meta">
                     <div class="notif-history-time">
@@ -220,7 +216,7 @@
                 </div>
             </div>
             {% if not n.is_read %}
-            <div class="notif-history-unread-dot" title="Unread"></div>
+            <div class="notif-history-unread-dot" title="Unread" style="pointer-events:none;"></div>
             {% endif %}
         </div>
 
@@ -231,6 +227,16 @@
 </div>
 
 <script>
+const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+function postJSON(url, body) {
+    return fetch(url, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body:    body ? JSON.stringify(body) : undefined
+    });
+}
+
 // ── Filter buttons ──
 document.querySelectorAll('.notif-filter-btn').forEach(btn => {
     btn.addEventListener('click', function () {
@@ -243,43 +249,47 @@ document.querySelectorAll('.notif-filter-btn').forEach(btn => {
     });
 });
 
-// ── Click to navigate + mark one read ──
+// ── Click: mark read THEN redirect (fetch completes before navigation) ──
 document.querySelectorAll('.notif-history-item').forEach(item => {
     item.addEventListener('click', function () {
-        const id  = this.dataset.id;
-        const url = this.dataset.url;
+        const id      = this.dataset.id;
+        const url     = this.dataset.url;
+        const wasRead = !this.classList.contains('unread');
 
-        if (this.classList.contains('unread')) {
-            this.classList.remove('unread');
-            const dot = this.querySelector('.notif-history-unread-dot');
-            if (dot) dot.remove();
-            fetch('/admin/notifications/mark-read', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: parseInt(id) })
-            }).catch(() => {});
+        // Optimistic UI update
+        this.classList.remove('unread');
+        const dot = this.querySelector('.notif-history-unread-dot');
+        if (dot) dot.remove();
+
+        if (wasRead) {
+            // Already read — navigate immediately
+            if (url && url !== '#') window.location.href = url;
+            return;
         }
 
-        if (url && url !== '#') {
-            setTimeout(() => window.location.href = url, 150);
-        }
+        // Mark read first, then navigate so DB is updated before page reloads
+        postJSON('/admin/notifications/mark-read', { id: parseInt(id) })
+            .catch(() => {})
+            .finally(() => {
+                if (url && url !== '#') window.location.href = url;
+            });
     });
 });
 
 // ── Mark all read ──
 document.getElementById('histMarkAllBtn')?.addEventListener('click', () => {
-    fetch('/admin/notifications/mark-read', { method: 'POST' })
-        .then(() => {
-            document.querySelectorAll('.notif-history-item.unread').forEach(el => el.classList.remove('unread'));
-            document.querySelectorAll('.notif-history-unread-dot').forEach(d => d.remove());
-        });
+    postJSON('/admin/notifications/mark-read').then(() => {
+        document.querySelectorAll('.notif-history-item.unread').forEach(el => el.classList.remove('unread'));
+        document.querySelectorAll('.notif-history-unread-dot').forEach(d => d.remove());
+    }).catch(() => {});
 });
 
 // ── Clear all ──
 document.getElementById('histClearBtn')?.addEventListener('click', () => {
     if (!confirm('Clear all notifications? This cannot be undone.')) return;
-    fetch('/admin/notifications/clear-all', { method: 'POST' })
-        .then(() => window.location.reload());
+    postJSON('/admin/notifications/clear-all')
+        .then(() => window.location.reload())
+        .catch(() => {});
 });
 </script>
 

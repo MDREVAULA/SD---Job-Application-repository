@@ -774,11 +774,21 @@ def admin_notifications():
         AdminNotification.created_at.desc()
     ).limit(60).all()
     unread = AdminNotification.query.filter_by(is_read=False).count()
+ 
+    def serialize(n):
+        d = n.to_dict()
+        # Attach the role of the linked user so the bell can build the right URL
+        if n.user_id:
+            u = db.session.get(User, n.user_id)
+            d['sender_role'] = u.role if u else None
+        else:
+            d['sender_role'] = None
+        return d
+ 
     return jsonify({
-        'notifications': [n.to_dict() for n in notifs],
+        'notifications': [serialize(n) for n in notifs],
         'unread_count':  unread,
     })
-
 
 # ==============================
 # API: Mark all notifications as read
@@ -822,7 +832,18 @@ def admin_notification_history():
     notifs = AdminNotification.query.order_by(
         AdminNotification.created_at.desc()
     ).all()
-    return render_template('admin/notification_history.html', notifications=notifs)
+    # Mark all as read
+    AdminNotification.query.filter_by(is_read=False).update({'is_read': True})
+    db.session.commit()
+    # Build a role map so the template can route correctly
+    user_roles = {}
+    for n in notifs:
+        if n.user_id and n.user_id not in user_roles:
+            u = db.session.get(User, n.user_id)
+            user_roles[n.user_id] = u.role if u else None
+    return render_template('admin/notification_history.html',
+                           notifications=notifs,
+                           user_roles=user_roles)
 
 
 # ==============================
