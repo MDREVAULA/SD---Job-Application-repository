@@ -1,6 +1,7 @@
 /* ================================
    MY EMPLOYMENT PAGE
    Matches Job Board Card Design
+   + Job Removed state styles
    ================================ */
 
 /* ===== CSS VARIABLES ===== */
@@ -197,7 +198,14 @@
     opacity: 0.75;
 }
 
-.emp-record-card.emp-record-inactive:hover {
+.emp-record-card.emp-record-inactive:hover { opacity: 1; }
+
+/* ─── Job Removed card variant ─── */
+
+.emp-record-card.emp-record-job-removed:hover {
+    border-color: rgba(139, 92, 246, 0.55);
+    box-shadow: 0 10px 32px rgba(139, 92, 246, 0.15);
+    transform: translateY(-2px);   /* subtler lift for removed cards */
     opacity: 1;
 }
 
@@ -219,12 +227,19 @@
     background: linear-gradient(135deg, var(--bg-surface-alt) 0%, var(--border-color) 100%);
 }
 
+.emp-cover-placeholder.emp-cover-removed {
+    /* Subtle purple tint for removed job covers */
+    background: linear-gradient(135deg,
+        rgba(139, 92, 246, 0.06) 0%,
+        rgba(139, 92, 246, 0.12) 100%);
+}
+
 .emp-cover-placeholder svg {
     color: var(--text-muted);
     opacity: 0.4;
 }
 
-/* ===== STATUS BADGE (on cover, top-right) ===== */
+/* ===== STATUS BADGE ===== */
 .emp-status-badge {
     position: absolute;
     top: 12px;
@@ -242,11 +257,17 @@
     z-index: 2;
 }
 
-.badge-active   { background: rgba(157, 200, 141, 0.88); color: #1e4620; }
-.badge-resigned { background: rgba(180, 180, 180, 0.88); color: #2a2a2a; }
-.badge-warning  { background: rgba(241, 178, 74, 0.88);  color: #7a4a00; }
-.badge-info     { background: rgba(100, 181, 246, 0.88); color: #0d3661; }
-.badge-danger   { background: rgba(229, 115, 115, 0.88); color: #7a1919; }
+.badge-active    { background: rgba(157, 200, 141, 0.88); color: #1e4620; }
+.badge-resigned  { background: rgba(180, 180, 180, 0.88); color: #2a2a2a; }
+.badge-warning   { background: rgba(241, 178, 74, 0.88);  color: #7a4a00; }
+.badge-info      { background: rgba(100, 181, 246, 0.88); color: #0d3661; }
+.badge-danger    { background: rgba(229, 115, 115, 0.88); color: #7a1919; }
+
+/* Job Removed badge — purple */
+.badge-job-removed {
+    background: rgba(139, 92, 246, 0.88);
+    color: #ffffff;
+}
 
 /* ===== CARD BODY ===== */
 .emp-card-body {
@@ -256,7 +277,7 @@
     flex: 1;
 }
 
-/* ===== HEADER ROW: Icon + Title + Company ===== */
+/* ===== HEADER ROW ===== */
 .emp-card-header-row {
     display: flex;
     align-items: center;
@@ -275,8 +296,13 @@
     flex-shrink: 0;
 }
 
-.emp-record-icon svg {
-    color: white;
+.emp-record-icon svg { color: white; }
+
+/* Icon variant for removed jobs */
+.emp-record-icon.emp-record-icon-removed {
+    background: linear-gradient(135deg,
+        rgba(139, 92, 246, 0.55) 0%,
+        rgba(139, 92, 246, 0.85) 100%);
 }
 
 .emp-title-area {
@@ -296,8 +322,17 @@
     transition: color 0.2s ease;
 }
 
-.emp-record-card:hover .emp-record-title {
-    color: var(--brand-green-dark);
+.emp-record-card:hover .emp-record-title { color: var(--brand-green-dark); }
+
+/* Muted title when job is removed */
+.emp-record-title.emp-record-title-removed {
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    text-decoration-color: rgba(124, 58, 237, 0.4);
+}
+
+.emp-record-card:hover .emp-record-title.emp-record-title-removed {
+    color: var(--text-secondary);
 }
 
 .emp-record-company {
@@ -341,15 +376,11 @@
     color: var(--text-secondary);
 }
 
-.emp-timeline-item svg {
-    color: var(--accent-primary);
-    flex-shrink: 0;
-}
-
+.emp-timeline-item svg { color: var(--accent-primary); flex-shrink: 0; }
 .emp-timeline-item.emp-timeline-ended svg { color: var(--danger); }
 .emp-timeline-item.emp-timeline-ended     { color: var(--text-tertiary); }
 
-/* ===== TERMINATION NOTE ===== */
+/* ===== NOTES ===== */
 .emp-record-note {
     display: flex;
     align-items: flex-start;
@@ -371,7 +402,16 @@
 
 .emp-record-note-danger svg { color: var(--danger); }
 
-/* ===== ACTION BUTTONS — pill outlined style ===== */
+/* Job removed note — purple themed */
+.emp-record-note-removed {
+    background: rgba(139, 92, 246, 0.08);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.emp-record-note-removed svg { color: #7c3aed; }
+
+/* ===== ACTION BUTTONS ===== */
 .emp-record-footer {
     display: flex;
     flex-direction: row;
@@ -426,6 +466,33 @@
     transform: translateY(-1px);
 }
 
+/* ─── Job Removed footer (replaces action buttons) ─── */
+.emp-job-removed-footer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emp-job-removed-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    border-radius: 50px;
+    border: 1.5px solid rgba(139, 92, 246, 0.35);
+    background: rgba(139, 92, 246, 0.07);
+    color: #7c3aed;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: default;
+    user-select: none;
+    width: 100%;
+    justify-content: center;
+}
+
+.emp-job-removed-label svg { color: #7c3aed; flex-shrink: 0; }
+
 /* ===== SUBMIT BUTTON (empty state) ===== */
 .emp-submit-btn {
     display: inline-flex;
@@ -467,20 +534,98 @@
 }
 
 @media (max-width: 768px) {
-    .job-view-nav  { position: static; }
-    .nav-container { padding: 12px 16px; }
+    .job-view-nav   { position: static; }
+    .nav-container  { padding: 12px 16px; }
     .job-title-main { font-size: 16px; }
-    .job-meta { font-size: 12px; flex-wrap: wrap; }
+    .job-meta       { font-size: 12px; flex-wrap: wrap; }
 
-    .emp-wrapper { padding: 16px; }
+    .emp-wrapper     { padding: 16px; }
     .emp-records-grid { grid-template-columns: 1fr; gap: 16px; }
-    .emp-card-cover { height: 100px; }
+    .emp-card-cover  { height: 100px; }
     .emp-empty-state { padding: 60px 24px; }
 }
 
 @media (max-width: 480px) {
-    .emp-card-cover     { height: 90px; }
-    .emp-record-title   { font-size: 0.9rem; }
-    .emp-empty-state    { padding: 48px 20px; }
-    .emp-empty-state h3 { font-size: 18px; }
+    .emp-card-cover      { height: 90px; }
+    .emp-record-title    { font-size: 0.9rem; }
+    .emp-empty-state     { padding: 48px 20px; }
+    .emp-empty-state h3  { font-size: 18px; }
+}
+
+/* ─── Job Removed card variant ─── */
+.emp-record-card.emp-record-job-removed {
+    border-color: rgba(139, 92, 246, 0.3);
+    /* remove opacity: 0.8 */
+}   
+
+.emp-record-card.emp-record-job-removed:hover {
+    border-color: rgba(139, 92, 246, 0.55);
+    box-shadow: 0 10px 32px rgba(139, 92, 246, 0.15);
+}
+
+.emp-cover-placeholder.emp-cover-removed {
+    background: linear-gradient(135deg,
+        rgba(139, 92, 246, 0.06) 0%,
+        rgba(139, 92, 246, 0.14) 100%);
+}
+
+.badge-job-removed {
+    background: rgba(139, 92, 246, 0.88);
+    color: #ffffff;
+}
+
+.emp-record-icon.emp-record-icon-removed {
+    background: linear-gradient(135deg,
+        rgba(139, 92, 246, 0.55) 0%,
+        rgba(139, 92, 246, 0.85) 100%);
+}
+
+.emp-record-title.emp-record-title-removed {
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    text-decoration-color: rgba(124, 58, 237, 0.4);
+}
+
+.emp-record-note-removed {
+    background: rgba(139, 92, 246, 0.08);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.emp-record-note-removed svg { color: #7c3aed; }
+
+.emp-job-removed-footer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emp-job-removed-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 18px;
+    border-radius: 50px;
+    border: 1.5px solid rgba(139, 92, 246, 0.35);
+    background: rgba(139, 92, 246, 0.07);
+    color: #7c3aed;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: default;
+    user-select: none;
+    width: 100%;
+}
+
+.emp-job-removed-label svg { color: #7c3aed; flex-shrink: 0; }
+
+.emp-record-btn-danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.emp-record-btn-danger:hover {
+    background: var(--danger);
+    color: white;
 }

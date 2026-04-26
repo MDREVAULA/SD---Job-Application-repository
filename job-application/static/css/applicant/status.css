@@ -978,3 +978,108 @@
     color: #7c3aed;
     border: 1px solid rgba(139, 92, 246, 0.25);
 }
+
+.status-job-removed {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* ============================================================
+   APPLICANT STATUS — job_list.css
+   Adds job-removed row treatment on top of existing styles
+   ============================================================ */
+
+/* ──────────────────────────────────────────────
+   JOB-REMOVED ROW STATE
+   Applied when the job backing an application
+   has been taken down by an admin.
+   ────────────────────────────────────────────── */
+
+/* Dim the whole row to signal it's inactive */
+.job-row.job-removed-row {
+    opacity: 0.72;
+}
+
+.job-row.job-removed-row:hover {
+    opacity: 1;
+    background: var(--bg-hover);
+}
+
+/* Status badge — "Job Removed" purple pill */
+.status-job-removed {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* Replaced action buttons — inline "Job Removed" chip
+   shown in the Actions cell instead of the normal buttons */
+.job-removed-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(139, 92, 246, 0.09);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+}
+
+.job-removed-chip svg {
+    color: #7c3aed;
+    flex-shrink: 0;
+}
+
+/* Strike-through on the job title text when removed */
+.job-row.job-removed-row .job-name {
+    text-decoration: line-through;
+    text-decoration-color: rgba(124, 58, 237, 0.45);
+    color: var(--text-tertiary);
+}
+
+.action-btn-removed {
+    background: var(--danger-light) !important;
+    border-color: var(--danger) !important;
+    cursor: not-allowed !important;
+    opacity: 0.7;
+}
+
+.action-btn-removed svg {
+    color: var(--danger) !important;
+}
+
+.actions {
+    text-align: left;
+}
+
+.action-buttons {
+    justify-content: flex-start;
+}    
+
+.date-filter select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    padding-right: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 2px center;
+}
+
+.date-filter select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}

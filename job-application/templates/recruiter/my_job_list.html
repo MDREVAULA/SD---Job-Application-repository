@@ -145,7 +145,7 @@
                 <tbody id="jobTableBody">
                 {% for job in jobs %}
                 {% set active_count = job_active_counts[job.id] %}
-                <tr class="job-row"
+                <tr class="job-row {% if job.is_taken_down %}job-removed-row{% endif %}"
                     data-job-id="{{ job.id }}"
                     data-title="{{ job.title|lower }}"
                     data-field="{{ job.field|lower if job.field else '' }}"
@@ -171,8 +171,12 @@
                                 <div class="job-info">
                                     <div class="job-name">{{ job.title }}</div>
                                     <div class="job-meta-small">
-                                        {% if job.job_type %}{{ job.job_type }}{% endif %}
-                                        {% if job.location %} • {{ job.location }}{% endif %}
+                                        {% if job.is_taken_down %}
+                                        <span style="color: #7c3aed; font-style: italic; font-size: 11px;">Taken down by admin</span>
+                                        {% else %}
+                                            {% if job.job_type %}{{ job.job_type }}{% endif %}
+                                            {% if job.location %} • {{ job.location }}{% endif %}
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -183,33 +187,42 @@
                         </td>
                         
                         <td class="status">
-                            {% if job.expiration_date %}
-                                {% set today = current_date %}
-                                {% if job.expiration_date >= today %}
-                                <span class="status-badge status-active">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                                        <polyline points="20 6 9 17 4 12"/>
-                                    </svg>
-                                    Active
-                                </span>
-                                {% else %}
-                                <span class="status-badge status-expired">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
-                                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                                    </svg>
-                                    Expired
-                                </span>
-                                {% endif %}
-                            {% else %}
+                        {% if job.is_taken_down %}
+                        <span class="status-badge status-job-removed">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                            </svg>
+                            Taken Down
+                        </span>
+                        {% elif job.expiration_date %}
+                            {% set today = current_date %}
+                            {% if job.expiration_date >= today %}
                             <span class="status-badge status-active">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                                     <polyline points="20 6 9 17 4 12"/>
                                 </svg>
                                 Active
                             </span>
+                            {% else %}
+                            <span class="status-badge status-expired">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                                Expired
+                            </span>
                             {% endif %}
-                        </td>
+                        {% else %}
+                        <span class="status-badge status-active">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Active
+                        </span>
+                        {% endif %}
+                    </td>
                         
                         <td class="date">
                             {% if job.created_at %}
@@ -247,6 +260,27 @@
                         
                         <td class="actions">
                             <div class="action-buttons">
+                                {% if job.is_taken_down %}
+                                <button class="action-btn action-btn-taken-down" disabled title="Job taken down by admin">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                                <button class="action-btn action-btn-taken-down" disabled title="Job taken down by admin">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                </button>
+                                <button class="action-btn action-btn-taken-down" disabled title="Job taken down by admin">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="5" r="1" fill="currentColor"/>
+                                        <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                                        <circle cx="12" cy="19" r="1" fill="currentColor"/>
+                                    </svg>
+                                </button>
+                                {% else %}
                                 <a href="{{ url_for('recruiter.view_job_applications', job_id=job.id) }}" class="action-btn" title="View Applicants">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -292,6 +326,7 @@
                                         </button>
                                     </div>
                                 </div>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
