@@ -324,7 +324,46 @@
                         </div>
                     </li>
 
-                    {% if current_user.is_authenticated and current_user.role == 'applicant' %}
+                    <!-- ═══════════════ JOBS — visible to ALL users ═══════════════ -->
+
+                    <li data-category="Jobs" data-tags="jobs list hiring browse view guest">
+                        <button class="faq-trigger" aria-expanded="false">
+                            <div class="faq-trigger-left">
+                                <div class="faq-icon-wrap cat-jobs">
+                                    <i data-lucide="list"></i>
+                                </div>
+                                <div class="faq-trigger-text">
+                                    <span class="faq-question">Where can I see the list of jobs hiring?</span>
+                                    <span class="faq-meta"><span class="faq-tag">Jobs</span></span>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-down" class="faq-chevron"></i>
+                        </button>
+                        <div class="faq-body">
+                            <div class="faq-body-inner">
+                                <p>You can browse all active job listings on the navigation bar or sidebar without needing an account.</p>
+                                <div class="steps-list">
+                                    <div class="step-item">
+                                        <div class="step-num">1</div>
+                                        <div class="step-text">Click <strong>Browse Jobs</strong> in the navigation bar or sidebar</div>
+                                    </div>
+                                    <div class="step-item">
+                                        <div class="step-num">2</div>
+                                        <div class="step-text">Browse or search through all available job listings</div>
+                                    </div>
+                                    <div class="step-item">
+                                        <div class="step-num">3</div>
+                                        <div class="step-text">Click <strong>View Details</strong> on any jobs posted to view their full descriptions</div>
+                                    </div>
+                                </div>
+                                <div class="tip-callout">
+                                    <i data-lucide="log-in"></i>
+                                    <p><a href="/login" style="color: #4D774E; font-weight: 600;">Log in</a> or <a href="/register" style="color: #4D774E; font-weight: 600;">Sign up</a> to apply for any job you're interested in.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
                     <li data-category="Jobs" data-tags="apply job application submit resume how to applicant">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -411,7 +450,30 @@
                         </div>
                     </li>
 
-                    <!-- ── NEW: Submit employment requirements ── -->
+                    <li data-category="Jobs" data-tags="multiple jobs apply more than one limit applicant">
+                        <button class="faq-trigger" aria-expanded="false">
+                            <div class="faq-trigger-left">
+                                <div class="faq-icon-wrap cat-jobs">
+                                    <i data-lucide="layers"></i>
+                                </div>
+                                <div class="faq-trigger-text">
+                                    <span class="faq-question">Can I apply to more than one job?</span>
+                                    <span class="faq-meta"><span class="faq-tag">Jobs</span><span class="faq-role-tag role-applicant">Applicant</span></span>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-down" class="faq-chevron"></i>
+                        </button>
+                        <div class="faq-body">
+                            <div class="faq-body-inner">
+                                <p>Yes, you can apply to multiple job listings at the same time. Each application is tracked separately under <strong>Application Status</strong>. There is no limit on the number of jobs you can apply to.</p>
+                                <div class="tip-callout">
+                                    <i data-lucide="lightbulb"></i>
+                                    <p>Keep your profile and resume up to date so every application puts your best foot forward.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
                     <li data-category="Jobs" data-tags="requirements documents employment onboarding submit upload applicant">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -450,7 +512,6 @@
                         </div>
                     </li>
 
-                    <!-- ── NEW: Track employee status ── -->
                     <li data-category="Jobs" data-tags="employment status employee record active rendering resigned track applicant">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -475,11 +536,11 @@
                                     <div class="step-item">
                                         <div class="step-num">2</div>
                                         <div class="step-text">Find your accepted application and click the <strong>Submit Employment Documents</strong> under ACTION column</div>
-                                    </div>  
+                                    </div>
                                     <div class="step-item">
                                         <div class="step-num">3</div>
                                         <div class="step-text">From there, you can view your progress on the right panel</div>
-                                    </div>                    
+                                    </div>
                                 </div>
                                 <div class="tip-callout">
                                     <i data-lucide="bell"></i>
@@ -489,32 +550,6 @@
                         </div>
                     </li>
 
-                    <!-- ── NEW: Apply to more than 1 job ── -->
-                    <li data-category="Jobs" data-tags="multiple jobs apply more than one limit applicant">
-                        <button class="faq-trigger" aria-expanded="false">
-                            <div class="faq-trigger-left">
-                                <div class="faq-icon-wrap cat-jobs">
-                                    <i data-lucide="layers"></i>
-                                </div>
-                                <div class="faq-trigger-text">
-                                    <span class="faq-question">Can I apply to more than one job?</span>
-                                    <span class="faq-meta"><span class="faq-tag">Jobs</span><span class="faq-role-tag role-applicant">Applicant</span></span>
-                                </div>
-                            </div>
-                            <i data-lucide="chevron-down" class="faq-chevron"></i>
-                        </button>
-                        <div class="faq-body">
-                            <div class="faq-body-inner">
-                                <p>Yes, you can apply to multiple job listings at the same time. Each application is tracked separately under <strong>Application Status</strong>. There is no limit on the number of jobs you can apply to.</p>
-                                <div class="tip-callout">
-                                    <i data-lucide="lightbulb"></i>
-                                    <p>Keep your profile and resume up to date so every application puts your best foot forward.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-
-                    <!-- ── NEW: Submit resignation letter ── -->
                     <li data-category="Jobs" data-tags="resignation letter submit resign quit leave employment applicant">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -542,11 +577,11 @@
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">3</div>
-                                        <div class="step-text">Click <Strong>Submit Resignation</Strong></div>
+                                        <div class="step-text">Click <strong>Submit Resignation</strong></div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">4</div>
-                                        <div class="step-text">Fill in required information and and upload you resignation letter. Once done, click <Strong>Submit Resignation</Strong></div>
+                                        <div class="step-text">Fill in required information and upload your resignation letter. Once done, click <strong>Submit Resignation</strong></div>
                                     </div>
                                 </div>
                                 <div class="tip-callout warning">
@@ -557,9 +592,6 @@
                         </div>
                     </li>
 
-                    {% endif %}
-
-                    {% if current_user.is_authenticated and current_user.role == 'recruiter' %}
                     <li data-category="Jobs" data-tags="post publish job hiring listing create recruiter">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -711,7 +743,7 @@
                             </div>
                         </div>
                     </li>
-                
+
                     <li data-category="Jobs" data-tags="required documents employment onboarding add configure recruiter">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -731,7 +763,7 @@
                                 <div class="steps-list">
                                     <div class="step-item">
                                         <div class="step-num">1</div>
-                                        <div class="step-text">Navigate to <Strong>My Job List</Strong> from you dashboard</div>
+                                        <div class="step-text">Navigate to <strong>My Job List</strong> from your dashboard</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">2</div>
@@ -753,6 +785,7 @@
                             </div>
                         </div>
                     </li>
+
                     <li data-category="Jobs" data-tags="manage applicants applications review recruiter">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -768,11 +801,11 @@
                         </button>
                         <div class="faq-body">
                             <div class="faq-body-inner">
-                                <p>You can manage applicants in your dashboard. From there, you can view and manage each applicantion of each job posting.</p>
+                                <p>You can manage applicants in your dashboard. From there, you can view and manage each application of each job posting.</p>
                                 <div class="steps-list">
                                     <div class="step-item">
                                         <div class="step-num">1</div>
-                                        <div class="step-text">Navigate to <Strong>My Job List</Strong> from you dashboard</div>
+                                        <div class="step-text">Navigate to <strong>My Job List</strong> from your dashboard</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">2</div>
@@ -786,6 +819,7 @@
                             </div>
                         </div>
                     </li>
+
                     <li data-category="Jobs" data-tags="employees list manage active employment recruiter">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -805,20 +839,21 @@
                                 <div class="steps-list">
                                     <div class="step-item">
                                         <div class="step-num">1</div>
-                                        <div class="step-text">Navigate to <Strong>My Job List</Strong> from you dashboard</div>
+                                        <div class="step-text">Navigate to <strong>My Job List</strong> from your dashboard</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">2</div>
-                                        <div class="step-text">With the ACTION column, click the 3 dots button on the job you want to add requiring documents</div>
+                                        <div class="step-text">With the ACTION column, click the 3 dots button on the job you want to manage</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">3</div>
-                                        <div class="step-text">Select <Strong> View Employees</Strong></div>
+                                        <div class="step-text">Select <strong>View Employees</strong></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </li>
+
                     <li data-category="Jobs" data-tags="resignation manage review approve reject recruiter">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -838,7 +873,7 @@
                                 <div class="steps-list">
                                     <div class="step-item">
                                         <div class="step-num">1</div>
-                                        <div class="step-text">Navigate to <Strong>My Job List</Strong> from you dashboard</div>
+                                        <div class="step-text">Navigate to <strong>My Job List</strong> from your dashboard</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">2</div>
@@ -846,11 +881,11 @@
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">3</div>
-                                        <div class="step-text">Select <Strong>View Employees</Strong></div>
+                                        <div class="step-text">Select <strong>View Employees</strong></div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">4</div>
-                                        <div class="step-text">Under the ACTION column, you can manage the employee's resignation by clicking <Strong>Review Resignation</Strong></div>
+                                        <div class="step-text">Under the ACTION column, you can manage the employee's resignation by clicking <strong>Review Resignation</strong></div>
                                     </div>
                                 </div>
                                 <div class="tip-callout">
@@ -861,9 +896,6 @@
                         </div>
                     </li>
 
-                    {% endif %}
-
-                    {% if current_user.is_authenticated and current_user.role == 'hr' %}
                     <li data-category="Jobs" data-tags="manage applicants review application hr status update">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -949,6 +981,7 @@
                             </div>
                         </div>
                     </li>
+
                     <li data-category="Jobs" data-tags="required documents employment onboarding add configure hr assigned">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -986,6 +1019,7 @@
                             </div>
                         </div>
                     </li>
+
                     <li data-category="Jobs" data-tags="manage applicants applications review status update hr">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -1001,11 +1035,11 @@
                         </button>
                         <div class="faq-body">
                             <div class="faq-body-inner">
-                                <p>You can manage applicants in your dashboard. From there, you can view and manage each applicantion of each job posting.</p>
+                                <p>You can manage applicants in your dashboard. From there, you can view and manage each application of each job posting.</p>
                                 <div class="steps-list">
                                     <div class="step-item">
                                         <div class="step-num">1</div>
-                                        <div class="step-text">Navigate to <Strong>My Job List</Strong> from you dashboard</div>
+                                        <div class="step-text">Navigate to <strong>My Job List</strong> from your dashboard</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">2</div>
@@ -1019,6 +1053,7 @@
                             </div>
                         </div>
                     </li>
+
                     <li data-category="Jobs" data-tags="employees list manage active employment hr assigned">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -1038,15 +1073,15 @@
                                 <div class="steps-list">
                                     <div class="step-item">
                                         <div class="step-num">1</div>
-                                        <div class="step-text">Navigate to <Strong>My Job List</Strong> from you dashboard</div>
+                                        <div class="step-text">Navigate to <strong>My Job List</strong> from your dashboard</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">2</div>
-                                        <div class="step-text">With the ACTION column, click the 3 dots button on the job you want to add requiring documents</div>
+                                        <div class="step-text">With the ACTION column, click the 3 dots button on the job you want to manage</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">3</div>
-                                        <div class="step-text">Select <Strong> View Employees</Strong></div>
+                                        <div class="step-text">Select <strong>View Employees</strong></div>
                                     </div>
                                 </div>
                                 <div class="tip-callout warning">
@@ -1056,6 +1091,7 @@
                             </div>
                         </div>
                     </li>
+
                     <li data-category="Jobs" data-tags="resignation manage review approve reject hr assigned">
                         <button class="faq-trigger" aria-expanded="false">
                             <div class="faq-trigger-left">
@@ -1075,7 +1111,7 @@
                                 <div class="steps-list">
                                     <div class="step-item">
                                         <div class="step-num">1</div>
-                                        <div class="step-text">Navigate to <Strong>My Job List</Strong> from you dashboard</div>
+                                        <div class="step-text">Navigate to <strong>My Job List</strong> from your dashboard</div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">2</div>
@@ -1083,11 +1119,11 @@
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">3</div>
-                                        <div class="step-text">Select <Strong>View Employees</Strong></div>
+                                        <div class="step-text">Select <strong>View Employees</strong></div>
                                     </div>
                                     <div class="step-item">
                                         <div class="step-num">4</div>
-                                        <div class="step-text">Under the ACTION column, you can manage the employee's resignation by clicking <Strong>Review Resignation</Strong></div>
+                                        <div class="step-text">Under the ACTION column, you can manage the employee's resignation by clicking <strong>Review Resignation</strong></div>
                                     </div>
                                 </div>
                                 <div class="tip-callout">
@@ -1097,70 +1133,6 @@
                             </div>
                         </div>
                     </li>
-
-                    {% endif %}
-                    {% if not current_user.is_authenticated %}
-                    <li data-category="Jobs" data-tags="jobs list hiring browse view guest">
-                        <button class="faq-trigger" aria-expanded="false">
-                            <div class="faq-trigger-left">
-                                <div class="faq-icon-wrap cat-jobs">
-                                    <i data-lucide="list"></i>
-                                </div>
-                                <div class="faq-trigger-text">
-                                    <span class="faq-question">Where can I see the list of jobs hiring?</span>
-                                    <span class="faq-meta"><span class="faq-tag">Jobs</span></span>
-                                </div>
-                            </div>
-                            <i data-lucide="chevron-down" class="faq-chevron"></i>
-                        </button>
-                        <div class="faq-body">
-                            <div class="faq-body-inner">
-                                <p>You can browse all active job listings on the navigation bar or sidebar without needing an account.</p>
-                                <div class="steps-list">
-                                    <div class="step-item">
-                                        <div class="step-num">1</div>
-                                        <div class="step-text">Click <strong>Browse Jobs</strong> in the navigation bar or sidebar</div>
-                                    </div>
-                                    <div class="step-item">
-                                        <div class="step-num">2</div>
-                                        <div class="step-text">Browse or search through all available job listings</div>
-                                    </div>
-                                    <div class="step-item">
-                                        <div class="step-num">3</div>
-                                        <div class="step-text">Click <Strong>View Details</Strong> on any jobs posted to view their full descriptions</div>
-                                    </div>
-                                </div>
-                                <div class="tip-callout">
-                                    <i data-lucide="log-in"></i>
-                                    <p><a href="/login" style="color: #4D774E; font-weight: 600;">Log in</a> or <a href="/register" style="color: #4D774E; font-weight: 600;">Sign up</a> to apply for any job you're interested in.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                    <li data-category="Jobs" data-tags="apply job for guest">
-                    <button class="faq-trigger" aria-expanded="false">
-                        <div class="faq-trigger-left">
-                            <div class="faq-icon-wrap cat-jobs">
-                                <i data-lucide="list"></i>
-                            </div>
-                            <div class="faq-trigger-text">
-                                <span class="faq-question">How can I apply for a job?</span>
-                                <span class="faq-meta"><span class="faq-tag">Jobs</span></span>
-                            </div>
-                        </div>
-                        <i data-lucide="chevron-down" class="faq-chevron"></i>
-                    </button>
-                    <div class="faq-body">
-                        <div class="faq-body-inner">
-                            <p>You can only apply for a job and have a full access to the website if you have an account.</p>
-                            <div class="tip-callout">
-                                <i data-lucide="log-in"></i>
-                                <p><a href="/login" style="color: #4D774E; font-weight: 600;">Log in</a> or <a href="/register" style="color: #4D774E; font-weight: 600;">Sign up</a> to apply for any job you're interested in.</p>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-                    {% endif %}
 
                 </ul>
 
