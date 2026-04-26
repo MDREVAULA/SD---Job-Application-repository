@@ -44,8 +44,11 @@ def profile():
     following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
     followers = [User.query.get(r.follower_id) for r in follower_rows]
     following = [User.query.get(r.followed_id) for r in following_rows]
-    followers = [u for u in followers if u and not u.is_banned]
-    following = [u for u in following if u and not u.is_banned]
+    followers = [u for u in followers if u and not u.is_banned and not u.is_deleted]
+    following = [u for u in following if u and not u.is_banned and not u.is_deleted]
+
+    from models import JobTeamMember, Job
+    assigned_jobs = [tm.job for tm in JobTeamMember.query.filter_by(hr_id=current_user.id).all()]
 
     return render_template(
         "hr/profile.html",
@@ -409,7 +412,7 @@ def job_list():
 
     # All jobs by their recruiter boss
     recruiter = User.query.get(current_user.created_by)
-    all_jobs = [] if (recruiter and recruiter.is_banned) else Job.query.filter_by(company_id=current_user.created_by).all()
+    all_jobs = [] if (recruiter and (recruiter.is_banned or recruiter.is_deleted)) else Job.query.filter_by(company_id=current_user.created_by).all()
 
     return render_template(
         "hr/job_list.html",
@@ -451,7 +454,8 @@ def job_applications(job_id):
         .filter(
             Application.job_id == job_id,
             Application.status.in_(_ACTIVE_STATUSES),
-            User.is_banned == False
+            User.is_banned == False,
+            User.is_deleted == False
         ).all()
     )
 

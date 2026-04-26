@@ -128,8 +128,8 @@ def profile():
     from models import User as UserModel
     followers = [UserModel.query.get(r.follower_id) for r in follower_rows]
     following = [UserModel.query.get(r.followed_id) for r in following_rows]
-    followers = [u for u in followers if u and not u.is_banned]
-    following = [u for u in following if u and not u.is_banned]
+    followers = [u for u in followers if u and not u.is_banned and not u.is_deleted]
+    following = [u for u in following if u and not u.is_banned and not u.is_deleted]
 
     profile_complete = is_profile_complete(prof)
 
@@ -1023,7 +1023,7 @@ def apply_job(job_id):
         )
         db.session.add(notif)
 
-        hr_users = User.query.filter_by(created_by=job_owner.company_id, role='hr').all()
+        hr_users = User.query.filter_by(created_by=job_owner.company_id, role='hr', is_deleted=False).all()
         for hr in hr_users:
             hr_notif = HRNotification(
                 hr_id=hr.id,
@@ -1380,6 +1380,7 @@ def saved_jobs():
         s for s in saved
         if s.job and not s.job.is_taken_down
         and not User.query.get(s.job.company_id).is_banned
+        and not User.query.get(s.job.company_id).is_deleted
     ]
 
     return render_template('applicant/saved_jobs.html', saved=saved)

@@ -402,7 +402,7 @@
     <div class="hra-modal-content hra-modal-sm">
         <div class="hra-modal-header">
             <h3 id="confirmTitle">Confirm Action</h3>
-            <button class="hra-modal-close" onclick="closeConfirmModal()">
+            <button class="hra-modal-close">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
@@ -410,10 +410,12 @@
             </button>
         </div>
         <div class="hra-modal-body">
-            <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            <p id="confirmMessage" style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0 0 24px 0;">
+                Are you sure you want to perform this action?
+            </p>
             <div class="hra-modal-buttons">
-                <button type="button" class="hra-btn-secondary" onclick="closeConfirmModal()">Cancel</button>
-                <button type="button" class="hra-btn-danger" id="confirmActionBtn">Confirm</button>
+                <button type="button" class="hra-btn-secondary" id="confirmCancelBtn">Cancel</button>
+                <button type="button" class="hra-btn-danger" id="confirmActionBtn">Remove</button>
             </div>
         </div>
     </div>

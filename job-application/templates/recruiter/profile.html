@@ -12,17 +12,6 @@
 {% include 'components/profile_picture_modal.html' %}
 {% include 'components/company_logo_modal.html' %}
 
-{# ══════════════════════════════════════════════════════════════════════════════
-   RECRUITER PROFILE — VERIFICATION BANNER
-   verify_state values:
-     "incomplete"           → missing required fields, show checklist
-     "complete_needs_proof" → fields done but company proof not uploaded yet
-     "complete_unsubmitted" → proof uploaded, show Submit button
-     "pending"              → submitted, waiting for admin
-     "approved"             → verified, no banner
-     "rejected"             → rejected, show rejection message
-   ══════════════════════════════════════════════════════════════════════════════ #}
- 
 {% if verify_state == 'incomplete' %}
 <div class="profile-completion-banner banner--incomplete">
     <div class="pcb-icon"><i class="fas fa-exclamation-triangle"></i></div>
@@ -73,35 +62,16 @@
         <strong>One last step — upload your company proof</strong>
         <p>Your profile is complete! Upload a document that proves your company's legitimacy (e.g. SEC registration, DTI certificate, business permit). Once uploaded, you can submit for admin review.</p>
     </div>
- 
     <div class="pcb-checklist">
-        <span class="pcb-check done">
-            <i class="fas fa-check-circle"></i> First name
-        </span>
-        <span class="pcb-check done">
-            <i class="fas fa-check-circle"></i> Last name
-        </span>
-        <span class="pcb-check done">
-            <i class="fas fa-check-circle"></i> Phone number
-        </span>
-        <span class="pcb-check done">
-            <i class="fas fa-check-circle"></i> Company name
-        </span>
-        <span class="pcb-check done">
-            <i class="fas fa-check-circle"></i> Industry
-        </span>
-        <span class="pcb-check done">
-            <i class="fas fa-check-circle"></i> Country
-        </span>
-        <span class="pcb-check done">
-            <i class="fas fa-check-circle"></i> City
-        </span>
-        <span class="pcb-check">
-            <i class="fas fa-circle"></i> Company proof document
-        </span>
+        <span class="pcb-check done"><i class="fas fa-check-circle"></i> First name</span>
+        <span class="pcb-check done"><i class="fas fa-check-circle"></i> Last name</span>
+        <span class="pcb-check done"><i class="fas fa-check-circle"></i> Phone number</span>
+        <span class="pcb-check done"><i class="fas fa-check-circle"></i> Company name</span>
+        <span class="pcb-check done"><i class="fas fa-check-circle"></i> Industry</span>
+        <span class="pcb-check done"><i class="fas fa-check-circle"></i> Country</span>
+        <span class="pcb-check done"><i class="fas fa-check-circle"></i> City</span>
+        <span class="pcb-check"><i class="fas fa-circle"></i> Company proof document</span>
     </div>
- 
-    <!-- Proof upload form -->
     <div class="pcb-proof-upload">
         <form method="POST"
               action="{{ url_for('recruiter.upload_company_proof') }}"
@@ -133,11 +103,9 @@
         <strong>Everything's ready — submit for verification</strong>
         <p>Your profile and company proof are complete. Click the button to submit to the admin for review. You'll be notified once approved.</p>
     </div>
- 
     <div class="pcb-checklist">
         <span class="pcb-check done"><i class="fas fa-check-circle"></i> Profile fields</span>
         <span class="pcb-check done"><i class="fas fa-check-circle"></i> Company proof uploaded</span>
-        
         <div class="pcb-actions">
             <form method="POST" action="{{ url_for('recruiter.submit_for_review') }}" style="display:inline;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -147,7 +115,6 @@
             </form>
         </div>
     </div>
-
 </div>
  
 {% elif verify_state == 'pending' %}
@@ -174,8 +141,6 @@
     </div>
 </div>
 {% endif %}
- 
-{# approved → no banner at all #}
 
 <div class="prof-wrapper">
 
@@ -614,6 +579,66 @@
                 </div>
             </div>
 
+            <!-- ── JOB POSTINGS ── -->
+            <div class="prof-card" id="section-jobs" style="animation-delay:0.14s">
+                <div class="prof-card-header">
+                    <div class="prof-card-title">
+                        <i class="fas fa-briefcase"></i> Job Postings
+                        {% if jobs %}<span class="prof-section-count">{{ jobs | length }}</span>{% endif %}
+                    </div>
+                    <a href="{{ url_for('recruiter.job_posting') }}" class="prof-add-btn">
+                        <i class="fas fa-plus"></i> Post a Job
+                    </a>
+                </div>
+
+                <div class="prof-items-list">
+                    {% if jobs %}
+                        {% for job in jobs %}
+                        {% set is_expired = job.expiration_date and job.expiration_date < today %}
+                        <div class="prof-item">
+                            <div class="prof-item-icon" style="overflow:hidden;">
+                                {% if job.cover_photo %}
+                                    <img src="{{ url_for('static', filename='uploads/job_covers/' + job.cover_photo) }}"
+                                         style="width:100%;height:100%;object-fit:cover;display:block;" alt="{{ job.title }}">
+                                {% else %}
+                                    <i class="fas fa-briefcase"></i>
+                                {% endif %}
+                            </div>
+                            <div class="prof-item-body">
+                                <div class="prof-item-title">
+                                    {{ job.title }}
+                                    {% if is_expired %}
+                                    <span class="prof-edu-level-badge" style="background:#F3F4F6;border-color:#D1D5DB;color:#6B7280;">Expired</span>
+                                    {% else %}
+                                    <span class="prof-edu-level-badge">Active</span>
+                                    {% endif %}
+                                </div>
+                                <div class="prof-item-subtitle">
+                                    {{ profile.company_name if profile and profile.company_name else '' }}
+                                    {% if job.field %} · {{ job.field }}{% endif %}
+                                </div>
+                                <div class="prof-item-date">
+                                    {% if job.location %}{{ job.location }}{% endif %}
+                                    {% if job.job_type %} · {{ job.job_type }}{% endif %}
+                                    {% if job.salary %} · {{ job.salary }} {{ job.currency }}{% endif %}
+                                </div>
+                            </div>
+                            <a href="{{ url_for('recruiter.view_job_applications', job_id=job.id) }}"
+                               class="prof-add-btn"
+                               style="align-self:center;white-space:nowrap;margin-left:8px;">
+                                <i class="fas fa-users"></i> Applicants
+                            </a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="prof-empty-section">
+                            <i class="fas fa-briefcase"></i>
+                            <p>No job postings yet. <a href="{{ url_for('recruiter.job_posting') }}" style="color:#4D774E;font-weight:600;">Post your first job →</a></p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
         </div><!-- /.prof-main -->
 
         <!-- ══ SIDEBAR COLUMN ══ -->
@@ -693,7 +718,7 @@
                 </div>
             </div>
 
-            <!-- ── PORTFOLIO CARD (NEW - from applicant) ── -->
+            <!-- ── PORTFOLIO CARD ── -->
             <div class="prof-card" id="section-portfolio" style="animation-delay:0.13s">
                 <div class="prof-card-header">
                     <div class="prof-card-title"><i class="fas fa-images"></i> Portfolio</div>
@@ -701,7 +726,6 @@
 
                 <div class="portfolio-card-body">
 
-                    {# ── If a file is already uploaded, show it ── #}
                     {% if profile and profile.portfolio_file %}
                         {% set pext = profile.portfolio_file.rsplit('.', 1)[-1].lower() %}
                         <div class="doc-file-item port-file-item">
@@ -714,7 +738,7 @@
                                 <div class="doc-file-meta">{{ pext | upper }} · Portfolio File</div>
                             </div>
                             <div class="doc-file-actions">
-                                <a href="{{ url_for('static', filename='uploads/applicant_resumes/' + profile.portfolio_file) }}"
+                                <a href="{{ url_for('static', filename='uploads/recruiter_portfolios/' + profile.portfolio_file) }}"
                                    target="_blank" class="doc-file-btn doc-file-btn-view">
                                     <i class="fas fa-eye"></i>
                                 </a>
@@ -729,7 +753,6 @@
                         </div>
                     {% endif %}
 
-                    {# ── If a portfolio URL is set, show it ── #}
                     {% if profile and profile.portfolio %}
                         <div class="port-link-row">
                             <div class="port-link-icon"><i class="fas fa-globe"></i></div>
@@ -743,7 +766,6 @@
                         </div>
                     {% endif %}
 
-                    {# ── If neither is set, show the upload/link panel ── #}
                     {% if not (profile and (profile.portfolio_file or profile.portfolio)) %}
                         <div class="port-empty-hint">
                             <i class="fas fa-folder-open"></i>
@@ -751,7 +773,6 @@
                         </div>
                     {% endif %}
 
-                    {# ── Tab switcher to add/replace ── #}
                     <div class="port-add-section">
                         <div class="port-tabs">
                             <button class="port-tab active" id="port-tab-file" onclick="switchPortfolioMode('file')">
@@ -762,7 +783,6 @@
                             </button>
                         </div>
 
-                        {# File upload panel #}
                         <div id="port-panel-file">
                             <div class="doc-upload-zone port-upload-zone"
                                  ondragover="event.preventDefault(); this.classList.add('drag-over')"
@@ -785,7 +805,6 @@
                             </form>
                         </div>
 
-                        {# Link panel #}
                         <div id="port-panel-link" style="display:none;">
                             <form method="POST" action="{{ url_for('recruiter.update_social') }}" class="port-link-form">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -807,7 +826,6 @@
 
                 </div>
             </div>
-            <!-- END PORTFOLIO CARD -->
 
             <!-- ── COMPANY CARD (sidebar) ── -->
             <div class="prof-card prof-side-company-card" style="animation-delay:0.09s">
@@ -966,30 +984,6 @@
                 </div>
             </div>
 
-            <!-- ── QUICK LINKS ──
-            <div class="prof-card" style="animation-delay:0.16s">
-                <div class="prof-card-header">
-                    <div class="prof-card-title"><i class="fas fa-link"></i> Quick Links</div>
-                </div>
-                <div class="prof-side-list" style="padding-top: 12px;">
-                    <a href="{{ url_for('recruiter.job_posting') }}" class="prof-quick-link">
-                        <i class="fas fa-file-circle-plus"></i>
-                        <span>Post a New Job</span>
-                        <i class="fas fa-chevron-right prof-quick-link-arrow"></i>
-                    </a>
-                    <a href="{{ url_for('recruiter.my_job_list') }}" class="prof-quick-link">
-                        <i class="fas fa-list-check"></i>
-                        <span>My Job Listings</span>
-                        <i class="fas fa-chevron-right prof-quick-link-arrow"></i>
-                    </a>
-                    <a href="{{ url_for('recruiter.hr_accounts') }}" class="prof-quick-link">
-                        <i class="fas fa-users-gear"></i>
-                        <span>Manage HR Accounts</span>
-                        <i class="fas fa-chevron-right prof-quick-link-arrow"></i>
-                    </a>
-                </div>
-            </div> -->
-
         </div><!-- /.prof-side -->
 
     </div><!-- /.prof-body -->
@@ -1010,7 +1004,6 @@
         <button class="follow-modal-close" onclick="closeFollowModal()"><i class="fas fa-times"></i></button>
     </div>
 
-    <!-- Followers list -->
     <div class="follow-modal-list" id="list-followers">
         {% if followers %}
             {% for u in followers %}
@@ -1041,7 +1034,6 @@
         {% endif %}
     </div>
 
-    <!-- Following list -->
     <div class="follow-modal-list" id="list-following" style="display:none;">
         {% if following %}
             {% for u in following %}
