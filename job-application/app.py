@@ -225,11 +225,11 @@ if __name__ == "__main__":
                 print("Password: admin123")
                 print("=" * 50)
 
-            print("\n" + "=" * 50)
-            print("Flask App URL:")
-            print("http://127.0.0.1:5000/")
-            print("\nADMIN LOGIN URL (this session only):")
-            print(f"http://127.0.0.1:5000/admin/login/{app.config['ADMIN_TOKEN']}")
-            print("=" * 50 + "\n")
+    print("\n" + "=" * 50)
+    print("Flask App URL:")
+    print("http://127.0.0.1:5000/")
+    print("\nADMIN LOGIN URL (this session only):")
+    print(f"http://127.0.0.1:5000/admin/login/{app.config['ADMIN_TOKEN']}")
+    print("=" * 50 + "\n")
 
     app.run(debug=True)
