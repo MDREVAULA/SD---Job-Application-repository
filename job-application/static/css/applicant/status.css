@@ -405,6 +405,7 @@
 
 .job-title-cell {
     min-width: 250px;
+    max-width: 280px;
 }
 
 .job-title-wrapper {
@@ -445,11 +446,17 @@
 .job-name {
     font-weight: 600;
     color: var(--text-primary);
+    word-break: break-word;  /* break long unspaced strings */
+    overflow-wrap: break-word;
+    white-space: normal;
+    max-width: 200px;        /* constrain within the cell */
 }
 
 .job-meta-small {
     font-size: 12px;
     color: var(--text-tertiary);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .company-name {
@@ -856,6 +863,7 @@
     
     .job-title-cell {
         min-width: 200px;
+        max-width: 230px;
     }
     
     .action-buttons {

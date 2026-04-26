@@ -109,28 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const editSection = document.createElement('div');
       editSection.id    = 'valuesEditSection';
       editSection.style.marginTop = '16px';
-
-      editSection.innerHTML = `
-        <button type="button" id="editValuesBtn" class="btn-edit-text"
-          style="margin-bottom:12px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
-          Edit Values
-        </button>
-        <div id="valuesEditForm" style="display:none;">
-          <div id="valuesEditorList"></div>
-          <button type="button" id="addValueRowBtn" class="btn-add-value"
-            style="margin-top:8px;">+ Add Value</button>
-          <div class="edit-actions" style="margin-top:12px;">
-            <button type="button" id="saveValuesBtn"   class="btn-save-section">Save Values</button>
-            <button type="button" id="cancelValuesBtn" class="btn-cancel-section">Cancel</button>
-          </div>
-        </div>
-      `;
-
       // Insert right after the .company-values div's parent card header
       const card = valuesDisplay.closest('.content-card');
       if (card) card.appendChild(editSection);

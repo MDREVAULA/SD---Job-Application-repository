@@ -1270,7 +1270,8 @@ def edit_job(job_id):
         job=job,
         hr_list=hr_list,
         assigned_hr_ids=assigned_hr_ids,
-        employee_count=employee_count, 
+        employee_count=employee_count,
+        today=date.today(),
     )
 
 

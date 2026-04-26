@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const resetSearchBtn    = document.getElementById('resetSearch');
     const searchEmptyState  = document.getElementById('searchEmptyState');
 
+    // Availability checkboxes
+    const filterActive      = document.getElementById('filterActive');
+    const filterExpired     = document.getElementById('filterExpired');
+
     // Sidebar checkboxes
     const categoryCheckboxes = document.querySelectorAll('#categoryFilters input[type="checkbox"]');
     const scheduleCheckboxes = document.querySelectorAll('#scheduleFilters input[type="checkbox"]');
@@ -48,13 +52,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ============================================
     // COUNT
+    // Counts only VISIBLE active jobs so the number
+    // reflects what the user actually sees on screen.
     // ============================================
     function updateCount() {
-        const visible = allItems.filter(item => item.style.display !== 'none').length;
-        if (jobsCountEl) jobsCountEl.textContent = visible;
+        const visibleActiveCount = allItems.filter(item =>
+            item.style.display !== 'none' &&
+            (item.getAttribute('data-status') || 'active') === 'active'
+        ).length;
 
+        if (jobsCountEl) jobsCountEl.textContent = visibleActiveCount;
+
+        const visibleCount = allItems.filter(item => item.style.display !== 'none').length;
         if (searchEmptyState) {
-            searchEmptyState.style.display = (allItems.length > 0 && visible === 0) ? 'block' : 'none';
+            searchEmptyState.style.display =
+                (allItems.length > 0 && visibleCount === 0) ? 'flex' : 'none';
         }
     }
 
@@ -62,34 +74,59 @@ document.addEventListener('DOMContentLoaded', function () {
     // FILTER
     // ============================================
     function filterAndSort() {
-        const searchTerm       = searchInput ? searchInput.value.toLowerCase().trim() : '';
-        const headerCategory   = categoryFilter ? categoryFilter.value.toLowerCase() : '';
-        const headerJobType    = jobTypeFilter ? jobTypeFilter.value.toLowerCase() : '';
-        
+        const searchTerm        = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const headerCategory    = categoryFilter ? categoryFilter.value.toLowerCase() : '';
+        const headerJobType     = jobTypeFilter  ? jobTypeFilter.value.toLowerCase()  : '';
+
         const sidebarCategories = getSelectedCategories();
         const sidebarJobTypes   = getSelectedJobTypes();
 
+        const showActive  = filterActive  ? filterActive.checked  : true;
+        const showExpired = filterExpired ? filterExpired.checked : false;
+
         allItems.forEach(function (item) {
-            const title    = (item.querySelector('.job-title')?.textContent || '').toLowerCase();
+            const status    = (item.getAttribute('data-status') || 'active').trim();
+            const isActive  = status === 'active';
+            const isExpired = status === 'expired' || status === 'closed';
+
+            // ── Availability gate ──────────────────────────────────────────
+            // Hide active jobs when "Active jobs" is unchecked
+            if (isActive && !showActive) {
+                item.style.display = 'none';
+                return;
+            }
+            // Hide expired/closed jobs when "Show closed & expired" is unchecked
+            if (isExpired && !showExpired) {
+                item.style.display = 'none';
+                return;
+            }
+            // Hide anything that is neither active nor expired (safety fallback)
+            if (!isActive && !isExpired) {
+                item.style.display = 'none';
+                return;
+            }
+
+            // ── Text / field data ──────────────────────────────────────────
+            const title    = (item.querySelector('.job-title')?.textContent  || '').toLowerCase();
             const snippet  = (item.querySelector('.job-description')?.textContent || '').toLowerCase();
-            const field    = (item.getAttribute('data-field') || '').toLowerCase();
+            const field    = (item.getAttribute('data-field')    || '').toLowerCase();
             const jobType  = (item.getAttribute('data-job-type') || '').toLowerCase();
             const location = (item.querySelector('.tag-location')?.textContent || '').toLowerCase();
-            const company  = (item.querySelector('.job-company')?.textContent || '').toLowerCase();
+            const company  = (item.querySelector('.job-company')?.textContent  || '').toLowerCase();
 
             const matchesSearch =
                 !searchTerm ||
-                title.includes(searchTerm) ||
-                snippet.includes(searchTerm) ||
+                title.includes(searchTerm)    ||
+                snippet.includes(searchTerm)  ||
                 location.includes(searchTerm) ||
-                company.includes(searchTerm) ||
+                company.includes(searchTerm)  ||
                 field.includes(searchTerm);
 
             // Header filters
-            const matchesHeaderCategory = !headerCategory || field === headerCategory;
+            const matchesHeaderCategory = !headerCategory || field   === headerCategory;
             const matchesHeaderJobType  = !headerJobType  || jobType === headerJobType;
 
-            // Sidebar filters (if any are checked, item must match at least one)
+            // Sidebar filters — if any checked, item must match at least one
             let matchesSidebarCategory = true;
             if (sidebarCategories.length > 0) {
                 matchesSidebarCategory = sidebarCategories.includes(field);
@@ -100,11 +137,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 matchesSidebarJobType = sidebarJobTypes.includes(jobType);
             }
 
-            const shouldShow = matchesSearch && 
-                               matchesHeaderCategory && 
-                               matchesHeaderJobType &&
-                               matchesSidebarCategory &&
-                               matchesSidebarJobType;
+            const shouldShow =
+                matchesSearch          &&
+                matchesHeaderCategory  &&
+                matchesHeaderJobType   &&
+                matchesSidebarCategory &&
+                matchesSidebarJobType;
 
             item.style.display = shouldShow ? '' : 'none';
         });
@@ -126,11 +164,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const idB    = parseInt(b.getAttribute('data-posted') || '0', 10);
 
             switch (currentSort) {
-                case 'newest':  return idB - idA;
-                case 'oldest':  return idA - idB;
-                case 'az':      return titleA.localeCompare(titleB);
-                case 'za':      return titleB.localeCompare(titleA);
-                default:        return 0;
+                case 'newest': return idB - idA;
+                case 'oldest': return idA - idB;
+                case 'az':     return titleA.localeCompare(titleB);
+                case 'za':     return titleB.localeCompare(titleA);
+                default:       return 0;
             }
         });
 
@@ -176,51 +214,39 @@ document.addEventListener('DOMContentLoaded', function () {
     // ============================================
     // CLEAR ALL FILTERS
     // ============================================
-    if (clearFiltersBtn) {
-        clearFiltersBtn.addEventListener('click', function () {
-            // Clear header filters
-            if (searchInput)     searchInput.value     = '';
-            if (categoryFilter)  categoryFilter.value  = '';
-            if (jobTypeFilter)   jobTypeFilter.value   = '';
+    function clearAll() {
+        if (searchInput)    searchInput.value    = '';
+        if (categoryFilter) categoryFilter.value = '';
+        if (jobTypeFilter)  jobTypeFilter.value  = '';
 
-            // Clear sidebar checkboxes
-            categoryCheckboxes.forEach(cb => cb.checked = false);
-            scheduleCheckboxes.forEach(cb => cb.checked = false);
+        // Reset sidebar checkboxes
+        categoryCheckboxes.forEach(cb => cb.checked = false);
+        scheduleCheckboxes.forEach(cb => cb.checked = false);
 
-            filterAndSort();
-        });
+        // Reset availability to defaults: Active ON, Expired OFF
+        if (filterActive)  filterActive.checked  = true;
+        if (filterExpired) filterExpired.checked = false;
+
+        filterAndSort();
     }
 
-    if (resetSearchBtn) {
-        resetSearchBtn.addEventListener('click', function () {
-            // Clear header filters
-            if (searchInput)     searchInput.value     = '';
-            if (categoryFilter)  categoryFilter.value  = '';
-            if (jobTypeFilter)   jobTypeFilter.value   = '';
-
-            // Clear sidebar checkboxes
-            categoryCheckboxes.forEach(cb => cb.checked = false);
-            scheduleCheckboxes.forEach(cb => cb.checked = false);
-
-            filterAndSort();
-        });
-    }
+    if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAll);
+    if (resetSearchBtn)  resetSearchBtn.addEventListener('click',  clearAll);
 
     // ============================================
     // EVENT LISTENERS
     // ============================================
-    if (searchInput)     searchInput.addEventListener('input', filterAndSort);
-    if (categoryFilter)  categoryFilter.addEventListener('change', filterAndSort);
-    if (jobTypeFilter)   jobTypeFilter.addEventListener('change', filterAndSort);
+    if (searchInput)    searchInput.addEventListener('input',    filterAndSort);
+    if (categoryFilter) categoryFilter.addEventListener('change', filterAndSort);
+    if (jobTypeFilter)  jobTypeFilter.addEventListener('change',  filterAndSort);
+
+    // Availability
+    if (filterActive)  filterActive.addEventListener('change',  filterAndSort);
+    if (filterExpired) filterExpired.addEventListener('change', filterAndSort);
 
     // Sidebar checkboxes
-    categoryCheckboxes.forEach(cb => {
-        cb.addEventListener('change', filterAndSort);
-    });
-
-    scheduleCheckboxes.forEach(cb => {
-        cb.addEventListener('change', filterAndSort);
-    });
+    categoryCheckboxes.forEach(cb => cb.addEventListener('change', filterAndSort));
+    scheduleCheckboxes.forEach(cb => cb.addEventListener('change', filterAndSort));
 
     // ============================================
     // INITIAL RENDER

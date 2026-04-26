@@ -104,6 +104,8 @@ textarea {
   gap: 8px;
   font-size: 13px;
   color: var(--text-secondary);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .meta-dot {
@@ -382,14 +384,13 @@ textarea {
   color: var(--text-primary);
   background: var(--bg-surface);
   transition: all 0.2s;
-  box-sizing: border-box;
 }
 
 .input-text:focus,
 .input-select:focus {
   outline: none;
-  border-color: #4D774E;
-  box-shadow: 0 0 0 3px rgba(77, 119, 78, 0.1);
+  border-color: var(--brand-green-dark);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
 }
 
 .input-textarea {
@@ -405,13 +406,12 @@ textarea {
   min-height: 120px;
   font-family: inherit;
   transition: all 0.2s;
-  box-sizing: border-box;
 }
 
 .input-textarea:focus {
   outline: none;
-  border-color: #4D774E;
-  box-shadow: 0 0 0 3px rgba(77, 119, 78, 0.1);
+  border-color: var(--brand-green-dark);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
 }
 
 /* Generic field inputs (used inside .field wrappers) */
@@ -1272,6 +1272,8 @@ input:checked + .toggle-slider:before {
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 6px 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .value-description {
@@ -1279,6 +1281,26 @@ input:checked + .toggle-slider:before {
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.6;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.value-editor-row .value-title-input {
+  grid-column: 1; grid-row: 1;
+  margin: 0 !important; width: 100%; box-sizing: border-box;
+}
+.value-editor-row .value-desc-input {
+  grid-column: 1; grid-row: 2;
+  margin: 0 !important; width: 100%; box-sizing: border-box;
+}
+.value-editor-row .btn-remove-value {
+  grid-column: 2; grid-row: 1 / span 2;
+  position: static !important;   /* override old absolute positioning */
+  align-self: center;
+  justify-self: center;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; font-size: 18px; border-radius: 6px;
 }
 
 /* Highlight / Why Join Us card */
@@ -1393,10 +1415,7 @@ input:checked + .toggle-slider:before {
   border-color: #4D774E;
 }
 
-.benefit-editor-row .input-text {
-  flex: 1;
-  margin: 0;
-}
+.benefit-editor-row .input-text { flex: 1; margin: 0; }
 
 .benefit-editor-row::before {
   content: '';
@@ -1432,21 +1451,19 @@ input:checked + .toggle-slider:before {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  margin-top: 4px;
+  padding: 7px 14px;
   background: var(--bg-surface, #fff);
-  border: 1.5px dashed #4D774E;
+  border: 1px dashed var(--brand-green-dark);
   border-radius: 8px;
   font-size: 13px;
-  color: #4D774E;
+  color: var(--brand-green-dark);
   cursor: pointer;
   transition: background 0.2s;
-  font-weight: 500;
+  margin-bottom: 14px;
 }
 
-.btn-add-value:hover {
-  background: rgba(77, 119, 78, 0.08);
-}
-
+.btn-add-value:hover { background: rgba(20,184,166,0.08); }
 /* ══════════════════════════════════
    PAGE WRAPPER (breadcrumb layout)
    ══════════════════════════════════ */
@@ -1849,7 +1866,7 @@ input:checked + .toggle-slider:before {
   padding: 10px 24px;
   border-radius: 8px;
   border: none;
-  background: #4D774E;
+  background: var(--brand-green-dark);
   color: white;
   font-size: 14px;
   font-weight: 600;
@@ -1857,9 +1874,13 @@ input:checked + .toggle-slider:before {
   transition: all 0.2s;
 }
 
-.btn-save:hover { background: #164A41; }
-.btn-save:active { transform: scale(0.98); }
+.btn-save:hover {
+  background: var(--brand-green);
+}
 
+.btn-save:active {
+  transform: scale(0.98);
+}
 
 /* ══════════════════════════════════
    RESPONSIVE
