@@ -6,18 +6,10 @@ var currentPage = 1;
 var rowsPerPage = 6;
 var allRowsArray = [];
 var currentFilteredRows = [];
-
-// Tracks where the current visible window starts
 var windowStart = 1;
-
-// ── Undo timers: keyed by hr_id (or 'all') ──
-// Each entry: { timerId, commitTimerId, seconds }
 var undoTimers = {};
-
-// Duration (ms) the undo toast stays alive before committing
 var UNDO_DURATION = 8000;
 
-// Add this at the very top of hr_accounts.js, before $(document).ready
 $.ajaxSetup({
     beforeSend: function(xhr, settings) {
         if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type)) {
@@ -31,6 +23,9 @@ $.ajaxSetup({
 
 $(document).ready(function() {
 
+    // ─────────────────────────────────────────────
+    // Store all rows on load
+    // ─────────────────────────────────────────────
     function storeAllRows() {
         allRowsArray = [];
         $('#hrTableBody tr').each(function() {
@@ -40,7 +35,7 @@ $(document).ready(function() {
     storeAllRows();
 
     // ─────────────────────────────────────────────
-    // Filter dropdown
+    // Filter dropdown toggle — matches .date-filter wrapper
     // ─────────────────────────────────────────────
     $('#filterBtn').on('click', function(e) {
         e.stopPropagation();
@@ -48,7 +43,7 @@ $(document).ready(function() {
     });
 
     $(document).on('click', function(e) {
-        if (!$(e.target).closest('.hra-filter-dropdown').length) {
+        if (!$(e.target).closest('.date-filter').length) {
             $('#filterMenu').removeClass('show');
         }
     });
@@ -56,40 +51,37 @@ $(document).ready(function() {
     var currentSort = null;
     var currentStatusFilter = null;
 
-    $('.hra-filter-option').on('click', function() {
-        var sortType = $(this).data('sort');
+    // Matches .filter-option-modern in the template
+    $(document).on('click', '.filter-option-modern', function() {
+        var sortType   = $(this).data('sort');
         var filterType = $(this).data('filter');
 
         if (sortType === 'name_asc') {
             currentSort = 'name_asc';
             currentStatusFilter = null;
-            $('#filterBtn').html('<i class="fas fa-sort-alpha-down"></i>');
         } else if (sortType === 'name_desc') {
             currentSort = 'name_desc';
             currentStatusFilter = null;
-            $('#filterBtn').html('<i class="fas fa-sort-alpha-up"></i>');
         } else if (filterType === 'active') {
             currentStatusFilter = 'active';
             currentSort = null;
-            $('#filterBtn').html('<i class="fas fa-check-circle"></i>');
         } else if (filterType === 'pending') {
             currentStatusFilter = 'pending';
             currentSort = null;
-            $('#filterBtn').html('<i class="fas fa-clock"></i>');
         } else if (filterType === 'all') {
             currentStatusFilter = null;
             currentSort = null;
-            $('#filterBtn').html('<i class="fas fa-sort"></i>');
         }
 
         $('#filterMenu').removeClass('show');
-        currentPage = 1;
-        windowStart = 1;
+        currentPage  = 1;
+        windowStart  = 1;
         applyFiltersAndPagination();
     });
 
-    $('.hra-filter-tab').on('click', function() {
-        $('.hra-filter-tab').removeClass('active');
+    // Matches .status-filter-btn in the template
+    $(document).on('click', '.status-filter-btn', function() {
+        $('.status-filter-btn').removeClass('active');
         $(this).addClass('active');
         currentPage = 1;
         windowStart = 1;
@@ -106,15 +98,15 @@ $(document).ready(function() {
     // Pagination helpers
     // ─────────────────────────────────────────────
     function applyFiltersAndPagination() {
-        var searchTerm = $('#hrSearch').val().toLowerCase();
-        var activeTabFilter = $('.hra-filter-tab.active').data('filter');
+        var searchTerm      = ($('#hrSearch').val() || '').toLowerCase();
+        var activeTabFilter = $('.status-filter-btn.active').data('filter') || 'all';
 
         var filteredRows = [];
 
         allRowsArray.forEach(function($row) {
             var name   = ($row.data('name')  || '').toString();
             var email  = ($row.data('email') || '').toString();
-            var status = $row.data('status');
+            var status = ($row.data('status') || '').toString();
 
             var searchMatch = searchTerm === '' ||
                 name.indexOf(searchTerm)  > -1  ||
@@ -135,15 +127,13 @@ $(document).ready(function() {
 
         if (currentSort === 'name_asc') {
             filteredRows.sort(function(a, b) {
-                var nameA = ($(a).data('fullname') || '').toString().toLowerCase();
-                var nameB = ($(b).data('fullname') || '').toString().toLowerCase();
-                return nameA.localeCompare(nameB);
+                return ($(a).data('fullname') || '').toString().toLowerCase()
+                    .localeCompare(($(b).data('fullname') || '').toString().toLowerCase());
             });
         } else if (currentSort === 'name_desc') {
             filteredRows.sort(function(a, b) {
-                var nameA = ($(a).data('fullname') || '').toString().toLowerCase();
-                var nameB = ($(b).data('fullname') || '').toString().toLowerCase();
-                return nameB.localeCompare(nameA);
+                return ($(b).data('fullname') || '').toString().toLowerCase()
+                    .localeCompare(($(a).data('fullname') || '').toString().toLowerCase());
             });
         }
 
@@ -161,9 +151,11 @@ $(document).ready(function() {
 
         var $tbody = $('#hrTableBody');
         $tbody.children('tr').detach();
+
         filteredRows.forEach(function($row) {
             $tbody.append($row);
         });
+
         filteredRows.forEach(function($row, idx) {
             if (idx >= start && idx < end) {
                 $row.show();
@@ -171,6 +163,7 @@ $(document).ready(function() {
                 $row.hide();
             }
         });
+
         allRowsArray.forEach(function($row) {
             if (filteredRows.indexOf($row) === -1) {
                 $tbody.append($row);
@@ -178,16 +171,20 @@ $(document).ready(function() {
             }
         });
 
-        $('#paginationInfo').hide();
         $('#prevBtn').prop('disabled', currentPage === 1);
         $('#nextBtn').prop('disabled', currentPage === totalPages);
         renderPageNumbers(totalPages);
 
         if (totalRows === 0) {
-            $('.hra-empty-results').show();
+            if ($('.empty-state').length === 0) {
+                $tbody.after(
+                    '<tr class="hra-no-results-row"><td colspan="4" style="text-align:center;padding:48px;color:var(--text-secondary);">' +
+                    'No HR members match your search.</td></tr>'
+                );
+            }
             $('#paginationWrap').hide();
         } else {
-            $('.hra-empty-results').hide();
+            $('.hra-no-results-row').remove();
             $('#paginationWrap').show();
         }
     }
@@ -195,13 +192,10 @@ $(document).ready(function() {
     function renderPageNumbers(totalPages) {
         var $pn = $('#pageNumbers');
         $pn.empty();
-
         if (totalPages <= 1) return;
 
         var maxVisible = 5;
-
         windowStart = Math.max(1, Math.min(windowStart, totalPages - maxVisible + 1));
-
         var windowEnd = Math.min(windowStart + maxVisible - 1, totalPages);
         var hasMore   = windowEnd < totalPages;
 
@@ -209,23 +203,16 @@ $(document).ready(function() {
             var isActive = (i === currentPage);
             var isLast   = (i === windowEnd);
             var showDots = isLast && hasMore;
-
-            var cls   = 'hra-page-num' + (isActive ? ' active' : '') + (showDots ? ' has-more' : '');
-            var label = showDots ? (i + '…') : i;
-
+            var cls      = 'hra-page-num' + (isActive ? ' active' : '') + (showDots ? ' has-more' : '');
+            var label    = showDots ? (i + '…') : i;
             $pn.append('<div class="' + cls + '" data-page="' + i + '">' + label + '</div>');
         }
 
         $pn.off('click').on('click', '.hra-page-num', function() {
             var clickedPage = parseInt($(this).data('page'));
             var isDotted    = $(this).hasClass('has-more');
-
             currentPage = clickedPage;
-
-            if (isDotted) {
-                windowStart = windowStart + 1;
-            }
-
+            if (isDotted) windowStart = windowStart + 1;
             applyFiltersAndPagination();
         });
     }
@@ -233,9 +220,7 @@ $(document).ready(function() {
     $('#prevBtn').on('click', function() {
         if (currentPage > 1) {
             currentPage--;
-            if (currentPage < windowStart) {
-                windowStart = Math.max(1, windowStart - 1);
-            }
+            if (currentPage < windowStart) windowStart = Math.max(1, windowStart - 1);
             applyFiltersAndPagination();
         }
     });
@@ -245,9 +230,7 @@ $(document).ready(function() {
         if (currentPage < totalPages) {
             currentPage++;
             var windowEnd = windowStart + 5 - 1;
-            if (currentPage > windowEnd) {
-                windowStart = windowStart + 1;
-            }
+            if (currentPage > windowEnd) windowStart = windowStart + 1;
             applyFiltersAndPagination();
         }
     });
@@ -268,7 +251,6 @@ $(document).ready(function() {
         var hrName = $(this).data('name');
         var $row   = $(this).closest('tr');
 
-        // Cancel any existing undo for this same HR (shouldn't happen but safety)
         cancelUndoTimer(hrId);
 
         $.ajax({
@@ -280,10 +262,9 @@ $(document).ready(function() {
                     return;
                 }
 
-                // Visually remove the row immediately
-                $row.addClass('hra-row-fading');
+                // Animate row out
+                $row.css({ transition: 'opacity 0.3s, transform 0.3s', opacity: 0, transform: 'translateX(20px)' });
                 setTimeout(function() {
-                    // Remove from allRowsArray so pagination ignores it
                     var idx = allRowsArray.indexOf($row);
                     if (idx > -1) allRowsArray.splice(idx, 1);
                     $row.remove();
@@ -291,18 +272,16 @@ $(document).ready(function() {
                     updateHeaderStats();
                 }, 300);
 
-                // Show undo toast, then commit after UNDO_DURATION
                 showUndoToast(
                     hrId,
-                    '<i class="fas fa-user-slash"></i> <strong>' + hrName + '</strong> deleted.',
-                    // On undo:
+                    '<strong>' + escHtml(hrName) + '</strong> removed from team.',
                     function() {
+                        // Undo
                         $.ajax({
                             url: '/recruiter/undo-delete-hr/' + hrId,
                             method: 'POST',
                             success: function(res) {
                                 if (res.success) {
-                                    // Reload page to bring the row back cleanly
                                     location.reload();
                                 } else {
                                     showNotification('Undo failed: ' + (res.error || ''), 'error');
@@ -313,20 +292,17 @@ $(document).ready(function() {
                             }
                         });
                     },
-                    // On commit (undo window expired):
                     function() {
+                        // Commit permanent delete
                         $.ajax({
                             url: '/recruiter/commit-delete-hr/' + hrId,
-                            method: 'POST',
-                            error: function() {
-                                // Silent — user didn't undo so just proceed
-                            }
+                            method: 'POST'
                         });
                     }
                 );
             },
             error: function(xhr) {
-                showNotification('Delete failed: ' + xhr.status, 'error');
+                showNotification('Delete failed (' + xhr.status + ')', 'error');
             }
         });
     });
@@ -335,8 +311,6 @@ $(document).ready(function() {
     // Delete All HR — soft-delete with undo toast
     // ─────────────────────────────────────────────
     $(document).on('click', '#deleteAllHrBtn', function() {
-        // Dismiss any existing undo toasts first so the user
-        // doesn't get confused with stale per-account toasts
         dismissAllUndoToasts();
 
         $.ajax({
@@ -356,8 +330,8 @@ $(document).ready(function() {
                     return;
                 }
 
-                // Visually clear the table
-                $('#hrTableBody tr').addClass('hra-row-fading');
+                // Animate all rows out
+                $('#hrTableBody tr').css({ transition: 'opacity 0.3s, transform 0.3s', opacity: 0, transform: 'translateX(20px)' });
                 setTimeout(function() {
                     allRowsArray = [];
                     $('#hrTableBody').empty();
@@ -367,9 +341,9 @@ $(document).ready(function() {
 
                 showUndoToast(
                     'all',
-                    '<i class="fas fa-users-slash"></i> All <strong>' + count + '</strong> HR account(s) deleted.',
-                    // On undo:
+                    'All <strong>' + count + '</strong> HR account(s) removed.',
                     function() {
+                        // Undo
                         $.ajax({
                             url: '/recruiter/undo-delete-all-hr',
                             method: 'POST',
@@ -387,30 +361,27 @@ $(document).ready(function() {
                             }
                         });
                     },
-                    // On commit:
                     function() {
+                        // Commit permanent delete
                         $.ajax({
                             url: '/recruiter/commit-delete-all-hr',
                             method: 'POST',
                             contentType: 'application/json',
-                            data: JSON.stringify({ ids: deletedIds }),
-                            error: function() {
-                                // Silent
-                            }
+                            data: JSON.stringify({ ids: deletedIds })
                         });
                     }
                 );
             },
             error: function(xhr) {
-                showNotification('Delete all failed: ' + xhr.status, 'error');
+                showNotification('Delete all failed (' + xhr.status + ')', 'error');
             }
         });
     });
 
     // ─────────────────────────────────────────────
-    // Close modals via X button
+    // Modal close handlers
     // ─────────────────────────────────────────────
-    $('.hra-modal-close').on('click', function() {
+    $(document).on('click', '.hra-modal-close', function() {
         $(this).closest('.hra-modal').removeClass('show');
     });
 
@@ -420,6 +391,7 @@ $(document).ready(function() {
         }
     });
 
+    // Initial render
     applyFiltersAndPagination();
 });
 
@@ -427,43 +399,31 @@ $(document).ready(function() {
 //  UNDO TOAST SYSTEM
 // ================================================================
 
-/**
- * Show an undo toast with a live countdown bar.
- * @param {string|number} key      - Unique key (hr_id or 'all')
- * @param {string}        html     - Inner HTML for the message
- * @param {Function}      onUndo   - Called if user clicks Undo
- * @param {Function}      onCommit - Called when the window expires
- */
 function showUndoToast(key, html, onUndo, onCommit) {
-    // Remove any existing toast for this key
     cancelUndoTimer(key);
     $('#undoToast-' + key).remove();
 
     var $toast = $(
-        '<div class="hra-undo-toast" id="undoToast-' + key + '">' +
+        '<div class="hra-undo-toast" id="undoToast-' + key + '" style="position:relative;overflow:hidden;">' +
             '<div class="hra-undo-message">' + html + '</div>' +
             '<button class="hra-undo-btn" id="undoBtn-' + key + '">' +
-                '<i class="fas fa-rotate-left"></i> Undo' +
+                'Undo' +
             '</button>' +
-            '<button class="hra-undo-dismiss" id="undoDismiss-' + key + '" title="Dismiss">' +
-                '<i class="fas fa-times"></i>' +
-            '</button>' +
+            '<button class="hra-undo-dismiss" id="undoDismiss-' + key + '" title="Dismiss">✕</button>' +
             '<div class="hra-undo-bar" id="undoBar-' + key + '"></div>' +
         '</div>'
     );
 
     $('body').append($toast);
-    // Trigger CSS animation on the next frame
+
     requestAnimationFrame(function() {
         requestAnimationFrame(function() {
             $toast.addClass('show');
-            // Start the shrinking progress bar
             $('#undoBar-' + key).css('transition-duration', UNDO_DURATION + 'ms');
             $('#undoBar-' + key).addClass('shrink');
         });
     });
 
-    // ── Undo button ──
     $('#undoBtn-' + key).on('click', function() {
         cancelUndoTimer(key);
         $toast.removeClass('show');
@@ -471,7 +431,6 @@ function showUndoToast(key, html, onUndo, onCommit) {
         onUndo();
     });
 
-    // ── Dismiss (×) button ── fires commit immediately
     $('#undoDismiss-' + key).on('click', function() {
         cancelUndoTimer(key);
         $toast.removeClass('show');
@@ -479,7 +438,6 @@ function showUndoToast(key, html, onUndo, onCommit) {
         onCommit();
     });
 
-    // ── Auto-commit after UNDO_DURATION ──
     var commitTimerId = setTimeout(function() {
         $toast.removeClass('show');
         setTimeout(function() { $toast.remove(); }, 350);
@@ -490,7 +448,6 @@ function showUndoToast(key, html, onUndo, onCommit) {
     undoTimers[key] = { commitTimerId: commitTimerId };
 }
 
-/** Cancel the pending commit timer for a key (used on undo click). */
 function cancelUndoTimer(key) {
     if (undoTimers[key]) {
         clearTimeout(undoTimers[key].commitTimerId);
@@ -498,7 +455,6 @@ function cancelUndoTimer(key) {
     }
 }
 
-/** Remove every visible undo toast and cancel their timers. */
 function dismissAllUndoToasts() {
     Object.keys(undoTimers).forEach(function(key) {
         cancelUndoTimer(key);
@@ -509,50 +465,57 @@ function dismissAllUndoToasts() {
 }
 
 // ================================================================
-//  Helpers shared with inline HTML
+//  Helpers called from inline HTML
 // ================================================================
 
 function copyPassword() {
     var passwordInput = document.getElementById('tempPassword');
     if (!passwordInput) return;
+
     navigator.clipboard.writeText(passwordInput.value).then(function() {
-        var btn = document.querySelector('.hra-copy-btn');
+        var btn = document.querySelector('.btn-copy-modern');
+        if (!btn) return;
         var originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.innerHTML = '✓ Copied!';
         btn.classList.add('copied');
         setTimeout(function() {
             btn.innerHTML = originalHtml;
             btn.classList.remove('copied');
         }, 2000);
+    }).catch(function() {
+        // Fallback for older browsers
+        passwordInput.select();
+        document.execCommand('copy');
+        showNotification('Password copied!', 'success');
     });
 }
 
 function closePasswordBox() {
     var box = document.getElementById('tempPasswordBox');
-    if (box) {
-        box.parentNode.removeChild(box);
-    }
+    if (box) box.parentNode.removeChild(box);
 }
 
 function closeConfirmModal() {
-    $('#confirmModal').removeClass('show');
+    var m = document.getElementById('confirmModal');
+    if (m) m.classList.remove('show');
 }
 
 function showConfirmModal(title, message, onConfirm) {
-    $('#confirmTitle').text(title);
-    $('#confirmMessage').html(message);
-    $('#confirmModal').addClass('show');
-    $('#confirmActionBtn').off('click').on('click', function() {
-        $('#confirmModal').removeClass('show');
+    document.getElementById('confirmTitle').textContent   = title;
+    document.getElementById('confirmMessage').innerHTML   = message;
+    document.getElementById('confirmModal').classList.add('show');
+
+    var btn = document.getElementById('confirmActionBtn');
+    btn.onclick = function() {
+        document.getElementById('confirmModal').classList.remove('show');
         onConfirm();
-    });
+    };
 }
 
 function showNotification(message, type) {
     var notification = $(
         '<div class="hra-notification hra-notification-' + type + '">' +
-        '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + '"></i>' +
-        '<span>' + message + '</span></div>'
+        '<span>' + escHtml(message) + '</span></div>'
     );
     $('body').append(notification);
     setTimeout(function() { notification.addClass('show'); }, 10);
@@ -562,7 +525,6 @@ function showNotification(message, type) {
     }, 3000);
 }
 
-/** Re-compute the three stat cards in the header without a page reload. */
 function updateHeaderStats() {
     var total   = allRowsArray.length;
     var active  = 0;
@@ -572,16 +534,25 @@ function updateHeaderStats() {
         if ($row.data('status') === 'pending') pending++;
     });
 
-    // Update stat cards (values are the first .hra-stat-value inside each .hra-stat-card)
-    var $cards = $('.hra-stat-value');
-    if ($cards.length >= 3) {
-        $cards.eq(0).text(total);
-        $cards.eq(1).text(active);
-        $cards.eq(2).text(pending);
+    // Update the three stat-value elements
+    var $vals = $('.stat-value');
+    if ($vals.length >= 3) {
+        $vals.eq(0).text(total   + ' Members');
+        $vals.eq(1).text(active  + ' Active');
+        $vals.eq(2).text(pending + ' Pending');
     }
 
-    // Update tab labels
-    $('.hra-filter-tab[data-filter="all"]').text('All (' + total + ')');
-    $('.hra-filter-tab[data-filter="active"]').text('Active (' + active + ')');
-    $('.hra-filter-tab[data-filter="pending"]').text('Pending (' + pending + ')');
+    // Update tab button labels — matches .status-filter-btn in the template
+    $('.status-filter-btn[data-filter="all"]').text('All ('     + total   + ')');
+    $('.status-filter-btn[data-filter="active"]').text('Active (' + active  + ')');
+    $('.status-filter-btn[data-filter="pending"]').text('Pending (' + pending + ')');
+}
+
+// Safe HTML escaping helper
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }

@@ -76,9 +76,9 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .job-meta {
@@ -1338,6 +1338,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .benefit-item {

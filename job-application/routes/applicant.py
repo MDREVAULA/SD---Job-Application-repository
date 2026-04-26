@@ -11,7 +11,7 @@ from models import (
 from sqlalchemy.orm import joinedload
 from werkzeug.utils import secure_filename
 from PIL import Image
-from datetime import datetime
+from datetime import datetime, date
 import base64
 import io
 import os
@@ -724,7 +724,7 @@ def get_follow_requests():
 
 
 # ===============================
-# FOLLOW REQUESTS — RESPOND (AJAX) - FIXED VERSION
+# FOLLOW REQUESTS — RESPOND (AJAX)
 # ===============================
 @applicant_bp.route('/follow-request/<int:req_id>/respond', methods=['POST'])
 @login_required
@@ -735,19 +735,16 @@ def respond_follow_request(req_id):
     if req.receiver_id != current_user.id:
         return jsonify({'ok': False, 'error': 'Access denied'}), 403
 
-    # Get action from form data (not JSON)
     action = request.form.get('action')  # 'accept' or 'reject'
 
     if action == 'accept':
         req.status = 'accepted'
-        # Create the actual Follow record if it doesn't already exist
         existing = Follow.query.filter_by(
             follower_id=req.sender_id, followed_id=current_user.id
         ).first()
         if not existing:
             db.session.add(Follow(follower_id=req.sender_id, followed_id=current_user.id))
 
-        # Notify the requester
         sender = User.query.get(req.sender_id)
         if sender and sender.role == 'applicant':
             notif = ApplicantNotification(
@@ -797,11 +794,11 @@ def status():
     banned = check_banned()
     if banned:
         return banned
- 
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
- 
+
     applications = (
         Application.query
         .join(Job, Application.job_id == Job.id)
@@ -815,7 +812,7 @@ def status():
         .order_by(Application.created_at.desc())
         .all()
     )
- 
+
     return render_template(
         'applicant/status.html',
         applications=applications,
@@ -827,11 +824,11 @@ def archived():
     banned = check_banned()
     if banned:
         return banned
- 
+
     if current_user.role != 'applicant':
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
- 
+
     archived_applications = (
         Application.query
         .filter(
@@ -842,7 +839,7 @@ def archived():
         .order_by(Application.created_at.desc())
         .all()
     )
- 
+
     return render_template(
         'applicant/archived.html',
         archived_applications=archived_applications,
@@ -903,6 +900,10 @@ def job_details(job_id):
 
     job_owner = User.query.get(job.company_id)
 
+    # ── Expiry check ──────────────────────────────────────────────
+    is_expired = bool(job.expiration_date and job.expiration_date < date.today())
+    is_closed  = not job.allow_applications
+
     saved_job_ids = set()
     existing_application = None
     if current_user.is_authenticated and current_user.role == 'applicant':
@@ -931,7 +932,9 @@ def job_details(job_id):
         saved_job_ids=saved_job_ids,
         existing_application=existing_application,
         active_application_count=active_application_count,
-        employee_count=employee_count,   # ← add this
+        employee_count=employee_count,
+        is_expired=is_expired,      # ← NEW
+        is_closed=is_closed,        # ← NEW
     )
 
 
@@ -958,6 +961,16 @@ def apply_job(job_id):
     if job.is_taken_down:
         flash("This job posting is currently unavailable.", "warning")
         return redirect(url_for('auth.jobs'))
+
+    # ── Block applications to expired jobs ────────────────────────
+    if job.expiration_date and job.expiration_date < date.today():
+        flash("This job posting has already expired and is no longer accepting applications.", "warning")
+        return redirect(url_for('applicant.job_details', job_id=job_id))
+
+    # ── Block applications when recruiter closed the listing ──────
+    if not job.allow_applications:
+        flash("This job posting is currently closed and not accepting applications.", "warning")
+        return redirect(url_for('applicant.job_details', job_id=job_id))
 
     existing = Application.query.filter(
         Application.applicant_id == current_user.id,
@@ -1368,5 +1381,5 @@ def saved_jobs():
         if s.job and not s.job.is_taken_down
         and not User.query.get(s.job.company_id).is_banned
     ]
-    
+
     return render_template('applicant/saved_jobs.html', saved=saved)

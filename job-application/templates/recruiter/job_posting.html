@@ -549,34 +549,60 @@
             <div class="content-card">
               <div class="card-header">
                 <h3 class="card-title-main">Our Values</h3>
+                <button type="button" class="btn-edit-text" id="editValuesBtn" onclick="openValuesEditor()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                  Edit
+                </button>
               </div>
-              <div class="company-values">
+ 
+              <!-- Display (default) -->
+              <div class="company-values" id="valuesDisplay">
                 <div class="value-item">
                   <div class="value-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
-                  <div class="value-content"><h5 class="value-title">Innovation</h5><p class="value-description">We encourage creative thinking and embrace new ideas to drive progress.</p></div>
+                  <div class="value-content">
+                    <h5 class="value-title">Innovation</h5>
+                    <p class="value-description">We encourage creative thinking and embrace new ideas to drive progress.</p>
+                  </div>
                 </div>
                 <div class="value-item">
                   <div class="value-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
-                  <div class="value-content"><h5 class="value-title">Collaboration</h5><p class="value-description">Teamwork and open communication are at the heart of everything we do.</p></div>
+                  <div class="value-content">
+                    <h5 class="value-title">Collaboration</h5>
+                    <p class="value-description">Teamwork and open communication are at the heart of everything we do.</p>
+                  </div>
                 </div>
                 <div class="value-item">
                   <div class="value-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
-                  <div class="value-content"><h5 class="value-title">Excellence</h5><p class="value-description">We strive for the highest quality in our work and continuous improvement.</p></div>
+                  <div class="value-content">
+                    <h5 class="value-title">Excellence</h5>
+                    <p class="value-description">We strive for the highest quality in our work and continuous improvement.</p>
+                  </div>
                 </div>
               </div>
+ 
+              <!-- Editor (hidden until Edit is clicked) -->
+              <div id="valuesEditForm" style="display:none; margin-top:16px;">
+                <div id="valuesEditorList"></div>
+                <button type="button" class="btn-add-value" onclick="addValueRow()">+ Add Value</button>
+                <div class="edit-actions">
+                  <button type="button" class="btn-save" onclick="saveValues()">Save Values</button>
+                  <button type="button" class="btn-cancel" onclick="toggleEditMode('values')">Cancel</button>
+                </div>
+              </div>
+ 
+              <!-- Hidden input carries JSON to the server on form submit -->
+              <input type="hidden" name="company_values" id="companyValuesHidden" value="">
             </div>
+ 
 
             <!-- Hiring Team Card -->
             <div class="content-card">
@@ -728,12 +754,93 @@
    HIRING TEAM TAB — CLIENT-SIDE LOGIC FOR job_posting.html
    ══════════════════════════════════════════════════════ */
  
-/* ── About Company: sync hidden field ── */
+/* ── Shared state ── */
+let _postingValues = [
+  { title: 'Innovation',    description: 'We encourage creative thinking and embrace new ideas to drive progress.' },
+  { title: 'Collaboration', description: 'Teamwork and open communication are at the heart of everything we do.' },
+  { title: 'Excellence',    description: 'We strive for the highest quality in our work and continuous improvement.' },
+];
+ 
+/* ── HTML-escape helper ── */
+function _escPost(str) {
+  const d = document.createElement('div');
+  d.textContent = String(str || '');
+  return d.innerHTML;
+}
+ 
+/* ════════════════════════════════
+   ABOUT COMPANY — sync hidden field
+   ════════════════════════════════ */
 document.getElementById('aboutCompanyTextarea').addEventListener('input', function () {
   document.getElementById('aboutCompanyHidden').value = this.value;
 });
  
-/* ── Add a new benefit row ── */
+/* ════════════════════════════════
+   COMPANY VALUES EDITOR
+   ════════════════════════════════ */
+function openValuesEditor() {
+  /* Seed the editor list from current state */
+  const list = document.getElementById('valuesEditorList');
+  list.innerHTML = '';
+  _postingValues.forEach(function (v) { addValueRow(v.title, v.description); });
+ 
+  document.getElementById('valuesDisplay').style.display  = 'none';
+  document.getElementById('editValuesBtn').style.display  = 'none';
+  document.getElementById('valuesEditForm').style.display = 'block';
+}
+ 
+function cancelValuesEditor() {
+  document.getElementById('valuesEditForm').style.display = 'none';
+  document.getElementById('valuesDisplay').style.display  = '';
+  document.getElementById('editValuesBtn').style.display  = '';
+}
+ 
+function addValueRow(title, desc) {
+  title = title || '';
+  desc  = desc  || '';
+  const row = document.createElement('div');
+  row.className = 'value-editor-row';
+  row.innerHTML =
+    '<input type="text" class="input-text value-title-input"'
+    + ' placeholder="Value title" value="' + _escPost(title) + '">'
+    + '<input type="text" class="input-text value-desc-input"'
+    + ' placeholder="Short description" value="' + _escPost(desc) + '">'
+    + '<button type="button" class="btn-remove-value"'
+    + ' onclick="this.parentElement.remove()">×</button>';
+  document.getElementById('valuesEditorList').appendChild(row);
+}
+ 
+function saveValuesDisplay() {
+  /* Collect rows */
+  const rows = document.querySelectorAll('#valuesEditorList .value-editor-row');
+  _postingValues = Array.from(rows).map(function (r) {
+    return {
+      title:       r.querySelector('.value-title-input').value.trim(),
+      description: r.querySelector('.value-desc-input').value.trim(),
+    };
+  }).filter(function (v) { return v.title; });
+ 
+  /* Re-render display */
+  document.getElementById('valuesDisplay').innerHTML = _postingValues.map(function (v) {
+    return '<div class="value-item">'
+      + '<div class="value-icon">'
+      + '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<polyline points="20 6 9 17 4 12"/></svg></div>'
+      + '<div class="value-content">'
+      + '<h5 class="value-title">'       + _escPost(v.title)       + '</h5>'
+      + '<p class="value-description">'  + _escPost(v.description) + '</p>'
+      + '</div></div>';
+  }).join('');
+ 
+  /* Persist to hidden field */
+  document.getElementById('companyValuesHidden').value = JSON.stringify(_postingValues);
+ 
+  cancelValuesEditor();
+}
+ 
+/* ════════════════════════════════
+   WHY JOIN US — benefit rows
+   ════════════════════════════════ */
 function addBenefitRow() {
   const row = document.createElement('div');
   row.className = 'benefit-editor-row';
@@ -746,33 +853,30 @@ function addBenefitRow() {
   row.querySelector('input').focus();
 }
  
-/* ── Collect benefits and write to hidden input ── */
 function syncBenefitsHidden() {
   const inputs = document.querySelectorAll('#benefitsList .benefit-input');
   const items  = Array.from(inputs).map(function (i) { return i.value.trim(); }).filter(Boolean);
   document.getElementById('whyJoinUsHidden').value = JSON.stringify(items);
 }
  
-/* ── Wire live sync on pre-seeded benefit rows ── */
+/* Wire live sync on any pre-existing benefit rows */
 document.querySelectorAll('#benefitsList input').forEach(function (inp) {
   inp.addEventListener('input', syncBenefitsHidden);
 });
  
-/* ── On form submit: flush all hidden fields ── */
+/* ════════════════════════════════
+   FORM SUBMIT — flush all hidden fields
+   ════════════════════════════════ */
 document.querySelector('form[action]').addEventListener('submit', function () {
   /* About company */
   document.getElementById('aboutCompanyHidden').value =
     document.getElementById('aboutCompanyTextarea').value.trim();
  
-  /* Values */
-  syncValuesHidden();
+  /* Company values */
+  document.getElementById('companyValuesHidden').value = JSON.stringify(_postingValues);
  
   /* Benefits */
   syncBenefitsHidden();
 });
- 
-/* Initial sync so the defaults are captured */
-syncValuesHidden();
-syncBenefitsHidden();
 </script>
 {% endblock %}

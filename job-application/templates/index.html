@@ -13,11 +13,11 @@
                     <div class="job-category">JOB BOARD</div>
                     <h1 class="job-title-main">Browse Jobs</h1>
                     <div class="job-meta">
-                        <span id="jobsCount">{{ jobs|length }}</span> jobs found
+                        <span id="jobsCount">0</span> jobs found
                     </div>
                 </div>
             </div>
-            
+
             <!-- Center: Search only -->
             <div class="jb-nav-filters">
                 <div class="jb-search-wrap">
@@ -44,6 +44,21 @@
                 <div class="filters-header">
                     <h2>Filters</h2>
                     <button class="clear-filters-btn" id="clearFiltersBtn">Clear</button>
+                </div>
+
+                <!-- Availability (NEW) -->
+                <div class="filter-section">
+                    <h3>Availability</h3>
+                    <div class="filter-options" id="availabilityFilters">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" id="filterActive" name="availability" value="active" checked>
+                            <span>Active jobs</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox" id="filterExpired" name="availability" value="expired">
+                            <span>Show closed &amp; expired</span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Working Schedule -->
@@ -154,11 +169,22 @@
                     {% if jobs %}
                         {% for job in jobs %}
                         {% set recruiter = job.company_id | get_recruiter_profile %}
+
+                        {# Determine status for this card — today is passed from the route as date.today() #}
+                        {% if job.expiration_date and job.expiration_date < today %}
+                            {% set job_status = 'expired' %}
+                        {% elif not job.allow_applications %}
+                            {% set job_status = 'closed' %}
+                        {% else %}
+                            {% set job_status = 'active' %}
+                        {% endif %}
+
                         <div class="job-card"
                              data-field="{{ job.field }}"
                              data-job-type="{{ job.job_type }}"
                              data-title="{{ job.title }}"
                              data-posted="{{ job.id }}"
+                             data-status="{{ job_status }}"
                         >
                             <!-- Cover Photo Banner -->
                             <div class="job-card-cover">
@@ -175,13 +201,14 @@
                                 {% endif %}
 
                                 <!-- Status badge -->
-                                {% if job.expiration_date %}
-                                    {% set today = now %}
-                                    {% set days_left = (job.expiration_date - today.date()).days %}
-                                    {% if days_left <= 7 and days_left >= 0 %}
+                                {% if job.expiration_date and job.expiration_date < today %}
+                                    <span class="job-status-badge badge-expired">Expired</span>
+                                {% elif not job.allow_applications %}
+                                    <span class="job-status-badge badge-expired">Closed</span>
+                                {% elif job.expiration_date %}
+                                    {% set days_left = (job.expiration_date - today).days %}
+                                    {% if days_left <= 7 %}
                                         <span class="job-status-badge badge-closing">Closes in {{ days_left }}d</span>
-                                    {% elif days_left < 0 %}
-                                        <span class="job-status-badge badge-expired">Expired</span>
                                     {% else %}
                                         <span class="job-status-badge badge-active">Active</span>
                                     {% endif %}
@@ -274,9 +301,9 @@
                     </div>
                     <h3>No Matching Jobs</h3>
                     <p>Try different keywords or clear your filters to see more results.</p>
-                    <button class="reset-btn" id="resetSearch">
+                    <!-- <button class="reset-btn" id="resetSearch">
                         <i class="fas fa-rotate-left"></i> Reset Filters
-                    </button>
+                    </button> -->
                 </div>
             </div>
         </div>

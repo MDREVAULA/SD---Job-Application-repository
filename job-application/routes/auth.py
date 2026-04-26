@@ -141,23 +141,17 @@ def index():
 def jobs():
     from models import SavedJob
 
-    try:
-        jobs = (
-            Job.query
-            .join(User, Job.company_id == User.id)
-            .filter(
-                Job.is_taken_down == False,
-                User.is_banned == False,
-                (Job.expiration_date == None) | (Job.expiration_date >= date.today())
-            ).all()
-        )
-    except:
-        jobs = (
-            Job.query
-            .join(User, Job.company_id == User.id)
-            .filter(Job.is_taken_down == False, User.is_banned == False)
-            .all()
-        )
+    # ── Fetch ALL non-taken-down jobs from non-banned recruiters.
+    # ── Expired/closed jobs are intentionally included so the
+    # ── frontend JS can show them when "Show closed & expired" is checked.
+    jobs = (
+        Job.query
+        .join(User, Job.company_id == User.id)
+        .filter(
+            Job.is_taken_down == False,
+            User.is_banned == False,
+        ).all()
+    )
 
     saved_job_ids = set()
     if current_user.is_authenticated and current_user.role == 'applicant':
@@ -165,7 +159,12 @@ def jobs():
             s.job_id for s in SavedJob.query.filter_by(applicant_id=current_user.id).all()
         }
 
-    return render_template("index.html", jobs=jobs, saved_job_ids=saved_job_ids)
+    return render_template(
+        "index.html",
+        jobs=jobs,
+        saved_job_ids=saved_job_ids,
+        today=date.today()
+    )
 
 
 @auth_bp.route("/help")

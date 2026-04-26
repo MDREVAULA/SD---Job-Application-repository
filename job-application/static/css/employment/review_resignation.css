@@ -114,6 +114,8 @@
     gap: 8px;
     font-size: 13px;
     color: var(--text-secondary);
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .meta-dot {
@@ -426,6 +428,8 @@
     border: 2px solid rgba(217, 119, 6, 0.3);
     border-radius: 10px;
     padding: 16px 18px;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .emp-reviewer-note-label {

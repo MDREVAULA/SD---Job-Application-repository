@@ -32,6 +32,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;          /* allow flex child to shrink */
+  flex: 1;
 }
 
 .back-btn {
@@ -57,6 +59,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .job-category {
@@ -72,6 +75,8 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .job-meta {
@@ -1890,10 +1895,19 @@ textarea {
   margin: 0;
 }
 
+.hr-assign-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .highlight-benefits {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .benefit-item {
