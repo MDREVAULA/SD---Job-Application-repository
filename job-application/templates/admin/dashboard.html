@@ -28,7 +28,7 @@
                 </a>
                 <a href="{{ url_for('admin.banned_users') }}" class="admin-tab-btn {% if request.endpoint == 'admin.banned_users' %}active{% endif %}">
                     Banned
-                    {% if banned_users %}
+                    {% if banned_users|length > 0 %}
                     <span class="admin-tab-badge">{{ banned_users|length }}</span>
                     {% endif %}
                 </a>
@@ -344,7 +344,8 @@ document.getElementById('rejectModalOverlay').addEventListener('click', function
         .then(data => {
             const badge = document.getElementById('dashReportBadge');
             if (badge && data.count > 0) {
-                badge.textContent = data.count + ' pending';
+                badge.textContent = data.count;
+                badge.textContent = data.count;
                 badge.style.display = 'inline-block';
             }
         })
@@ -358,7 +359,7 @@ document.getElementById('rejectModalOverlay').addEventListener('click', function
         .then(data => {
             const badge = document.getElementById('dashTakenDownBadge');
             if (badge && data.count > 0) {
-                badge.textContent = data.count + ' taken down';
+                badge.textContent = data.count;
                 badge.style.display = 'inline-block';
             }
         })

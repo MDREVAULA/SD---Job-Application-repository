@@ -58,7 +58,14 @@
                     </svg>
                 </div>
                 <!-- Status Badge -->
-                {% if emp.employment_status == 'active' %}
+                {% if emp.job and emp.job.is_taken_down %}
+                <span class="emp-status-badge badge-danger">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    Job Taken Down
+                </span>
+                {% elif emp.employment_status == 'active' %}
                 <span class="emp-status-badge badge-active">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                     Active
@@ -132,27 +139,48 @@
                 </div>
                 {% endif %}
 
+                {% if emp.job and emp.job.is_taken_down %}
+                <div class="emp-record-note emp-record-note-danger" style="margin-bottom:10px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span>Job removed by admin. Contact your recruiter.</span>
+                </div>
+                {% endif %}
+
                 <div class="emp-card-divider"></div>
 
                 <!-- Action Buttons -->
                 <div class="emp-record-footer">
-                    <a href="{{ url_for('employment.employment_status', app_id=emp.application_id) }}"
-                       class="emp-record-btn emp-record-btn-primary">
+                    {% if emp.job and emp.job.is_taken_down %}
+                    <button class="emp-record-btn emp-record-btn-danger" disabled style="cursor:not-allowed;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                             <circle cx="12" cy="12" r="3"/>
                         </svg>
                         View Details
-                    </a>
-                    {% if emp.employment_status == 'active' %}
-                    <a href="{{ url_for('employment.submit_resignation', employee_id=emp.id) }}"
-                       class="emp-record-btn emp-record-btn-warning">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                        </svg>
-                        Submit Resignation
-                    </a>
+                    </button>
+                    {% else %}
+                        <a href="{{ url_for('employment.employment_status', app_id=emp.application_id) }}"
+                        class="emp-record-btn emp-record-btn-primary">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            View Details
+                        </a>
+                        {% if emp.employment_status == 'active' %}
+                        <a href="{{ url_for('employment.submit_resignation', employee_id=emp.id) }}"
+                        class="emp-record-btn emp-record-btn-warning">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                            </svg>
+                            Submit Resignation
+                        </a>
+                        {% endif %}
                     {% endif %}
                 </div>
 

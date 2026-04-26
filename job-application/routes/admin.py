@@ -927,7 +927,8 @@ def takedown_job(job_id):
         try:
             active_apps = Application.query.filter(
                 Application.job_id == job_id,
-                Application.status.in_(['Pending', 'Interview', 'Under Review'])
+                Application.status.in_(['Pending', 'Interview', 'Under Review',
+                                        'pending', 'interview', 'under review'])
             ).all()
             for app in active_apps:
                 app.status = 'Job Removed'
@@ -940,6 +941,25 @@ def takedown_job(job_id):
                         f'removed by an admin for policy violations. '
                         f'Your application is now marked <strong>Job Removed</strong>. '
                         f'We recommend caution if you have been in contact with this employer outside the platform.'
+                    ),
+                ))
+
+            # ── Employed applicants — special warning ──
+            employed_apps = Application.query.filter(
+                Application.job_id == job_id,
+                Application.status.in_(['employed', 'Employed'])
+            ).all()
+            for app in employed_apps:
+                db.session.add(ApplicantNotification(
+                    applicant_id = app.applicant_id,
+                    type         = 'job_update',
+                    job_id       = job.id,
+                    message      = (
+                        f'⚠️ The job posting <strong>"{job.title}"</strong> you are currently employed under '
+                        f'has been taken down from our platform for policy violations. '
+                        f'<strong>Your employment contract is between you and the recruiter directly — '
+                        f'please consult with your recruiter regarding your employment status.</strong> '
+                        f'We are a job matching platform and taking down a posting does not automatically terminate your employment.'
                     ),
                 ))
         except Exception as e:
@@ -1077,6 +1097,7 @@ def admin_delete_job(job_id):
         db.session.add(notif)
         db.session.flush()
 
+        # 1. Notifications
         db.session.execute(text("""
             DELETE FROM applicant_notification
             WHERE application_id IN (SELECT id FROM application WHERE job_id = :job_id)
@@ -1096,10 +1117,71 @@ def admin_delete_job(job_id):
 
         db.session.flush()
 
-        for image in job.images:
-            path = os.path.join(
-                'static', 'uploads', 'job_posters', image.image_path
+        # 2. Resignation requests tied to employees of this job
+        db.session.execute(text("""
+            DELETE FROM resignation_request
+            WHERE employee_id IN (
+                SELECT id FROM employee
+                WHERE application_id IN (SELECT id FROM application WHERE job_id = :job_id)
             )
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 3. Employment onboarding
+        db.session.execute(text("""
+            DELETE FROM employment_onboarding
+            WHERE application_id IN (SELECT id FROM application WHERE job_id = :job_id)
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 4. Employment submissions
+        db.session.execute(text("""
+            DELETE FROM employment_submission
+            WHERE application_id IN (SELECT id FROM application WHERE job_id = :job_id)
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 5. Employees
+        db.session.execute(text("""
+            DELETE FROM employee
+            WHERE application_id IN (SELECT id FROM application WHERE job_id = :job_id)
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 6. Employment requirements
+        db.session.execute(text("""
+            DELETE FROM employment_requirement WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 7. HR feedback
+        db.session.execute(text("""
+            DELETE FROM hr_feedback
+            WHERE application_id IN (SELECT id FROM application WHERE job_id = :job_id)
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 8. Saved jobs
+        db.session.execute(text("""
+            DELETE FROM saved_job WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 9. Job team members
+        db.session.execute(text("""
+            DELETE FROM job_team_member WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 10. Applications
+        db.session.execute(text("""
+            DELETE FROM application WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 11. Job images (disk + DB)
+        for image in job.images:
+            path = os.path.join('static', 'uploads', 'job_posters', image.image_path)
             if os.path.exists(path):
                 os.remove(path)
             db.session.delete(image)
@@ -1109,6 +1191,13 @@ def admin_delete_job(job_id):
             if os.path.exists(cover_path):
                 os.remove(cover_path)
 
+        # Delete notifications referencing job_id directly
+        db.session.execute(text("""
+            DELETE FROM applicant_notification WHERE job_id = :job_id
+        """), {"job_id": job_id})
+        db.session.flush()
+
+        # 12. Job itself
         db.session.delete(job)
         db.session.commit()
 

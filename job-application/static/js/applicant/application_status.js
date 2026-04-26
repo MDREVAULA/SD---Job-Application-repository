@@ -1,150 +1,121 @@
 // ================================
-// APPLICATION DETAIL - JavaScript
-// Tab Switching with Smooth Transitions
+// APPLICANT STATUS - JavaScript
+// Filter, Search, and Sort functionality
 // ================================
 
-// ===== TAB SWITCHING =====
-function switchTab(tabName, buttonElement) {
-    // Hide all tab panels
-    const allPanels = document.querySelectorAll('.tab-panel-new');
-    allPanels.forEach(panel => {
-        panel.classList.remove('active');
+// ===== GLOBAL STATE =====
+let allJobRows = [];
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', function () {
+    const tbody = document.getElementById('jobTableBody');
+    if (tbody) {
+        allJobRows = Array.from(tbody.querySelectorAll('.job-row'));
+    }
+    applyFilters();
+});
+
+// ===== MAIN FILTER + SORT (called by all controls) =====
+function applyFilters() {
+    const searchTerm  = (document.getElementById('jobSearchInput')?.value  || '').toLowerCase().trim();
+    const statusVal   = (document.getElementById('statusFilter')?.value    || 'all');
+    const sortVal     = (document.getElementById('sortSelect')?.value      || 'newest');
+
+    let visible = [];
+
+    allJobRows.forEach(row => {
+        const rowStatus  = row.dataset.status  || '';
+        const isRemoved  = rowStatus === 'job-removed';
+
+        // ── Search match ──
+        const title   = row.dataset.title   || '';
+        const company = row.dataset.company || '';
+        const field   = row.dataset.field   || '';
+        const matchesSearch = !searchTerm
+            || title.includes(searchTerm)
+            || company.includes(searchTerm)
+            || field.includes(searchTerm);
+
+        // ── Status filter match ──
+        // Job-removed rows always pass the status filter — they should
+        // always be visible so the applicant knows the posting is gone,
+        // regardless of what the status dropdown is set to.
+        const matchesStatus = isRemoved
+            || statusVal === 'all'
+            || rowStatus === statusVal;
+
+        if (matchesSearch && matchesStatus) {
+            row.style.display = '';
+            visible.push(row);
+        } else {
+            row.style.display = 'none';
+        }
     });
 
-    // Remove active state from all tabs
-    const allTabs = document.querySelectorAll('.detail-tab-new');
-    allTabs.forEach(tab => {
-        tab.classList.remove('active');
+    // ── Sort visible rows ──
+    visible.sort((a, b) => {
+        switch (sortVal) {
+            case 'newest':
+                return (b.dataset.date || '').localeCompare(a.dataset.date || '');
+            case 'oldest':
+                return (a.dataset.date || '').localeCompare(b.dataset.date || '');
+            case 'a-z':
+                return (a.dataset.company || '').localeCompare(b.dataset.company || '');
+            case 'z-a':
+                return (b.dataset.company || '').localeCompare(a.dataset.company || '');
+            case 'status': {
+                // job-removed sorts to the bottom so it doesn't dominate
+                const order = { pending: 1, reviewed: 2, interviewed: 3, accepted: 4, employed: 5, rejected: 6, 'job-removed': 99 };
+                return (order[a.dataset.status] || 50) - (order[b.dataset.status] || 50);
+            }
+            default:
+                return 0;
+        }
     });
 
-    // Show selected tab panel
-    const selectedPanel = document.getElementById('tab-' + tabName);
-    if (selectedPanel) {
-        selectedPanel.classList.add('active');
+    // Re-append in sorted order
+    const tbody = document.getElementById('jobTableBody');
+    if (tbody) {
+        visible.forEach(row => tbody.appendChild(row));
     }
 
-    // Add active state to clicked tab
-    if (buttonElement) {
-        buttonElement.classList.add('active');
+    // Update row numbers
+    let idx = 1;
+    allJobRows.forEach(row => {
+        const num = row.querySelector('.row-number');
+        if (!num) return;
+        if (row.style.display === 'none') {
+            num.textContent = '';
+        } else {
+            num.textContent = idx++;
+        }
+    });
+
+    // Empty state
+    const noResults = document.getElementById('noResults');
+    if (noResults) {
+        noResults.style.display = visible.length === 0 ? 'flex' : 'none';
     }
 }
-
-// ===== ANIMATION ON LOAD =====
-window.addEventListener('load', function() {
-    // Fade in header card
-    const headerCard = document.querySelector('.job-header-card-new');
-    if (headerCard) {
-        headerCard.style.opacity = '0';
-        headerCard.style.transform = 'translateY(10px)';
-
-        setTimeout(() => {
-            headerCard.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-            headerCard.style.opacity = '1';
-            headerCard.style.transform = 'translateY(0)';
-        }, 100);
-    }
-
-    // Fade in interview alert
-    const interviewAlert = document.querySelector('.interview-alert-card');
-    if (interviewAlert) {
-        interviewAlert.style.opacity = '0';
-        interviewAlert.style.transform = 'translateY(10px)';
-
-        setTimeout(() => {
-            interviewAlert.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-            interviewAlert.style.opacity = '1';
-            interviewAlert.style.transform = 'translateY(0)';
-        }, 200);
-    }
-
-    // Fade in tabs
-    const tabs = document.querySelector('.detail-tabs-new');
-    if (tabs) {
-        tabs.style.opacity = '0';
-        tabs.style.transform = 'translateY(10px)';
-
-        setTimeout(() => {
-            tabs.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-            tabs.style.opacity = '1';
-            tabs.style.transform = 'translateY(0)';
-        }, 300);
-    }
-
-    // Fade in detail cards
-    const detailCards = document.querySelectorAll('.detail-card-new');
-    detailCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(10px)';
-
-        setTimeout(() => {
-            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, 400 + (index * 50));
-    });
-});
 
 // ===== KEYBOARD SHORTCUTS =====
-document.addEventListener('keydown', function(e) {
-    // Switch to submission tab with '1' key
-    if (e.key === '1' && !e.ctrlKey && !e.metaKey) {
-        const submissionTab = document.querySelector('.detail-tab-new:first-child');
-        if (submissionTab) {
-            switchTab('application', submissionTab);
-        }
-    }
-
-    // Switch to remarks tab with '2' key
-    if (e.key === '2' && !e.ctrlKey && !e.metaKey) {
-        const remarksTab = document.querySelector('.detail-tab-new:last-child');
-        if (remarksTab) {
-            switchTab('remarks', remarksTab);
-        }
+document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        const input = document.getElementById('jobSearchInput');
+        if (input) { input.focus(); input.select(); }
     }
 });
 
-// ===== SMOOTH SCROLL TO TOP ON TAB SWITCH =====
-const tabButtons = document.querySelectorAll('.detail-tab-new');
-tabButtons.forEach(button => {
-    button.addEventListener('click', function() {
-        // Smooth scroll to top of content area
-        const wrapper = document.querySelector('.detail-page-wrapper');
-        if (wrapper) {
-            window.scrollTo({
-                top: wrapper.offsetTop - 80,
-                behavior: 'smooth'
-            });
-        }
+// ===== ROW ENTRANCE ANIMATION =====
+window.addEventListener('load', function () {
+    document.querySelectorAll('.job-row').forEach((row, i) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, i * 30);
     });
 });
-
-// ===== PRINT FUNCTIONALITY (Optional) =====
-function printApplication() {
-    window.print();
-}
-
-// Add print styles dynamically if needed
-const printStyles = `
-@media print {
-    .job-view-nav,
-    .detail-tabs-new,
-    .back-link {
-        display: none !important;
-    }
-
-    .tab-panel-new {
-        display: block !important;
-    }
-
-    .detail-page-wrapper {
-        padding: 0 !important;
-    }
-}
-`;
-
-function switchTab(tabName, btn) {
-    document.querySelectorAll('.tab-panel-new').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.detail-tab-new').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + tabName).classList.add('active');
-    btn.classList.add('active');
-}

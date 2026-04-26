@@ -1023,7 +1023,7 @@ def employment_status(app_id):
 # ================================================================
 # ── APPLICANT: View all employment records ──
 # ================================================================
-
+# routes/employment.py — my_employment route
 @employment_bp.route('/my-employment')
 @login_required
 def my_employment():
@@ -1031,9 +1031,17 @@ def my_employment():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
-    records = Employee.query.filter_by(
-        user_id=current_user.id
-    ).order_by(Employee.confirmed_at.desc()).all()
+    from sqlalchemy.orm import joinedload
+
+    db.session.expire_all()  # ← ADD THIS to bust any stale cache
+
+    records = (
+        Employee.query
+        .filter_by(user_id=current_user.id)
+        .options(joinedload(Employee.job))
+        .order_by(Employee.confirmed_at.desc())
+        .all()
+    )
 
     return render_template(
         'employment/my_employment.html',

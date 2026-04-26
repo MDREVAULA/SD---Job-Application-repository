@@ -1222,7 +1222,11 @@ function admToggleRibbon() {
 // ── Restore job ──────────────────────────────────────────────
 function admRestoreJob(jobId) {
     if (!confirm('Restore this job? It will be visible to applicants again.')) return;
-    fetch(`/admin/job/${jobId}/restore`, { method: 'POST' })
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    fetch(`/admin/job/${jobId}/restore`, { 
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf }
+    })
         .then(r => r.json())
         .then(data => {
             if (data.ok) location.reload();

@@ -1413,3 +1413,122 @@ body {
     border-collapse: separate;
     border-spacing: 0;
 }
+
+/* ============================================================
+   APPLICANT STATUS — job_list.css
+   Adds job-removed row treatment on top of existing styles
+   ============================================================ */
+
+/* ──────────────────────────────────────────────
+   JOB-REMOVED ROW STATE
+   Applied when the job backing an application
+   has been taken down by an admin.
+   ────────────────────────────────────────────── */
+
+/* Dim the whole row to signal it's inactive */
+.job-row.job-removed-row {
+    opacity: 0.72;
+}
+
+.job-row.job-removed-row:hover {
+    opacity: 1;
+    background: var(--bg-hover);
+}
+
+/* Status badge — "Job Removed" purple pill */
+.status-job-removed {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* Replaced action buttons — inline "Job Removed" chip
+   shown in the Actions cell instead of the normal buttons */
+.job-removed-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(139, 92, 246, 0.09);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+}
+
+.job-removed-chip svg {
+    color: #7c3aed;
+    flex-shrink: 0;
+}
+
+/* Strike-through on the job title text when removed */
+.job-row.job-removed-row .job-name {
+    text-decoration: line-through;
+    text-decoration-color: rgba(124, 58, 237, 0.45);
+    color: var(--text-tertiary);
+}
+
+/* ============================================================
+   JOB-REMOVED ADDITIONS — append to recruiter/job_list.css
+                            AND  hr/job_list.css
+   ============================================================ */
+
+/* ─── Dim the whole row ─── */
+.job-row.job-removed-row {
+    opacity: 0.72;
+}
+
+.job-row.job-removed-row:hover {
+    opacity: 1;
+    background: var(--bg-hover);
+}
+
+/* ─── Strike through the job title ─── */
+.job-row.job-removed-row .job-name {
+    text-decoration: line-through;
+    text-decoration-color: rgba(124, 58, 237, 0.45);
+    color: var(--text-tertiary);
+}
+
+/* ─── "Job Removed" status badge (purple) ─── */
+.status-job-removed {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* ─── "Job Removed" chip replacing action buttons ─── */
+.job-removed-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(139, 92, 246, 0.09);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+}
+
+.job-removed-chip svg {
+    color: #7c3aed;
+    flex-shrink: 0;
+}
+
+.action-btn-taken-down {
+    border-color: var(--danger);
+    color: var(--danger);
+    cursor: not-allowed;
+}
+
+.action-btn-taken-down svg {
+    color: var(--danger);
+}
