@@ -786,7 +786,7 @@ def respond_follow_request(req_id):
 # APPLICATION STATUS PAGE
 # ===============================
 _ACTIVE_STATUSES   = ('pending', 'interview', 'accepted', 'employed')
-_ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
+_ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired', 'Job Removed')
 
 @applicant_bp.route('/status')
 @login_required
@@ -839,6 +839,16 @@ def archived():
         .order_by(Application.created_at.desc())
         .all()
     )
+
+    # ── Flash toast for any Job Removed applications not yet seen ──
+    job_removed = [a for a in archived_applications if a.status == 'Job Removed']
+    for app in job_removed:
+        job_title = app.job.title if app.job else 'a job'
+        flash(
+            f'⚠️ The job <strong>"{job_title}"</strong> you applied to was removed by an admin '
+            f'for policy violations. We recommend caution if you have been in contact with this employer outside the platform.',
+            'warning'
+        )
 
     return render_template(
         'applicant/archived.html',

@@ -1,110 +1,119 @@
 {% extends "layout.html" %}
-{% block title %}All Users — Admin{% endblock %}
+{% block title %}User Management — Admin{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/reports.css') }}">
 
-<div class="admin-page-wrapper">
+<div class="user-mgmt-wrapper">
 
-    <!-- PAGE HEADER -->
-    <div class="admin-page-header">
-        <div class="admin-page-header-left">
-            <div class="admin-page-icon">
-                <i class="fas fa-users" style="font-size:18px;"></i>
+    <!-- HEADER -->
+    <div class="user-mgmt-header-bar">
+        <div class="user-mgmt-header-left">
+            <a href="{{ url_for('admin.dashboard') }}" class="user-mgmt-back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="user-mgmt-header-icon">
+                <i class="fas fa-users"></i>
             </div>
             <div>
-                <h1 class="admin-page-title">All Users
-                    <span style="font-size:1rem; font-weight:700; background:rgba(220,38,38,0.1); color:#f87171; border:1px solid rgba(220,38,38,0.25); border-radius:20px; padding:2px 12px; margin-left:6px;">
-                        {{ users|length }}
-                    </span>
-                </h1>
-                <p class="admin-page-subtitle">Browse and manage every account on the platform</p>
+                <h1>User Management</h1>
+                <p>{{ users|length }} total users</p>
             </div>
         </div>
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
     </div>
 
-    <!-- FILTER TABS -->
-    <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-        <a href="{{ url_for('admin.all_users', role='all') }}"
-           class="btn-restore {% if role_filter == 'all' %}btn-restore--active{% endif %}"
-           style="text-decoration:none;">All</a>
-        <a href="{{ url_for('admin.all_users', role='applicant') }}"
-           class="btn-restore {% if role_filter == 'applicant' %}btn-restore--active{% endif %}"
-           style="text-decoration:none;">Applicants</a>
-        <a href="{{ url_for('admin.all_users', role='recruiter') }}"
-           class="btn-restore {% if role_filter == 'recruiter' %}btn-restore--active{% endif %}"
-           style="text-decoration:none;">Recruiters</a>
-        <a href="{{ url_for('admin.all_users', role='hr') }}"
-           class="btn-restore {% if role_filter == 'hr' %}btn-restore--active{% endif %}"
-           style="text-decoration:none;">HR</a>
+    <!-- CONTROLS -->
+    <div class="user-mgmt-controls">
+        <div class="user-mgmt-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search by username or email..." id="userSearchInput">
+        </div>
+        <div class="user-mgmt-role-filters">
+            <button class="role-filter-btn active" data-role="all" onclick="filterByRole(this)">All</button>
+            <button class="role-filter-btn" data-role="applicant" onclick="filterByRole(this)">Applicants</button>
+            <button class="role-filter-btn" data-role="recruiter" onclick="filterByRole(this)">Recruiters</button>
+            <button class="role-filter-btn" data-role="hr" onclick="filterByRole(this)">HR</button>
+        </div>
     </div>
 
     <!-- TABLE -->
-    <div class="admin-table-card">
-        <table class="admin-table">
+    <div class="user-mgmt-table-card">
+        <table class="user-mgmt-table">
             <thead>
                 <tr>
-                    <th>Username</th>
+                    <th>#</th>
+                    <th>User</th>
                     <th>Email</th>
                     <th>Role</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th class="th-action">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="userTableBody">
                 {% for user in users %}
-                <tr>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.role | capitalize }}</td>
+                <tr data-role="{{ user.role }}" data-username="{{ user.username|lower }}" data-email="{{ user.email|lower }}">
+
+                    <td class="td-sr">{{ loop.index }}</td>
+
+                    <td class="td-user-cell">
+                        <div class="td-user-inner">
+                            {% if user.profile_picture %}
+                                {% if user.profile_picture.startswith('http') %}
+                                    <img src="{{ user.profile_picture }}"
+                                        alt="{{ user.username }}" class="user-profile-pic">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture) }}"
+                                        alt="{{ user.username }}" class="user-profile-pic">
+                                {% endif %}
+                            {% else %}
+                                <div class="user-profile-pic-placeholder">{{ user.username[0].upper() }}</div>
+                            {% endif %}
+                            <span class="td-username">{{ user.username }}</span>
+                        </div>
+                    </td>
+
+                    <td class="td-email">{{ user.email }}</td>
+
+                    <td>
+                        <span class="role-badge role-{{ user.role }}">{{ user.role | capitalize }}</span>
+                    </td>
+
                     <td>
                         {% if user.is_banned %}
-                            <span class="badge badge-rejected"><i class="fas fa-ban"></i> Banned</span>
-                        {% elif user.role == 'recruiter' %}
-                            {% if user.is_verified %}
-                                <span class="badge badge-approved"><i class="fas fa-check-circle"></i> Verified</span>
-                            {% elif user.verification_status == 'Rejected' %}
-                                <span class="badge badge-rejected"><i class="fas fa-times-circle"></i> Rejected</span>
-                            {% else %}
-                                <span class="badge" style="background:rgba(241,178,74,0.12);color:#a07020;border:1px solid rgba(241,178,74,0.25);">
-                                    <i class="fas fa-clock"></i> Pending
-                                </span>
-                            {% endif %}
+                            <span class="user-status-badge inactive">
+                                <i class="fas fa-ban"></i> Banned
+                            </span>
                         {% else %}
-                            <span class="badge badge-approved"><i class="fas fa-circle"></i> Active</span>
+                            <span class="user-status-badge active">
+                                <i class="fas fa-circle"></i> Active
+                            </span>
                         {% endif %}
                     </td>
-                    <td style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <a href="{{ url_for('profile_view.view_profile', user_id=user.id) }}"
-                           class="btn-restore" target="_blank" style="text-decoration:none;">
-                            <i class="fas fa-eye"></i> View
-                        </a>
-                        {% if user.is_banned %}
-                            <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
-                                  onsubmit="return confirm('Unban {{ user.username }}?')">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="next" value="{{ request.url }}">
-                                <button type="submit" class="btn-restore">
-                                    <i class="fas fa-unlock"></i> Unban
-                                </button>
-                            </form>
-                        {% else %}
-                            <button type="button" class="btn-ban"
+
+                    <td class="td-action">
+                        <div class="user-action-buttons">
+                            <a href="{{ url_for('profile_view.view_profile', user_id=user.id) }}"
+                               class="user-action-btn view" target="_blank" title="View Profile">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button class="user-action-btn ban"
+                                    title="{{ 'Unban' if user.is_banned else 'Ban' }} User"
                                     onclick="openBanModal({{ user.id }}, '{{ user.username }}')">
-                                <i class="fas fa-ban"></i> Ban
+                                <i class="fas fa-{{ 'unlock' if user.is_banned else 'ban' }}"></i>
                             </button>
-                        {% endif %}
+                            <button class="user-action-btn delete"
+                                    title="Delete User"
+                                    onclick="openDeleteModal({{ user.id }}, '{{ user.username }}')">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
-                <tr class="empty-row">
-                    <td colspan="5">
+                <tr>
+                    <td colspan="6" class="user-mgmt-empty">
                         <i class="fas fa-users-slash"></i>
-                        No users found for this filter.
+                        <p>No users found</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -112,88 +121,66 @@
         </table>
     </div>
 
+    <!-- FOOTER -->
+    <div class="user-mgmt-footer">
+        <div class="user-mgmt-showing-text" id="showingText">
+            Showing {{ users|length }} users
+        </div>
+    </div>
+
 </div>
 
-<!-- ══ BAN MODAL ══ -->
-<div class="admin-modal-overlay" id="banModalOverlay" style="display:none;">
-    <div class="admin-modal ban-modal">
+<!-- DELETE MODAL -->
+<div class="admin-modal-overlay" id="deleteModalOverlay" style="display:none;">
+    <div class="admin-modal">
         <div class="admin-modal-header">
-            <h3><i class="fas fa-ban"></i> Ban User</h3>
-            <button class="admin-modal-close" onclick="closeBanModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <h3><i class="fas fa-trash-alt"></i> Delete User</h3>
+            <button class="admin-modal-close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="admin-modal-body">
             <p class="admin-modal-desc">
-                Banning <strong id="banUsername"></strong>.
-                They will be immediately locked out.
+                Permanently delete <strong id="deleteUsername"></strong>? This cannot be undone and all their data will be removed.
+            </p>
+            <form method="POST" id="deleteForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="admin-modal-footer">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeDeleteModal()">Cancel</button>
+                    <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
+                        <i class="fas fa-trash-alt"></i> Delete Permanently
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- BAN MODAL -->
+<div class="admin-modal-overlay" id="banModalOverlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-ban"></i> Ban User</h3>
+            <button class="admin-modal-close" onclick="closeBanModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Ban <strong id="banUsername"></strong>? They will lose access to the platform.
             </p>
             <form method="POST" id="banForm">
-                <input type="hidden" name="next" value="{{ request.url }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                <!-- Duration chips -->
-                <div class="admin-modal-field">
-                    <label class="admin-modal-label">
-                        <i class="fas fa-clock"></i> Ban Duration
-                    </label>
-                    <div class="ban-duration-grid">
-                        <label class="ban-chip">
-                            <input type="radio" name="ban_duration" value="1">
-                            <span>1 Day</span>
-                        </label>
-                        <label class="ban-chip">
-                            <input type="radio" name="ban_duration" value="3">
-                            <span>3 Days</span>
-                        </label>
-                        <label class="ban-chip">
-                            <input type="radio" name="ban_duration" value="7">
-                            <span>1 Week</span>
-                        </label>
-                        <label class="ban-chip">
-                            <input type="radio" name="ban_duration" value="14">
-                            <span>2 Weeks</span>
-                        </label>
-                        <label class="ban-chip">
-                            <input type="radio" name="ban_duration" value="30">
-                            <span>1 Month</span>
-                        </label>
-                        <label class="ban-chip">
-                            <input type="radio" name="ban_duration" value="90">
-                            <span>3 Months</span>
-                        </label>
-                        <label class="ban-chip">
-                            <input type="radio" name="ban_duration" value="180">
-                            <span>6 Months</span>
-                        </label>
-                        <label class="ban-chip ban-chip--permanent">
-                            <input type="radio" name="ban_duration" value="permanent" checked>
-                            <span><i class="fas fa-ban"></i> Permanent</span>
-                        </label>
-                    </div>
-
-                    <!-- Live preview -->
-                    <div class="ban-duration-preview ban-duration-preview--permanent" id="banDurationPreview">
-                        <i class="fas fa-infinity"></i>
-                        <span id="banDurationText">User will be banned permanently until manually unbanned</span>
-                    </div>
+                <div class="ban-duration-options">
+                    <label class="ban-duration-label"><input type="radio" name="ban_duration" value="1"> 1 Day</label>
+                    <label class="ban-duration-label"><input type="radio" name="ban_duration" value="7"> 7 Days</label>
+                    <label class="ban-duration-label"><input type="radio" name="ban_duration" value="30"> 30 Days</label>
+                    <label class="ban-duration-label"><input type="radio" name="ban_duration" value="permanent" checked> Permanent</label>
                 </div>
 
-                <div class="admin-modal-field">
-                    <label class="admin-modal-label">
-                        <i class="fas fa-comment-alt"></i> Ban Reason
-                        <span class="admin-modal-label-sub">(shown to user)</span>
-                    </label>
-                    <textarea name="ban_reason" class="admin-modal-textarea"
-                              placeholder="e.g. Suspicious activity, spam, policy violation..."
-                              rows="2"></textarea>
-                </div>
+                <textarea class="admin-textarea" name="ban_reason" placeholder="Reason for ban (optional)..." rows="3"></textarea>
 
                 <div class="admin-modal-footer">
-                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel"
-                            onclick="closeBanModal()">Cancel</button>
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeBanModal()">Cancel</button>
                     <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
-                        <i class="fas fa-ban"></i> Confirm Ban
+                        <i class="fas fa-ban"></i> Ban User
                     </button>
                 </div>
             </form>
@@ -202,54 +189,71 @@
 </div>
 
 <script>
+// ── Search ──────────────────────────────────────────────────────
+document.getElementById('userSearchInput').addEventListener('input', function() {
+    applyFilters();
+});
+
+// ── Role filter ─────────────────────────────────────────────────
+let activeRole = 'all';
+
+function filterByRole(btn) {
+    document.querySelectorAll('.role-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeRole = btn.dataset.role;
+    applyFilters();
+}
+
+function applyFilters() {
+    const query = document.getElementById('userSearchInput').value.toLowerCase().trim();
+    const rows  = document.querySelectorAll('#userTableBody tr[data-role]');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const roleMatch     = activeRole === 'all' || row.dataset.role === activeRole;
+        const username      = row.dataset.username || '';
+        const email         = row.dataset.email    || '';
+        const searchMatch   = !query || username.includes(query) || email.includes(query);
+
+        if (roleMatch && searchMatch) {
+            row.style.display = '';
+            visible++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    document.getElementById('showingText').textContent = `Showing ${visible} user${visible !== 1 ? 's' : ''}`;
+}
+
+// ── Delete modal ────────────────────────────────────────────────
+function openDeleteModal(userId, username) {
+    document.getElementById('deleteUsername').textContent = username;
+    document.getElementById('deleteForm').action = `/admin/delete-user/${userId}`;
+    document.getElementById('deleteModalOverlay').style.display = 'flex';
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModalOverlay').style.display = 'none';
+}
+document.getElementById('deleteModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+
+// ── Ban modal ───────────────────────────────────────────────────
 function openBanModal(userId, username) {
     document.getElementById('banUsername').textContent = username;
     document.getElementById('banForm').action = `/admin/ban/${userId}`;
     document.getElementById('banModalOverlay').style.display = 'flex';
-    updateDurationPreview();
 }
-
 function closeBanModal() {
     document.getElementById('banModalOverlay').style.display = 'none';
 }
-
 document.getElementById('banModalOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeBanModal();
 });
 
-function updateDurationPreview() {
-    const selected = document.querySelector('input[name="ban_duration"]:checked');
-    if (!selected) return;
-
-    const preview = document.getElementById('banDurationPreview');
-    const text    = document.getElementById('banDurationText');
-    const icon    = preview.querySelector('i');
-    const val     = selected.value;
-
-    if (val === 'permanent') {
-        icon.className    = 'fas fa-infinity';
-        text.textContent  = 'User will be banned permanently until manually unbanned';
-        preview.className = 'ban-duration-preview ban-duration-preview--permanent';
-    } else {
-        const days  = parseInt(val);
-        const until = new Date();
-        until.setDate(until.getDate() + days);
-        const formatted = until.toLocaleDateString('en-US', {
-            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-        });
-        icon.className    = 'fas fa-calendar-alt';
-        text.textContent  = `Ban expires ${formatted} (${days} day${days !== 1 ? 's' : ''} from now)`;
-        preview.className = 'ban-duration-preview ban-duration-preview--timed';
-    }
-}
-
-document.querySelectorAll('input[name="ban_duration"]').forEach(r => {
-    r.addEventListener('change', updateDurationPreview);
-});
-
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeBanModal();
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeDeleteModal(); closeBanModal(); }
 });
 </script>
-
 {% endblock %}

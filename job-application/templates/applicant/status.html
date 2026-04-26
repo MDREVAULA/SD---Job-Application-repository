@@ -13,9 +13,21 @@
                 <div class="job-meta">
                     <span>{{ applications|length }} Active</span>
                     <span class="meta-dot">•</span>
+<<<<<<< HEAD
                     <span>{{ applications | selectattr('status', 'equalto', 'accepted') | list | length }} Accepted</span>
                     <span class="meta-dot">•</span>
                     <span>{{ applications | selectattr('status', 'equalto', 'employed') | list | length }} Employed</span>
+=======
+                    <span>{{ archived_applications|length }} Archived</span>
+                    <span class="meta-dot">•</span>
+                    {% set ns3 = namespace(count=0) %}
+                    {% for app in applications %}
+                        {% if app.status|lower in ['accepted', 'employed'] %}
+                            {% set ns3.count = ns3.count + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    <span>{{ ns3.count }} Accepted</span>
+>>>>>>> navbar-enhanced
                 </div>
             </div>
         </div>
@@ -66,9 +78,13 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-value">
-                {{ applications | selectattr('status', 'equalto', 'pending') | list | length }} Pending
-            </div>
+            {% set ns = namespace(count=0) %}
+        {% for app in applications %}
+            {% if app.status|lower == 'pending' %}
+                {% set ns.count = ns.count + 1 %}
+            {% endif %}
+        {% endfor %}
+        <div class="stat-value">{{ ns.count }} Pending</div>
         </div>
 
         <div class="stat-card">
@@ -80,10 +96,15 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-value">{{ applications | selectattr('status', 'equalto', 'accepted') | list | length }} Accepted</div>
-        </div>
+            {% set ns2 = namespace(count=0) %}
+        {% for app in applications %}
+            {% if app.status|lower in ['accepted', 'employed'] %}
+                {% set ns2.count = ns2.count + 1 %}
+            {% endif %}
+        {% endfor %}
+        <div class="stat-value">{{ ns2.count }} Accepted</div>
     </div>
-
+</div>
     <!-- ═══════════════════════════════════════
          ACTIVE APPLICATIONS TABLE
     ═══════════════════════════════════════ -->
@@ -160,11 +181,14 @@
                     {% for app in applications %}
                     {% set job = app.job %}
                     {% set recruiter = job.company_id | get_recruiter_profile if job else None %}
-                    <tr class="job-row"
+                    {# ── only change: detect admin takedown via job.is_taken_down ── #}
+                    {% set is_removed = (job is none) or (job is not none and job.is_taken_down) %}
+
+                    <tr class="job-row {% if is_removed %}job-removed-row{% endif %}"
                         data-title="{{ job.title|lower if job else '' }}"
                         data-company="{{ recruiter.company_name|lower if recruiter and recruiter.company_name else '' }}"
                         data-field="{{ job.field|lower if job and job.field else '' }}"
-                        data-status="{{ app.status|lower }}"
+                        data-status="{{ 'job-removed' if is_removed else app.status|lower }}"
                         data-date="{{ app.created_at.strftime('%Y%m%d%H%M%S') if app.created_at else '00000000000000' }}">
 
                         <td class="row-number">{{ loop.index }}</td>
@@ -200,6 +224,12 @@
                         </td>
 
                         <td class="status">
+                            {% if is_removed %}
+                            <span class="status-badge status-job-removed">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                Job Removed
+                            </span>
+                            {% else %}
                             {% set s = app.status|lower %}
                             {% if s == 'pending' %}
                             <span class="status-badge status-pending">
@@ -221,13 +251,9 @@
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                 Employed
                             </span>
-                            {% elif s == 'job removed' or s == 'job_removed' %}
-                            <span class="status-badge status-job-removed">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                Job Removed
-                            </span>
                             {% else %}
                             <span class="status-badge status-pending">{{ app.status|capitalize }}</span>
+                            {% endif %}
                             {% endif %}
                         </td>
 
@@ -235,9 +261,32 @@
                             {% if app.created_at %}{{ app.created_at.strftime('%b %d, %Y') }}{% else %}N/A{% endif %}
                         </td>
 
+                        {# ── ACTIONS: only this block changes when job is removed ── #}
                         <td class="actions">
                             <div class="action-buttons">
+<<<<<<< HEAD
                                 <!-- VIEW APPLICATION DETAIL -->
+=======
+                                {% if is_removed %}
+                                {# Crossed-eye view button — red, unclickable #}
+                                <button class="action-btn action-btn-removed" disabled title="Job no longer accessible">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                        <line x1="1" y1="1" x2="23" y2="23"/>
+                                    </svg>
+                                </button>
+                                {# Keep the other button slots so columns don't shift #}
+                                <button class="action-btn action-btn-removed" disabled title="Job no longer accessible">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="23 7 16 12 23 17 23 7"/>
+                                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                                    </svg>
+                                </button>
+
+                                {% else %}
+                                {# Original buttons — completely unchanged #}
+>>>>>>> navbar-enhanced
                                 <button class="action-btn" title="View Application"
                                         onclick="window.location.href='{{ url_for('applicant.application_detail', app_id=app.id) }}'">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -297,11 +346,12 @@
                                     </svg>
                                 </button>
                                 {% endif %}
+                                {% endif %}{# end is_removed #}
                             </div>
                         </td>
+
                     </tr>
                     {% endfor %}
-                </tbody>
             </table>
 
             <div id="noResults" class="empty-state" style="display:none;">

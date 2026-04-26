@@ -36,59 +36,32 @@
 })();
 </script>
 
+<!-- CSS FILES - LOAD IN ORDER -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/help_center.css') }}">
-
 <link rel="shortcut icon" href="{{ url_for('static', filename='uploads/hirebon_logo/hirebon-logo.png') }}" type="image/x-icon">
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 <link rel="stylesheet" href="{{ url_for('static', filename='css/components/upload_error_modal.css') }}">
 
 {% block extra_css %}{% endblock %}
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modern_layout.css') }}">
 <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/hr_temporary.js') }}" defer></script>
 
-    <style>
-        .theme-toggle-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            width: 38px;
-            height: 38px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        .theme-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
+<style>
+    body { visibility: hidden; opacity: 0; }
+</style>
 
-        body { visibility: hidden; opacity: 0; }
-    </style>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
-            <script>
-                // Once the window and all resources (including CSS) are loaded, show the body
-                window.addEventListener('DOMContentLoaded', function() {
-                    document.body.style.visibility = 'visible';
-                    document.body.style.opacity = '1';
-                });
-            </script>
+<script>
+    // Once the window and all resources (including CSS) are loaded, show the body
+    window.addEventListener('DOMContentLoaded', function() {
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
+    });
+</script>
 </head>
 
-{#
-  Pass the saved DB theme to JS via a data attribute.
-  For logged-in users with settings, use their saved theme.
-  For guests / users without settings, fall back to empty string
-  so JS uses localStorage.
-#}
 {% set saved_theme = '' %}
 {% if current_user.is_authenticated and current_user.settings %}
   {% set saved_theme = current_user.settings.theme or 'dark' %}
@@ -101,59 +74,69 @@
   {% endif %}
 >
 
-    <!-- TOP NAVBAR -->
+<!-- ============================================================
+     REPLACE the entire <header class="navbar">...</header>
+     block in your layout.html with this
+     ============================================================ -->
+
 <header class="navbar">
 
+    <!-- orb container — overflow:hidden here so panel is not clipped -->
+    <div class="navbar-orb-clip">
+        <div class="navbar-orb-mid"></div>
+    </div>
+
+    <!-- LEFT: Hamburger + HireBon wordmark -->
     <div class="nav-left">
-        <button id="toggleBtn" class="menu-btn">
+        <button id="toggleBtn" class="menu-btn" aria-label="Toggle sidebar">
             <i class="fas fa-bars"></i>
         </button>
 
-        <div class="website-logo-container">
-            <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
-        </div>
-
-        <nav class="nav-menu">
-            <a href="{{ url_for('auth.index') }}" 
-            class="nav-link {% if request.endpoint == 'auth.index' %}active{% endif %}" 
-            data-text="Home">Home</a>
-            
-            <a href="{{ url_for('auth.jobs') }}" 
-            class="nav-link {% if request.endpoint == 'auth.jobs' %}active{% endif %}" 
-            data-text="Browse Jobs">Browse Jobs</a>
-            
-            {% if current_user.is_authenticated %}
-                {% if current_user.role != 'admin' %}
-                    {% set profile_route = current_user.role + '.profile' %}
-                    <a href="{{ url_for(profile_route) }}" 
-                    class="nav-link {% if request.endpoint == profile_route %}active{% endif %}" 
-                    data-text="My Profile">My Profile</a>
-                {% endif %}
-
-                {% if current_user.role != 'admin' %}
-                <a href="{{ url_for('chat.inbox') }}" 
-                class="nav-link {% if 'chat.inbox' in request.endpoint %}active{% endif %}" 
-                data-text="Messages">Messages</a>
-                {% endif %}
-            {% endif %}
-            
-            <a href="{{ url_for('auth.about') }}" 
-            class="nav-link {% if request.endpoint == 'auth.about' %}active{% endif %}" 
-            data-text="About Us">About Us</a>
-
-            {% if current_user.role != 'admin' %}
-                <a href="{{ url_for('auth.help_page') }}" 
-                class="nav-link {% if request.endpoint == 'auth.help_page' %}active{% endif %}" 
-                data-text="Help Center">Help Center</a>
-            {% endif %}
-        </nav>
+        <a href="{{ url_for('auth.index') }}" class="navbar-brand">
+            <span class="navbar-brand-hire">Hire</span><span class="navbar-brand-bon">Bon</span><span class="navbar-brand-dot">.</span>
+        </a>
     </div>
 
+    <!-- CENTER: Nav links -->
+    <nav class="nav-center">
+        <a href="{{ url_for('auth.index') }}"
+           class="nav-link {% if request.endpoint == 'auth.index' %}active{% endif %}">
+            <span>Home</span>
+        </a>
+
+        <a href="{{ url_for('auth.jobs') }}"
+           class="nav-link {% if request.endpoint == 'auth.jobs' %}active{% endif %}">
+            <span>Jobs</span>
+        </a>
+
+        {% if current_user.is_authenticated and current_user.role != 'admin' %}
+            <a href="{{ url_for('chat.people') }}"
+               class="nav-link {% if request.endpoint == 'chat.people' %}active{% endif %}">
+                <span>People</span>
+            </a>
+
+            <a href="{{ url_for('chat.inbox') }}"
+                class="nav-link {% if request.endpoint.startswith('chat.inbox') or request.endpoint == 'chat.conversation' %}active{% endif %}">
+                    <span>Messages</span>
+                </a>
+
+        {% endif %}
+
+        {% if current_user.role != 'admin' %}
+            <a href="{{ url_for('auth.help_page') }}"
+               class="nav-link {% if request.endpoint == 'auth.help_page' %}active{% endif %}">
+                <span>Help</span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <!-- RIGHT: Notifications only (profile dropdown removed) -->
     <div class="nav-right">
-        <!-- NOTIFICATION BELL (Recruiter, HR, and Applicant) -->
+
+        <!-- NOTIFICATION BELL (Recruiter, HR, Applicant) -->
         {% if current_user.is_authenticated and current_user.role in ['recruiter', 'hr', 'applicant'] %}
         <div class="notif-wrapper" id="notifWrapper">
-            <button class="notif-btn" id="notifBtn" title="Notifications">
+            <button class="notif-btn" id="notifBtn" title="Notifications" aria-label="Notifications">
                 <i class="fas fa-bell"></i>
                 <span class="notif-badge" id="notifBadge" style="display:none;"></span>
             </button>
@@ -182,7 +165,7 @@
         <!-- ADMIN NOTIFICATION BELL -->
         {% if current_user.is_authenticated and current_user.role == 'admin' %}
         <div class="notif-wrapper" id="adminNotifWrapper">
-            <button class="notif-btn" id="adminNotifBtn" title="Notifications">
+            <button class="notif-btn" id="adminNotifBtn" title="Notifications" aria-label="Admin Notifications">
                 <i class="fas fa-bell"></i>
                 <span class="notif-badge" id="adminNotifBadge" style="display:none;"></span>
             </button>
@@ -208,53 +191,34 @@
         </div>
         {% endif %}
 
-        {% if current_user.is_authenticated %}
-            <div class="user-info">
-
-                {# ---- NAVBAR PROFILE PICTURE ---- #}
-                {% if current_user.profile_picture %}
-                    {% if current_user.profile_picture.startswith('http') %}
-                        <img src="{{ current_user.profile_picture }}"
-                             alt="Profile"
-                             class="nav-avatar">
-                    {% else %}
-                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}"
-                             alt="Profile"
-                             class="nav-avatar">
-                    {% endif %}
-                {% else %}
-                    <i class="fas fa-user-circle nav-avatar-placeholder"></i>
-                {% endif %}
-
-                <span class="welcome-text">{{ current_user.username }}</span>
-            </div>
-        {% else %}
-            <button class="login-btn" onclick="window.location.href='{{ url_for('auth.login') }}'">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </button>
-
-            <button class="signup-btn" onclick="window.location.href='{{ url_for('auth.register') }}'">
-                <i class="fas fa-user-plus"></i> Sign Up
-            </button>
+        <!-- GUEST: Login / Signup -->
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.login') }}" class="btn-guest-login">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Login</span>
+        </a>
+        <a href="{{ url_for('auth.register') }}" class="btn-guest-signup">
+            <i class="fas fa-user-plus"></i>
+            <span>Sign Up</span>
+        </a>
         {% endif %}
+
     </div>
 
 </header>
 
-
-<!-- SIDEBAR -->
+<!-- MINIMALIST MODERN SIDEBAR -->
+<!-- ANIMATED SIDEBAR WITH GRADIENT CIRCLES -->
 <nav class="sidebar" id="sidebar">
 
-    <div class="sidebar-header">
-        <div class="sidebar-logo">
-            <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
-        </div>
-    </div>
+    <!-- ANIMATED GRADIENT ORBS -->
+    <div class="sidebar-gradient-orb sidebar-gradient-orb-1"></div>
+    <div class="sidebar-gradient-orb sidebar-gradient-orb-2"></div>
+    <div class="sidebar-gradient-orb sidebar-gradient-orb-3"></div>
 
+    <!-- USER SECTION - CENTERED -->
     {% if current_user.is_authenticated %}
     <div class="sidebar-user">
-
-        {# ---- SIDEBAR PROFILE PICTURE ---- #}
         <div class="sidebar-user-avatar">
             {% if current_user.profile_picture %}
                 {% if current_user.profile_picture.startswith('http') %}
@@ -267,7 +231,7 @@
                          class="sidebar-avatar-img">
                 {% endif %}
             {% else %}
-                <i class="fas fa-user-circle sidebar-avatar-placeholder"></i>
+                <span class="sidebar-avatar-placeholder">{{ current_user.username[0]|upper }}</span>
             {% endif %}
         </div>
 
@@ -288,32 +252,7 @@
     </div>
     {% endif %}
 
-    <div class="sidebar-section-label">Navigation</div>
-
     <ul class="sidebar-menu">
-        <li>
-            <a href="{{ url_for('auth.jobs') }}" class="sidebar-link">
-                <i class="fas fa-briefcase"></i>
-                <span>Browse Jobs</span>
-            </a>
-        </li>
-        {% if not current_user.is_authenticated or current_user.role != 'admin' %}
-        <li>
-            <a href="{{ url_for('chat.people') }}" class="sidebar-link">
-                <i class="fas fa-users"></i>
-                <span>People</span>
-            </a>
-        </li>
-        {% endif %}
-        {% if current_user.is_authenticated and current_user.role != 'admin' %}
-        <li>
-            <a href="{{ url_for('chat.inbox') }}" class="sidebar-link">
-                <i class="fas fa-comment-dots"></i>
-                <span>Messages</span>
-            </a>
-        </li>
-        {% endif %}
-
         <!-- RECRUITER MENU -->
         {% if current_user.is_authenticated and current_user.role == "recruiter" %}
 
@@ -337,8 +276,10 @@
         <li class="dropdown">
             <a href="#" class="dropdown-toggle sidebar-link">
                 <div class="link-content">
-                    <i class="fa-solid fa-address-card"></i>
-                    <span>Dashboard</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-address-card"></i>
+                        <span>Dashboard</span>
+                    </div>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
             </a>
@@ -392,8 +333,10 @@
         <li class="dropdown">
             <a href="#" class="dropdown-toggle sidebar-link">
                 <div class="link-content">
-                    <i class="fa-solid fa-address-card"></i>
-                    <span>Dashboard</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-address-card"></i>
+                        <span>Dashboard</span>
+                    </div>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
             </a>
@@ -434,8 +377,10 @@
         <li class="dropdown">
             <a href="#" class="dropdown-toggle sidebar-link">
                 <div class="link-content">
-                    <i class="fa-solid fa-address-card"></i>
-                    <span>Dashboard</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-address-card"></i>
+                        <span>Dashboard</span>
+                    </div>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
             </a>
@@ -466,7 +411,7 @@
 
         {% endif %}
 
-        <!-- Settings — visible to applicant, hr, recruiter -->
+        <!-- Settings -->
         {% if current_user.is_authenticated and current_user.role in ['applicant', 'hr', 'recruiter'] %}
         <li>
             <a href="{{ url_for('settings.settings_page') }}"
@@ -482,7 +427,6 @@
 
         <div class="sidebar-section-label-role">Admin</div>
 
-        <!-- Notification History -->
         <li>
             <a href="{{ url_for('admin.admin_notification_history') }}"
             class="sidebar-link {% if request.endpoint == 'admin.admin_notification_history' %}active{% endif %}">
@@ -501,10 +445,24 @@
         </li>
 
         {% endif %}
-        
-        <!-- ─── THEME TOGGLE — guests only ─────────────────── -->
+
+    </ul>
+
+    <!-- SIDEBAR FOOTER -->
+    <div class="sidebar-footer">
+
+        <!-- LIVE CLOCK -->
+        <div class="sidebar-clock">
+            <div class="sidebar-clock-time" id="sidebarClock">00:00:00</div>
+            <div class="sidebar-clock-date">
+                <i class="fas fa-calendar"></i>
+                <span id="sidebarDate">Loading...</span>
+            </div>
+        </div>
+
+        <!-- THEME TOGGLE -->
         {% if not current_user.is_authenticated or current_user.role == 'admin' %}
-        <li class="sidebar-theme-item">
+        <div class="sidebar-theme-item">
             <div class="sidebar-theme-toggle">
                 <span class="sidebar-theme-label">
                     <i class="fas fa-adjust"></i> Theme
@@ -518,27 +476,50 @@
                     </button>
                 </div>
             </div>
-        </li>
+        </div>
         {% endif %}
 
         <!-- LOGOUT -->
         {% if current_user.is_authenticated %}
-        <li class="logout-item">
+        <div class="logout-item">
             <a href="{{ url_for('auth.logout') }}" class="sidebar-link logout-link">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
-        </li>
+        </div>
         {% endif %}
 
-    </ul>
+    </div>
 
 </nav>
 
+<!-- CLOCK JAVASCRIPT -->
+<script>
+(function() {
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeString = `${hours}:${minutes}:${seconds}`;
+
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        const dateString = now.toLocaleDateString('en-US', options);
+
+        const clockElement = document.getElementById('sidebarClock');
+        const dateElement = document.getElementById('sidebarDate');
+
+        if (clockElement) clockElement.textContent = timeString;
+        if (dateElement) dateElement.textContent = dateString;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+})();
+</script>
 
 <!-- OVERLAY -->
 <div id="sidebar-overlay"></div>
-
 
 <!-- PAGE CONTENT -->
 <main class="main-content {% if request.endpoint == 'auth.login' %}login-page{% endif %}">
@@ -1145,6 +1126,7 @@ setInterval(updateUnreadBadge, 10000);
     });
 })();
 </script>
+
 {% endif %}
 
 {% include 'components/upload_error_modal.html' %}
