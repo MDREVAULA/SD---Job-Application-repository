@@ -195,6 +195,12 @@
     color: #d97706;
 }
 
+.emp-alert-danger {
+    background-color: rgba(226, 38, 38, 0.08);
+    border-color: #d60000;
+    color: var(--text-primary);
+}
+
 /* ===== CARDS ===== */
 .emp-card {
     background: var(--bg-secondary);
@@ -595,6 +601,175 @@
     line-height: 1.6;
 }
 
+/* ================================
+   RESIGNATION CONFIRMATION MODAL
+   ================================ */
+
+.resign-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.resign-modal-backdrop.active {
+    display: flex;
+    animation: backdropFadeIn 0.2s ease;
+}
+
+@keyframes backdropFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.resign-modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 36px 32px 32px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    text-align: center;
+    animation: modalSlideUp 0.25s ease;
+}
+
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* Icon circle */
+.resign-modal-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(217, 119, 6, 0.12);
+    border: 2px solid rgba(217, 119, 6, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.resign-modal-icon svg {
+    color: #d97706;
+}
+
+/* Title */
+.resign-modal-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 10px;
+}
+
+/* Body text */
+.resign-modal-body {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 20px;
+}
+
+.resign-modal-body strong {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+/* Warning list */
+.resign-modal-warnings {
+    background: rgba(217, 119, 6, 0.06);
+    border: 1.5px solid rgba(217, 119, 6, 0.2);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: left;
+}
+
+.resign-modal-warn-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8375rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.resign-modal-warn-item svg {
+    color: #d97706;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.resign-modal-warn-item strong {
+    color: var(--text-primary);
+}
+
+/* Action buttons */
+.resign-modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.resign-modal-cancel {
+    flex: 1;
+    padding: 12px 20px;
+    background: transparent;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.resign-modal-cancel:hover {
+    background: var(--bg-hover);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.resign-modal-confirm {
+    flex: 1.6;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #d97706;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-shadow: 0 2px 10px rgba(217, 119, 6, 0.3);
+}
+
+.resign-modal-confirm:hover {
+    background: #b45309;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+}
+
+.resign-modal-confirm svg {
+    flex-shrink: 0;
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1024px) {
     .emp-layout {
@@ -611,100 +786,34 @@
 }
 
 @media (max-width: 768px) {
-    .job-view-nav {
-        position: static;
-    }
+    .job-view-nav { position: static; }
+    .nav-container { padding: 12px 16px; }
+    .job-title-main { font-size: 16px; }
+    .job-meta { font-size: 12px; flex-wrap: wrap; }
+    .emp-wrapper { padding: 16px; }
+    .emp-sidebar { grid-template-columns: 1fr; }
+    .emp-card-header { padding: 16px 20px; }
+    .emp-resign-form { padding: 20px; }
+    .emp-info-body, .emp-steps-body { padding: 20px; }
+    .emp-existing-file { flex-wrap: wrap; }
+    .emp-view-btn { width: 100%; justify-content: center; }
+    .emp-form-actions { flex-direction: column; }
+    .emp-submit-btn, .emp-cancel-btn { width: 100%; justify-content: center; }
 
-    .nav-container {
-        padding: 12px 16px;
-    }
-
-    .job-title-main {
-        font-size: 16px;
-    }
-
-    .job-meta {
-        font-size: 12px;
-        flex-wrap: wrap;
-    }
-
-    .emp-wrapper {
-        padding: 16px;
-    }
-
-    .emp-sidebar {
-        grid-template-columns: 1fr;
-    }
-
-    .emp-card-header {
-        padding: 16px 20px;
-    }
-
-    .emp-resign-form {
-        padding: 20px;
-    }
-
-    .emp-info-body,
-    .emp-steps-body {
-        padding: 20px;
-    }
-
-    .emp-existing-file {
-        flex-wrap: wrap;
-    }
-
-    .emp-view-btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .emp-form-actions {
-        flex-direction: column;
-    }
-
-    .emp-submit-btn,
-    .emp-cancel-btn {
-        width: 100%;
-        justify-content: center;
-    }
+    .resign-modal { padding: 28px 20px 24px; }
+    .resign-modal-actions { flex-direction: column; }
+    .resign-modal-cancel, .resign-modal-confirm { width: 100%; justify-content: center; }
 }
 
 @media (max-width: 480px) {
-    .emp-card-header {
-        padding: 14px 16px;
-    }
-
-    .emp-resign-form {
-        padding: 16px;
-    }
-
-    .emp-alert {
-        padding: 16px;
-        font-size: 13px;
-    }
-
-    .emp-warning-box {
-        padding: 16px;
-    }
-
-    .emp-existing-file {
-        padding: 12px;
-    }
-
-    .emp-file-icon {
-        width: 40px;
-        height: 40px;
-    }
-
-    .emp-info-body,
-    .emp-steps-body {
-        padding: 16px;
-        gap: 16px;
-    }
-
-    .emp-step-number {
-        width: 28px;
-        height: 28px;
-        font-size: 13px;
-    }
+    .emp-card-header { padding: 14px 16px; }
+    .emp-resign-form { padding: 16px; }
+    .emp-alert { padding: 16px; font-size: 13px; }
+    .emp-warning-box { padding: 16px; }
+    .emp-existing-file { padding: 12px; }
+    .emp-file-icon { width: 40px; height: 40px; }
+    .emp-info-body, .emp-steps-body { padding: 16px; gap: 16px; }
+    .emp-step-number { width: 28px; height: 28px; font-size: 13px; }
+    .resign-modal-icon { width: 60px; height: 60px; }
+    .resign-modal-title { font-size: 1.1rem; }
 }

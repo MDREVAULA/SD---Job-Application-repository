@@ -99,6 +99,7 @@
 
         <!-- SIDEBAR: Status + Resign -->
         <div class="emp-sidebar">
+
             <!-- Employment Status Card -->
             <div class="emp-card emp-status-card">
                 <div class="emp-card-header">
@@ -118,6 +119,7 @@
                         </svg>
                         <span>Active Employee</span>
                     </div>
+
                     {% elif emp.employment_status == 'resigned' %}
                     <div class="emp-status-badge status-resigned">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -127,6 +129,7 @@
                         </svg>
                         <span>Resigned</span>
                     </div>
+
                     {% elif emp.employment_status == 'resignation_pending' %}
                     <div class="emp-status-badge status-pending">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -135,6 +138,7 @@
                         </svg>
                         <span>Pending Resignation Review</span>
                     </div>
+
                     {% elif emp.employment_status == 'rendering' %}
                     <div class="emp-status-badge status-rendering">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -145,6 +149,7 @@
                         </svg>
                         <span>Rendering Period</span>
                     </div>
+
                     {% else %}
                     <div class="emp-status-badge status-terminated">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -170,7 +175,8 @@
                 </div>
             </div>
 
-            <!-- Resign from Job Card -->
+            <!-- ── Contextual action / notice cards ── -->
+
             {% if emp.employment_status == 'active' %}
             <div class="emp-card emp-resign-card">
                 <div class="emp-card-header">
@@ -197,7 +203,7 @@
                     </a>
                 </div>
             </div>
-        
+
             {% elif emp.employment_status == 'resignation_pending' %}
             <div class="emp-card emp-notice-card notice-pending">
                 <div class="emp-card-header">
@@ -213,7 +219,7 @@
                     Your resignation request has been submitted and is awaiting review from your recruiter or HR department.
                 </div>
             </div>
-        
+
             {% elif emp.employment_status == 'rendering' %}
             {% set res = emp.resignation_request %}
             <div class="emp-card emp-notice-card notice-rendering">
@@ -239,12 +245,25 @@
                         {{ (res.intended_last_day - today).days }} day(s) remaining
                     </div>
                     {% endif %}
+
+                    <!-- ── Reviewer note (approve) ── -->
+                    {% if res.reviewer_note %}
+                    <div class="emp-reviewer-note-box">
+                        <div class="emp-reviewer-note-label">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Note from Reviewer
+                        </div>
+                        <div class="emp-reviewer-note-text">{{ res.reviewer_note }}</div>
+                    </div>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>
             {% endif %}
-        </div>
 
+        </div>
     </div>
 </div>
 

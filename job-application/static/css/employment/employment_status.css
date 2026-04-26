@@ -699,3 +699,64 @@
         padding: 12px 20px;
     }
 }
+
+/* ================================================
+   ADD TO: submit_resignation.css
+   Place these rules after the .emp-alert-warning block
+   ================================================ */
+
+/* Danger alert (rejected) */
+.emp-alert-danger {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.4);
+    color: var(--text-primary);
+}
+
+.emp-alert-danger svg {
+    color: #dc2626;
+}
+
+.emp-alert-note-danger {
+    border-top-color: rgba(220, 38, 38, 0.25) !important;
+}
+
+
+/* ================================================
+   ADD TO: employment_status.css
+   Place these rules anywhere — e.g. after
+   .emp-rendering-countdown
+   ================================================ */
+
+/* Reviewer note box (shown in rendering/approved state) */
+.emp-reviewer-note-box {
+    margin-top: 16px;
+    background: rgba(59, 130, 246, 0.07);
+    border: 1.5px solid rgba(59, 130, 246, 0.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.emp-reviewer-note-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #3B82F6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.emp-reviewer-note-label svg {
+    flex-shrink: 0;
+    color: #3B82F6;
+}
+
+.emp-reviewer-note-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+}

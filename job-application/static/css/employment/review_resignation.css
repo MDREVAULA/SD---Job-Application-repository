@@ -831,3 +831,266 @@
         gap: 14px;
     }
 }
+
+/* ===================
+   RESIGNATION REVIEW
+   =================== */
+
+/* ── Backdrop ── */
+.resign-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.resign-modal-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Modal shell ── */
+.resign-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9001;
+  padding: 24px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.92) translateY(12px);
+  transition: opacity 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.resign-modal.is-open {
+  pointer-events: auto;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* ── Modal card ── */
+.resign-modal-inner {
+  background: var(--bg-secondary, #1e2228);
+  border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+  border-radius: 20px;
+  padding: 36px 32px 32px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.5),
+    0 8px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+
+/* ── Icon badge ── */
+.resign-modal-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.resign-icon-approve {
+  background: rgba(5, 150, 105, 0.15);
+  border: 2px solid rgba(5, 150, 105, 0.4);
+  color: #059669;
+}
+
+.resign-icon-revision {
+  background: rgba(124, 58, 237, 0.15);
+  border: 2px solid rgba(124, 58, 237, 0.4);
+  color: #7c3aed;
+}
+
+.resign-icon-reject {
+  background: rgba(220, 38, 38, 0.12);
+  border: 2px solid rgba(220, 38, 38, 0.35);
+  color: #dc2626;
+}
+
+/* ── Text ── */
+.resign-modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #f1f5f9);
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.resign-modal-desc {
+  font-size: 14px;
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.7;
+  margin: 0 0 8px;
+}
+
+.resign-modal-desc strong {
+  color: var(--text-primary, #f1f5f9);
+  font-weight: 600;
+}
+
+.resign-modal-subdesc {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+/* ── Note preview (for revision & reject) ── */
+.resign-modal-note-preview {
+  width: 100%;
+  background: var(--bg-tertiary, rgba(255,255,255,0.04));
+  border: 1.5px solid var(--border-color, rgba(255,255,255,0.1));
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-secondary, #94a3b8);
+  text-align: left;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+/* ── Action row ── */
+.resign-modal-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Buttons ── */
+.resign-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.resign-btn svg {
+  flex-shrink: 0;
+}
+
+.resign-btn-ghost {
+  background: transparent;
+  border: 1.5px solid var(--border-color, rgba(255,255,255,0.15));
+  color: var(--text-secondary, #94a3b8);
+}
+
+.resign-btn-ghost:hover {
+  background: var(--bg-hover, rgba(255,255,255,0.06));
+  border-color: var(--text-muted, #64748b);
+  color: var(--text-primary, #f1f5f9);
+}
+
+.resign-btn-approve {
+  background: #059669;
+  color: white;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35);
+}
+
+.resign-btn-approve:hover {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45);
+}
+
+.resign-btn-revision {
+  background: #7c3aed;
+  color: white;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+}
+
+.resign-btn-revision:hover {
+  background: #6d28d9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45);
+}
+
+.resign-btn-reject {
+  background: #dc2626;
+  color: white;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.resign-btn-reject:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+}
+
+/* ── Textarea error message ── */
+.resign-ta-error {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #ef4444;
+  font-weight: 500;
+  display: none;
+}
+
+/* ── Textarea shake animation ── */
+@keyframes resign-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+.resign-ta-shake {
+  animation: resign-shake 0.4s ease;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .resign-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .resign-modal-inner {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding: 28px 20px 32px;
+    max-width: 100%;
+  }
+
+  .resign-modal-actions {
+    flex-direction: column;
+  }
+
+  .resign-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

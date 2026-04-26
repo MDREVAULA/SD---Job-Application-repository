@@ -89,7 +89,6 @@
                   Change
                 </button>
               </div>
-              <!-- FIXED: name="cover_photo" matches the model column -->
               <input type="file" id="coverPhotoInput" name="cover_photo" accept="image/*" style="display: none;">
               <p class="field-hint" style="margin-top:8px;">Recommended: 1200×400px, JPG/PNG/WebP, max 5MB.</p>
             </div>
@@ -123,7 +122,6 @@
                 <textarea name="responsibilities" class="input-textarea" rows="6" placeholder="• List the main responsibilities&#10;• One responsibility per line&#10;• Be specific and clear"></textarea>
               </div>
 
-              <!-- Job Details Fields -->
               <div class="divider-line"></div>
               
               <div class="field-grid">
@@ -185,7 +183,6 @@
                   <label class="field-label">Application Deadline</label>
                   <input type="date" name="expiration_date" value="" class="input-text">
                 </div>
-                <!-- NEW: max_applications field -->
                 <div class="field">
                   <label class="field-label">
                     Max Applications
@@ -195,7 +192,6 @@
                 </div>
               </div>
 
-              <!-- Work Arrangement -->
               <div class="divider-line"></div>
               <h4 class="subsection-title">Work Arrangement</h4>
               <div class="tag-row" id="arrangementTags">
@@ -215,18 +211,15 @@
           <div class="content-sidebar">
             <div class="sidebar-card">
               <h3 class="sidebar-title">Job Details</h3>
-              
               <div class="details-list">
                 <div class="detail-item">
                   <div class="detail-label">Job Creation Date</div>
                   <div class="detail-value">Today</div>
                 </div>
-
                 <div class="detail-item">
                   <div class="detail-label">Recruitment Periods</div>
                   <div class="detail-value">No deadline set</div>
                 </div>
-
                 <div class="detail-item">
                   <div class="detail-label">Hiring Manager</div>
                   <div class="detail-value detail-with-avatar">
@@ -246,22 +239,18 @@
                     <span>{{ current_user.recruiter_profile.first_name }} {{ current_user.recruiter_profile.surname }}</span>
                   </div>
                 </div>
-
                 <div class="detail-item">
                   <div class="detail-label">Recruitment Quota</div>
                   <div class="detail-value">Not set</div>
                 </div>
-
                 <div class="detail-item">
                   <div class="detail-label">Job Type</div>
                   <div class="detail-value">Not specified</div>
                 </div>
-
                 <div class="detail-item">
                   <div class="detail-label">Experiences</div>
                   <div class="detail-value">Not specified</div>
                 </div>
-
                 <div class="detail-item">
                   <div class="detail-label">Location</div>
                   <div class="detail-value detail-with-icon">
@@ -271,18 +260,14 @@
                     Not specified
                   </div>
                 </div>
-
                 <div class="detail-item">
                   <div class="detail-label">Salary</div>
                   <div class="detail-value">Not specified</div>
                 </div>
-
                 <div class="detail-item">
                   <div class="detail-label">Last Update</div>
                   <div class="detail-value">Today</div>
                 </div>
-
-                <!-- Toggle Switch -->
                 <div class="detail-item detail-toggle">
                   <span class="toggle-label">Allow employee to apply</span>
                   <label class="toggle-switch">
@@ -290,7 +275,6 @@
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
-
               </div>
             </div>
           </div>
@@ -299,18 +283,13 @@
       </div>
 
       <!-- ========== TAB: REQUIREMENTS ========== -->
-      <!-- FIXED: Now matches edit_job.html design exactly -->
       <div class="tab-content" id="tab-requirements">
         <div class="content-grid">
-          
           <div class="content-main">
-            
-            <!-- Experience & Education — matches edit_job -->
             <div class="content-card">
               <div class="card-header">
                 <h3 class="card-title">Experience &amp; Education</h3>
               </div>
- 
               <div class="field-grid">
                 <div class="field">
                   <label class="field-label">Experience Level</label>
@@ -328,7 +307,6 @@
                   <input type="text" name="years_exp" value="" class="input-text" placeholder="e.g. 3-5 years">
                 </div>
               </div>
- 
               <div class="field">
                 <label class="field-label">Education Requirement</label>
                 <select name="education" class="input-select">
@@ -340,37 +318,28 @@
                   <option value="PhD">PhD</option>
                 </select>
               </div>
- 
               <div class="field">
                 <label class="field-label">Languages</label>
                 <input type="text" name="languages" value="" class="input-text" placeholder="e.g. English (fluent), Filipino">
               </div>
             </div>
- 
-            <!-- Skills Section — matches edit_job -->
             <div class="content-card">
               <div class="card-header">
                 <h3 class="card-title">Required Skills</h3>
               </div>
- 
               <div class="field">
                 <label class="field-label">Must-Have Skills</label>
                 <input type="text" name="required_skills" value="" class="input-text" placeholder="e.g. JavaScript, React, Node.js">
                 <p class="field-hint">Comma-separated list of required skills</p>
               </div>
- 
               <div class="field">
                 <label class="field-label">Preferred Skills</label>
                 <input type="text" name="preferred_skills" value="" class="input-text" placeholder="e.g. TypeScript, GraphQL, Docker">
                 <p class="field-hint">Comma-separated list of preferred but not required skills</p>
               </div>
- 
               <div class="divider-line"></div>
             </div>
- 
           </div>
- 
-          <!-- Right Sidebar - REQUIREMENTS -->
           <div class="content-sidebar">
             <div class="sidebar-card">
               <h3 class="sidebar-title">Job Details</h3>
@@ -414,25 +383,20 @@
               </div>
             </div>
           </div>
- 
         </div>
       </div>
 
       <!-- ========== TAB: GALLERY ========== -->
       <div class="tab-content" id="tab-gallery">
         <div class="content-grid">
-          
           <div class="content-main">
             <div class="content-card">
               <div class="card-header">
                 <h3 class="card-title">Job Gallery</h3>
               </div>
-
               <p class="card-subtitle">Showcase your office, team, or workplace culture</p>
-
               <div class="gallery-section">
                 <h4 class="gallery-section-title">Upload Images</h4>
-                
                 <div class="upload-zone" onclick="document.getElementById('posterInput').click()">
                   <div class="upload-zone-icon">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -444,15 +408,11 @@
                   <p class="upload-primary"><span class="upload-link">Click to upload</span> or drag and drop</p>
                   <p class="upload-formats">PNG, JPG, GIF up to 10MB</p>
                 </div>
-
                 <input type="file" id="posterInput" name="posters" multiple accept="image/*" style="display: none;">
                 <div class="gallery-grid" id="imagePreviewContainer"></div>
               </div>
-
             </div>
           </div>
-
-          <!-- Right Sidebar -->
           <div class="content-sidebar">
             <div class="sidebar-card">
               <h3 class="sidebar-title">Job Details</h3>
@@ -496,14 +456,12 @@
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
       <!-- ========== TAB: HIRING TEAM ========== -->
       <div class="tab-content" id="tab-hiring-team">
         <div class="content-grid">
-          
           <div class="content-main">
             
             <!-- Company Header Card -->
@@ -530,7 +488,7 @@
               </div>
             </div>
 
-            <!-- About Company — EDITABLE for new job -->
+            <!-- About Company -->
             <div class="content-card">
               <div class="card-header">
                 <h3 class="card-title-main">About Company</h3>
@@ -538,7 +496,6 @@
               <p class="card-subtitle" style="margin-bottom:16px;">
                 Describe your company for this job listing. Leave blank to use your default company description.
               </p>
-              <!-- Visible textarea; hidden input carries value to form submit -->
               <textarea id="aboutCompanyTextarea"
                         class="input-textarea" rows="5"
                         placeholder="e.g. Acme Corp is a forward-thinking organization committed to innovation..."></textarea>
@@ -557,7 +514,7 @@
                   Edit
                 </button>
               </div>
- 
+
               <!-- Display (default) -->
               <div class="company-values" id="valuesDisplay">
                 <div class="value-item">
@@ -588,28 +545,26 @@
                   </div>
                 </div>
               </div>
- 
+
               <!-- Editor (hidden until Edit is clicked) -->
               <div id="valuesEditForm" style="display:none; margin-top:16px;">
                 <div id="valuesEditorList"></div>
                 <button type="button" class="btn-add-value" onclick="addValueRow()">+ Add Value</button>
-                <div class="edit-actions">
-                  <button type="button" class="btn-save" onclick="saveValues()">Save Values</button>
-                  <button type="button" class="btn-cancel" onclick="toggleEditMode('values')">Cancel</button>
+                <div class="edit-actions" style="display:flex; gap:10px; margin-top:14px;">
+                  <!-- FIX: was saveValues() and toggleEditMode('values') — now match the inline script -->
+                  <button type="button" class="btn-save" onclick="saveValuesDisplay()">Save Values</button>
+                  <button type="button" class="btn-cancel" onclick="cancelValuesEditor()">Cancel</button>
                 </div>
               </div>
- 
-              <!-- Hidden input carries JSON to the server on form submit -->
+
               <input type="hidden" name="company_values" id="companyValuesHidden" value="">
             </div>
- 
 
             <!-- Hiring Team Card -->
             <div class="content-card">
               <div class="card-header">
                 <h3 class="card-title-main">Hiring Team</h3>
               </div>
-              
               <div class="hiring-manager-profile">
                 <div class="manager-avatar-section">
                   <div class="manager-avatar-large">
@@ -628,7 +583,6 @@
                     {% endif %}
                   </div>
                 </div>
-
                 <div class="manager-info-section">
                   <h4 class="manager-name">{{ current_user.recruiter_profile.first_name }} {{ current_user.recruiter_profile.surname }}</h4>
                   <p class="manager-role">Recruiter • {{ current_user.recruiter_profile.company_name }}</p>
@@ -645,7 +599,7 @@
               </div>
             </div>
 
-                        <!-- Why Join Us — FIXED: list-based editor matching edit_job style -->
+            <!-- Why Join Us -->
             <div class="content-card highlight-card">
               <div class="highlight-header">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -656,18 +610,12 @@
               <p class="field-hint" style="margin-bottom:16px;">
                 Add each benefit as a separate item. These appear as a checklist on the job listing.
               </p>
- 
-              <div id="benefitsList">
-              </div>
- 
+              <div id="benefitsList"></div>
               <button type="button" class="btn-add-value" onclick="addBenefitRow()" style="margin-top:12px;">
                 + Add Benefit
               </button>
-
-              <!-- Stores JSON array on submit -->
               <input type="hidden" name="why_join_us" id="whyJoinUsHidden" value="">
             </div>
-
 
           </div>
 
@@ -746,55 +694,49 @@
 
 <script src="{{ url_for('static', filename='js/recruiter/job_image_preview.js') }}"></script>
 <script src="{{ url_for('static', filename='js/recruiter/job_posting.js') }}"></script>
-{# NOTE: NO inline script here — job_posting.js handles tabs,
-         job_image_preview.js handles arrangement tags, cover photo, gallery, drag-drop.
-         Having a third set of listeners caused every click to cancel itself. #}
 <script>
 /* ══════════════════════════════════════════════════════
    HIRING TEAM TAB — CLIENT-SIDE LOGIC FOR job_posting.html
    ══════════════════════════════════════════════════════ */
- 
+
 /* ── Shared state ── */
 let _postingValues = [
   { title: 'Innovation',    description: 'We encourage creative thinking and embrace new ideas to drive progress.' },
   { title: 'Collaboration', description: 'Teamwork and open communication are at the heart of everything we do.' },
   { title: 'Excellence',    description: 'We strive for the highest quality in our work and continuous improvement.' },
 ];
- 
+
 /* ── HTML-escape helper ── */
 function _escPost(str) {
   const d = document.createElement('div');
   d.textContent = String(str || '');
   return d.innerHTML;
 }
- 
-/* ════════════════════════════════
-   ABOUT COMPANY — sync hidden field
-   ════════════════════════════════ */
+
+/* ── About Company: sync hidden field ── */
 document.getElementById('aboutCompanyTextarea').addEventListener('input', function () {
   document.getElementById('aboutCompanyHidden').value = this.value;
 });
- 
-/* ════════════════════════════════
-   COMPANY VALUES EDITOR
-   ════════════════════════════════ */
+
+/* ── Open the values editor ── */
 function openValuesEditor() {
-  /* Seed the editor list from current state */
   const list = document.getElementById('valuesEditorList');
   list.innerHTML = '';
   _postingValues.forEach(function (v) { addValueRow(v.title, v.description); });
- 
+
   document.getElementById('valuesDisplay').style.display  = 'none';
   document.getElementById('editValuesBtn').style.display  = 'none';
   document.getElementById('valuesEditForm').style.display = 'block';
 }
- 
+
+/* ── Cancel — hide editor, restore display ── */
 function cancelValuesEditor() {
   document.getElementById('valuesEditForm').style.display = 'none';
   document.getElementById('valuesDisplay').style.display  = '';
   document.getElementById('editValuesBtn').style.display  = '';
 }
- 
+
+/* ── Add a value editor row ── */
 function addValueRow(title, desc) {
   title = title || '';
   desc  = desc  || '';
@@ -809,9 +751,9 @@ function addValueRow(title, desc) {
     + ' onclick="this.parentElement.remove()">×</button>';
   document.getElementById('valuesEditorList').appendChild(row);
 }
- 
+
+/* ── Save values and update the display ── */
 function saveValuesDisplay() {
-  /* Collect rows */
   const rows = document.querySelectorAll('#valuesEditorList .value-editor-row');
   _postingValues = Array.from(rows).map(function (r) {
     return {
@@ -819,7 +761,7 @@ function saveValuesDisplay() {
       description: r.querySelector('.value-desc-input').value.trim(),
     };
   }).filter(function (v) { return v.title; });
- 
+
   /* Re-render display */
   document.getElementById('valuesDisplay').innerHTML = _postingValues.map(function (v) {
     return '<div class="value-item">'
@@ -831,16 +773,14 @@ function saveValuesDisplay() {
       + '<p class="value-description">'  + _escPost(v.description) + '</p>'
       + '</div></div>';
   }).join('');
- 
+
   /* Persist to hidden field */
   document.getElementById('companyValuesHidden').value = JSON.stringify(_postingValues);
- 
+
   cancelValuesEditor();
 }
- 
-/* ════════════════════════════════
-   WHY JOIN US — benefit rows
-   ════════════════════════════════ */
+
+/* ── Add a benefit row ── */
 function addBenefitRow() {
   const row = document.createElement('div');
   row.className = 'benefit-editor-row';
@@ -852,31 +792,25 @@ function addBenefitRow() {
   row.querySelector('input').addEventListener('input', syncBenefitsHidden);
   row.querySelector('input').focus();
 }
- 
+
 function syncBenefitsHidden() {
   const inputs = document.querySelectorAll('#benefitsList .benefit-input');
   const items  = Array.from(inputs).map(function (i) { return i.value.trim(); }).filter(Boolean);
   document.getElementById('whyJoinUsHidden').value = JSON.stringify(items);
 }
- 
-/* Wire live sync on any pre-existing benefit rows */
+
 document.querySelectorAll('#benefitsList input').forEach(function (inp) {
   inp.addEventListener('input', syncBenefitsHidden);
 });
- 
-/* ════════════════════════════════
-   FORM SUBMIT — flush all hidden fields
-   ════════════════════════════════ */
+
+/* ── On form submit: flush all hidden fields ── */
 document.querySelector('form[action]').addEventListener('submit', function () {
-  /* About company */
   document.getElementById('aboutCompanyHidden').value =
     document.getElementById('aboutCompanyTextarea').value.trim();
- 
-  /* Company values */
   document.getElementById('companyValuesHidden').value = JSON.stringify(_postingValues);
- 
-  /* Benefits */
   syncBenefitsHidden();
 });
+
+syncBenefitsHidden();
 </script>
 {% endblock %}

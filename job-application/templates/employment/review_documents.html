@@ -170,8 +170,7 @@
                     <form method="POST">
                         <input type="hidden" name="action" value="confirm">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="emp-confirm-btn"
-                                onclick="return confirm('Confirm {{ applicant.username }} as an employee? This cannot be undone.')">
+                        <button type="button" class="emp-confirm-btn" onclick="openConfirmModal()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="20 6 9 17 4 12"/>
                             </svg>
@@ -244,5 +243,62 @@
         </div>
     </div>
 </div>
+
+<div id="confirmEmploymentModal" class="emp-modal-overlay" style="display:none;">
+    <div class="emp-modal-box">
+        <div class="emp-modal-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <h3 class="emp-modal-title">Confirm Employment</h3>
+        <p class="emp-modal-message">
+            You are about to officially confirm
+            <strong>{{ applicant.username }}</strong>
+            as an employee for <strong>{{ job.title }}</strong>.
+            <br><br>
+            This action <strong>cannot be undone</strong> and the applicant will be notified immediately.
+        </p>
+        <div class="emp-modal-buttons">
+            <button class="emp-modal-cancel" onclick="closeConfirmModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                Cancel
+            </button>
+            <button class="emp-modal-confirm" onclick="submitConfirmForm()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Yes, Confirm Employment
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openConfirmModal() {
+    document.getElementById('confirmEmploymentModal').style.display = 'flex';
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmEmploymentModal').style.display = 'none';
+}
+
+function submitConfirmForm() {
+    const forms = document.querySelectorAll('form');
+    for (const form of forms) {
+        const actionInput = form.querySelector('input[name="action"][value="confirm"]');
+        if (actionInput) {
+            form.submit();
+            return;
+        }
+    }
+}
+
+document.getElementById('confirmEmploymentModal').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirmModal();
+});
+</script>
 
 {% endblock %}
