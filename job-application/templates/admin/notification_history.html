@@ -97,6 +97,13 @@
     border-radius: 12px;
     border: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color) !important;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.notif-history-item:hover {
+    border-color: #9DC88D;
+    background: rgba(157,200,141,0.04);
 }
 
 .notif-history-item:last-child {
@@ -149,13 +156,23 @@
             'account_request':  'Account Request',
             'account_approved': 'Approved',
             'account_rejected': 'Rejected',
-            'new_message':      'New Message'
+            'new_message':      'New Message',
+            'account_banned':   'Banned',
+            'job_takedown':     'Job Takedown',
+            'job_deleted':      'Job Deleted',
+            'job_restored':     'Job Restored',
+            'user_deleted':     'User Deleted'
         } %}
         {% set type_icons = {
             'account_request':  'fa-user-clock',
             'account_approved': 'fa-user-check',
             'account_rejected': 'fa-user-times',
-            'new_message':      'fa-comment-dots'
+            'new_message':      'fa-comment-dots',
+            'account_banned':   'fa-ban',
+            'job_takedown':     'fa-briefcase',
+            'job_deleted':      'fa-trash',
+            'job_restored':     'fa-undo',
+            'user_deleted':     'fa-user-slash'
         } %}
 
         {% if n.type == 'account_request' %}
@@ -166,8 +183,27 @@
             {% set icon_cls = 'type-new_application' %}
         {% endif %}
 
+        {# ── Resolve redirect URL ── #}
+        {% if n.type == 'new_message' %}
+            {% set notif_url = '/chat/inbox' %}
+        {% elif n.type == 'account_request' %}
+            {% set notif_url = '/admin/dashboard' %}
+        {% elif n.type in ['account_approved', 'account_rejected'] and n.user_id %}
+            {% set notif_url = '/profile/' ~ n.user_id %}
+        {% elif n.type == 'account_banned' %}
+            {% set notif_url = '/admin/banned' %}
+        {% elif n.type in ['job_takedown', 'job_deleted', 'job_restored'] %}
+            {% set notif_url = '/admin/jobs' %}
+        {% elif n.user_id %}
+            {% set notif_url = '/profile/' ~ n.user_id %}
+        {% else %}
+            {% set notif_url = '#' %}
+        {% endif %}
+
         <div class="notif-history-item {% if not n.is_read %}unread{% endif %}"
-             data-type="{{ n.type }}">
+             data-type="{{ n.type }}"
+             data-id="{{ n.id }}"
+             data-url="{{ notif_url }}">
             <div class="notif-history-icon {{ icon_cls }}">
                 <i class="fas {{ type_icons.get(n.type, 'fa-bell') }}"></i>
             </div>
@@ -204,6 +240,29 @@ document.querySelectorAll('.notif-filter-btn').forEach(btn => {
         document.querySelectorAll('.notif-history-item').forEach(item => {
             item.style.display = (filter === 'all' || item.dataset.type === filter) ? '' : 'none';
         });
+    });
+});
+
+// ── Click to navigate + mark one read ──
+document.querySelectorAll('.notif-history-item').forEach(item => {
+    item.addEventListener('click', function () {
+        const id  = this.dataset.id;
+        const url = this.dataset.url;
+
+        if (this.classList.contains('unread')) {
+            this.classList.remove('unread');
+            const dot = this.querySelector('.notif-history-unread-dot');
+            if (dot) dot.remove();
+            fetch('/admin/notifications/mark-read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: parseInt(id) })
+            }).catch(() => {});
+        }
+
+        if (url && url !== '#') {
+            setTimeout(() => window.location.href = url, 150);
+        }
     });
 });
 

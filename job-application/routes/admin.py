@@ -788,7 +788,12 @@ def admin_notifications():
 def admin_notifications_mark_read():
     if current_user.role != 'admin':
         return jsonify({'error': 'Forbidden'}), 403
-    AdminNotification.query.filter_by(is_read=False).update({'is_read': True})
+    data = request.get_json(silent=True) or {}
+    notif_id = data.get('id')
+    if notif_id:
+        AdminNotification.query.filter_by(id=notif_id).update({'is_read': True})
+    else:
+        AdminNotification.query.filter_by(is_read=False).update({'is_read': True})
     db.session.commit()
     return jsonify({'ok': True})
 
