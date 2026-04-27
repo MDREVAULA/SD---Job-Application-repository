@@ -379,3 +379,13 @@ function unblockUser(userId, username) {
         })
         .catch(() => showToast('Network error. Please try again.', true));
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.getElementById('settingsSearch');
+  if (s) {
+    s.value = '';
+    setTimeout(() => { s.value = ''; }, 50);
+    setTimeout(() => { s.value = ''; }, 200);
+    setTimeout(() => { s.value = ''; }, 500);
+  }
+});

@@ -350,6 +350,7 @@ def review_documents(app_id):
                     job_title=job.title,
                     company_name=company_name,
                     employment_status='active',
+                    start_date=date_type.today(),
                 )
                 db.session.add(employee)
                 application.status = 'employed'
@@ -475,6 +476,7 @@ def confirm_employment(app_id):
         job_title=job.title,
         company_name=company_name,
         employment_status='active',
+        start_date=date_type.today(),
     )
     db.session.add(employee)
 

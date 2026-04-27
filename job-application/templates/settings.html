@@ -18,12 +18,23 @@
     <!-- Search bar -->
     <div class="settings-search-wrap">
       <i class="fas fa-search settings-search-icon"></i>
+
+      {# Honeypot fields — tricks Chrome into autofilling these instead #}
+      <input type="text" style="display:none" aria-hidden="true" tabindex="-1">
+      <input type="password" style="display:none" aria-hidden="true" tabindex="-1">
+
       <input
-        type="text"
+        type="search"
         id="settingsSearch"
         class="settings-search"
         placeholder="Search settings…"
         autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        name="settings-search-no-autofill"
+        readonly
+        onfocus="this.removeAttribute('readonly')"
       />
       <div id="searchResults" class="search-results-dropdown"></div>
     </div>
