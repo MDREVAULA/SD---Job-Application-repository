@@ -388,8 +388,6 @@ class HRProfile(db.Model):
     github = db.Column(db.String(200))
     portfolio = db.Column(db.String(200))
 
-    education_level = db.Column(db.String(100))
-
     educations = db.relationship(
         "HREducation", backref="hr_profile",
         lazy=True, cascade="all, delete-orphan"

@@ -271,20 +271,130 @@ def delete_account():
 
     try:
         from sqlalchemy import text
+        import os
 
         uid = user_id
 
         # ══════════════════════════════════════════════
-        # Mirrors admin._delete_user_data() exactly,
-        # adapted for ORM + SQLAlchemy text() style.
+        # Helper: delete a single file from disk
         # ══════════════════════════════════════════════
+        def _delete_upload(subfolder, filename):
+            if not filename:
+                return
+            if filename.startswith('http'):
+                return
+            path = os.path.join(current_app.root_path, 'static', 'uploads', subfolder, filename)
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except Exception as e:
+                    print(f'[DELETE FILE] Failed to remove {path}: {e}')
 
+        # ══════════════════════════════════════════════
+        # Helper: delete all disk files for a user_id
+        # Covers: profile picture, resume, portfolio,
+        # company assets, work certificates
+        # ══════════════════════════════════════════════
+        def _delete_user_files(target_uid):
+
+            # Profile picture
+            u_row = db.session.execute(
+                text("SELECT profile_picture FROM user WHERE id = :u"),
+                {'u': target_uid}
+            ).fetchone()
+            if u_row and u_row[0]:
+                _delete_upload('profile_pictures', u_row[0])
+
+            # Applicant profile files
+            ap = db.session.execute(
+                text("SELECT resume_file, portfolio_file FROM applicant_profile WHERE user_id = :u"),
+                {'u': target_uid}
+            ).fetchone()
+            if ap:
+                _delete_upload('resumes',    ap[0])
+                _delete_upload('portfolios', ap[1])
+
+            # Work experience certificates
+            cert_rows = db.session.execute(text("""
+                SELECT wec.file_path
+                FROM work_experience_certificate wec
+                JOIN work_experience we ON we.id = wec.experience_id
+                JOIN applicant_profile ap ON ap.id = we.profile_id
+                WHERE ap.user_id = :u
+            """), {'u': target_uid}).fetchall()
+            for cert in cert_rows:
+                _delete_upload('work_certificates', cert[0])
+
+            # Recruiter profile files
+            rp = db.session.execute(
+                text("SELECT company_logo, company_proof, portfolio_file FROM recruiter_profile WHERE user_id = :u"),
+                {'u': target_uid}
+            ).fetchone()
+            if rp:
+                _delete_upload('company_logos',  rp[0])
+                _delete_upload('company_proofs', rp[1])
+                _delete_upload('portfolios',     rp[2])
+
+            # HR profile files
+            hp = db.session.execute(
+                text("SELECT portfolio_file FROM hr_profile WHERE user_id = :u"),
+                {'u': target_uid}
+            ).fetchone()
+            if hp and hp[0]:
+                _delete_upload('portfolios', hp[0])
+
+            # User report evidence files
+            report_rows = db.session.execute(
+                text("SELECT evidence_files FROM user_report WHERE reporter_id = :u OR reported_id = :u"),
+                {'u': target_uid}
+            ).fetchall()
+            for r in report_rows:
+                if r[0]:
+                    import json
+                    try:
+                        files = json.loads(r[0])
+                        if isinstance(files, list):
+                            for f in files:
+                                _delete_upload('report_evidence', f)
+                        else:
+                            _delete_upload('report_evidence', r[0])
+                    except (json.JSONDecodeError, TypeError):
+                        _delete_upload('report_evidence', r[0])
+
+        # ══════════════════════════════════════════════
+        # Helper: delete all disk files for a job_id
+        # (job poster images + cover photo)
+        # ══════════════════════════════════════════════
+        def _delete_job_files(job_id):
+            img_rows = db.session.execute(
+                text("SELECT image_path FROM job_image WHERE job_id = :jid"),
+                {'jid': job_id}
+            ).fetchall()
+            for r in img_rows:
+                _delete_upload('job_posters', r[0])
+
+            cover = db.session.execute(
+                text("SELECT cover_photo FROM job WHERE id = :jid"),
+                {'jid': job_id}
+            ).fetchone()
+            if cover and cover[0]:
+                _delete_upload('job_covers', cover[0])
+
+        # ══════════════════════════════════════════════
+        # Helper: shorthand SQL executor with flush
+        # ══════════════════════════════════════════════
         def _run(sql, **kw):
             db.session.execute(text(sql), kw)
             db.session.flush()
 
+        # ══════════════════════════════════════════════
+        # Helper: delete every DB row referencing
+        # target_uid, in strict FK order.
+        # Does NOT handle job rows owned by recruiter —
+        # those are handled in the recruiter branch below.
+        # ══════════════════════════════════════════════
         def _delete_user_data(target_uid):
-            u = target_uid  # shorthand
+            u = target_uid
 
             # 1. Break message reply_to_id self-ref FIRST
             _run("""UPDATE message SET reply_to_id = NULL
@@ -336,7 +446,6 @@ def delete_account():
 
             # 12. Resignation requests where this user IS the applicant
             _run("DELETE FROM resignation_request WHERE applicant_id = :u", u=u)
-            # ...and any linked to this user's employee records
             _run("""DELETE FROM resignation_request
                     WHERE employee_id IN (
                         SELECT id FROM employee
@@ -458,13 +567,16 @@ def delete_account():
             ).fetchall()
             hr_ids = [row[0] for row in hr_rows]
 
-            # Delete each owned job and all its children
+            # Delete each owned job: disk files first, then all child DB rows, then the job row
             job_rows = db.session.execute(
                 text("SELECT id FROM job WHERE company_id = :u"), {'u': uid}
             ).fetchall()
 
             for (job_id,) in job_rows:
-                # Mirrors admin._delete_job_rows()
+                # Disk files (job poster images + cover photo)
+                _delete_job_files(job_id)
+
+                # All child DB rows in FK order
                 for sql in [
                     "DELETE FROM applicant_notification WHERE job_id = :jid OR application_id IN (SELECT id FROM application WHERE job_id = :jid)",
                     "DELETE FROM recruiter_notification WHERE job_id = :jid OR application_id IN (SELECT id FROM application WHERE job_id = :jid)",
@@ -492,21 +604,30 @@ def delete_account():
                     db.session.execute(text(sql), {'jid': job_id})
                     db.session.flush()
 
+                # Delete the job row itself
                 db.session.execute(text("DELETE FROM job WHERE id = :jid"), {'jid': job_id})
                 db.session.flush()
 
-            # Delete all owned HR accounts (and their data)
+            # Delete recruiter's own notifications (owned + as sender)
+            _run("DELETE FROM recruiter_notification WHERE recruiter_id = :u OR sender_id = :u", u=uid)
+
+            # Delete each owned HR account: disk files first, then DB data, then user row
             for hr_uid in hr_ids:
+                _delete_user_files(hr_uid)
                 _delete_user_data(hr_uid)
                 _run("UPDATE user SET created_by = NULL WHERE created_by = :u", u=hr_uid)
                 _run("UPDATE user SET deleted_by = NULL WHERE deleted_by = :u", u=hr_uid)
                 _run("DELETE FROM user WHERE id = :u", u=hr_uid)
 
-            # Delete recruiter's own notifications (owned + as sender)
-            _run("DELETE FROM recruiter_notification WHERE recruiter_id = :u OR sender_id = :u", u=uid)
+        # ══════════════════════════════════════════════
+        # Delete the main user's disk files BEFORE
+        # _delete_user_data() wipes the profile rows
+        # that contain the file path columns
+        # ══════════════════════════════════════════════
+        _delete_user_files(uid)
 
         # ══════════════════════════════════════════════
-        # Delete the main user's own data
+        # Delete the main user's own DB data
         # ══════════════════════════════════════════════
         _delete_user_data(uid)
 
