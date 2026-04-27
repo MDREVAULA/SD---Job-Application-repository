@@ -1,25 +1,31 @@
 {% extends "layout.html" %}
-
+{% block title %}Review Recruiter — Admin{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/review_recruiter.css') }}">
 
-<div class="admin-page-wrapper">
+<!-- SIMPLE HEADER NAVIGATION -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <!-- Back Button -->
+        <a href="{{ url_for('admin.dashboard') }}" class="nav-back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+        </a>
 
-    <!-- PAGE HEADER -->
-    <div class="admin-page-header">
-        <div class="admin-page-header-left">
-            <div class="admin-page-icon">
-                <i class="fas fa-building-circle-check" style="font-size:18px;"></i>
-            </div>
-            <div>
-                <h1 class="admin-page-title">Review Recruiter</h1>
-                <p class="admin-page-subtitle">{{ recruiter.username }} &mdash; Pending Verification</p>
+        <!-- Title Section -->
+        <div class="nav-title-section">
+            <div class="nav-category">Account Verification</div>
+            <h1 class="nav-title">Review Recruiter</h1>
+            <div class="nav-subtitle">
+                {{ recruiter.username }} &mdash; Pending Verification
             </div>
         </div>
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
     </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div class="review-page-container">
 
     <!-- INFO GRID -->
     <div class="admin-review-grid">

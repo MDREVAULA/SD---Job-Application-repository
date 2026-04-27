@@ -1,0 +1,366 @@
+/* ================================================================
+   USER MANAGEMENT PAGE — CLEAN MODERN DESIGN
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ===== CONTROLS SECTION ===== */
+.user-mgmt-controls {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.user-mgmt-search-box {
+    position: relative;
+    flex: 1;
+    max-width: 340px;
+}
+
+.user-mgmt-search-box input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 13.5px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.user-mgmt-search-box input::placeholder {
+    color: var(--text-muted);
+}
+
+.user-mgmt-search-box input:focus {
+    outline: none;
+    border-color: var(--brand-green);
+    box-shadow: 0 0 0 3px rgba(157, 200, 141, 0.12);
+}
+
+.user-mgmt-search-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+/* Role filter pills */
+.user-mgmt-role-filters {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.role-filter-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.role-filter-btn:hover {
+    border-color: var(--brand-green);
+    color: var(--text-primary);
+}
+
+.role-filter-btn.active {
+    background: var(--brand-green);
+    border-color: var(--brand-green);
+    color: #fff;
+}
+
+/* ===== TABLE CARD ===== */
+.user-mgmt-table-card {
+    max-width: 1400px;
+    margin: 0 auto 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== TABLE ===== */
+.user-mgmt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+}
+
+.user-mgmt-table thead {
+    background: var(--bg-surface-alt);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-mgmt-table thead th {
+    padding: 13px 18px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.user-mgmt-table thead th.th-action {
+    text-align: center;
+}
+
+.user-mgmt-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.15s ease;
+}
+
+.user-mgmt-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.user-mgmt-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+.user-mgmt-table tbody td {
+    padding: 13px 18px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+
+/* ===== TABLE CELLS ===== */
+.td-sr {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    width: 48px;
+}
+
+.td-user-cell {
+    min-width: 180px;
+}
+
+.td-user-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-profile-pic {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.user-profile-pic-placeholder {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4D774E, #9DC88D);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.td-username {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.td-email {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* Role badges */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.role-badge.role-hr {
+    background: rgba(100, 181, 246, 0.12);
+    color: #64b5f6;
+    border: 1px solid rgba(100, 181, 246, 0.25);
+}
+
+.role-badge.role-recruiter {
+    background: rgba(241, 178, 74, 0.12);
+    color: #F1B24A;
+    border: 1px solid rgba(241, 178, 74, 0.25);
+}
+
+.role-badge.role-applicant {
+    background: rgba(157, 200, 141, 0.12);
+    color: #9DC88D;
+    border: 1px solid rgba(157, 200, 141, 0.25);
+}
+
+/* Status badges */
+.user-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.user-status-badge i {
+    font-size: 8px;
+}
+
+.user-status-badge.active {
+    background: rgba(157, 200, 141, 0.12);
+    color: #9DC88D;
+    border: 1px solid rgba(157, 200, 141, 0.25);
+}
+
+.user-status-badge.inactive {
+    background: rgba(220, 38, 38, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+/* ===== ACTION BUTTONS ===== */
+.td-action {
+    text-align: center;
+}
+
+.user-action-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.user-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.user-action-btn.view {
+    background: rgba(157, 200, 141, 0.1);
+    color: #9DC88D;
+}
+
+.user-action-btn.view:hover {
+    background: rgba(157, 200, 141, 0.25);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.user-action-btn.ban {
+    background: rgba(241, 178, 74, 0.1);
+    color: #F1B24A;
+}
+
+.user-action-btn.ban:hover {
+    background: rgba(241, 178, 74, 0.25);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.user-action-btn.delete {
+    background: rgba(220, 38, 38, 0.1);
+    color: #f87171;
+}
+
+.user-action-btn.delete:hover {
+    background: rgba(220, 38, 38, 0.25);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+/* ===== EMPTY STATE ===== */
+.user-mgmt-empty {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-muted);
+}
+
+.user-mgmt-empty i {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 14px;
+    opacity: 0.25;
+}
+
+.user-mgmt-empty p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ===== FOOTER ===== */
+.user-mgmt-footer {
+    max-width: 1400px;
+    margin: 0 auto 40px;
+    padding: 14px 24px;
+}
+
+.user-mgmt-showing-text {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .user-mgmt-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .user-mgmt-search-box {
+        max-width: none;
+    }
+    
+    .user-mgmt-table {
+        font-size: 12.5px;
+    }
+    
+    .user-mgmt-table thead th,
+    .user-mgmt-table tbody td {
+        padding: 11px 12px;
+    }
+}

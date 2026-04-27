@@ -1,5 +1,5 @@
 /* ================================================================
-   USER REPORTS PAGE — MODERN DESIGN
+   MANAGE JOBS PAGE — MODERN DESIGN
    ================================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -59,7 +59,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: #f87171;
+    color: #F1B24A;
 }
 
 .nav-title {
@@ -73,12 +73,12 @@
     gap: 8px;
 }
 
-.rpt-pending-count-pill {
+.nav-badge {
     font-size: 13px;
     font-weight: 700;
-    background: rgba(220, 38, 38, 0.12);
-    color: #f87171;
-    border: 1px solid rgba(220, 38, 38, 0.25);
+    background: rgba(241, 178, 74, 0.12);
+    color: #F1B24A;
+    border: 1px solid rgba(241, 178, 74, 0.3);
     border-radius: 20px;
     padding: 2px 12px;
 }
@@ -90,7 +90,7 @@
 
 /* ===== PAGE CONTENT ===== */
 
-.reports-page-container {
+.manage-jobs-container {
     max-width: 1400px;
     margin: 0 auto;
     padding: 24px;
@@ -99,14 +99,14 @@
 
 /* ===== STATS ROW ===== */
 
-.rpt-stats-row {
+.jobs-stats-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     margin-bottom: 20px;
 }
 
-.rpt-stat-card {
+.jobs-stat-card {
     background: var(--bg-surface, #2c2f31);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -115,53 +115,54 @@
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
-.rpt-stat-icon {
+.jobs-stat-icon {
     font-size: 24px;
     display: block;
     margin-bottom: 10px;
 }
 
-.rpt-stat-icon--pending {
-    color: #F1B24A;
-}
-
-.rpt-stat-icon--reviewed {
+.jobs-stat-icon--total {
     color: #9DC88D;
 }
 
-.rpt-stat-icon--dismissed {
-    color: #888;
+.jobs-stat-icon--active {
+    color: #4D774E;
 }
 
-.rpt-stat-number {
+.jobs-stat-icon--takendown {
+    color: #d97706;
+}
+
+.jobs-stat-number {
     font-size: 28px;
     font-weight: 800;
     margin-bottom: 4px;
 }
 
-.rpt-stat-number--pending {
-    color: #F1B24A;
-}
-
-.rpt-stat-number--reviewed {
+.jobs-stat-number--total {
     color: #9DC88D;
 }
 
-.rpt-stat-number--dismissed {
-    color: #888;
+.jobs-stat-number--active {
+    color: #4D774E;
 }
 
-.rpt-stat-label {
+.jobs-stat-number--takendown {
+    color: #d97706;
+}
+
+.jobs-stat-label {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text-muted);
+    margin-top: 2px;
 }
 
 /* ===== FILTER TABS ===== */
 
-.rpt-filter-row {
+.jobs-filter-row {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -198,375 +199,171 @@
     color: #9DC88D;
 }
 
-.rpt-tab-pill {
-    background: rgba(220, 38, 38, 0.15);
-    color: #f87171;
+.jobs-tab-pill {
+    background: rgba(217, 119, 6, 0.15);
+    color: #d97706;
     padding: 2px 8px;
     border-radius: 10px;
     font-size: 11px;
     font-weight: 700;
 }
 
-/* ===== REPORTS LIST ===== */
+/* ===== JOBS TABLE ===== */
 
-.rpt-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-/* ===== REPORT CARD ===== */
-
-.rpt-card {
+.jobs-table-card {
     background: var(--bg-surface, #2c2f31);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 20px;
+    overflow: hidden;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
 }
 
-.rpt-card:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.rpt-card--pending {
-    border-left: 3px solid #F1B24A;
-}
-
-.rpt-card--reviewed {
-    border-left: 3px solid #9DC88D;
-}
-
-.rpt-card--dismissed {
-    border-left: 3px solid #888;
-    opacity: 0.7;
-}
-
-/* Card top section */
-.rpt-card-top {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    margin-bottom: 16px;
-}
-
-/* Avatars */
-.rpt-avatars {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.rpt-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 700;
-    color: #fff;
-}
-
-.rpt-avatar--reporter {
-    background: linear-gradient(135deg, #4D774E, #9DC88D);
-}
-
-.rpt-avatar--reported {
-    background: linear-gradient(135deg, #7f1d1d, #dc2626);
-}
-
-.rpt-arrow {
-    color: var(--text-muted);
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
     font-size: 14px;
 }
 
-/* Meta section */
-.rpt-meta {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.admin-table thead {
+    background: var(--bg-surface-alt, #313638);
+    border-bottom: 1px solid var(--border-color);
 }
 
-.rpt-meta-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.rpt-meta-row--ban {
-    margin-top: 4px;
-}
-
-.rpt-label {
+.admin-table thead th {
+    padding: 14px 18px;
+    text-align: left;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.8px;
     color: var(--text-muted);
-    min-width: 70px;
+    white-space: nowrap;
 }
 
-.rpt-meta-row strong {
+.admin-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.05));
+    transition: background-color 0.2s ease;
+}
+
+.admin-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+    background: var(--bg-hover, rgba(255,255,255,0.03));
+}
+
+.admin-table tbody td {
+    padding: 14px 18px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+
+/* Job title cell */
+.job-title {
+    font-weight: 700;
     color: var(--text-primary);
-    font-size: 14px;
 }
 
-.rpt-role-pill {
+.job-location {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.job-location i {
     font-size: 10px;
-    font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 10px;
-    background: rgba(157, 200, 141, 0.12);
-    color: #9DC88D;
-    border: 1px solid rgba(157, 200, 141, 0.25);
 }
 
-.rpt-role-pill--reported {
-    background: rgba(220, 38, 38, 0.12);
-    color: #f87171;
-    border: 1px solid rgba(220, 38, 38, 0.25);
-}
-
-.rpt-profile-link {
-    font-size: 12px;
-    color: #F1B24A;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.2s ease;
-}
-
-.rpt-profile-link:hover {
-    color: #fff;
-}
-
-.rpt-ban-active-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: rgba(220, 38, 38, 0.12);
-    color: #f87171;
-    border: 1px solid rgba(220, 38, 38, 0.25);
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-/* Badges */
-.rpt-badges {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-end;
-}
-
-.rpt-reason-badge {
-    font-size: 12px;
-    font-weight: 700;
-    padding: 6px 12px;
-    border-radius: 8px;
-    background: rgba(241, 178, 74, 0.12);
-    color: #F1B24A;
-    border: 1px solid rgba(241, 178, 74, 0.25);
-}
-
-.rpt-status-badge {
+/* Status badges */
+.badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 11px;
-    font-weight: 700;
     padding: 4px 10px;
     border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
-.rpt-status--pending {
-    background: rgba(241, 178, 74, 0.12);
-    color: #F1B24A;
-    border: 1px solid rgba(241, 178, 74, 0.25);
-}
-
-.rpt-status--reviewed {
-    background: rgba(157, 200, 141, 0.12);
+.badge-approved {
+    background: rgba(77, 119, 78, 0.15);
     color: #9DC88D;
     border: 1px solid rgba(157, 200, 141, 0.25);
 }
 
-.rpt-status--dismissed {
-    background: rgba(136, 136, 136, 0.12);
-    color: #888;
-    border: 1px solid rgba(136, 136, 136, 0.25);
+.badge-rejected {
+    background: rgba(220, 38, 38, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.25);
 }
 
-/* Description */
-.rpt-desc {
-    background: var(--bg-surface-alt, #313638);
-    padding: 14px 16px;
-    border-radius: 8px;
-    font-size: 13.5px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: 14px;
-    position: relative;
-    border-left: 3px solid rgba(241, 178, 74, 0.3);
-}
-
-.rpt-quote-icon {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    font-size: 20px;
-    color: rgba(241, 178, 74, 0.15);
-}
-
-/* Evidence */
-.rpt-evidence {
-    margin-bottom: 10px;
-}
-
-.rpt-evidence-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #F1B24A;
-    margin-bottom: 8px;
-}
-
-.rpt-evidence-files {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.rpt-evidence-file {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 5px 10px;
-    background: rgba(241, 178, 74, 0.1);
-    color: #F1B24A;
-    border: 1px solid rgba(241, 178, 74, 0.25);
-    border-radius: 6px;
+.status-note {
     font-size: 11px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.rpt-evidence-file:hover {
-    background: rgba(241, 178, 74, 0.2);
-    color: #fff;
-}
-
-/* Footer */
-.rpt-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border-subtle, rgba(255,255,255,0.05));
-    flex-wrap: wrap;
-}
-
-.rpt-date {
-    font-size: 12px;
     color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.rpt-admin-note {
-    font-size: 12px;
-    color: #9DC88D;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-style: italic;
+    margin-top: 4px;
 }
 
 /* Actions */
-.rpt-actions {
+.job-actions {
     display: flex;
-    gap: 8px;
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border-subtle, rgba(255,255,255,0.05));
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
-.rpt-btn {
+.btn-ban {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
+    padding: 7px 14px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.3);
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-    border: none;
+    white-space: nowrap;
 }
 
-.rpt-btn--ban {
-    background: rgba(220, 38, 38, 0.12);
-    color: #f87171;
-    border: 1px solid rgba(220, 38, 38, 0.25);
-}
-
-.rpt-btn--ban:hover {
+.btn-ban:hover {
     background: rgba(220, 38, 38, 0.22);
     border-color: #f87171;
     color: #fff;
     transform: translateY(-1px);
 }
 
-.rpt-btn--dismiss {
-    background: var(--bg-surface-alt, #313638);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
+.btn-delete {
+    background: rgba(127, 29, 29, 0.12);
+    border-color: rgba(127, 29, 29, 0.3);
+    color: #f87171;
 }
 
-.rpt-btn--dismiss:hover {
-    background: var(--bg-hover, rgba(255,255,255,0.05));
-    color: var(--text-primary);
+.btn-delete:hover {
+    background: rgba(127, 29, 29, 0.22);
+    border-color: #f87171;
 }
 
 /* Empty state */
-.rpt-empty-card {
-    background: var(--bg-surface, #2c2f31);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 60px 20px;
+.empty-row td {
     text-align: center;
-}
-
-.rpt-empty-icon {
-    font-size: 48px;
+    padding: 60px 20px;
     color: var(--text-muted);
-    opacity: 0.3;
-    display: block;
-    margin-bottom: 12px;
-}
-
-.rpt-empty-text {
     font-size: 14px;
-    color: var(--text-muted);
-    margin: 0;
 }
 
-/* ===== BAN MODAL ===== */
+.empty-row td i {
+    display: block;
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+}
+
+/* ===== TAKEDOWN MODAL ===== */
 
 .admin-modal-overlay {
     position: fixed;
@@ -589,6 +386,10 @@
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
     overflow: hidden;
     animation: modalIn 0.25s ease;
+}
+
+.ban-modal {
+    max-width: 500px;
 }
 
 @keyframes modalIn {
@@ -821,30 +622,16 @@
     box-shadow: 0 6px 18px rgba(220, 38, 38, 0.4);
 }
 
-.rpt-avatar img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-}
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 900px) {
-    .rpt-stats-row {
+    .jobs-stats-row {
         grid-template-columns: 1fr;
-    }
-
-    .rpt-card-top {
-        flex-direction: column;
-    }
-
-    .rpt-badges {
-        align-items: flex-start;
     }
 }
 
 @media (max-width: 768px) {
-    .reports-page-container {
+    .manage-jobs-container {
         padding: 16px;
     }
 
@@ -852,11 +639,22 @@
         padding: 12px 16px;
     }
 
-    .rpt-actions {
-        flex-direction: column;
+    .admin-table {
+        font-size: 13px;
     }
 
-    .rpt-btn {
+    .admin-table thead th,
+    .admin-table tbody td {
+        padding: 12px;
+    }
+
+    .job-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .btn-restore,
+    .btn-ban {
         width: 100%;
         justify-content: center;
     }
@@ -875,8 +673,17 @@
         font-size: 16px;
     }
 
-    .rpt-pending-count-pill {
+    .nav-badge {
         font-size: 12px;
         padding: 1px 10px;
+    }
+
+    .admin-table {
+        font-size: 12px;
+    }
+
+    .admin-table thead th,
+    .admin-table tbody td {
+        padding: 10px 8px;
     }
 }

@@ -3,131 +3,124 @@
 
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/all_users.css') }}">
 
-<div class="user-mgmt-wrapper">
-
-    <!-- HEADER -->
-    <div class="user-mgmt-header-bar">
-        <div class="user-mgmt-header-left">
-            <a href="{{ url_for('admin.dashboard') }}" class="user-mgmt-back-btn">
-                <i class="fas fa-arrow-left"></i>
+<!-- Simple Header (like Job List) -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="{{ url_for('admin.dashboard') }}" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
             </a>
-            <div class="user-mgmt-header-icon">
-                <i class="fas fa-users"></i>
-            </div>
-            <div>
-                <h1>User Management</h1>
-                <p>{{ users|length }} total users</p>
+            <div class="job-title-section">
+                <div class="job-category">ADMIN</div>
+                <h1 class="job-title-main">User Management</h1>
+                <div class="job-meta">
+                    <span>{{ users|length }} total user{{ 's' if users|length != 1 else '' }}</span>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- CONTROLS -->
-    <div class="user-mgmt-controls">
-        <div class="user-mgmt-search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search by username or email..." id="userSearchInput">
-        </div>
-        <div class="user-mgmt-role-filters">
-            <button class="role-filter-btn active" data-role="all" onclick="filterByRole(this)">All</button>
-            <button class="role-filter-btn" data-role="applicant" onclick="filterByRole(this)">Applicants</button>
-            <button class="role-filter-btn" data-role="recruiter" onclick="filterByRole(this)">Recruiters</button>
-            <button class="role-filter-btn" data-role="hr" onclick="filterByRole(this)">HR</button>
-        </div>
+<!-- Controls Section -->
+<div class="user-mgmt-controls">
+    <div class="user-mgmt-search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search by username or email..." id="userSearchInput">
     </div>
+    <div class="user-mgmt-role-filters">
+        <button class="role-filter-btn active" data-role="all" onclick="filterByRole(this)">All</button>
+        <button class="role-filter-btn" data-role="applicant" onclick="filterByRole(this)">Applicants</button>
+        <button class="role-filter-btn" data-role="recruiter" onclick="filterByRole(this)">Recruiters</button>
+        <button class="role-filter-btn" data-role="hr" onclick="filterByRole(this)">HR</button>
+    </div>
+</div>
 
-    <!-- TABLE -->
-    <div class="user-mgmt-table-card">
-        <table class="user-mgmt-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>User</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th class="th-action">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="userTableBody">
-                {% for user in users %}
-                <tr data-role="{{ user.role }}" data-username="{{ user.username|lower }}" data-email="{{ user.email|lower }}">
-
-                    <td class="td-sr">{{ loop.index }}</td>
-
-                    <td class="td-user-cell">
-                        <div class="td-user-inner">
-                            {% if user.profile_picture %}
-                                {% if user.profile_picture.startswith('http') %}
-                                    <img src="{{ user.profile_picture }}"
-                                        alt="{{ user.username }}" class="user-profile-pic">
-                                {% else %}
-                                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture) }}"
-                                        alt="{{ user.username }}" class="user-profile-pic">
-                                {% endif %}
+<!-- Table -->
+<div class="user-mgmt-table-card">
+    <table class="user-mgmt-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th class="th-action">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            {% for user in users %}
+            <tr data-role="{{ user.role }}" data-username="{{ user.username|lower }}" data-email="{{ user.email|lower }}">
+                <td class="td-sr">{{ loop.index }}</td>
+                
+                <td class="td-user-cell">
+                    <div class="td-user-inner">
+                        {% if user.profile_picture %}
+                            {% if user.profile_picture.startswith('http') %}
+                                <img src="{{ user.profile_picture }}" alt="{{ user.username }}" class="user-profile-pic">
                             {% else %}
-                                <div class="user-profile-pic-placeholder">{{ user.username[0].upper() }}</div>
+                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + user.profile_picture) }}" alt="{{ user.username }}" class="user-profile-pic">
                             {% endif %}
-                            <span class="td-username">{{ user.username }}</span>
-                        </div>
-                    </td>
-
-                    <td class="td-email">{{ user.email }}</td>
-
-                    <td>
-                        <span class="role-badge role-{{ user.role }}">{{ user.role | capitalize }}</span>
-                    </td>
-
-                    <td>
-                        {% if user.is_banned %}
-                            <span class="user-status-badge inactive">
-                                <i class="fas fa-ban"></i> Banned
-                            </span>
                         {% else %}
-                            <span class="user-status-badge active">
-                                <i class="fas fa-circle"></i> Active
-                            </span>
+                            <div class="user-profile-pic-placeholder">{{ user.username[0].upper() }}</div>
                         {% endif %}
-                    </td>
+                        <span class="td-username">{{ user.username }}</span>
+                    </div>
+                </td>
 
-                    <td class="td-action">
-                        <div class="user-action-buttons">
-                            <a href="{{ url_for('profile_view.view_profile', user_id=user.id) }}"
-                               class="user-action-btn view" target="_blank" title="View Profile">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <button class="user-action-btn ban"
-                                    title="{{ 'Unban' if user.is_banned else 'Ban' }} User"
-                                    onclick="openBanModal({{ user.id }}, '{{ user.username }}')">
-                                <i class="fas fa-{{ 'unlock' if user.is_banned else 'ban' }}"></i>
-                            </button>
-                            <button class="user-action-btn delete"
-                                    title="Delete User"
-                                    onclick="openDeleteModal({{ user.id }}, '{{ user.username }}')">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" class="user-mgmt-empty">
-                        <i class="fas fa-users-slash"></i>
-                        <p>No users found</p>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                <td class="td-email">{{ user.email }}</td>
+
+                <td>
+                    <span class="role-badge role-{{ user.role }}">{{ user.role | capitalize }}</span>
+                </td>
+
+                <td>
+                    {% if user.is_banned %}
+                        <span class="user-status-badge inactive">
+                            <i class="fas fa-ban"></i> Banned
+                        </span>
+                    {% else %}
+                        <span class="user-status-badge active">
+                            <i class="fas fa-circle"></i> Active
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td class="td-action">
+                    <div class="user-action-buttons">
+                        <a href="{{ url_for('profile_view.view_profile', user_id=user.id) }}" class="user-action-btn view" target="_blank" title="View Profile">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button class="user-action-btn ban" title="{{ 'Unban' if user.is_banned else 'Ban' }} User" onclick="openBanModal({{ user.id }}, '{{ user.username }}')">
+                            <i class="fas fa-{{ 'unlock' if user.is_banned else 'ban' }}"></i>
+                        </button>
+                        <button class="user-action-btn delete" title="Delete User" onclick="openDeleteModal({{ user.id }}, '{{ user.username }}')">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="user-mgmt-empty">
+                    <i class="fas fa-users-slash"></i>
+                    <p>No users found</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Footer -->
+<div class="user-mgmt-footer">
+    <div class="user-mgmt-showing-text" id="showingText">
+        Showing {{ users|length }} user{{ 's' if users|length != 1 else '' }}
     </div>
-
-    <!-- FOOTER -->
-    <div class="user-mgmt-footer">
-        <div class="user-mgmt-showing-text" id="showingText">
-            Showing {{ users|length }} users
-        </div>
-    </div>
-
 </div>
 
 <!-- DELETE MODAL -->
@@ -168,19 +161,46 @@
             <form method="POST" id="banForm">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
+                <!-- Ban Duration -->
+                <label class="admin-textarea-label">
+                    <i class="fas fa-clock"></i> Ban Duration
+                </label>
                 <div class="ban-duration-options">
-                    <label class="ban-duration-label"><input type="radio" name="ban_duration" value="1"> 1 Day</label>
-                    <label class="ban-duration-label"><input type="radio" name="ban_duration" value="7"> 7 Days</label>
-                    <label class="ban-duration-label"><input type="radio" name="ban_duration" value="30"> 30 Days</label>
-                    <label class="ban-duration-label"><input type="radio" name="ban_duration" value="permanent" checked> Permanent</label>
+                    <label class="ban-duration-label">
+                        <input type="radio" name="ban_duration" value="1">
+                        <span>1 Day</span>
+                    </label>
+                    <label class="ban-duration-label">
+                        <input type="radio" name="ban_duration" value="7">
+                        <span>7 Days</span>
+                    </label>
+                    <label class="ban-duration-label">
+                        <input type="radio" name="ban_duration" value="30">
+                        <span>30 Days</span>
+                    </label>
+                    <label class="ban-duration-label">
+                        <input type="radio" name="ban_duration" value="permanent" checked>
+                        <span>Permanent</span>
+                    </label>
                 </div>
 
-                <textarea class="admin-textarea" name="ban_reason" placeholder="Reason for ban (optional)..." rows="3"></textarea>
+                <!-- Ban Reason -->
+                <label class="admin-textarea-label">
+                    <i class="fas fa-comment-alt"></i> Ban Reason
+                </label>
+                <textarea class="admin-textarea"
+                          name="ban_reason"
+                          placeholder="Enter the reason for banning this user (e.g., spam, harassment, policy violation)..."
+                          rows="4"></textarea>
+                <div class="admin-textarea-helper">
+                    <i class="fas fa-info-circle"></i>
+                    This reason will be shown to the user when they try to log in
+                </div>
 
                 <div class="admin-modal-footer">
                     <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeBanModal()">Cancel</button>
                     <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
-                        <i class="fas fa-ban"></i> Ban User
+                        <i class="fas fa-ban"></i> Confirm Ban
                     </button>
                 </div>
             </form>

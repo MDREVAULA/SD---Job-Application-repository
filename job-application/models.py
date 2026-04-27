@@ -925,10 +925,6 @@ class UserReport(db.Model):
 
     created_at  = db.Column(db.DateTime, default=get_ph_time)
 
-    __table_args__ = (
-        db.UniqueConstraint('reporter_id', 'reported_id', name='unique_user_report'),
-    )
-
     reporter          = db.relationship('User', foreign_keys=[reporter_id], backref='reports_made')
     reported          = db.relationship('User', foreign_keys=[reported_id], backref='reports_received')
     reviewed_by_admin = db.relationship('User', foreign_keys=[reviewed_by])
