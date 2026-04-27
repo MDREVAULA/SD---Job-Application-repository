@@ -74,14 +74,8 @@
   {% endif %}
 >
 
-<!-- ============================================================
-     REPLACE the entire <header class="navbar">...</header>
-     block in your layout.html with this
-     ============================================================ -->
-
 <header class="navbar">
 
-    <!-- orb container — overflow:hidden here so panel is not clipped -->
     <div class="navbar-orb-clip">
         <div class="navbar-orb-mid"></div>
     </div>
@@ -119,7 +113,6 @@
                 class="nav-link {% if request.endpoint.startswith('chat.inbox') or request.endpoint == 'chat.conversation' %}active{% endif %}">
                     <span>Messages</span>
                 </a>
-
         {% endif %}
 
         {% if current_user.role != 'admin' %}
@@ -127,16 +120,15 @@
                class="nav-link {% if request.endpoint == 'auth.help_page' %}active{% endif %}">
                 <span>Help</span>
             </a>
-            
+
             <a href="{{ url_for('auth.about') }}"
                 class="nav-link {% if request.endpoint == 'auth.about' %}active{% endif %}">
-            <span>About Us</span>
-        </a>
-
+                <span>About Us</span>
+            </a>
         {% endif %}
     </nav>
 
-    <!-- RIGHT: Notifications only (profile dropdown removed) -->
+    <!-- RIGHT: Notifications -->
     <div class="nav-right">
 
         <!-- NOTIFICATION BELL (Recruiter, HR, Applicant) -->
@@ -213,45 +205,33 @@
 
 </header>
 
-<!-- MINIMALIST MODERN SIDEBAR -->
-<!-- ANIMATED SIDEBAR WITH GRADIENT CIRCLES -->
+<!-- ANIMATED SIDEBAR -->
 <nav class="sidebar" id="sidebar">
 
-    <!-- ANIMATED GRADIENT ORBS -->
     <div class="sidebar-gradient-orb sidebar-gradient-orb-1"></div>
     <div class="sidebar-gradient-orb sidebar-gradient-orb-2"></div>
     <div class="sidebar-gradient-orb sidebar-gradient-orb-3"></div>
 
-    <!-- USER SECTION - CENTERED -->
     {% if current_user.is_authenticated %}
     <div class="sidebar-user">
         <div class="sidebar-user-avatar">
             {% if current_user.profile_picture %}
                 {% if current_user.profile_picture.startswith('http') %}
-                    <img src="{{ current_user.profile_picture }}"
-                         alt="Profile"
-                         class="sidebar-avatar-img">
+                    <img src="{{ current_user.profile_picture }}" alt="Profile" class="sidebar-avatar-img">
                 {% else %}
-                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}"
-                         alt="Profile"
-                         class="sidebar-avatar-img">
+                    <img src="{{ url_for('static', filename='uploads/profile_pictures/' + current_user.profile_picture) }}" alt="Profile" class="sidebar-avatar-img">
                 {% endif %}
             {% else %}
                 <span class="sidebar-avatar-placeholder">{{ current_user.username[0]|upper }}</span>
             {% endif %}
         </div>
-
         <div class="sidebar-user-info">
             <span class="sidebar-user-name">{{ current_user.username }}</span>
             <span class="sidebar-user-role">
-                {% if current_user.role == "recruiter" %}
-                    <i class="fas fa-building"></i> Recruiter
-                {% elif current_user.role == "hr" %}
-                    <i class="fas fa-users"></i> HR
-                {% elif current_user.role == "applicant" %}
-                    <i class="fas fa-user"></i> Applicant
-                {% elif current_user.role == "admin" %}
-                    <i class="fas fa-shield-alt"></i> Admin
+                {% if current_user.role == "recruiter" %}<i class="fas fa-building"></i> Recruiter
+                {% elif current_user.role == "hr" %}<i class="fas fa-users"></i> HR
+                {% elif current_user.role == "applicant" %}<i class="fas fa-user"></i> Applicant
+                {% elif current_user.role == "admin" %}<i class="fas fa-shield-alt"></i> Admin
                 {% endif %}
             </span>
         </div>
@@ -261,196 +241,120 @@
     <ul class="sidebar-menu">
         <!-- RECRUITER MENU -->
         {% if current_user.is_authenticated and current_user.role == "recruiter" %}
-
         <div class="sidebar-section-label-role">Recruiter</div>
-
         <li>
-            <a href="{{ url_for('recruiter.profile') }}"
-               class="sidebar-link {% if request.endpoint == 'recruiter.profile' %}active{% endif %}">
-                <i class="fas fa-user"></i>
-                <span>My Profile</span>
+            <a href="{{ url_for('recruiter.profile') }}" class="sidebar-link {% if request.endpoint == 'recruiter.profile' %}active{% endif %}">
+                <i class="fas fa-user"></i><span>My Profile</span>
             </a>
         </li>
         <li>
-            <a href="{{ url_for('recruiter.notification_history') }}"
-               class="sidebar-link {% if request.endpoint == 'recruiter.notification_history' %}active{% endif %}">
-                <i class="fas fa-bell"></i>
-                <span>Notifications</span>
+            <a href="{{ url_for('recruiter.notification_history') }}" class="sidebar-link {% if request.endpoint == 'recruiter.notification_history' %}active{% endif %}">
+                <i class="fas fa-bell"></i><span>Notifications</span>
             </a>
         </li>
-
         <li class="dropdown">
             <a href="#" class="dropdown-toggle sidebar-link">
                 <div class="link-content">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fa-solid fa-address-card"></i>
-                        <span>Dashboard</span>
+                        <i class="fa-solid fa-address-card"></i><span>Dashboard</span>
                     </div>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
             </a>
             <ul class="submenu">
-                <li>
-                    <a href="{{ url_for('recruiter.job_posting') }}"
-                       class="{% if request.endpoint == 'recruiter.job_posting' %}active{% endif %}">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Job Posting</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('recruiter.my_job_list') }}"
-                       class="{% if request.endpoint == 'recruiter.my_job_list' %}active{% endif %}">
-                        <i class="fas fa-list"></i>
-                        <span>My Job List</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('recruiter.hr_accounts') }}"
-                       class="{% if request.endpoint == 'recruiter.hr_accounts' %}active{% endif %}">
-                        <i class="fas fa-users"></i>
-                        <span>HR Accounts</span>
-                    </a>
-                </li>
+                <li><a href="{{ url_for('recruiter.job_posting') }}" class="{% if request.endpoint == 'recruiter.job_posting' %}active{% endif %}"><i class="fas fa-plus-circle"></i><span>Job Posting</span></a></li>
+                <li><a href="{{ url_for('recruiter.my_job_list') }}" class="{% if request.endpoint == 'recruiter.my_job_list' %}active{% endif %}"><i class="fas fa-list"></i><span>My Job List</span></a></li>
+                <li><a href="{{ url_for('recruiter.hr_accounts') }}" class="{% if request.endpoint == 'recruiter.hr_accounts' %}active{% endif %}"><i class="fas fa-users"></i><span>HR Accounts</span></a></li>
             </ul>
         </li>
-
         {% endif %}
 
         <!-- HR MENU -->
         {% if current_user.is_authenticated and current_user.role == "hr" %}
-
         <div class="sidebar-section-label-role">HR</div>
-
         <li>
-            <a href="{{ url_for('hr.profile') }}"
-               class="sidebar-link {% if request.endpoint == 'hr.profile' %}active{% endif %}">
-                <i class="fas fa-user"></i>
-                <span>My Profile</span>
+            <a href="{{ url_for('hr.profile') }}" class="sidebar-link {% if request.endpoint == 'hr.profile' %}active{% endif %}">
+                <i class="fas fa-user"></i><span>My Profile</span>
             </a>
         </li>
         <li>
-            <a href="{{ url_for('hr.notification_history') }}"
-               class="sidebar-link {% if request.endpoint == 'hr.notification_history' %}active{% endif %}">
-                <i class="fas fa-bell"></i>
-                <span>Notifications</span>
+            <a href="{{ url_for('hr.notification_history') }}" class="sidebar-link {% if request.endpoint == 'hr.notification_history' %}active{% endif %}">
+                <i class="fas fa-bell"></i><span>Notifications</span>
             </a>
         </li>
-
         <li class="dropdown">
             <a href="#" class="dropdown-toggle sidebar-link">
                 <div class="link-content">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fa-solid fa-address-card"></i>
-                        <span>Dashboard</span>
+                        <i class="fa-solid fa-address-card"></i><span>Dashboard</span>
                     </div>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
             </a>
             <ul class="submenu">
-                <li>
-                    <a href="{{ url_for('hr.job_list') }}"
-                       class="{% if request.endpoint == 'hr.job_list' %}active{% endif %}">
-                        <i class="fas fa-list"></i>
-                        <span>Job List</span>
-                    </a>
-                </li>
+                <li><a href="{{ url_for('hr.job_list') }}" class="{% if request.endpoint == 'hr.job_list' %}active{% endif %}"><i class="fas fa-list"></i><span>Job List</span></a></li>
             </ul>
         </li>
-
         {% endif %}
 
         <!-- APPLICANT MENU -->
         {% if current_user.is_authenticated and current_user.role == "applicant" %}
-
         <div class="sidebar-section-label-role">Applicant</div>
-
         <li>
-            <a href="{{ url_for('applicant.profile') }}"
-               class="sidebar-link {% if request.endpoint == 'applicant.profile' %}active{% endif %}">
-                <i class="fas fa-user"></i>
-                <span>My Profile</span>
+            <a href="{{ url_for('applicant.profile') }}" class="sidebar-link {% if request.endpoint == 'applicant.profile' %}active{% endif %}">
+                <i class="fas fa-user"></i><span>My Profile</span>
             </a>
         </li>
-
         <li>
-            <a href="{{ url_for('applicant.notification_history') }}"
-               class="sidebar-link {% if request.endpoint == 'applicant.notification_history' %}active{% endif %}">
-                <i class="fas fa-bell"></i>
-                <span>Notifications</span>
+            <a href="{{ url_for('applicant.notification_history') }}" class="sidebar-link {% if request.endpoint == 'applicant.notification_history' %}active{% endif %}">
+                <i class="fas fa-bell"></i><span>Notifications</span>
             </a>
         </li>
-
         <li class="dropdown">
             <a href="#" class="dropdown-toggle sidebar-link">
                 <div class="link-content">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <i class="fa-solid fa-address-card"></i>
-                        <span>Dashboard</span>
+                        <i class="fa-solid fa-address-card"></i><span>Dashboard</span>
                     </div>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </div>
             </a>
             <ul class="submenu">
-                <li>
-                    <a href="{{ url_for('applicant.saved_jobs') }}"
-                       class="{% if request.endpoint == 'applicant.saved_jobs' %}active{% endif %}">
-                        <i class="fas fa-bookmark"></i>
-                        <span>Saved Jobs</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('applicant.status') }}"
-                       class="{% if request.endpoint == 'applicant.status' %}active{% endif %}">
-                        <i class="fas fa-paper-plane"></i>
-                        <span>Status</span>
-                    </a>
-                </li>
+                <li><a href="{{ url_for('applicant.saved_jobs') }}" class="{% if request.endpoint == 'applicant.saved_jobs' %}active{% endif %}"><i class="fas fa-bookmark"></i><span>Saved Jobs</span></a></li>
+                <li><a href="{{ url_for('applicant.status') }}" class="{% if request.endpoint == 'applicant.status' %}active{% endif %}"><i class="fas fa-paper-plane"></i><span>Status</span></a></li>
             </ul>
         </li>
-
         {% endif %}
 
         <!-- Settings -->
         {% if current_user.is_authenticated and current_user.role in ['applicant', 'hr', 'recruiter'] %}
         <li>
-            <a href="{{ url_for('settings.settings_page') }}"
-            class="sidebar-link {% if request.endpoint and request.endpoint.startswith('settings') %}active{% endif %}">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
+            <a href="{{ url_for('settings.settings_page') }}" class="sidebar-link {% if request.endpoint and request.endpoint.startswith('settings') %}active{% endif %}">
+                <i class="fas fa-cog"></i><span>Settings</span>
             </a>
         </li>
         {% endif %}
 
         <!-- ADMIN MENU -->
         {% if current_user.is_authenticated and current_user.role == "admin" %}
-
         <div class="sidebar-section-label-role">Admin</div>
-
         <li>
-            <a href="{{ url_for('admin.admin_notification_history') }}"
-            class="sidebar-link {% if request.endpoint == 'admin.admin_notification_history' %}active{% endif %}">
-                <i class="fas fa-bell"></i>
-                <span>Notifications</span>
+            <a href="{{ url_for('admin.admin_notification_history') }}" class="sidebar-link {% if request.endpoint == 'admin.admin_notification_history' %}active{% endif %}">
+                <i class="fas fa-bell"></i><span>Notifications</span>
                 <span class="admin-sidebar-notif-badge" id="adminSidebarBadge" style="display:none;"></span>
             </a>
         </li>
-
         <li>
-            <a href="{{ url_for('admin.dashboard') }}"
-               class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
-                <i class="fas fa-shield-alt"></i>
-                <span>Dashboard</span>
+            <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                <i class="fas fa-shield-alt"></i><span>Dashboard</span>
             </a>
         </li>
-
         {% endif %}
 
     </ul>
 
     <!-- SIDEBAR FOOTER -->
     <div class="sidebar-footer">
-
-        <!-- LIVE CLOCK -->
         <div class="sidebar-clock">
             <div class="sidebar-clock-time" id="sidebarClock">00:00:00</div>
             <div class="sidebar-clock-date">
@@ -459,35 +363,25 @@
             </div>
         </div>
 
-        <!-- THEME TOGGLE -->
         {% if not current_user.is_authenticated or current_user.role == 'admin' %}
         <div class="sidebar-theme-item">
             <div class="sidebar-theme-toggle">
-                <span class="sidebar-theme-label">
-                    <i class="fas fa-adjust"></i> Theme
-                </span>
+                <span class="sidebar-theme-label"><i class="fas fa-adjust"></i> Theme</span>
                 <div class="sidebar-theme-btns">
-                    <button class="sidebar-theme-btn" id="sidebarThemeLight" onclick="guestSetTheme('light')" title="Light mode">
-                        <i class="fas fa-sun"></i>
-                    </button>
-                    <button class="sidebar-theme-btn" id="sidebarThemeDark" onclick="guestSetTheme('dark')" title="Dark mode">
-                        <i class="fas fa-moon"></i>
-                    </button>
+                    <button class="sidebar-theme-btn" id="sidebarThemeLight" onclick="guestSetTheme('light')" title="Light mode"><i class="fas fa-sun"></i></button>
+                    <button class="sidebar-theme-btn" id="sidebarThemeDark" onclick="guestSetTheme('dark')" title="Dark mode"><i class="fas fa-moon"></i></button>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <!-- LOGOUT -->
         {% if current_user.is_authenticated %}
         <div class="logout-item">
             <a href="{{ url_for('auth.logout') }}" class="sidebar-link logout-link">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
+                <i class="fas fa-sign-out-alt"></i><span>Logout</span>
             </a>
         </div>
         {% endif %}
-
     </div>
 
 </nav>
@@ -502,18 +396,11 @@
         hours = hours % 12 || 12;
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const seconds = String(now.getSeconds()).padStart(2, '0');
-        const timeString = `${hours}:${minutes}:${seconds} ${ampm}`;
-
-        const options = { month: 'short', day: 'numeric', year: 'numeric' };
-        const dateString = now.toLocaleDateString('en-US', options);
-
         const clockElement = document.getElementById('sidebarClock');
-        const dateElement = document.getElementById('sidebarDate');
-
-        if (clockElement) clockElement.textContent = timeString;
-        if (dateElement) dateElement.textContent = dateString;
+        const dateElement  = document.getElementById('sidebarDate');
+        if (clockElement) clockElement.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+        if (dateElement)  dateElement.textContent  = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
-
     updateClock();
     setInterval(updateClock, 1000);
 })();
@@ -524,30 +411,22 @@
 
 <!-- PAGE CONTENT -->
 <main class="main-content {% if request.endpoint == 'auth.login' %}login-page{% endif %}">
-
-    <!-- FLASH MESSAGES -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="flash-container">
                 {% for category, message in messages %}
-                    <div class="flash {{ category }}">
-                        {{ message }}
-                    </div>
+                    <div class="flash {{ category }}">{{ message }}</div>
                 {% endfor %}
             </div>
         {% endif %}
     {% endwith %}
-
     {% block content %}{% endblock %}
-
 </main>
 
 <!-- FOOTER -->
 {% if request.endpoint == 'auth.index' %}
 <footer class="footer">
-
     <div class="footer-content">
-
         <div class="footer-section">
             <div class="website-logo-container">
                 <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
@@ -560,8 +439,7 @@
                 <a href="#"><i class="fab fa-instagram"></i></a>
             </div>
         </div>
-
-         <div class="footer-section">
+        <div class="footer-section">
             <h4>Quick Links</h4>
             <ul class="footer-links">
                 <li><a href="{{ url_for('auth.index') }}"><i class="fas fa-chevron-right"></i> Home</a></li>
@@ -569,7 +447,6 @@
                 <li><a href="{{ url_for('auth.help_page') }}"><i class="fas fa-chevron-right"></i> Help Center</a></li>
             </ul>
         </div>
- 
         <div class="footer-section">
             <h4>Navigation Tools</h4>
             <ul class="footer-links">
@@ -578,22 +455,18 @@
                 <li><a href="{{ url_for('chat.people') }}"><i class="fas fa-chevron-right"></i> Connect With People</a></li>
             </ul>
         </div>
-
         <div class="footer-section">
             <h4>Contact Info</h4>
             <ul class="footer-contact">
-                <li><i class="fas fa-envelope"></i> <a href="https://mail.google.com/mail/?view=cm&to=hirebonofficial@gmail.com" target="_blank" rel="noopener noreferrer" style="color:inherit;">hirebonofficial@gmail.com</a></li> 
+                <li><i class="fas fa-envelope"></i> <a href="https://mail.google.com/mail/?view=cm&to=hirebonofficial@gmail.com" target="_blank" rel="noopener noreferrer" style="color:inherit;">hirebonofficial@gmail.com</a></li>
                 <li><i class="fas fa-phone"></i> +63 908 688 7113</li>
                 <li><i class="fas fa-map-marker-alt"></i> 744 General Luna 1002 Manila National Capital Region</li>
             </ul>
         </div>
-
     </div>
-
     <div class="footer-bottom">
         <p>&copy; 2026 HireBon. All rights reserved. | Built for Job Application System in Software Design</p>
     </div>
-
 </footer>
 {% endif %}
 
@@ -620,139 +493,146 @@ setInterval(updateUnreadBadge, 10000);
 </script>
 {% endif %}
 
-<!-- NOTIFICATION BELL SCRIPT (Recruiter, HR, and Applicant) -->
-{% if current_user.is_authenticated and current_user.role in ['recruiter', 'hr', 'applicant'] %}
+<!-- ============================================================
+     NOTIFICATION BELL — Recruiter / HR / Applicant
+     Handled entirely by script.js (DOMContentLoaded listener).
+     No inline script needed here — script.js detects the role
+     via the is-hr / is-recruiter / is-applicant body class and
+     picks the correct API endpoints automatically.
+     ============================================================ -->
+
+<!-- ADMIN NOTIFICATION BELL SCRIPT -->
+{% if current_user.is_authenticated and current_user.role == 'admin' %}
 <script>
 (function () {
-    {% if current_user.role == 'recruiter' %}
-    const NOTIF_API      = '/recruiter/notifications';
-    const MARK_READ_API  = '/recruiter/notifications/mark-read';
-    const CLEAR_API      = '/recruiter/notifications/clear-all';
-    const ROLE           = 'recruiter';
-    {% elif current_user.role == 'hr' %}
-    const NOTIF_API      = '/hr/notifications';
-    const MARK_READ_API  = '/hr/notifications/mark-read';
-    const CLEAR_API      = '/hr/notifications/clear-all';
-    const ROLE           = 'hr';
-    {% elif current_user.role == 'applicant' %}
-    const NOTIF_API      = '/applicant/notifications';
-    const MARK_READ_API  = '/applicant/notifications/mark-read';
-    const CLEAR_API      = '/applicant/notifications/clear-all';
-    const ROLE           = 'applicant';
-    {% endif %}
+    const NOTIF_API     = '/admin/notifications';
+    const MARK_READ_API = '/admin/notifications/mark-read';
+    const CLEAR_API     = '/admin/notifications/clear-all';
+    const CSRF          = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-    const btn      = document.getElementById('notifBtn');
-    const panel    = document.getElementById('notifPanel');
-    const badge    = document.getElementById('notifBadge');
-    const list     = document.getElementById('notifList');
-    const markBtn  = document.getElementById('notifMarkAllBtn');
-    const clearBtn = document.getElementById('notifClearBtn');
+    const btn          = document.getElementById('adminNotifBtn');
+    const panel        = document.getElementById('adminNotifPanel');
+    const badge        = document.getElementById('adminNotifBadge');
+    const list         = document.getElementById('adminNotifList');
+    const markBtn      = document.getElementById('adminMarkAllBtn');
+    const clearBtn     = document.getElementById('adminClearBtn');
+    const sidebarBadge = document.getElementById('adminSidebarBadge');
 
-    let lastUnread = 0;
-    let knownIds   = new Set();
+    let lastUnread  = 0;
+    let currentUnread = 0;
+    let knownIds    = new Set();
     let knownMsgMap = {};
 
     const ICONS = {
-        new_application:    { cls: 'type-new_application',   icon: 'fa-file-alt' },
-        interview_scheduled:{ cls: 'type-interview_scheduled',icon: 'fa-calendar-check' },
-        new_message:        { cls: 'type-new_message',        icon: 'fa-comment-dots' },
-        new_follow:         { cls: 'type-new_follow',         icon: 'fa-user-plus' },
-        job_update:         { cls: 'type-job_update',         icon: 'fa-briefcase' },
-        application_status: { cls: 'type-application_status', icon: 'fa-clipboard-check' },
-        profile_complete:   { cls: 'type-profile_complete',   icon: 'fa-user-check' },
+        new_message:      { icon: 'fa-comment-dots', title: 'New Message'       },
+        account_request:  { icon: 'fa-user-clock',   title: 'Account Request'   },
+        account_approved: { icon: 'fa-user-check',   title: 'Account Approved'  },
+        account_rejected: { icon: 'fa-user-times',   title: 'Account Rejected'  },
     };
 
     function typeInfo(type) {
-        return ICONS[type] || { cls: 'type-new_application', icon: 'fa-bell' };
+        return ICONS[type] || { icon: 'fa-bell', title: 'Notification' };
     }
 
     function getNotifUrl(n) {
-        if (n.type === 'new_message') {
-            return n.sender_id ? '/chat/inbox/' + n.sender_id : '/chat/inbox';
+        if (n.type === 'new_message') return '/chat/inbox';
+        if (n.type === 'account_request' && n.user_id) {
+            if (n.sender_role === 'applicant') return '/admin/users';
+            if (n.sender_role === 'recruiter') return '/admin/review/' + n.user_id;
+            return '/admin/dashboard';
         }
-        if (n.type === 'new_follow') {
-            return n.sender_id ? '/profile/' + n.sender_id : '#';
-        }
-        if (n.type === 'new_application' && n.job_id) {
-            if (ROLE === 'recruiter') return '/recruiter/job-applications/' + n.job_id;
-            if (ROLE === 'hr')        return '/hr/job-applications/' + n.job_id;
-        }
-        if ((n.type === 'application_status' || n.type === 'interview_scheduled') && n.application_id) {
-            return '/applicant/status';
-        }
-        if (n.type === 'job_update' && n.job_id) return '/applicant/job/' + n.job_id;
-        if (n.type === 'profile_complete') {
-            if (ROLE === 'applicant') return '/applicant/status';
-        }
-        return '#';
+        if (n.type === 'account_approved') return '/admin/users';
+        if (n.type === 'account_rejected' && n.user_id) return '/admin/review/' + n.user_id;
+        if (n.user_id) return '/admin/review/' + n.user_id;
+        return '/admin/dashboard';
     }
 
-    function markOneRead(notifId, el) {
-        if (!el.classList.contains('unread')) return;
-        el.classList.remove('unread');
-        fetch(MARK_READ_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: notifId })
-        }).then(() => {
-            lastUnread = Math.max(0, lastUnread - 1);
-            if (lastUnread > 0) {
-                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
-            } else {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
-            }
-        }).catch(() => {});
+    function postJSON(url, body) {
+        return fetch(url, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body:    body ? JSON.stringify(body) : undefined
+        });
+    }
+
+    function updateBadge(count) {
+        const label = count > 99 ? '99+' : count;
+        if (count > 0) {
+            badge.textContent = label;
+            badge.style.display = 'inline-flex';
+            btn.classList.add('has-unread');
+            if (sidebarBadge) { sidebarBadge.textContent = label; sidebarBadge.style.display = 'inline-flex'; }
+        } else {
+            badge.style.display = 'none';
+            btn.classList.remove('has-unread');
+            if (sidebarBadge) sidebarBadge.style.display = 'none';
+        }
+    }
+
+    // ── Mark a single notification read, decrement badge, then navigate ──
+    function markAndRedirect(notifId, el, url) {
+        const wasUnread = el.classList.contains('unread');
+        if (wasUnread) {
+            el.classList.remove('unread');
+            currentUnread = Math.max(0, currentUnread - 1);
+            updateBadge(currentUnread);
+        }
+        if (!wasUnread) {
+            if (url && url !== '#') window.location.href = url;
+            return;
+        }
+        postJSON(MARK_READ_API, { id: notifId })
+            .catch(() => {})
+            .finally(() => {
+                if (url && url !== '#') window.location.href = url;
+            });
     }
 
     function attachNotifClicks() {
-        list.querySelectorAll('.notif-item').forEach(el => {
-            el.addEventListener('click', function(e) {
+        list.querySelectorAll('.notif-item[data-id]').forEach(function (el) {
+            el.addEventListener('click', function (e) {
                 e.stopPropagation();
-                const id  = parseInt(this.dataset.id);
-                const url = this.dataset.url;
-                markOneRead(id, this);
-                if (url && url !== '#') setTimeout(() => window.location.href = url, 150);
+                markAndRedirect(parseInt(this.dataset.id), this, this.dataset.url);
             });
         });
     }
 
     function renderNotifs(notifs) {
-        if (!notifs.length) {
+        if (!notifs || !notifs.length) {
             list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
             return;
         }
-        list.innerHTML = notifs.map(n => {
+        list.innerHTML = notifs.map(function (n) {
             const t   = typeInfo(n.type);
             const url = getNotifUrl(n);
             return `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" data-url="${url}" style="cursor:pointer;">
-                <div class="notif-icon ${t.cls}"><i class="fas ${t.icon}"></i></div>
-                <div class="notif-body">
+            <div class="notif-item ${n.is_read ? '' : 'unread'}"
+                 data-id="${n.id}"
+                 data-url="${url}"
+                 style="cursor:pointer;">
+                <div class="notif-icon type-${n.type}" style="pointer-events:none;">
+                    <i class="fas ${t.icon}"></i>
+                </div>
+                <div class="notif-body" style="pointer-events:none;">
                     <p class="notif-msg">${n.message}</p>
                     <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
                 </div>
             </div>`;
         }).join('');
+        // Wire click handlers AFTER innerHTML is written
         attachNotifClicks();
     }
 
     function showToast(n) {
         if (document.querySelectorAll('.notif-toast').length >= 3) return;
-        const t = typeInfo(n.type);
-        const titleMap = {
-            new_application:'New Application', interview_scheduled:'Interview Scheduled',
-            new_message:'New Message', new_follow:'New Follower',
-            job_update:'Job Update', application_status:'Application Update',
-            profile_complete:'Profile Complete',
-        };
-        const url   = getNotifUrl(n);
+        const t   = typeInfo(n.type);
+        const url = getNotifUrl(n);
         const toast = document.createElement('div');
-        toast.className = `notif-toast type-${n.type}`;
+        toast.className = `notif-toast admin-toast-${n.type}`;
         toast.innerHTML = `
             <div class="notif-toast-icon"><i class="fas ${t.icon}"></i></div>
             <div class="notif-toast-body">
-                <div class="notif-toast-title">${titleMap[n.type] || 'Notification'}</div>
+                <div class="notif-toast-title">${t.title}</div>
                 <div class="notif-toast-msg">${n.message}</div>
             </div>
             <button class="notif-toast-close" onclick="event.stopPropagation();this.parentElement.remove()">
@@ -766,287 +646,83 @@ setInterval(updateUnreadBadge, 10000);
         setTimeout(() => {
             toast.style.animation = 'toastSlideOut 0.35s ease forwards';
             setTimeout(() => toast.remove(), 350);
-        }, 5000);
-    }
-
-    function fetchNotifs() {
-    fetch(NOTIF_API)
-        .then(r => r.json())
-        .then(data => {
-            const count = data.unread_count || 0;
-            if (count > 0) {
-                badge.textContent = count > 99 ? '99+' : count;
-                badge.style.display = 'inline-flex';
-                btn.classList.add('has-unread');
-            } else {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
-            }
-            if (data.notifications) {
-                data.notifications.forEach(n => {
-                    if (!n.is_read) {
-                        const prev = knownMsgMap[n.id];
-                        if (!prev || prev !== n.message) {
-                            showToast(n);
-                        }
-                        knownMsgMap[n.id] = n.message;
-                    }
-                    knownIds.add(n.id);
-                });
-                if (panel.classList.contains('open')) renderNotifs(data.notifications);
-            }
-            lastUnread = count;
-        })
-        .catch(() => {});
-}
-    // Initial silent load — populate knownMsgMap without showing toasts
-    fetch(NOTIF_API)
-        .then(r => r.json())
-        .then(data => {
-            lastUnread = data.unread_count || 0;
-            if (lastUnread > 0) {
-                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
-                badge.style.display = 'inline-flex';
-                btn.classList.add('has-unread');
-            }
-            if (data.notifications) {
-                data.notifications.forEach(n => {
-                    knownIds.add(n.id);
-                    knownMsgMap[n.id] = n.message;
-                });
-            }
-        }).catch(() => {});
-
-    // Poll every 5 seconds for new notifications
-    setInterval(fetchNotifs, 5000);
-
-    // Bell button toggle
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = panel.classList.toggle('open');
-        if (isOpen) {
-            fetch(NOTIF_API).then(r => r.json()).then(data => renderNotifs(data.notifications || [])).catch(() => {});
-        }
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!document.getElementById('notifWrapper').contains(e.target)) {
-            panel.classList.remove('open');
-        }
-    });
-
-    markBtn.addEventListener('click', () => {
-        fetch(MARK_READ_API, { method: 'POST' })
-            .then(() => {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
-                lastUnread = 0;
-                list.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
-            }).catch(() => {});
-    });
-
-    clearBtn.addEventListener('click', () => {
-        fetch(CLEAR_API, { method: 'POST' })
-            .then(() => {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
-                lastUnread = 0;
-                knownIds.clear();
-                list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
-            }).catch(() => {});
-    });
-})();
-</script>
-{% endif %}
-
-<!-- ADMIN NOTIFICATION BELL SCRIPT -->
-{% if current_user.is_authenticated and current_user.role == 'admin' %}
-<script>
-(function () {
-    const NOTIF_API     = '/admin/notifications';
-    const MARK_READ_API = '/admin/notifications/mark-read';
-    const CLEAR_API     = '/admin/notifications/clear-all';
-
-    const btn      = document.getElementById('adminNotifBtn');
-    const panel    = document.getElementById('adminNotifPanel');
-    const badge    = document.getElementById('adminNotifBadge');
-    const list     = document.getElementById('adminNotifList');
-    const markBtn  = document.getElementById('adminMarkAllBtn');
-    const clearBtn = document.getElementById('adminClearBtn');
-    const sidebarBadge = document.getElementById('adminSidebarBadge');
-
-    let lastUnread = 0;
-    let knownIds   = new Set();
-    let knownMsgMap = {};
-
-    const ICONS = {
-        new_message:      { cls: 'type-new_message',      icon: 'fa-comment-dots'    },
-        account_request:  { cls: 'type-account_request',  icon: 'fa-user-clock'      },
-        account_approved: { cls: 'type-account_approved', icon: 'fa-user-check'      },
-        account_rejected: { cls: 'type-account_rejected', icon: 'fa-user-times'      },
-    };
-
-    const TITLES = {
-        new_message:      'New Message',
-        account_request:  'Account Request',
-        account_approved: 'Account Approved',
-        account_rejected: 'Account Rejected',
-    };
-
-    function typeInfo(type) {
-        return ICONS[type] || { cls: 'type-account_request', icon: 'fa-bell' };
-    }
-
-    function getNotifUrl(n) {
-        if (n.type === 'new_message')      return '/chat/inbox';
-        if (n.type === 'account_request')  return '/admin/dashboard';
-        if (n.type === 'account_approved' || n.type === 'account_rejected') return '/admin/dashboard';
-        return '#';
-    }
-
-    function updateBadge(count) {
-        if (count > 0) {
-            const label = count > 99 ? '99+' : count;
-            badge.textContent = label;
-            badge.style.display = 'inline-flex';
-            btn.classList.add('has-unread');
-            if (sidebarBadge) {
-                sidebarBadge.textContent = label;
-                sidebarBadge.style.display = 'inline-flex';
-            }
-        } else {
-            badge.style.display = 'none';
-            btn.classList.remove('has-unread');
-            if (sidebarBadge) sidebarBadge.style.display = 'none';
-        }
-    }
-    function markOneRead(notifId, el) {
-        if (!el.classList.contains('unread')) return;
-        el.classList.remove('unread');
-        fetch(MARK_READ_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: notifId })
-        }).then(() => {
-            lastUnread = Math.max(0, lastUnread - 1);
-            if (lastUnread > 0) {
-                badge.textContent = lastUnread > 99 ? '99+' : lastUnread;
-            } else {
-                badge.style.display = 'none';
-                btn.classList.remove('has-unread');
-            }
-        }).catch(() => {});
-    }
-    function renderNotifs(notifs) {
-    if (!notifs.length) {
-        list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
-        return;
-    }
-    list.innerHTML = notifs.map(n => {
-        const t   = typeInfo(n.type);
-        const url = getNotifUrl(n);
-        return `
-        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}"
-             onclick="event.stopPropagation(); markOneRead(${n.id}, this); if('${url}' !== '#') setTimeout(() => window.location.href='${url}', 150);" style="cursor:pointer;">
-                <div class="notif-icon ${t.cls}">
-                    <i class="fas ${t.icon}"></i>
-                </div>
-                <div class="notif-body">
-                    <p class="notif-msg">${n.message}</p>
-                    <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    function showToast(n) {
-        if (document.querySelectorAll('.notif-toast').length >= 3) return;
-        const t     = typeInfo(n.type);
-        const title = TITLES[n.type] || 'Notification';
-        const url   = getNotifUrl(n);
-        const toast = document.createElement('div');
-        toast.className = `notif-toast admin-toast-${n.type}`;
-        toast.innerHTML = `
-            <div class="notif-toast-icon"><i class="fas ${t.icon}"></i></div>
-            <div class="notif-toast-body">
-                <div class="notif-toast-title">${title}</div>
-                <div class="notif-toast-msg">${n.message}</div>
-            </div>
-            <button class="notif-toast-close" onclick="event.stopPropagation();this.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>`;
-        toast.addEventListener('click', e => {
-            if (e.target.closest('.notif-toast-close')) return;
-            if (url !== '#') window.location.href = url;
-        });
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.style.animation = 'toastSlideOut 0.35s ease forwards';
-            setTimeout(() => toast.remove(), 350);
         }, 5500);
     }
 
-    function fetchNotifs(silent) {
-        fetch(NOTIF_API)
-            .then(r => r.json())
-            .then(data => {
-                const count = data.unread_count || 0;
-                updateBadge(count);
-                if (data.notifications) {
-                    data.notifications.forEach(n => {
-                        if (!knownIds.has(n.id)) {
-                            knownIds.add(n.id);
-                            if (!silent && !n.is_read) showToast(n);
-                        }
-                    });
-                    if (panel.classList.contains('open')) renderNotifs(data.notifications);
-                }
-                lastUnread = count;
-            }).catch(() => {});
+    function fetchNotifs() {
+        fetch(NOTIF_API).then(r => r.json()).then(data => {
+            const count = data.unread_count || 0;
+            updateBadge(count);
+            currentUnread = count;
+            lastUnread    = count;
+            if (data.notifications) {
+                data.notifications.forEach(function (n) {
+                    if (!knownIds.has(n.id)) {
+                        knownIds.add(n.id);
+                        knownMsgMap[n.id] = n.message;
+                        if (!n.is_read) showToast(n);
+                    }
+                });
+                if (panel.classList.contains('open')) renderNotifs(data.notifications);
+            }
+        }).catch(() => {});
     }
 
-    // Initial silent load
+    // Initial silent load — badge only, no toasts
     fetch(NOTIF_API).then(r => r.json()).then(data => {
-        lastUnread = data.unread_count || 0;
+        lastUnread    = data.unread_count || 0;
+        currentUnread = lastUnread;
         updateBadge(lastUnread);
-        if (data.notifications) data.notifications.forEach(n => knownIds.add(n.id));
+        if (data.notifications) {
+            data.notifications.forEach(function (n) {
+                knownIds.add(n.id);
+                knownMsgMap[n.id] = n.message;
+            });
+        }
     }).catch(() => {});
 
-    setInterval(() => fetchNotifs(false), 15000);
+    setInterval(fetchNotifs, 15000);
 
-    btn.addEventListener('click', e => {
+    // ── Bell click: open/close panel ──
+    btn.addEventListener('click', function (e) {
         e.stopPropagation();
         const isOpen = panel.classList.toggle('open');
         if (isOpen) {
             fetch(NOTIF_API).then(r => r.json())
-                .then(data => renderNotifs(data.notifications || []))
-                .catch(() => {});
+                .then(data => {
+                    const count = data.unread_count || 0;
+                    updateBadge(count);
+                    currentUnread = count;
+                    renderNotifs(data.notifications || []);
+                }).catch(() => {});
         }
     });
 
-    document.addEventListener('click', e => {
+    document.addEventListener('click', function (e) {
         if (!document.getElementById('adminNotifWrapper').contains(e.target)) {
             panel.classList.remove('open');
         }
     });
 
-    markBtn.addEventListener('click', () => {
-        fetch(MARK_READ_API, { method: 'POST' }).then(() => {
+    markBtn.addEventListener('click', function () {
+        postJSON(MARK_READ_API).then(() => {
+            currentUnread = 0;
             updateBadge(0);
             list.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
         }).catch(() => {});
     });
 
-    clearBtn.addEventListener('click', () => {
-        fetch(CLEAR_API, { method: 'POST' }).then(() => {
+    clearBtn.addEventListener('click', function () {
+        postJSON(CLEAR_API).then(() => {
+            currentUnread = 0;
             updateBadge(0);
             knownIds.clear();
+            knownMsgMap = {};
             list.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
         }).catch(() => {});
     });
 })();
 </script>
-
 {% endif %}
 
 {% include 'components/upload_error_modal.html' %}
