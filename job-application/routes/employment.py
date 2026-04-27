@@ -516,8 +516,6 @@ def employee_list(job_id):
         flash("Unauthorized!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
 
-    # HR: allow all HR under the same recruiter to view, 
-    # but only assigned HR can take actions
     if current_user.role == 'hr':
         if job.company_id != current_user.created_by:
             flash("You do not have access to this job.", "warning")
@@ -528,7 +526,12 @@ def employee_list(job_id):
         job_id=job_id, hr_id=current_user.id
     ).first() if current_user.role == 'hr' else True
 
-    employees = Employee.query.filter_by(job_id=job_id).all()
+    # Only active/pending/rendering — fired and resigned go to former_employees
+    _ACTIVE_STATUSES = ('active', 'resignation_pending', 'rendering')
+    employees = Employee.query.filter(
+        Employee.job_id == job_id,
+        Employee.employment_status.in_(_ACTIVE_STATUSES)
+    ).all()
 
     from models import EmploymentOnboarding
     pending_onboardings = []
@@ -540,6 +543,7 @@ def employee_list(job_id):
         Application.status.in_(_ACCEPTED_STATUSES)
     ).all()
 
+    # Only exclude confirmed active/rendering/pending employees
     confirmed_app_ids = {e.application_id for e in employees}
 
     for app in accepted_apps:
@@ -551,15 +555,56 @@ def employee_list(job_id):
         else:
             no_onboarding_apps.append(app)
 
+    # Count for the Former Employees badge
+    former_count = Employee.query.filter(
+        Employee.job_id == job_id,
+        Employee.employment_status.in_(('resigned', 'fired'))
+    ).count()
+
     return render_template(
         'employment/employee_list.html',
         job=job,
         employees=employees,
         pending_onboardings=pending_onboardings,
         no_onboarding_apps=no_onboarding_apps,
-        is_assigned=is_assigned,  # pass this to template
+        is_assigned=is_assigned,
+        former_count=former_count,
     )
 
+@employment_bp.route('/former-employees/<int:job_id>')
+@login_required
+def former_employees(job_id):
+    if current_user.role not in ('recruiter', 'hr'):
+        flash("Access denied!", "danger")
+        return redirect(url_for('auth.index'))
+
+    job = Job.query.get_or_404(job_id)
+
+    if current_user.role == 'recruiter' and job.company_id != current_user.id:
+        flash("Unauthorized!", "danger")
+        return redirect(url_for('recruiter.my_job_list'))
+
+    if current_user.role == 'hr':
+        if job.company_id != current_user.created_by:
+            flash("You do not have access to this job.", "warning")
+            return redirect(url_for('hr.job_list'))
+
+    from models import JobTeamMember
+    is_assigned = JobTeamMember.query.filter_by(
+        job_id=job_id, hr_id=current_user.id
+    ).first() if current_user.role == 'hr' else True
+
+    former_employees = Employee.query.filter(
+        Employee.job_id == job_id,
+        Employee.employment_status.in_(('resigned', 'fired'))
+    ).order_by(Employee.ended_at.desc()).all()
+
+    return render_template(
+        'employment/former_employees.html',
+        job=job,
+        former_employees=former_employees,
+        is_assigned=is_assigned,
+    )
 
 @employment_bp.route('/employees/all')
 @login_required

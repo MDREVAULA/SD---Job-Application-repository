@@ -641,6 +641,20 @@
     gap: 6px;
     transition: all 0.15s;
     font-family: Arial, sans-serif;
+    -webkit-appearance: none; 
+    appearance: none;           
+}
+
+[data-theme="dark"] .theme-btn {
+    background: #313638;
+    color: #888888;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .theme-btn {
+    background: #f9fafb;
+    color: #6b7280;
+    border-color: #e5e7eb;
 }
 
 .theme-btn:hover { border-color: var(--brand-green); color: var(--brand-green); background: rgba(157,200,141,0.07); }

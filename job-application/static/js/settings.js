@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fetch('/settings/save', {
                 method:  'POST',
-                headers: { 'Content-Type': 'application/json','X-CSRFToken': CSRF_TOKEN }, 
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
                 body:    JSON.stringify({
                     section:    'security',
                     two_factor: enabled
@@ -103,7 +103,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
                 } else {
                     showToast(data.message || 'Could not save 2FA setting.', true);
-                    // Revert the toggle on failure
                     twoFactorToggle.checked = !enabled;
                 }
             })
@@ -222,20 +221,35 @@ function confirmLogoutAll() {
 
 /* ============================================================
    THEME
+   ─────────────────────────────────────────────────────────────
+   FIX: AbortController cancels any previous in-flight save so
+   rapid clicks (Light → Dark quickly) can't resolve out-of-order
+   and flip the theme back to the wrong value.
    ============================================================ */
+
+let _themeSaveController = null;
+
 function setTheme(theme) {
+    // No localStorage write — server is source of truth for logged-in users.
+    // applyUserTheme updates the DOM and meta tag for the current session.
     if (typeof applyUserTheme === 'function') {
         applyUserTheme(theme);
     } else {
         document.documentElement.setAttribute('data-theme', theme);
+        _highlightThemeBtn(theme);
     }
 
-    _highlightThemeBtn(theme);
+    if (_themeSaveController) _themeSaveController.abort();
+    _themeSaveController = new AbortController();
 
     fetch('/settings/save', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json','X-CSRFToken': CSRF_TOKEN },
-        body:    JSON.stringify({ section: 'appearance', theme: theme })
+        signal:  _themeSaveController.signal,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken':  CSRF_TOKEN
+        },
+        body: JSON.stringify({ section: 'appearance', theme: theme })
     })
     .then(r => r.json())
     .then(data => {
@@ -245,14 +259,20 @@ function setTheme(theme) {
             showToast(data.message || 'Could not save theme.', true);
         }
     })
-    .catch(() => showToast('Network error saving theme.', true));
+    .catch(err => {
+        if (err.name !== 'AbortError') {
+            showToast('Network error saving theme.', true);
+        }
+    });
 }
 
+// FIX: use data-theme attribute for reliable matching.
+// The old onclick-string approach broke when Jinja used different quote styles.
 function _highlightThemeBtn(theme) {
     document.querySelectorAll('.theme-btn').forEach(btn => {
-        const onclick = btn.getAttribute('onclick') || '';
-        const active  = onclick.includes("'" + theme + "'") || onclick.includes('"' + theme + '"');
-        btn.classList.toggle('active', active);
+        const btnTheme = btn.dataset.theme
+            || (btn.getAttribute('onclick') || '').match(/setTheme\(['"](\w+)['"]\)/)?.[1];
+        btn.classList.toggle('active', btnTheme === theme);
     });
 }
 
@@ -323,7 +343,7 @@ function saveSettings(section) {
 
     fetch('/settings/save', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json','X-CSRFToken': CSRF_TOKEN },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
         body:    JSON.stringify(payload)
     })
     .then(r => r.json())
@@ -381,11 +401,11 @@ function unblockUser(userId, username) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const s = document.getElementById('settingsSearch');
-  if (s) {
-    s.value = '';
-    setTimeout(() => { s.value = ''; }, 50);
-    setTimeout(() => { s.value = ''; }, 200);
-    setTimeout(() => { s.value = ''; }, 500);
-  }
+    const s = document.getElementById('settingsSearch');
+    if (s) {
+        s.value = '';
+        setTimeout(() => { s.value = ''; }, 50);
+        setTimeout(() => { s.value = ''; }, 200);
+        setTimeout(() => { s.value = ''; }, 500);
+    }
 });

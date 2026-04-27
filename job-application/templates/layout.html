@@ -27,10 +27,15 @@
     var meta  = document.querySelector('meta[name="user-theme"]');
     var theme;
     if (meta && meta.content && meta.content !== '') {
-        theme = meta.content;          // logged-in: use DB value
+        // Logged-in: always use the DB value from the server.
+        // localStorage is only written on click (setTheme) and
+        // cleared here so it never drifts out of sync with the DB.
+        theme = meta.content;
+        try { localStorage.removeItem('theme'); } catch (e) {}
     } else {
+        // Guest: use their localStorage choice, default to dark.
         try { theme = localStorage.getItem('guestTheme') || 'dark'; }
-        catch (e) { theme = 'dark'; }  // guest: use localStorage
+        catch (e) { theme = 'dark'; }
     }
     document.documentElement.setAttribute('data-theme', theme);
 })();

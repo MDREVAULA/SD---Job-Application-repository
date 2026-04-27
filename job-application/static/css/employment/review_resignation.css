@@ -307,7 +307,7 @@
 .emp-last-day-date {
     font-size: 17px;
     font-weight: 700;
-    color: #1E40AF;
+    color: #2271b1;
 }
 
 .emp-last-day-remaining {
@@ -526,19 +526,19 @@
 }
 
 .emp-btn-approve {
-    background: #059669;
+    background: #4D774E;
 }
 
 .emp-btn-approve:hover {
-    background: #047857;
+    background: #164A41;
 }
 
 .emp-btn-revision {
-    background: #7c3aed;
+    background: #64b5f6;
 }
 
 .emp-btn-revision:hover {
-    background: #6d28d9;
+    background: #2271b1;
 }
 
 .emp-btn-reject {

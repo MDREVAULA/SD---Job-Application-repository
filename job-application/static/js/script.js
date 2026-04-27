@@ -88,9 +88,9 @@ document.addEventListener('DOMContentLoaded', function () {
 function applyUserTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     document.body.setAttribute('data-user-theme', theme);
-    // Also update the meta tag so if the page is re-read it stays consistent
     const meta = document.querySelector('meta[name="user-theme"]');
-    if (meta) meta.content = theme;
+    if (meta) meta.content = theme;  // keep meta in sync for the current session
+    // Do NOT write localStorage for logged-in users — the server is the source of truth
     _syncSettingsThemeBtns(theme);
 }
 
@@ -106,11 +106,12 @@ function guestSetTheme(theme) {
 
 // ── Internal helpers ──
 
+// FIX: use data-theme attribute for reliable matching instead of onclick string parsing
 function _syncSettingsThemeBtns(theme) {
     document.querySelectorAll('.theme-btn').forEach(btn => {
-        const onclick = btn.getAttribute('onclick') || '';
-        const active  = onclick.includes("'" + theme + "'") || onclick.includes('"' + theme + '"');
-        btn.classList.toggle('active', active);
+        const btnTheme = btn.dataset.theme
+            || (btn.getAttribute('onclick') || '').match(/setTheme\(['"](\w+)['"]\)/)?.[1];
+        btn.classList.toggle('active', btnTheme === theme);
     });
 }
 

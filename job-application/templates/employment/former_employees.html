@@ -1,0 +1,250 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/employment/employee_list.css') }}">
+
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            {% if current_user.role == 'recruiter' or is_assigned %}
+            <a href="{{ url_for('employment.employee_list', job_id=job.id) }}" class="back-btn">
+            {% else %}
+            <a href="{{ url_for('hr.job_list') }}" class="back-btn">
+            {% endif %}
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">EMPLOYEE MANAGEMENT</div>
+                <h1 class="job-title-main">Former Employees — {{ job.title }}</h1>
+                <div class="job-meta">
+                    <span>{{ former_employees|selectattr('employment_status','equalto','resigned')|list|length }} Resigned</span>
+                    <span class="meta-dot">•</span>
+                    <span>{{ former_employees|selectattr('employment_status','equalto','fired')|list|length }} Fired</span>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <a href="{{ url_for('employment.employee_list', job_id=job.id) }}" class="btn-nav btn-nav-secondary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                </svg>
+                Active Employees
+            </a>
+            {% if current_user.role == 'recruiter' or is_assigned %}
+            <a href="{{ url_for('employment.manage_requirements', job_id=job.id) }}" class="btn-nav">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="2"/>
+                </svg>
+                Requirements
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="emp-wrapper">
+
+    <!-- STATS ROW -->
+    <div class="emp-stats-row">
+        <div class="emp-stat-pill emp-stat-pending">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <div>
+                <span class="emp-stat-val">{{ former_employees|selectattr('employment_status','equalto','resigned')|list|length }}</span>
+                <span class="emp-stat-lbl">Resigned</span>
+            </div>
+        </div>
+        <div class="emp-stat-pill emp-stat-ended">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            <div>
+                <span class="emp-stat-val">{{ former_employees|selectattr('employment_status','equalto','fired')|list|length }}</span>
+                <span class="emp-stat-lbl">Fired</span>
+            </div>
+        </div>
+        <div class="emp-stat-pill emp-stat-active">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <div>
+                <span class="emp-stat-val">{{ former_employees|length }}</span>
+                <span class="emp-stat-lbl">Total Former</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOGGLE BAR -->
+    <div class="emp-toggle-bar" id="formerToggleBar">
+        <button class="emp-toggle-btn active" data-former-view="all">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            All
+            <span class="emp-toggle-badge">{{ former_employees|length }}</span>
+        </button>
+        <button class="emp-toggle-btn" data-former-view="resigned">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            Resigned
+            <span class="emp-toggle-badge">{{ former_employees|selectattr('employment_status','equalto','resigned')|list|length }}</span>
+        </button>
+        <button class="emp-toggle-btn" data-former-view="fired">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            Fired
+            <span class="emp-toggle-badge">{{ former_employees|selectattr('employment_status','equalto','fired')|list|length }}</span>
+        </button>
+    </div>
+
+    <!-- FORMER EMPLOYEES TABLE -->
+    <div class="emp-card">
+        <div class="emp-card-header">
+            <div class="emp-card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                </svg>
+                Former Employees
+            </div>
+        </div>
+
+        {% if not former_employees %}
+        <div class="emp-empty">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+            </svg>
+            <p>No former employees for this job yet.</p>
+        </div>
+        {% else %}
+        <div class="emp-onboard-table-wrap">
+            <table class="emp-table" id="formerTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Employee</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>End Date</th>
+                        <th>Reason</th>
+                        <th>Confirmed By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in former_employees %}
+                    <tr class="emp-row-ended former-row"
+                        data-status="{{ emp.employment_status }}">
+                        <td class="emp-table-num">{{ loop.index }}</td>
+                        <td class="emp-table-user">
+                            <div class="emp-avatar-sm">
+                                {% if emp.user.profile_picture %}
+                                    {% if emp.user.profile_picture.startswith('http') %}
+                                        <img src="{{ emp.user.profile_picture }}" alt="">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='uploads/profile_pictures/' + emp.user.profile_picture) }}" alt="">
+                                    {% endif %}
+                                {% else %}
+                                <span>{{ emp.user.username[0]|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="emp-table-user-info">
+                                <div class="emp-table-user-name">{{ emp.user.username }}</div>
+                                <div class="emp-table-user-email">{{ emp.user.email }}</div>
+                            </div>
+                        </td>
+                        <td class="emp-table-role">{{ emp.job_title }}</td>
+                        <td>
+                            {% if emp.employment_status == 'resigned' %}
+                            <span class="emp-status-chip chip-warning">Resigned</span>
+                            {% elif emp.employment_status == 'fired' %}
+                            <span class="emp-status-chip chip-error">Fired</span>
+                            {% endif %}
+                        </td>
+                        <td class="emp-table-date">
+                            {{ emp.ended_at.strftime('%b %d, %Y') if emp.ended_at else '—' }}
+                        </td>
+                        <td class="emp-table-reason">
+                            {% if emp.end_reason %}
+                                <span class="emp-reason-text" title="{{ emp.end_reason }}">
+                                    {{ emp.end_reason[:60] }}{% if emp.end_reason|length > 60 %}…{% endif %}
+                                </span>
+                            {% else %}
+                                <span style="color:var(--text-tertiary);">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="emp-table-date">
+                            {{ emp.confirmer.username if emp.confirmer else '—' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const toggleBar = document.getElementById('formerToggleBar');
+    if (!toggleBar) return;
+
+    const btns = toggleBar.querySelectorAll('.emp-toggle-btn');
+    const rows = document.querySelectorAll('.former-row');
+
+    btns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            btns.forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+
+            var view = btn.getAttribute('data-former-view');
+
+            rows.forEach(function (row) {
+                var status = row.getAttribute('data-status');
+                if (view === 'all') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = (status === view) ? '' : 'none';
+                }
+            });
+
+            /* re-number visible rows */
+            var visible = Array.from(rows).filter(function (r) {
+                return r.style.display !== 'none';
+            });
+            visible.forEach(function (r, i) {
+                var numCell = r.querySelector('.emp-table-num');
+                if (numCell) numCell.textContent = i + 1;
+            });
+        });
+    });
+}());
+</script>
+
+{% endblock %}

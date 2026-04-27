@@ -498,11 +498,13 @@
         </div>
         <div class="settings-card-body">
           <div class="theme-picker">
-            <button class="theme-btn {% if settings.theme == 'light' or not settings.theme %}active{% endif %}" onclick="setTheme('light')">
-              <i class="fas fa-sun"></i> Light
+            <button class="theme-btn"
+                    data-theme="light" onclick="setTheme('light')">
+                <i class="fas fa-sun"></i> Light
             </button>
-            <button class="theme-btn {% if settings.theme == 'dark' %}active{% endif %}" onclick="setTheme('dark')">
-              <i class="fas fa-moon"></i> Dark
+            <button class="theme-btn"
+                    data-theme="dark" onclick="setTheme('dark')">
+                <i class="fas fa-moon"></i> Dark
             </button>
           </div>
         </div>
