@@ -225,11 +225,15 @@ if __name__ == "__main__":
                 print("Password: admin123")
                 print("=" * 50)
 
+# Generate a fresh admin token every run
+    fresh_token = secrets.token_urlsafe(32)
+    app.config['ADMIN_TOKEN'] = fresh_token
+
     print("\n" + "=" * 50)
     print("Flask App URL:")
     print("http://127.0.0.1:5000/")
     print("\nADMIN LOGIN URL (this session only):")
-    print(f"http://127.0.0.1:5000/admin/login/{app.config['ADMIN_TOKEN']}")
+    print(f"http://127.0.0.1:5000/admin/login/{fresh_token}")
     print("=" * 50 + "\n")
 
     app.run(debug=True)
