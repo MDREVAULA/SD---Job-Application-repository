@@ -714,7 +714,7 @@
 }
 
 .prof-item:hover {
-    background: var(--bg-hover, #f9fafb);
+    background: var(--bg-hover);
 }
 
 .prof-item:last-child { border-bottom: none; }
@@ -1431,6 +1431,10 @@
     background: rgba(77,119,78,0.15);
     border-color: rgba(157,200,141,0.3);
     color: #9DC88D;
+}
+
+[data-theme="dark"] .prof-item:hover {
+    background: var(--bg-secondary);
 }
 
 [data-theme="dark"] .prof-edu-level-arrow { color: #9DC88D; }
