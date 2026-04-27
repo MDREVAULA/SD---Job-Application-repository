@@ -100,12 +100,6 @@ def report_user(target_id):
     if not reason:
         return jsonify({'error': 'Reason is required'}), 400
 
-    existing = UserReport.query.filter_by(
-        reporter_id=current_user.id, reported_id=target_id
-    ).first()
-    if existing:
-        return jsonify({'error': 'You have already reported this user.'}), 409
-
     # Save evidence files
     saved_files = _save_evidence_files(files) if files else []
 

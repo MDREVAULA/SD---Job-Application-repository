@@ -1,42 +1,45 @@
 {% extends "layout.html" %}
 {% block title %}User Reports — Admin{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/reports.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 
-<div class="admin-page-wrapper">
-
-    <!-- PAGE HEADER -->
-    <div class="admin-page-header">
-        <div class="admin-page-header-left">
-            <div class="admin-page-icon danger">
-                <i class="fas fa-flag"></i>
-            </div>
-            <div>
-                <h1 class="admin-page-title">User Reports
-                    <span class="rpt-pending-count-pill">{{ pending_count }}</span>
-                </h1>
-                <p class="admin-page-subtitle">Review and act on reports submitted by users</p>
+<!-- Simple Header -->
+<div class="job-view-nav">
+    <div class="nav-container">
+        <div class="nav-left">
+            <a href="{{ url_for('admin.dashboard') }}" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+            </a>
+            <div class="job-title-section">
+                <div class="job-category">ADMIN</div>
+                <h1 class="job-title-main">User Reports</h1>
+                <div class="job-meta">
+                    <span>Review and act on reports submitted by users</span>
+                </div>
             </div>
         </div>
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
     </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div class="reports-page-container">
 
     <!-- STATS -->
     <div class="rpt-stats-row">
-        <div class="admin-table-card rpt-stat-card">
+        <div class="rpt-stat-card">
             <i class="fas fa-clock rpt-stat-icon rpt-stat-icon--pending"></i>
             <div class="rpt-stat-number rpt-stat-number--pending">{{ pending_count }}</div>
             <div class="rpt-stat-label">Pending</div>
         </div>
-        <div class="admin-table-card rpt-stat-card">
+        <div class="rpt-stat-card">
             <i class="fas fa-check-circle rpt-stat-icon rpt-stat-icon--reviewed"></i>
             <div class="rpt-stat-number rpt-stat-number--reviewed">{{ reviewed_count }}</div>
             <div class="rpt-stat-label">Reviewed</div>
         </div>
-        <div class="admin-table-card rpt-stat-card">
+        <div class="rpt-stat-card">
             <i class="fas fa-times-circle rpt-stat-icon rpt-stat-icon--dismissed"></i>
             <div class="rpt-stat-number rpt-stat-number--dismissed">{{ dismissed_count }}</div>
             <div class="rpt-stat-label">Dismissed</div>
@@ -73,13 +76,29 @@
             <div class="rpt-card-top">
                 <div class="rpt-avatars">
                     <div class="rpt-avatar rpt-avatar--reporter"
-                         title="Reporter: {{ r.reporter.username if r.reporter else '—' }}">
-                        {{ (r.reporter.username[0] if r.reporter else '?') | upper }}
+                        title="Reporter: {{ r.reporter.username if r.reporter else '—' }}">
+                        {% if r.reporter and r.reporter.profile_picture %}
+                            {% if r.reporter.profile_picture.startswith('http') %}
+                                <img src="{{ r.reporter.profile_picture }}" alt="{{ r.reporter.username }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + r.reporter.profile_picture) }}" alt="{{ r.reporter.username }}">
+                            {% endif %}
+                        {% else %}
+                            {{ (r.reporter.username[0] if r.reporter else '?') | upper }}
+                        {% endif %}
                     </div>
                     <i class="fas fa-arrow-right rpt-arrow"></i>
                     <div class="rpt-avatar rpt-avatar--reported"
-                         title="Reported: {{ r.reported.username if r.reported else '—' }}">
-                        {{ (r.reported.username[0] if r.reported else '?') | upper }}
+                        title="Reported: {{ r.reported.username if r.reported else '—' }}">
+                        {% if r.reported and r.reported.profile_picture %}
+                            {% if r.reported.profile_picture.startswith('http') %}
+                                <img src="{{ r.reported.profile_picture }}" alt="{{ r.reported.username }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/profile_pictures/' + r.reported.profile_picture) }}" alt="{{ r.reported.username }}">
+                            {% endif %}
+                        {% else %}
+                            {{ (r.reported.username[0] if r.reported else '?') | upper }}
+                        {% endif %}
                     </div>
                 </div>
 
@@ -187,7 +206,7 @@
     </div>
 
     {% else %}
-    <div class="admin-table-card rpt-empty-card">
+    <div class="rpt-empty-card">
         <i class="fas fa-flag rpt-empty-icon"></i>
         <p class="rpt-empty-text">No {{ status_filter }} reports.</p>
     </div>

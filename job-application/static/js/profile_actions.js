@@ -275,9 +275,13 @@
         pamCloseMenu();
         const uid = window.PROFILE_USER_ID;
         if (!uid) return;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         fetch(`/user/block/${uid}`, {
             method : 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken,
+            },
         })
         .then(r => r.json())
         .then(data => {
@@ -467,8 +471,14 @@
             },
             body   : formData,
         })
-        
-        .then(r => r.json())
+
+        .then(r => {
+            if (!r.ok) {
+                return r.text().then(t => { throw new Error(`${r.status}: ${t}`); });
+            }
+            return r.json();
+        })
+
         .then(data => {
             if (btn) {
                 btn.disabled  = false;
@@ -481,9 +491,11 @@
             pamCloseReport();
             toast(data.message || 'Report submitted.', 'success');
         })
-        .catch(() => {
+        // TEMPORARY — replace your .catch block:
+        .catch((err) => {
             if (btn) { btn.disabled = false; btn.textContent = 'Submit Report'; }
-            toast('Something went wrong.', 'error');
+            console.error('Report fetch error:', err);
+            toast('Something went wrong: ' + err.message, 'error');
         });
     };
 

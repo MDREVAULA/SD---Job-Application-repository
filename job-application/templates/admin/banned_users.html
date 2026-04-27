@@ -2,29 +2,34 @@
 {% block title %}Banned Users — Admin{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/banned_users.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin.css') }}">
 
-<div class="admin-page-wrapper">
 
-    <!-- PAGE HEADER -->
-    <div class="admin-page-header">
-        <div class="admin-page-header-left">
-            <div class="admin-page-icon danger">
-                <i class="fas fa-ban" style="font-size:18px;"></i>
-            </div>
-            <div>
-                <h1 class="admin-page-title">Banned Users <span style="font-size:1rem; font-weight:700; background:rgba(77,119,78,0.12); color:#4D774E; border:1px solid rgba(77,119,78,0.25); border-radius:20px; padding:2px 12px; margin-left:6px;">{{ users|length }}</span></h1>
-                <p class="admin-page-subtitle">View and manage all banned accounts</p>
+<div class="banned-users-container">
+    <!-- Simple Header -->
+    <div class="job-view-nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="{{ url_for('admin.dashboard') }}" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </a>
+                <div class="job-title-section">
+                    <div class="job-category">ADMIN</div>
+                    <h1 class="job-title-main">Banned Users</h1>
+                    <div class="job-meta">
+                        <span>{{ banned_users|length }} banned user{{ 's' if banned_users|length != 1 else '' }}</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <a href="{{ url_for('admin.dashboard') }}" class="admin-back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
     </div>
 
-    <!-- TABLE -->
-    <div class="admin-table-card">
-        <table class="admin-table">
+    <!-- Table -->
+    <div class="banned-users-table-card">
+        <table class="banned-users-table">
             <thead>
                 <tr>
                     <th>Username</th>
@@ -32,15 +37,17 @@
                     <th>Role</th>
                     <th>Ban Reason</th>
                     <th>Banned On</th>
-                    <th>Action</th>
+                    <th class="th-action">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for user in banned_users %}
                 <tr>
-                    <td>{{ user.username }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.role | capitalize }}</td>
+                    <td class="td-username">{{ user.username }}</td>
+                    <td class="td-email">{{ user.email }}</td>
+                    <td>
+                        <span class="role-badge role-{{ user.role }}">{{ user.role | capitalize }}</span>
+                    </td>
                     <td>
                         {% if user.ban_reason %}
                             <span class="remarks-text">{{ user.ban_reason }}</span>
@@ -50,33 +57,35 @@
                     </td>
                     <td>
                         {% if user.banned_at %}
-                            <span class="remarks-text">{{ user.banned_at.strftime('%b %d, %Y') }}</span>
+                            <span style="color:var(--text-muted); font-size:13px;">{{ user.banned_at.strftime('%b %d, %Y') }}</span>
                         {% else %}
                             <span class="remarks-none">—</span>
                         {% endif %}
                     </td>
-                    <td style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
-                              onsubmit="return confirm('Unban {{ user.username }}?')">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn-restore">
-                                <i class="fas fa-unlock"></i> Unban
-                            </button>
-                        </form>
-                        <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
-                                onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn-ban">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </form>
+                    <td class="td-action">
+                        <div class="banned-action-buttons">
+                            <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
+                                  onsubmit="return confirm('Unban {{ user.username }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn-unban">
+                                    <i class="fas fa-unlock"></i> Unban
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                                  onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn-delete">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
-                <tr class="empty-row">
-                    <td colspan="6">
-                        <i class="fas fa-check-circle" style="color:#9DC88D;"></i>
-                        No banned users found.
+                <tr>
+                    <td colspan="6" class="banned-empty">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No banned users found.</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -84,5 +93,12 @@
         </table>
     </div>
 
+    <!-- Footer -->
+    <div class="banned-users-footer">
+        <div class="banned-showing-text">
+            Showing {{ banned_users|length }} banned user{{ 's' if banned_users|length != 1 else '' }}
+        </div>
+    </div>
 </div>
+
 {% endblock %}

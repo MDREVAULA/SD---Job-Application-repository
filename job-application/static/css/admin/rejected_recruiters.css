@@ -1,0 +1,197 @@
+/* ================================================================
+   REJECTED RECRUITERS PAGE — MODERN DESIGN
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* ===== PAGE CONTENT ===== */
+
+.rejected-page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+}
+
+/* ===== TABLE CARD ===== */
+
+.rejected-table-card {
+    background: var(--bg-surface, #2c2f31);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== TABLE ===== */
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.admin-table thead {
+    background: var(--bg-surface-alt, #313638);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-table thead th {
+    padding: 14px 18px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.admin-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle, rgba(255,255,255,0.05));
+    transition: background-color 0.2s ease;
+}
+
+.admin-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+    background: var(--bg-hover, rgba(255,255,255,0.03));
+}
+
+.admin-table tbody td {
+    padding: 14px 18px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+
+.admin-table tbody td:first-child {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Empty state row */
+.admin-table .empty-row td {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.admin-table .empty-row td i {
+    display: block;
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* ===== STATUS BADGE ===== */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.badge-rejected {
+    background: rgba(220, 38, 38, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+/* ===== REMARKS CELL ===== */
+
+.remarks-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    max-width: 300px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.remarks-none {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.6;
+}
+
+/* ===== RESTORE BUTTON ===== */
+
+.btn-restore {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: rgba(157, 200, 141, 0.12);
+    color: #9DC88D;
+    border: 1px solid rgba(157, 200, 141, 0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    white-space: nowrap;
+}
+
+.btn-restore:hover {
+    background: rgba(157, 200, 141, 0.22);
+    border-color: #9DC88D;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(77, 119, 78, 0.25);
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    .rejected-page-container {
+        padding: 16px;
+    }
+
+    .nav-container {
+        padding: 12px 16px;
+    }
+
+    .admin-table {
+        font-size: 13px;
+    }
+
+    .admin-table thead th,
+    .admin-table tbody td {
+        padding: 12px;
+    }
+
+    .remarks-text {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 600px) {
+    .nav-title {
+        font-size: 16px;
+    }
+
+    .nav-badge {
+        font-size: 12px;
+        padding: 1px 10px;
+    }
+
+    .admin-table {
+        font-size: 12px;
+    }
+
+    .admin-table thead th,
+    .admin-table tbody td {
+        padding: 10px 8px;
+    }
+}

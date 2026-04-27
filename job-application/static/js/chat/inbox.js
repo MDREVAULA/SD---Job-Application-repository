@@ -455,6 +455,9 @@ function showContextMenu(e, bubbleEl) {
     const removeForYouBtn = document.getElementById('ctxRemoveForYou');
     if (removeForYouBtn) removeForYouBtn.style.display = 'flex';
 
+    const reportBtn = document.getElementById('ctxReport');
+    if (reportBtn) reportBtn.style.display = isMine ? 'none' : 'flex';
+
     menu.classList.add('open');
 
     // Right-click: position at cursor, not anchored to a button
@@ -714,6 +717,9 @@ function bubbleMoreBtn(e, btn) {
 
     const removeForYouBtn = document.getElementById('ctxRemoveForYou');
     if (removeForYouBtn) removeForYouBtn.style.display = 'flex';
+
+    const reportBtn = document.getElementById('ctxReport');
+    if (reportBtn) reportBtn.style.display = isMine ? 'none' : 'flex';
 
     // Mark this bubble so its toolbar stays visible
     document.querySelectorAll('.message-bubble.menu-open').forEach(b => b.classList.remove('menu-open'));
