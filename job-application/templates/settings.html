@@ -563,74 +563,7 @@
           </button>
         </div>
       </div>
-
-      <div class="settings-card" data-searchable="two factor authentication 2fa security login">
-        <div class="settings-card-header">
-          <div class="card-icon-wrap"><i class="fas fa-mobile-alt"></i></div>
-          <div>
-            <h4>Two-Factor Authentication</h4>
-            <p class="card-desc">Add an extra layer of security to your account.</p>
-          </div>
-          <label class="toggle-switch ml-auto">
-            <input type="checkbox" name="two_factor" {% if settings.two_factor %}checked{% endif %}>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
     </section>
-
-    <!-- ══════════════════════════════════
-         SECTION: LANGUAGE & REGION
-    ══════════════════════════════════ 
-    <section class="settings-section" id="section-language">
-      <div class="section-header">
-        <i class="fas fa-globe"></i>
-        <div>
-          <h3>Language &amp; Region</h3>
-          <p>Set your preferred language and regional formats.</p>
-        </div>
-      </div>
-
-      <div class="settings-card" data-searchable="language region timezone date format locale">
-        <div class="settings-card-header">
-          <div class="card-icon-wrap"><i class="fas fa-language"></i></div>
-          <div>
-            <h4>Display Language</h4>
-            <p class="card-desc">Choose the language the interface is displayed in.</p>
-          </div>
-        </div>
-        <div class="settings-card-body">
-          <div class="input-field-group">
-            <label>Language</label>
-            <select class="settings-select" name="language">
-              <option value="en" {% if settings.language == 'en' or not settings.language %}selected{% endif %}>English</option>
-              <option value="fil" {% if settings.language == 'fil' %}selected{% endif %}>Filipino</option>
-              <option value="es" {% if settings.language == 'es' %}selected{% endif %}>Español</option>
-              <option value="zh" {% if settings.language == 'zh' %}selected{% endif %}>中文</option>
-              <option value="ja" {% if settings.language == 'ja' %}selected{% endif %}>日本語</option>
-            </select>
-          </div>
-          <div class="input-field-group">
-            <label>Timezone</label>
-            <select class="settings-select" name="timezone">
-              <option value="Asia/Manila" {% if settings.timezone == 'Asia/Manila' or not settings.timezone %}selected{% endif %}>Asia/Manila (GMT+8)</option>
-              <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
-              <option value="America/New_York" {% if settings.timezone == 'America/New_York' %}selected{% endif %}>America/New_York (GMT-5)</option>
-            </select>
-          </div>
-          <button class="btn-save" onclick="saveSettings('language')">
-            <i class="fas fa-save"></i> Save Language Settings
-          </button>
-        </div>
-      </div>
-    </section>
-<!-- ══════════════════════════════════
-         SECTION: LANGUAGE & REGION
-    ══════════════════════════════════ 
-    <section class="settings-section" id="section-language">
-      ... language section content ...
-    </section>
-    -->
 
     <!-- ══════════════════════════════════
          SECTION: BLOCKED USERS
