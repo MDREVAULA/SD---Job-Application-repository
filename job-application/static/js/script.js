@@ -137,12 +137,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const notifMarkAll = document.getElementById('notifMarkAllBtn');
     const notifClear   = document.getElementById('notifClearBtn');
 
-    const isHR     = document.body.classList.contains('is-hr');
-    const API_BASE = isHR ? '/hr/notifications' : '/recruiter/notifications';
+    const isHR        = document.body.classList.contains('is-hr');
+    const API_BASE    = isHR ? '/hr/notifications' : '/recruiter/notifications';
+    const MARK_READ   = API_BASE + '/mark-read';
+    const CSRF        = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     let lastUnreadCount = 0;
     let shownToastIds   = new Set();
     let panelOpen       = false;
+    // Tracks the current unread count shown in the badge so single-click
+    // decrements are applied accurately without waiting for a re-poll.
+    let currentUnread   = 0;
+
+    function postJSON(url, body) {
+        return fetch(url, {
+            method:  'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken':  CSRF
+            },
+            body: body ? JSON.stringify(body) : undefined
+        });
+    }
 
     notifBtn.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -160,13 +176,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     notifMarkAll.addEventListener('click', function (e) {
         e.stopPropagation();
-        fetch(API_BASE + '/mark-read', { method: 'POST' })
+        postJSON(MARK_READ)
             .then(() => loadNotifications(false));
     });
 
     notifClear.addEventListener('click', function (e) {
         e.stopPropagation();
-        fetch(API_BASE + '/clear-all', { method: 'POST' })
+        postJSON(API_BASE + '/clear-all')
             .then(() => {
                 notifList.innerHTML = `
                     <div class="notif-empty">
@@ -192,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getNotifUrl(n) {
         if (n.type === 'new_message') return '/chat/inbox';
-        if (n.type === 'new_follow')  return isHR ? '/hr/profile' : '/recruiter/profile';
+        if (n.type === 'new_follow')  return n.sender_id ? '/profile/' + n.sender_id : '#';
         if (n.job_id) return isHR
             ? '/hr/job-applications/' + n.job_id
             : '/recruiter/job-applications/' + n.job_id;
@@ -222,13 +238,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 updateBadge(count);
+                currentUnread   = count;
                 lastUnreadCount = count;
 
                 if (!silent || panelOpen) renderList(data.notifications);
-
-                if (panelOpen && count > 0) {
-                    fetch(API_BASE + '/mark-read', { method: 'POST' }).then(() => updateBadge(0));
-                }
             })
             .catch(() => {});
     }
@@ -237,10 +250,52 @@ document.addEventListener('DOMContentLoaded', function () {
         if (count > 0) {
             notifBadge.textContent = count > 99 ? '99+' : count;
             notifBadge.style.display = 'inline-flex';
+            notifBtn.classList.add('has-unread');
         } else {
             notifBadge.style.display = 'none';
             notifBtn.classList.remove('has-unread');
         }
+    }
+
+    /**
+     * Mark a single notification as read, decrement the badge by 1,
+     * then navigate to the destination URL.
+     */
+    function markAndRedirect(notifId, el, url) {
+        const wasUnread = el.classList.contains('unread');
+
+        // Optimistically update UI
+        if (wasUnread) {
+            el.classList.remove('unread');
+            currentUnread = Math.max(0, currentUnread - 1);
+            updateBadge(currentUnread);
+        }
+
+        if (!wasUnread) {
+            // Already read — navigate immediately, no API call needed
+            if (url && url !== '#') window.location.href = url;
+            return;
+        }
+
+        // Persist to DB then navigate
+        postJSON(MARK_READ, { id: notifId })
+            .catch(() => {})
+            .finally(() => {
+                if (url && url !== '#') window.location.href = url;
+            });
+    }
+
+    function attachNotifClicks() {
+        notifList.querySelectorAll('.notif-item[data-id]').forEach(function (el) {
+            el.addEventListener('click', function (e) {
+                e.stopPropagation();
+                markAndRedirect(
+                    parseInt(this.dataset.id),
+                    this,
+                    this.dataset.url
+                );
+            });
+        });
     }
 
     function renderList(notifications) {
@@ -248,18 +303,27 @@ document.addEventListener('DOMContentLoaded', function () {
             notifList.innerHTML = `<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
             return;
         }
+        // Use data-id and data-url instead of inline onclick so markAndRedirect can fire
         notifList.innerHTML = notifications.map(function (n) {
             const meta = getTypeMeta(n.type);
             const url  = getNotifUrl(n);
             return `
-            <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" onclick="window.location.href='${url}'">
-                <div class="notif-icon type-${n.type}"><i class="fas ${meta.icon}"></i></div>
-                <div class="notif-body">
+            <div class="notif-item ${n.is_read ? '' : 'unread'}"
+                 data-id="${n.id}"
+                 data-url="${url}"
+                 style="cursor:pointer;">
+                <div class="notif-icon type-${n.type}" style="pointer-events:none;">
+                    <i class="fas ${meta.icon}"></i>
+                </div>
+                <div class="notif-body" style="pointer-events:none;">
                     <p class="notif-msg">${n.message}</p>
                     <span class="notif-time"><i class="fas fa-clock"></i> ${n.created_at}</span>
                 </div>
             </div>`;
         }).join('');
+
+        // Wire up click handlers AFTER innerHTML is set
+        attachNotifClicks();
     }
 
     function showToast(notif) {

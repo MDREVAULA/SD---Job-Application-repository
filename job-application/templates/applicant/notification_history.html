@@ -1,17 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
-
 <link rel="stylesheet" href="{{ url_for('static', filename='css/notification_history.css') }}">
 
 <div class="notif-history-wrapper">
-
     <div class="notif-history-header">
         <div class="notif-history-title">
             <i class="fas fa-bell"></i>
-            <h1>Notifications</h1>
+            <h1>Notification History</h1>
         </div>
         {% if notifications %}
-        <form method="POST" action="{{ url_for('applicant.clear_all_notifications') }}" onsubmit="return confirm('Clear all notifications?')">
+        <form method="POST" action="{{ url_for('hr.clear_all_notifications') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="notif-history-clear-btn">
                 <i class="fas fa-trash"></i> Clear All
@@ -23,10 +21,9 @@
     {% if not notifications %}
     <div class="notif-history-empty">
         <i class="fas fa-bell-slash"></i>
-        <h3>No Notifications</h3>
-        <p>You're all caught up! Notifications about your applications, messages, and followers will appear here.</p>
+        <h3>No notifications yet</h3>
+        <p>Notifications will appear here when applicants apply or interviews are scheduled.</p>
     </div>
-
     {% else %}
     <div class="notif-history-list">
         {% for n in notifications %}
@@ -35,30 +32,16 @@
         {% if n.type == 'new_message' %}
             {% set icon_cls = 'type-new_message' %}
             {% set icon     = 'fa-comment-dots' %}
-        {% elif n.type == 'follow_request' %}
-            {% set icon_cls = 'type-new_follow' %}
-            {% set icon     = 'fa-user-clock' %}
-        {% elif n.type == 'follow_accepted' %}
-            {% set icon_cls = 'type-new_follow' %}
-            {% set icon     = 'fa-user-check' %}
-        {% elif n.type == 'profile_complete' %}
-            {% set icon_cls = 'type-profile_complete' %}
-            {% set icon     = 'fa-circle-check' %}
         {% elif n.type == 'new_follow' %}
             {% set icon_cls = 'type-new_follow' %}
             {% set icon     = 'fa-user-plus' %}
-        {% elif n.type == 'job_update' %}
-            {% set icon_cls = 'type-job_update' %}
-            {% set icon     = 'fa-briefcase' %}
-        {% elif n.type == 'application_status' %}
-            {% set icon_cls = 'type-application_status' %}
-            {% set icon     = 'fa-clipboard-check' %}
         {% elif n.type == 'interview_scheduled' %}
             {% set icon_cls = 'type-interview_scheduled' %}
             {% set icon     = 'fa-calendar-check' %}
         {% else %}
+            {# new_application and anything else #}
             {% set icon_cls = 'type-new_application' %}
-            {% set icon     = 'fa-bell' %}
+            {% set icon     = 'fa-file-alt' %}
         {% endif %}
 
         {# ── Resolve redirect URL — mirrors getNotifUrl() in layout.html ── #}
@@ -74,46 +57,84 @@
             {% else %}
                 {% set notif_url = '#' %}
             {% endif %}
-        {% elif n.type == 'follow_request' %}
-        {% set notif_url = url_for('applicant.profile') ~ '#section-follow-requests' %}
-            {% elif n.type == 'follow_accepted' %}
-        {% if n.sender_id %}
-            {% set notif_url = '/profile/' ~ n.sender_id %}
-        {% else %}
-            {% set notif_url = '#' %}
-        {% endif %}
-        {% elif n.type in ('application_status', 'interview_scheduled') %}
-            {% set notif_url = url_for('applicant.status') %}
-        {% elif n.type == 'job_update' and n.job_id %}
-            {% set notif_url = url_for('applicant.job_details', job_id=n.job_id) %}
-        {% elif n.type == 'profile_complete' %}
-            {% set notif_url = url_for('applicant.status') %}
+        {% elif n.job_id %}
+            {# new_application, interview_scheduled — go to that job's applicant list #}
+            {% set notif_url = url_for('hr.job_applications', job_id=n.job_id) %}
         {% else %}
             {% set notif_url = '#' %}
         {% endif %}
 
+        {#
+          data-id   → notification primary key (for the mark-read API call)
+          data-url  → destination after mark-read completes
+          data-read → "1" if already read, "0" if unread (skip API call if already read)
+        #}
         <a href="{{ notif_url }}"
            class="notif-history-item {% if not n.is_read %}unread{% endif %}"
+           data-id="{{ n.id }}"
+           data-url="{{ notif_url }}"
+           data-read="{{ '1' if n.is_read else '0' }}"
            style="text-decoration: none;">
             <div class="notif-history-icon {{ icon_cls }}">
                 <i class="fas {{ icon }}"></i>
             </div>
             <div class="notif-history-body">
                 <p class="notif-history-msg">{{ n.message | safe }}</p>
-                <div class="notif-history-time">
+                <span class="notif-history-time">
                     <i class="fas fa-clock"></i>
                     {{ n.created_at.strftime('%B %d, %Y at %I:%M %p') }}
-                </div>
+                </span>
             </div>
             {% if not n.is_read %}
-            <div class="notif-history-unread-dot" title="Unread"></div>
+            <span class="notif-history-unread-dot"></span>
             {% endif %}
         </a>
 
         {% endfor %}
     </div>
     {% endif %}
-
 </div>
+
+<script>
+(function () {
+    const MARK_READ_API = '/hr/notifications/mark-read';
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    document.querySelectorAll('.notif-history-item[data-id]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const notifId  = parseInt(this.dataset.id);
+            const dest     = this.dataset.url;
+            const isRead   = this.dataset.read === '1';
+
+            // Visually mark as read immediately
+            this.classList.remove('unread');
+            const dot = this.querySelector('.notif-history-unread-dot');
+            if (dot) dot.remove();
+
+            if (isRead || !notifId) {
+                // Already read — navigate straight away
+                if (dest && dest !== '#') window.location.href = dest;
+                return;
+            }
+
+            // Mark read in DB, then navigate
+            fetch(MARK_READ_API, {
+                method:  'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken':  CSRF
+                },
+                body: JSON.stringify({ id: notifId })
+            })
+            .catch(() => {})   // don't block navigation on network error
+            .finally(() => {
+                if (dest && dest !== '#') window.location.href = dest;
+            });
+        });
+    });
+})();
+</script>
 
 {% endblock %}
