@@ -446,10 +446,10 @@
 .job-name {
     font-weight: 600;
     color: var(--text-primary);
-    word-break: break-word;  /* break long unspaced strings */
+    word-break: break-word;
     overflow-wrap: break-word;
     white-space: normal;
-    max-width: 200px;        /* constrain within the cell */
+    max-width: 200px;
 }
 
 .job-meta-small {
@@ -573,9 +573,39 @@
 }
 
 /* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 64px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state svg {
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
 .empty-state-status {
     text-align: center;
     padding: 64px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .empty-state-status svg {
@@ -763,7 +793,7 @@
 
 /* Specific Dark Mode Hover Text contrast */
 :root[data-theme="dark"] .action-btn-employee:hover:not(:disabled) svg {
-    color: #ffffff !important; /* Dark green for better legibility on light accent */
+    color: #ffffff !important;
 }
 
 .action-btn-onboard {
@@ -989,12 +1019,6 @@
     border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
-.status-job-removed {
-    background: rgba(139, 92, 246, 0.12);
-    color: #7c3aed;
-    border: 1px solid rgba(139, 92, 246, 0.25);
-}
-
 /* ============================================================
    APPLICANT STATUS — job_list.css
    Adds job-removed row treatment on top of existing styles
@@ -1002,11 +1026,8 @@
 
 /* ──────────────────────────────────────────────
    JOB-REMOVED ROW STATE
-   Applied when the job backing an application
-   has been taken down by an admin.
    ────────────────────────────────────────────── */
 
-/* Dim the whole row to signal it's inactive */
 .job-row.job-removed-row {
     opacity: 0.72;
 }
@@ -1016,15 +1037,12 @@
     background: var(--bg-hover);
 }
 
-/* Status badge — "Job Removed" purple pill */
 .status-job-removed {
     background: rgba(139, 92, 246, 0.12);
     color: #7c3aed;
     border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
-/* Replaced action buttons — inline "Job Removed" chip
-   shown in the Actions cell instead of the normal buttons */
 .job-removed-chip {
     display: inline-flex;
     align-items: center;
@@ -1046,7 +1064,6 @@
     flex-shrink: 0;
 }
 
-/* Strike-through on the job title text when removed */
 .job-row.job-removed-row .job-name {
     text-decoration: line-through;
     text-decoration-color: rgba(124, 58, 237, 0.45);
