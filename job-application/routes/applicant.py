@@ -785,8 +785,11 @@ def respond_follow_request(req_id):
 # ===============================
 # APPLICATION STATUS PAGE
 # ===============================
-_ACTIVE_STATUSES   = ('pending', 'interview', 'waitlisted', 'accepted', 'employed')
-_ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired', 'Job Removed')
+_ACTIVE_STATUSES   = ('pending', 'interview', 'waitlisted', 'accepted', 'employed',
+                      'Pending', 'Interview', 'Waitlisted', 'Accepted', 'Employed',
+                      'Under Review', 'under review')
+_ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired', 'Job Removed',
+                      'Rejected', 'Resigned', 'Fired')
 
 @applicant_bp.route('/status')
 @login_required
@@ -801,12 +804,21 @@ def status():
 
     applications = (
         Application.query
-        .join(Job, Application.job_id == Job.id)
-        .join(User, Job.company_id == User.id)
+        .outerjoin(Job, Application.job_id == Job.id)
         .filter(
             Application.applicant_id == current_user.id,
             Application.status.in_(_ACTIVE_STATUSES),
-            User.is_banned == False
+        )
+        .options(joinedload(Application.job))
+        .order_by(Application.created_at.desc())
+        .all()
+    )
+
+    archived_applications = (
+        Application.query
+        .filter(
+            Application.applicant_id == current_user.id,
+            Application.status.in_(_ARCHIVED_STATUSES),
         )
         .options(joinedload(Application.job))
         .order_by(Application.created_at.desc())
@@ -816,6 +828,7 @@ def status():
     return render_template(
         'applicant/status.html',
         applications=applications,
+        archived_applications=archived_applications,
     )
 
 @applicant_bp.route('/archived')

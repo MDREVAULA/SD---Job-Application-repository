@@ -256,23 +256,42 @@ function uploadExpCerts(input, expId) {
     const fd = new FormData();
     for (const f of input.files) fd.append('cert_files', f);
 
+    // ── Add CSRF token ──
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+        || (() => { const m = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]+)/); return m ? decodeURIComponent(m[1]) : ''; })();
+    fd.append('csrf_token', csrfToken);
+
     fetch('/applicant/profile/experience/' + expId + '/upload-certs', {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: fd
     })
-    .then(r => r.json())
+    .then(r => {
+        // Catch non-JSON responses (e.g. 400/403 HTML error pages)
+        const ct = r.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) {
+            return r.text().then(text => {
+                console.error('Non-JSON response:', r.status, text.slice(0, 300));
+                throw new Error('Server error ' + r.status);
+            });
+        }
+        return r.json();
+    })
     .then(data => {
         progressEl.style.display = 'none';
         input.value = '';
-        if (!data.ok) { alert(data.error || 'Upload failed.'); return; }
+        if (!data.ok) {
+            alert(data.error || 'Upload failed.');
+            return;
+        }
         renderCertList(expId, data.certs, data.count);
         updateCertBadge(expId, data.count);
         limitEl.style.display = data.count >= 10 ? 'flex' : 'none';
     })
-    .catch(() => {
+    .catch(err => {
         progressEl.style.display = 'none';
-        alert('Upload failed. Please try again.');
+        console.error('uploadExpCerts error:', err);
+        alert('Upload failed: ' + err.message);
     });
 }
 

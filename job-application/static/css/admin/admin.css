@@ -1055,7 +1055,7 @@
     letter-spacing: 0.3px;
 }
 
-.role-badge.role-applicant {
+.role-badge.role-hr {
     background: rgba(100, 181, 246, 0.12);
     color: #64b5f6;
     border: 1px solid rgba(100, 181, 246, 0.25);
@@ -1067,7 +1067,7 @@
     border: 1px solid rgba(241, 178, 74, 0.25);
 }
 
-.role-badge.role-hr {
+.role-badge.role-applicant {
     background: rgba(157, 200, 141, 0.12);
     color: #9DC88D;
     border: 1px solid rgba(157, 200, 141, 0.25);

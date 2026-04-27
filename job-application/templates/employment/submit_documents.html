@@ -217,13 +217,13 @@
                             {% set pct = 100 %}
                             {% set stage_label = "Employment Confirmed" %}
                         {% elif onboarding and onboarding.status in ('submitted', 'needs_revision') %}
-                            {% set pct = 75 %}
+                            {% set pct = 50 %}
                             {% set stage_label = "Under Review" %}
                         {% elif done > 0 %}
-                            {% set pct = 50 %}
+                            {% set pct = 25 %}
                             {% set stage_label = "Documents Uploaded" %}
                         {% else %}
-                            {% set pct = 25 %}
+                            {% set pct = 0 %}
                             {% set stage_label = "Not Started" %}
                         {% endif %}
 
