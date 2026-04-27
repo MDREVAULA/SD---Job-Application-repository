@@ -445,7 +445,7 @@ def job_applications(job_id):
 
     job = Job.query.get_or_404(job_id)
 
-    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
+    _ACTIVE_STATUSES = ('pending', 'interview', 'waitlisted', 'accepted', 'employed')
     _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
 
     applications = (
@@ -548,7 +548,7 @@ def update_application_status(app_id):
             application.meeting_type = 'face-to-face'
             application.meeting_link = None
         # if interview_session is None, leave existing values untouched
-    elif new_status in ('accepted', 'rejected', 'pending'):
+    elif new_status in ('accepted', 'waitlisted', 'rejected', 'pending'):
         application.interview_date = None
         application.meeting_type   = None
         application.meeting_link   = None

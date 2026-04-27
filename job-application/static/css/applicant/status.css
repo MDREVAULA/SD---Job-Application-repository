@@ -494,6 +494,16 @@
     color: var(--info);
 }
 
+.status-waitlisted {
+    background: rgba(139, 92, 246, 0.15);
+    color: #6d28d9;
+}
+
+:root[data-theme="dark"] .status-waitlisted {
+    background: rgba(139, 92, 246, 0.18);
+    color: #a78bfa;
+}
+
 .status-accepted {
     background: var(--success-light);
     color: var(--success);

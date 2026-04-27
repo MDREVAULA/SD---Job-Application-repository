@@ -56,6 +56,7 @@
     {%- set total_apps    = applications|length -%}
     {%- set interview_apps= applications|selectattr('status','equalto','interview')|list|length -%}
     {%- set pending_apps  = applications|selectattr('status','equalto','pending')|list|length -%}
+    {%- set waitlisted_count = applications|selectattr('status','equalto','waitlisted')|list|length -%}
 
     <div class="stats-grid">
         <div class="stat-card">
@@ -156,6 +157,9 @@
                     </button>
                     <button class="status-filter-btn" data-filter="interview" onclick="filterByStatus(this,'interview')">
                         Interview <span class="tab-count">{{ interview_count }}</span>
+                    </button>
+                    <button class="status-filter-btn" data-filter="waitlisted" onclick="filterByStatus(this,'waitlisted')">
+                        Waitlisted <span class="tab-count">{{ waitlisted_count }}</span>
                     </button>
                     <button class="status-filter-btn" data-filter="accepted" onclick="filterByStatus(this,'accepted')">
                         Accepted <span class="tab-count">{{ accepted_count }}</span>
@@ -393,6 +397,11 @@
                                         {% elif app.status == 'interview' %}
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                                         Interview
+                                        {% elif app.status == 'waitlisted' %}
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                        </svg>
+                                        Waitlisted
                                         {% endif %}
                                     </span>
                                 </div>
@@ -541,10 +550,11 @@
                             <label for="status-{{ app.id }}">Status</label>
                             <select id="status-{{ app.id }}" name="status" class="form-select"
                                     onchange="toggleInterviewField(this, {{ app.id }})">
-                                <option value="pending"   {% if app.status == 'pending'   %}selected{% endif %}>Pending</option>
-                                <option value="interview" {% if app.status == 'interview' %}selected{% endif %}>Interview</option>
-                                <option value="accepted"  {% if app.status == 'accepted'  %}selected{% endif %}>Accept</option>
-                                <option value="rejected"  {% if app.status == 'rejected'  %}selected{% endif %}>Reject</option>
+                                <option value="pending"    {% if app.status == 'pending'    %}selected{% endif %}>Pending</option>
+                                <option value="interview"  {% if app.status == 'interview'  %}selected{% endif %}>Interview</option>
+                                <option value="waitlisted" {% if app.status == 'waitlisted' %}selected{% endif %}>Waitlist</option>
+                                <option value="accepted"   {% if app.status == 'accepted'   %}selected{% endif %}>Accept</option>
+                                <option value="rejected"   {% if app.status == 'rejected'   %}selected{% endif %}>Reject</option>
                             </select>
                         </div>
 

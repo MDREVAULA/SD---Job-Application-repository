@@ -16,7 +16,7 @@
                     <span>
                         {% set total_active = namespace(count=0) %}
                         {% for job in jobs %}
-                            {% set active = job.applications | selectattr('status', 'in', ['pending','interview','accepted','employed']) | list %}
+                            {% set active = job.applications | selectattr('status', 'in', ['pending','interview','waitlisted','accepted','employed']) | list %}
                             {% set total_active.count = total_active.count + (active | length) %}
                         {% endfor %}
                         {{ total_active.count }} Active Applications
@@ -58,7 +58,7 @@
             <div class="stat-value">
                 {% set total_active = namespace(count=0) %}
                 {% for job in jobs %}
-                    {% set active = job.applications | selectattr('status', 'in', ['pending','interview','accepted','employed']) | list %}
+                    {% set active = job.applications | selectattr('status', 'in', ['pending','interview','waitlisted','accepted','employed']) | list %}
                     {% set total_active.count = total_active.count + (active | length) %}
                 {% endfor %}
                 {{ total_active.count }} Active

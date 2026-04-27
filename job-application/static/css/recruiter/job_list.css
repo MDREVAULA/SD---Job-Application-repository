@@ -821,6 +821,16 @@ body {
     color: var(--danger);
 }
 
+.status-waitlisted {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+}
+
+.status-pending-apps {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+}
+
 .status-badge svg {
     width: 12px;
     height: 12px;

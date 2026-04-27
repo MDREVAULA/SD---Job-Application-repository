@@ -953,8 +953,8 @@ def takedown_job(job_id):
         try:
             active_apps = Application.query.filter(
                 Application.job_id == job_id,
-                Application.status.in_(['Pending', 'Interview', 'Under Review',
-                                        'pending', 'interview', 'under review'])
+                Application.status.in_(['Pending', 'Interview', 'Waitlisted', 'Under Review',
+                                        'pending', 'interview', 'waitlisted', 'under review'])
             ).all()
             for app in active_apps:
                 app.status = 'Job Removed'

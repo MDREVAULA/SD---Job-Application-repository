@@ -862,6 +862,34 @@
 .status-interview{ background: var(--app-info-bg);     color: var(--app-info); }
 .status-accepted { background: var(--app-success-bg);  color: var(--app-success); }
 .status-rejected { background: var(--app-error-bg);    color: var(--app-error); }
+.status-pending,
+.status-badge-small.status-pending,
+.status-badge-large.status-pending {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+}
+
+/* ── Waitlisted — purple ── */
+.status-waitlisted,
+.status-badge-small.status-waitlisted,
+.status-badge-large.status-waitlisted {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+}
+
+:root[data-theme="dark"] .status-pending,
+:root[data-theme="dark"] .status-badge-small.status-pending,
+:root[data-theme="dark"] .status-badge-large.status-pending {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+}
+
+:root[data-theme="dark"] .status-waitlisted,
+:root[data-theme="dark"] .status-badge-small.status-waitlisted,
+:root[data-theme="dark"] .status-badge-large.status-waitlisted {
+    background: rgba(139, 92, 246, 0.18);
+    color: #a78bfa;
+}
 
 /* ===== PAGINATION ===== */
 .pagination-footer {

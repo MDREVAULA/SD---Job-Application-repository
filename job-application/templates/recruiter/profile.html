@@ -204,14 +204,9 @@
                     </div>
                 </div>
                 <p class="prof-headline">
-                    {% if profile and profile.headline %}
-                        {{ profile.headline }}
-                    {% elif profile and profile.company_name %}
-                        Recruiter at <strong>{{ profile.company_name }}</strong>
-                        {% if profile.company_industry %} · {{ profile.company_industry }}{% endif %}
-                    {% else %}
-                        Add a headline to describe yourself
-                    {% endif %}
+                    Recruiter at <strong>{{ profile.company_name if profile and profile.company_name else '—' }}</strong>
+                    {% if profile and profile.company_industry %} · {{ profile.company_industry }}{% endif %}
+                    {% if profile and profile.headline %}<br>{{ profile.headline }}{% endif %}
                 </p>
                 <div class="prof-header-meta">
                     {% if profile and profile.city %}

@@ -785,7 +785,7 @@ def respond_follow_request(req_id):
 # ===============================
 # APPLICATION STATUS PAGE
 # ===============================
-_ACTIVE_STATUSES   = ('pending', 'interview', 'accepted', 'employed')
+_ACTIVE_STATUSES   = ('pending', 'interview', 'waitlisted', 'accepted', 'employed')
 _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired', 'Job Removed')
 
 @applicant_bp.route('/status')

@@ -685,7 +685,7 @@ def my_job_list():
     jobs = Job.query.filter_by(company_id=current_user.id).all()
 
     # Pre-compute active counts per job
-    _ACTIVE = ('pending', 'interview', 'accepted', 'employed')
+    _ACTIVE = ('pending', 'interview', 'waitlisted', 'accepted', 'employed')
     job_active_counts = {}
     for job in jobs:
         count = Application.query.filter(
@@ -992,7 +992,7 @@ def view_job_applications(job_id):
         flash("Unauthorized access!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
 
-    _ACTIVE_STATUSES = ('pending', 'interview', 'accepted', 'employed')
+    _ACTIVE_STATUSES = ('pending', 'interview', 'waitlisted', 'accepted', 'employed')
     _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
 
     applications = (
@@ -1104,7 +1104,7 @@ def update_application_status(app_id):
             # No session type submitted — don't overwrite existing values
             pass
  
-    elif new_status in ('accepted', 'rejected', 'pending'):
+    elif new_status in ('accepted', 'waitlisted', 'rejected', 'pending'):
         application.interview_date = None
         application.meeting_type   = None
         application.meeting_link   = None

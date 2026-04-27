@@ -165,17 +165,17 @@ function applyFilters() {
 
 function countApplications() {
     const cards = document.querySelectorAll('.app-card');
-    const counts = { pending: 0, interview: 0, accepted: 0, rejected: 0 };
+    const counts = { pending: 0, interview: 0, waitlisted: 0, accepted: 0, rejected: 0 };
     cards.forEach(card => {
         const s = card.getAttribute('data-status');
         if (counts.hasOwnProperty(s)) counts[s]++;
     });
-    document.getElementById('tabPendingCount').textContent   = counts.pending;
-    document.getElementById('tabInterviewCount').textContent = counts.interview;
-    document.getElementById('tabAcceptedCount').textContent  = counts.accepted;
-    document.getElementById('tabRejectedCount').textContent  = counts.rejected;
+    document.getElementById('tabPendingCount').textContent    = counts.pending;
+    document.getElementById('tabInterviewCount').textContent  = counts.interview;
+    document.getElementById('tabWaitlistedCount').textContent = counts.waitlisted;
+    document.getElementById('tabAcceptedCount').textContent   = counts.accepted;
+    document.getElementById('tabRejectedCount').textContent   = counts.rejected;
 }
-
 // ── Description toggle ──────────────────────────────────────
 
 function initDescription() {
