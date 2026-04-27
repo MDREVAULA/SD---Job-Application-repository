@@ -247,6 +247,287 @@ def deactivate_account():
     logout_user()
     return jsonify({'success': True})
 
+# ─────────────────────────────────────────────────────────────
+#  POST /settings/delete-account
+# ─────────────────────────────────────────────────────────────
+@settings_bp.route('/delete-account', methods=['POST'])
+@login_required
+def delete_account():
+    if not _role_allowed():
+        return jsonify({'success': False, 'message': 'Access denied.'}), 403
+
+    data           = request.get_json(silent=True) or {}
+    password_input = data.get('password', '')
+
+    # Google users have no password — skip check
+    if current_user.password:
+        if not password_input:
+            return jsonify({'success': False, 'message': 'Please enter your password to confirm.'}), 400
+        if not check_password_hash(current_user.password, password_input):
+            return jsonify({'success': False, 'message': 'Incorrect password.'}), 400
+
+    user_id = current_user.id
+    role    = current_user.role
+
+    try:
+        from sqlalchemy import text
+
+        uid = user_id
+
+        # ══════════════════════════════════════════════
+        # Mirrors admin._delete_user_data() exactly,
+        # adapted for ORM + SQLAlchemy text() style.
+        # ══════════════════════════════════════════════
+
+        def _run(sql, **kw):
+            db.session.execute(text(sql), kw)
+            db.session.flush()
+
+        def _delete_user_data(target_uid):
+            u = target_uid  # shorthand
+
+            # 1. Break message reply_to_id self-ref FIRST
+            _run("""UPDATE message SET reply_to_id = NULL
+                    WHERE reply_to_id IN (
+                        SELECT id FROM (
+                            SELECT id FROM message
+                            WHERE sender_id = :u OR receiver_id = :u
+                        ) AS _m
+                    )""", u=u)
+
+            # 2. Message reactions
+            _run("""DELETE FROM message_reaction
+                    WHERE user_id = :u
+                       OR message_id IN (
+                           SELECT id FROM (
+                               SELECT id FROM message
+                               WHERE sender_id = :u OR receiver_id = :u
+                           ) AS _m2
+                       )""", u=u)
+
+            # 3. Messages
+            _run("DELETE FROM message WHERE sender_id = :u OR receiver_id = :u", u=u)
+
+            # 4. Follows & follow requests
+            _run("DELETE FROM follow_request WHERE sender_id = :u OR receiver_id = :u", u=u)
+            _run("DELETE FROM follow WHERE follower_id = :u OR followed_id = :u", u=u)
+
+            # 5. User blocks
+            _run("DELETE FROM user_block WHERE blocker_id = :u OR blocked_id = :u", u=u)
+
+            # 6. User reports — NULL reviewed_by first to avoid FK error
+            _run("UPDATE user_report SET reviewed_by = NULL WHERE reviewed_by = :u", u=u)
+            _run("DELETE FROM user_report WHERE reporter_id = :u OR reported_id = :u", u=u)
+
+            # 7. Saved jobs (as applicant)
+            _run("DELETE FROM saved_job WHERE applicant_id = :u", u=u)
+
+            # 8. Job team memberships (as HR)
+            _run("DELETE FROM job_team_member WHERE hr_id = :u", u=u)
+
+            # 9. HR feedback written by this user
+            _run("DELETE FROM hr_feedback WHERE hr_id = :u", u=u)
+
+            # 10. NULL employee.confirmed_by (FK — can't delete yet)
+            _run("UPDATE employee SET confirmed_by = NULL WHERE confirmed_by = :u", u=u)
+
+            # 11. NULL resignation_request.reviewed_by
+            _run("UPDATE resignation_request SET reviewed_by = NULL WHERE reviewed_by = :u", u=u)
+
+            # 12. Resignation requests where this user IS the applicant
+            _run("DELETE FROM resignation_request WHERE applicant_id = :u", u=u)
+            # ...and any linked to this user's employee records
+            _run("""DELETE FROM resignation_request
+                    WHERE employee_id IN (
+                        SELECT id FROM employee
+                        WHERE user_id = :u
+                           OR application_id IN (
+                               SELECT id FROM application WHERE applicant_id = :u
+                           )
+                    )""", u=u)
+
+            # 13. Employee records
+            _run("""DELETE FROM employee
+                    WHERE user_id = :u
+                       OR application_id IN (
+                           SELECT id FROM application WHERE applicant_id = :u
+                       )""", u=u)
+
+            # 14. Employment onboarding
+            _run("""DELETE FROM employment_onboarding
+                    WHERE application_id IN (
+                        SELECT id FROM application WHERE applicant_id = :u
+                    )""", u=u)
+
+            # 15. Employment submissions
+            _run("""DELETE FROM employment_submission
+                    WHERE application_id IN (
+                        SELECT id FROM application WHERE applicant_id = :u
+                    )""", u=u)
+
+            # 16. HR feedback ON this user's applications
+            _run("""DELETE FROM hr_feedback
+                    WHERE application_id IN (
+                        SELECT id FROM application WHERE applicant_id = :u
+                    )""", u=u)
+
+            # 17. All notifications — both as owner AND as sender_id
+            _run("""DELETE FROM applicant_notification
+                    WHERE applicant_id = :u
+                       OR sender_id    = :u
+                       OR application_id IN (
+                           SELECT id FROM application WHERE applicant_id = :u
+                       )""", u=u)
+            _run("""DELETE FROM recruiter_notification
+                    WHERE recruiter_id = :u
+                       OR sender_id    = :u
+                       OR application_id IN (
+                           SELECT id FROM application WHERE applicant_id = :u
+                       )""", u=u)
+            _run("""DELETE FROM hr_notification
+                    WHERE hr_id     = :u
+                       OR sender_id = :u
+                       OR application_id IN (
+                           SELECT id FROM application WHERE applicant_id = :u
+                       )""", u=u)
+            _run("DELETE FROM admin_notifications WHERE user_id = :u", u=u)
+
+            # 18. This user's own applications
+            _run("DELETE FROM application WHERE applicant_id = :u", u=u)
+
+            # 19. Applicant profile chain
+            _run("""DELETE FROM work_experience_certificate
+                    WHERE experience_id IN (
+                        SELECT id FROM work_experience
+                        WHERE profile_id IN (
+                            SELECT id FROM applicant_profile WHERE user_id = :u
+                        )
+                    )""", u=u)
+            _run("""DELETE FROM work_experience
+                    WHERE profile_id IN (
+                        SELECT id FROM applicant_profile WHERE user_id = :u
+                    )""", u=u)
+            _run("""DELETE FROM applicant_education
+                    WHERE profile_id IN (
+                        SELECT id FROM applicant_profile WHERE user_id = :u
+                    )""", u=u)
+            _run("""DELETE FROM skill
+                    WHERE profile_id IN (
+                        SELECT id FROM applicant_profile WHERE user_id = :u
+                    )""", u=u)
+            _run("""DELETE FROM project
+                    WHERE profile_id IN (
+                        SELECT id FROM applicant_profile WHERE user_id = :u
+                    )""", u=u)
+            _run("""DELETE FROM certification
+                    WHERE profile_id IN (
+                        SELECT id FROM applicant_profile WHERE user_id = :u
+                    )""", u=u)
+            _run("DELETE FROM applicant_profile WHERE user_id = :u", u=u)
+
+            # 20. Recruiter profile chain
+            _run("""DELETE FROM recruiter_education
+                    WHERE profile_id IN (
+                        SELECT id FROM recruiter_profile WHERE user_id = :u
+                    )""", u=u)
+            _run("DELETE FROM recruiter_profile WHERE user_id = :u", u=u)
+
+            # 21. HR profile chain
+            _run("""DELETE FROM hr_education
+                    WHERE profile_id IN (
+                        SELECT id FROM hr_profile WHERE user_id = :u
+                    )""", u=u)
+            _run("DELETE FROM hr_profile WHERE user_id = :u", u=u)
+
+            # 22. User settings
+            _run("DELETE FROM user_settings WHERE user_id = :u", u=u)
+
+        # ══════════════════════════════════════════════
+        # RECRUITER: delete all owned jobs + all HR accs
+        # ══════════════════════════════════════════════
+        if role == 'recruiter':
+
+            # NULL FK cols that reference this recruiter before job deletes
+            _run("UPDATE employee SET confirmed_by = NULL WHERE confirmed_by = :u", u=uid)
+            _run("UPDATE resignation_request SET reviewed_by = NULL WHERE reviewed_by = :u", u=uid)
+
+            # Collect HR accounts this recruiter created
+            hr_rows = db.session.execute(
+                text("SELECT id FROM user WHERE created_by = :u AND role = 'hr'"),
+                {'u': uid}
+            ).fetchall()
+            hr_ids = [row[0] for row in hr_rows]
+
+            # Delete each owned job and all its children
+            job_rows = db.session.execute(
+                text("SELECT id FROM job WHERE company_id = :u"), {'u': uid}
+            ).fetchall()
+
+            for (job_id,) in job_rows:
+                # Mirrors admin._delete_job_rows()
+                for sql in [
+                    "DELETE FROM applicant_notification WHERE job_id = :jid OR application_id IN (SELECT id FROM application WHERE job_id = :jid)",
+                    "DELETE FROM recruiter_notification WHERE job_id = :jid OR application_id IN (SELECT id FROM application WHERE job_id = :jid)",
+                    "DELETE FROM hr_notification       WHERE job_id = :jid OR application_id IN (SELECT id FROM application WHERE job_id = :jid)",
+                    """DELETE FROM resignation_request
+                       WHERE job_id = :jid
+                          OR employee_id IN (
+                              SELECT id FROM employee
+                              WHERE application_id IN (SELECT id FROM application WHERE job_id = :jid)
+                          )""",
+                    """DELETE FROM employee
+                       WHERE job_id = :jid
+                          OR application_id IN (SELECT id FROM application WHERE job_id = :jid)""",
+                    "DELETE FROM employment_onboarding  WHERE application_id IN (SELECT id FROM application WHERE job_id = :jid)",
+                    """DELETE FROM employment_submission
+                       WHERE application_id IN (SELECT id FROM application WHERE job_id = :jid)
+                          OR requirement_id IN (SELECT id FROM employment_requirement WHERE job_id = :jid)""",
+                    "DELETE FROM hr_feedback            WHERE application_id IN (SELECT id FROM application WHERE job_id = :jid)",
+                    "DELETE FROM employment_requirement WHERE job_id = :jid",
+                    "DELETE FROM saved_job              WHERE job_id = :jid",
+                    "DELETE FROM job_team_member        WHERE job_id = :jid",
+                    "DELETE FROM application            WHERE job_id = :jid",
+                    "DELETE FROM job_image              WHERE job_id = :jid",
+                ]:
+                    db.session.execute(text(sql), {'jid': job_id})
+                    db.session.flush()
+
+                db.session.execute(text("DELETE FROM job WHERE id = :jid"), {'jid': job_id})
+                db.session.flush()
+
+            # Delete all owned HR accounts (and their data)
+            for hr_uid in hr_ids:
+                _delete_user_data(hr_uid)
+                _run("UPDATE user SET created_by = NULL WHERE created_by = :u", u=hr_uid)
+                _run("UPDATE user SET deleted_by = NULL WHERE deleted_by = :u", u=hr_uid)
+                _run("DELETE FROM user WHERE id = :u", u=hr_uid)
+
+            # Delete recruiter's own notifications (owned + as sender)
+            _run("DELETE FROM recruiter_notification WHERE recruiter_id = :u OR sender_id = :u", u=uid)
+
+        # ══════════════════════════════════════════════
+        # Delete the main user's own data
+        # ══════════════════════════════════════════════
+        _delete_user_data(uid)
+
+        # NULL self-referential user FKs before deleting the row
+        _run("UPDATE user SET created_by = NULL WHERE created_by = :u", u=uid)
+        _run("UPDATE user SET deleted_by = NULL WHERE deleted_by = :u", u=uid)
+
+        # Log out and delete the user row
+        from flask_login import logout_user
+        logout_user()
+
+        _run("DELETE FROM user WHERE id = :u", u=uid)
+        db.session.commit()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'Could not delete account: {str(e)}'}), 500
 
 # ─────────────────────────────────────────────────────────────
 #  POST /settings/logout-all

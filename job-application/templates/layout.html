@@ -27,10 +27,15 @@
     var meta  = document.querySelector('meta[name="user-theme"]');
     var theme;
     if (meta && meta.content && meta.content !== '') {
-        theme = meta.content;          // logged-in: use DB value
+        // Logged-in: always use the DB value from the server.
+        // localStorage is only written on click (setTheme) and
+        // cleared here so it never drifts out of sync with the DB.
+        theme = meta.content;
+        try { localStorage.removeItem('theme'); } catch (e) {}
     } else {
+        // Guest: use their localStorage choice, default to dark.
         try { theme = localStorage.getItem('guestTheme') || 'dark'; }
-        catch (e) { theme = 'dark'; }  // guest: use localStorage
+        catch (e) { theme = 'dark'; }
     }
     document.documentElement.setAttribute('data-theme', theme);
 })();
@@ -320,8 +325,27 @@
                 </div>
             </a>
             <ul class="submenu">
-                <li><a href="{{ url_for('applicant.saved_jobs') }}" class="{% if request.endpoint == 'applicant.saved_jobs' %}active{% endif %}"><i class="fas fa-bookmark"></i><span>Saved Jobs</span></a></li>
-                <li><a href="{{ url_for('applicant.status') }}" class="{% if request.endpoint == 'applicant.status' %}active{% endif %}"><i class="fas fa-paper-plane"></i><span>Status</span></a></li>
+                <li>
+                    <a href="{{ url_for('applicant.status') }}"
+                       class="{% if request.endpoint == 'applicant.status' %}active{% endif %}">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Status</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('employment.my_employment') }}"
+                    class="{% if request.endpoint == 'employment.my_employment' %}active{% endif %}">
+                        <i class="fa fa-address-book"></i>
+                        <span>My Employment</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('applicant.saved_jobs') }}"
+                       class="{% if request.endpoint == 'applicant.saved_jobs' %}active{% endif %}">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Saved Jobs</span>
+                    </a>
+                </li>
             </ul>
         </li>
         {% endif %}
@@ -391,14 +415,13 @@
 (function() {
     function updateClock() {
         const now = new Date();
-        let hours = now.getHours();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
+        const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const seconds = String(now.getSeconds()).padStart(2, '0');
+
         const clockElement = document.getElementById('sidebarClock');
         const dateElement  = document.getElementById('sidebarDate');
-        if (clockElement) clockElement.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+        if (clockElement) clockElement.textContent = `${hours}:${minutes}:${seconds}`;
         if (dateElement)  dateElement.textContent  = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
     updateClock();
@@ -518,10 +541,9 @@ setInterval(updateUnreadBadge, 10000);
     const clearBtn     = document.getElementById('adminClearBtn');
     const sidebarBadge = document.getElementById('adminSidebarBadge');
 
-    let lastUnread  = 0;
     let currentUnread = 0;
-    let knownIds    = new Set();
-    let knownMsgMap = {};
+    let knownIds      = new Set();
+    let knownMsgMap   = {};
 
     const ICONS = {
         new_message:      { icon: 'fa-comment-dots', title: 'New Message'       },
@@ -543,6 +565,8 @@ setInterval(updateUnreadBadge, 10000);
         }
         if (n.type === 'account_approved') return '/admin/users';
         if (n.type === 'account_rejected' && n.user_id) return '/admin/review/' + n.user_id;
+        if (n.type === 'account_banned')  return '/admin/banned';
+        if (n.type === 'job_takedown' || n.type === 'job_deleted' || n.type === 'job_restored') return '/admin/jobs';
         if (n.user_id) return '/admin/review/' + n.user_id;
         return '/admin/dashboard';
     }
@@ -569,7 +593,7 @@ setInterval(updateUnreadBadge, 10000);
         }
     }
 
-    // ── Mark a single notification read, decrement badge, then navigate ──
+    // Mark a single notification read, decrement badge, then navigate
     function markAndRedirect(notifId, el, url) {
         const wasUnread = el.classList.contains('unread');
         if (wasUnread) {
@@ -619,7 +643,6 @@ setInterval(updateUnreadBadge, 10000);
                 </div>
             </div>`;
         }).join('');
-        // Wire click handlers AFTER innerHTML is written
         attachNotifClicks();
     }
 
@@ -635,7 +658,8 @@ setInterval(updateUnreadBadge, 10000);
                 <div class="notif-toast-title">${t.title}</div>
                 <div class="notif-toast-msg">${n.message}</div>
             </div>
-            <button class="notif-toast-close" onclick="event.stopPropagation();this.parentElement.remove()">
+            <button class="notif-toast-close"
+                    onclick="event.stopPropagation();this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>`;
         toast.addEventListener('click', function (e) {
@@ -654,7 +678,6 @@ setInterval(updateUnreadBadge, 10000);
             const count = data.unread_count || 0;
             updateBadge(count);
             currentUnread = count;
-            lastUnread    = count;
             if (data.notifications) {
                 data.notifications.forEach(function (n) {
                     if (!knownIds.has(n.id)) {
@@ -670,9 +693,8 @@ setInterval(updateUnreadBadge, 10000);
 
     // Initial silent load — badge only, no toasts
     fetch(NOTIF_API).then(r => r.json()).then(data => {
-        lastUnread    = data.unread_count || 0;
-        currentUnread = lastUnread;
-        updateBadge(lastUnread);
+        currentUnread = data.unread_count || 0;
+        updateBadge(currentUnread);
         if (data.notifications) {
             data.notifications.forEach(function (n) {
                 knownIds.add(n.id);
@@ -683,7 +705,7 @@ setInterval(updateUnreadBadge, 10000);
 
     setInterval(fetchNotifs, 15000);
 
-    // ── Bell click: open/close panel ──
+    // Bell click: open/close panel
     btn.addEventListener('click', function (e) {
         e.stopPropagation();
         const isOpen = panel.classList.toggle('open');
@@ -699,9 +721,8 @@ setInterval(updateUnreadBadge, 10000);
     });
 
     document.addEventListener('click', function (e) {
-        if (!document.getElementById('adminNotifWrapper').contains(e.target)) {
+        if (!document.getElementById('adminNotifWrapper').contains(e.target))
             panel.classList.remove('open');
-        }
     });
 
     markBtn.addEventListener('click', function () {

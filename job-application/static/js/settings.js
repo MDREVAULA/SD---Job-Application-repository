@@ -409,3 +409,45 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { s.value = ''; }, 500);
     }
 });
+
+/* ── Delete account modal ───────────────────────── */
+function openDeleteModal() {
+    const m = document.getElementById('deleteAccountModal');
+    if (m) {
+        m.style.display = 'flex';
+        const p = document.getElementById('deleteConfirmPass');
+        if (p) p.value = '';
+    }
+}
+
+function closeDeleteModal() {
+    const m = document.getElementById('deleteAccountModal');
+    if (m) m.style.display = 'none';
+}
+
+function submitDeleteAccount() {
+    const passInput = document.getElementById('deleteConfirmPass');
+    const password  = passInput ? passInput.value : '';
+
+    // If the field exists, require it
+    if (passInput && !password) {
+        showToast('Please enter your password to confirm.', true);
+        passInput.focus();
+        return;
+    }
+
+    fetch('/settings/delete-account', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+        body:    JSON.stringify({ password })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/login';
+        } else {
+            showToast(data.message || 'Could not delete account.', true);
+        }
+    })
+    .catch(() => showToast('Network error. Please try again.', true));
+}

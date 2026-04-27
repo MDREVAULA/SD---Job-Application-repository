@@ -402,6 +402,20 @@
           </button>
         </div>
       </div>
+      <div class="settings-card" data-searchable="delete account permanent remove all data">
+        <div class="settings-card-header">
+          <div class="card-icon-wrap danger-icon"><i class="fas fa-trash-alt"></i></div>
+          <div>
+            <h4>Delete Account</h4>
+            <p class="card-desc">Permanently delete your account and all associated data. This cannot be undone.</p>
+          </div>
+        </div>
+        <div class="settings-card-body">
+          <button class="btn-danger-outline" onclick="openDeleteModal()">
+            <i class="fas fa-trash-alt"></i> Delete My Account
+          </button>
+        </div>
+      </div>
     </section>
 
     <!-- ══════════════════════════════════
@@ -691,6 +705,61 @@
 ════════════════════════════════════════ -->
 <div id="toastNotif" class="toast-notif"></div>
 
+<!-- ════════════════════════════════════════
+     DELETE ACCOUNT MODAL
+════════════════════════════════════════ -->
+<div id="deleteAccountModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="max-width:440px;">
+    <div style="padding:22px 24px 0; display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+      <div>
+        <h3 style="margin:0 0 6px; font-size:16px; font-weight:700; color:var(--brand-danger); display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-exclamation-triangle"></i> Delete Account
+        </h3>
+        <p style="margin:0; font-size:13px; color:var(--text-muted);">
+          This will <strong>permanently delete</strong> your account and all data — profile, applications, messages, jobs, and more. <strong>This cannot be undone.</strong>
+        </p>
+      </div>
+      <button class="modal-close-btn" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    {% if current_user.role == 'recruiter' %}
+    <div style="margin:16px 24px 0; padding:12px 14px; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.35); border-radius:10px; display:flex; align-items:flex-start; gap:10px;">
+      <i class="fas fa-users-slash" style="color:var(--brand-danger); margin-top:2px; flex-shrink:0;"></i>
+      <div>
+        <strong style="font-size:13px; color:var(--brand-danger); display:block; margin-bottom:3px;">Your HR accounts will also be deleted</strong>
+        <span style="font-size:12px; color:var(--text-muted); line-height:1.5;">
+          All HR accounts you created will be <strong>permanently removed</strong> along with their profiles, data, and access. This affects your entire team.
+        </span>
+      </div>
+    </div>
+    {% endif %}
+
+    <div style="padding:18px 24px;">
+      {% if current_user.password %}
+      <div class="input-field-group">
+        <label>Confirm your password</label>
+        <input type="password" id="deleteConfirmPass" placeholder="••••••••" class="settings-input"
+               style="width:100%; box-sizing:border-box;">
+      </div>
+      {% else %}
+      <div class="info-banner" style="margin-bottom:14px;">
+        <i class="fas fa-info-circle"></i>
+        You're signed in with Google. No password required.
+      </div>
+      {% endif %}
+
+      <div style="display:flex; gap:10px; margin-top:6px;">
+        <button class="btn-secondary" onclick="closeDeleteModal()" style="flex:1;">
+          Cancel
+        </button>
+        <button class="btn-danger-outline" onclick="submitDeleteAccount()"
+                style="flex:1; justify-content:center; background:rgba(255,107,107,0.1);">
+          <i class="fas fa-trash-alt"></i> Delete Forever
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
