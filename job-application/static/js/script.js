@@ -137,8 +137,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const notifMarkAll = document.getElementById('notifMarkAllBtn');
     const notifClear   = document.getElementById('notifClearBtn');
 
-    const isHR        = document.body.classList.contains('is-hr');
-    const API_BASE    = isHR ? '/hr/notifications' : '/recruiter/notifications';
+    const isHR          = document.body.classList.contains('is-hr');
+    const isApplicant   = document.body.classList.contains('is-applicant');
+    const API_BASE      = isApplicant ? '/applicant/notifications'
+                        : isHR       ? '/hr/notifications'
+                        :              '/recruiter/notifications';
     const MARK_READ   = API_BASE + '/mark-read';
     const CSRF        = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
@@ -207,8 +210,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function getNotifUrl(n) {
-        if (n.type === 'new_message') return '/chat/inbox';
-        if (n.type === 'new_follow')  return n.sender_id ? '/profile/' + n.sender_id : '#';
+        if (n.type === 'new_message') {
+            return n.sender_id ? '/chat/inbox/' + n.sender_id : '/chat/inbox';
+        }
+        if (n.type === 'new_follow' || n.type === 'follow_accepted') {
+            return n.sender_id ? '/profile/' + n.sender_id : '#';
+        }
+        if (isApplicant) {
+            if (n.type === 'application_status' || n.type === 'interview_scheduled') {
+                return '/applicant/status';
+            }
+            if (n.type === 'job_update' && n.job_id) {
+                return '/applicant/job/' + n.job_id;
+            }
+            if (n.type === 'profile_complete') {
+                return '/applicant/status';
+            }
+            return '#';
+        }
         if (n.job_id) return isHR
             ? '/hr/job-applications/' + n.job_id
             : '/recruiter/job-applications/' + n.job_id;
