@@ -27,6 +27,3 @@ class Config:
     # Google OAuth
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-
-    # Admin Token
-    ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "admintoken123")
