@@ -28,17 +28,11 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken']
 
-
 csrf = CSRFProtect()
 csrf.init_app(app)
 
-class NoStaticFilter(logging.Filter):
-    def filter(self, record):
-        return '/static/' not in record.getMessage()
-
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.INFO)
-log.addFilter(NoStaticFilter())
+log.setLevel(logging.ERROR)
 
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -106,7 +100,6 @@ def inject_now():
 @app.before_request
 def auto_unban_expired():
     try:
-        # ── Auto-unban expired users ──
         expired = User.query.filter(
             User.is_banned == True,
             User.ban_until != None,
@@ -120,7 +113,6 @@ def auto_unban_expired():
                 u.banned_at  = None
             db.session.commit()
 
-        # ── Auto-restore expired job takedowns ──
         from models import Job
         expired_jobs = Job.query.filter(
             Job.is_taken_down == True,
@@ -136,12 +128,10 @@ def auto_unban_expired():
             db.session.commit()
 
     except Exception:
-        pass  # never crash the app over this
-    
+        pass
+
 # ============================================================
 # AUTO-PROCESS EXPIRED RENDERING PERIODS
-# Runs on every request (lightweight — only commits when rows change).
-# For production, move this to a daily scheduled job instead.
 # ============================================================
 @app.before_request
 def auto_process_rendering_periods():
@@ -149,14 +139,13 @@ def auto_process_rendering_periods():
         from routes.employment import process_expired_rendering_periods
         process_expired_rendering_periods()
     except Exception:
-        pass  # never crash the app over this
+        pass
 
 @app.before_request
 def check_user_ban():
     from flask_login import current_user
     from flask import request, render_template
 
-    # Skip static files and auth routes (login, logout)
     if request.endpoint and (
         request.endpoint.startswith('static') or
         request.endpoint in ('auth.login', 'auth.logout', 'auth.index', 'auth.register',
@@ -166,10 +155,8 @@ def check_user_ban():
         return None
 
     if current_user.is_authenticated:
-        # Always fetch a fresh copy to avoid stale cache
         db.session.expire(current_user)
         if current_user.is_banned:
-            # Allow logout even when banned
             if request.endpoint == 'auth.logout':
                 return None
             return render_template("account_banned.html", user=current_user), 403
@@ -185,7 +172,7 @@ from routes.admin import admin_bp
 from routes.chat import chat_bp
 from routes.profile_view import profile_view_bp
 from routes.settings import settings_bp
-from routes.report_block import report_block_bp   
+from routes.report_block import report_block_bp
 from routes.employment import employment_bp
 
 app.register_blueprint(auth_bp)
@@ -196,8 +183,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(chat_bp)
 app.register_blueprint(profile_view_bp)
 app.register_blueprint(settings_bp)
-app.register_blueprint(report_block_bp)   
-
+app.register_blueprint(report_block_bp)
 app.register_blueprint(employment_bp)
 
 # ============================================================
@@ -206,8 +192,8 @@ app.register_blueprint(employment_bp)
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
 
+        if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
             existing_admin = User.query.filter_by(role="admin").first()
             if not existing_admin:
                 admin = User(
@@ -221,19 +207,19 @@ if __name__ == "__main__":
                 db.session.commit()
                 print("=" * 50)
                 print("Admin account created!")
-                print("Username: admin")
-                print("Password: admin123")
                 print("=" * 50)
 
-# Generate a fresh admin token every run
-    fresh_token = secrets.token_urlsafe(32)
-    app.config['ADMIN_TOKEN'] = fresh_token
+            fresh_token = secrets.token_urlsafe(32)
+            app.config['ADMIN_TOKEN'] = fresh_token
 
-    print("\n" + "=" * 50)
-    print("Flask App URL:")
-    print("http://127.0.0.1:5000/")
-    print("\nADMIN LOGIN URL (this session only):")
-    print(f"http://127.0.0.1:5000/admin/login/{fresh_token}")
-    print("=" * 50 + "\n")
+            print("\n" + "=" * 50)
+            print("Flask App URL:")
+            print("http://127.0.0.1:5000/")
+            print("\nADMIN LOGIN URL (this session only):")
+            print(f"http://127.0.0.1:5000/admin/login/{fresh_token}")
+            print("\nADMIN CREDENTIALS:")
+            print("Username: admin")
+            print("Password: admin123")
+            print("=" * 50 + "\n")
 
     app.run(debug=True)
