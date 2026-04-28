@@ -108,12 +108,14 @@
             <span>Jobs</span>
         </a>
 
-        {% if current_user.is_authenticated and current_user.role != 'admin' %}
+        {% if current_user.role != 'admin' %}
             <a href="{{ url_for('chat.people') }}"
                class="nav-link {% if request.endpoint == 'chat.people' %}active{% endif %}">
                 <span>People</span>
             </a>
-
+        {% endif %}
+        
+        {% if current_user.is_authenticated and current_user.role != 'admin' %}
             <a href="{{ url_for('chat.inbox') }}"
                 class="nav-link {% if request.endpoint.startswith('chat.inbox') or request.endpoint == 'chat.conversation' %}active{% endif %}">
                     <span>Messages</span>

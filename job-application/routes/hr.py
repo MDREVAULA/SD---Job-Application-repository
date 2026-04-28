@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from models import db, Application, Job, HRProfile, HRFeedback, User, HRNotification, ApplicantNotification, HREducation, Employee, get_ph_time  
+from datetime import date 
 from werkzeug.security import generate_password_hash
 from flask import current_app
 from PIL import Image
@@ -59,6 +60,8 @@ def profile():
         following_count=len(following),
         followers=followers,
         following=following,
+        assigned_jobs=assigned_jobs,
+        today=date.today(),    
     )
 
 

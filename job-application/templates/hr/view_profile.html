@@ -293,6 +293,63 @@
             </div>
             {% endif %}
 
+            <!-- ── ASSIGNED JOBS (read-only public view) ── -->
+            {% if assigned_jobs %}
+            <div class="pview-card" style="animation-delay:0.14s">
+                <div class="pview-card-header">
+                    <div class="pview-card-title">
+                        <i class="fas fa-briefcase"></i> Assigned Jobs
+                        <span class="pview-section-count">{{ assigned_jobs | length }}</span>
+                    </div>
+                </div>
+                <div class="pview-items-list">
+                    {% for job in assigned_jobs %}
+                    {% set is_closed  = not job.allow_applications or job.is_taken_down %}
+                    {% set is_expired = not is_closed and job.expiration_date and job.expiration_date < today %}
+                    <div class="pview-item">
+                        <div class="pview-item-icon">
+                            {% if job.cover_photo %}
+                                <img src="{{ url_for('static', filename='uploads/job_covers/' + job.cover_photo) }}"
+                                    class="pview-job-thumb" alt="{{ job.title }}">
+                            {% else %}
+                                <i class="fas fa-briefcase"></i>
+                            {% endif %}
+                        </div>
+                        <div class="pview-item-body">
+                            <div class="pview-item-title">
+                                {{ job.title }}
+                                {% if is_closed %}
+                                <span class="pview-status-chip status-closed">Closed</span>
+                                {% elif is_expired %}
+                                <span class="pview-status-chip status-expired">Expired</span>
+                                {% else %}
+                                <span class="pview-status-chip status-active">Active</span>
+                                {% endif %}
+                            </div>
+                            <div class="pview-item-subtitle">
+                                {% if recruiter_profile and recruiter_profile.company_name %}
+                                    {{ recruiter_profile.company_name }}
+                                {% endif %}
+                                {% if job.field %} · {{ job.field }}{% endif %}
+                            </div>
+                            <div class="pview-item-date">
+                                {% if job.location %}<span><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>{% endif %}
+                                {% if job.job_type %}<span><i class="fas fa-clock"></i> {{ job.job_type }}</span>{% endif %}
+                                {% if job.salary %}<span><i class="fas fa-money-bill-wave"></i> {{ job.salary }} {{ job.currency }}</span>{% endif %}
+                            </div>
+                        </div>
+                        {% if not is_expired %}
+                        <a href="{{ url_for('applicant.job_details', job_id=job.id) }}"
+                        class="pview-apply-btn">
+                            <i class="fas fa-arrow-right"></i> View Job
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
         </div><!-- /.pview-main -->
 
         <!-- ══ SIDEBAR COLUMN ══ -->

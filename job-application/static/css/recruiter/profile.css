@@ -1211,6 +1211,10 @@
     border-color: #D4ECC8;
     color: #4D774E;
 }
+
+.status-active  { background: #EAF3DE; border-color: #C0DD97; color: #27500A; }
+.status-expired { background: #F3F4F6; border-color: #D1D5DB; color: #6B7280; }
+
 .doc-file-btn-view:hover {
     background: #164A41;
     border-color: #164A41;
@@ -1382,6 +1386,14 @@
     transform: rotate(-180deg);
 }
 
+.pview-status-chip {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+}
+
 /* optgroup label styling (limited but consistent cross-browser) */
 .prof-edu-level-select optgroup {
     font-size: 0.72rem;
@@ -1401,6 +1413,14 @@
 .prof-edu-level-select option:hover {
     background: var(--bg-hover, #f9fafb);
     color: #164A41;
+}
+
+.status-closed { background: #FEF3C7; border-color: #FCD34D; color: #78350F; }
+
+[data-theme="dark"] .status-closed {
+    background: rgba(120,53,15,0.2);
+    border-color: rgba(252,211,77,0.3);
+    color: #FCD34D;
 }
 
 .prof-edu-level-select option:checked {
@@ -1702,6 +1722,8 @@
 [data-theme="dark"] .follow-modal-header { border-color: var(--border-color); }
 [data-theme="dark"] .follow-tab { color: var(--text-muted); }
 [data-theme="dark"] .follow-tab.active { color: #9DC88D; border-bottom-color: #9DC88D; }
+[data-theme="dark"] .status-active { background: rgba(39,80,10,0.2); border-color: rgba(192,221,151,0.3); color: #9DC88D; }
+[data-theme="dark"] .status-expired { background: rgba(55,65,81,0.3); border-color: rgba(107,114,128,0.3); color: #9CA3AF; }
 
 /* ══════════════════════════════════════════
    RESPONSIVE

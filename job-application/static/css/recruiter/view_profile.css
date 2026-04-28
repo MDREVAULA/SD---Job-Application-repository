@@ -1084,6 +1084,14 @@ body.role-hr .pview-cover-strip,
   background: #2271b1;
 }
 
+.status-closed { background: #FEF3C7; border-color: #FCD34D; color: #78350F; }
+
+[data-theme="dark"] .status-closed {
+    background: rgba(120,53,15,0.2);
+    border-color: rgba(252,211,77,0.3);
+    color: #FCD34D;
+}
+
 @keyframes modalFadeIn {
     from {
         opacity: 0;

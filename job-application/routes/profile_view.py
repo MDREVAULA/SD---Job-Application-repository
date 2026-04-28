@@ -7,7 +7,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, abort, j
 from flask_login import login_required, current_user
 from models import (
     db, User, ApplicantProfile, WorkExperience,
-    Education, Skill, Project, Certification, Job, Follow, FollowRequest, UserSettings
+    Education, Skill, Project, Certification, Job, Follow, FollowRequest, UserSettings,
+    JobTeamMember
 )
 from datetime import date
 import json
@@ -152,6 +153,7 @@ def view_profile(user_id):
     else:
         abort(404)
 
+
 # ── APPLICANT PUBLIC PROFILE ──
 @profile_view_bp.route('/applicant/<int:user_id>')
 def view_applicant_profile(user_id):
@@ -236,7 +238,7 @@ def view_applicant_profile(user_id):
 # ── RECRUITER PUBLIC PROFILE ──
 @profile_view_bp.route('/recruiter/<int:user_id>')
 def view_recruiter_profile(user_id):
-    from models import RecruiterProfile
+    from models import RecruiterProfile, RecruiterEducation
 
     viewed_user = User.query.get_or_404(user_id)
     if viewed_user.role != 'recruiter':
@@ -256,17 +258,19 @@ def view_recruiter_profile(user_id):
     can_message       = _can_message(settings, viewer_role, viewer_id, user_id)
     who_can_message   = settings.who_can_message
 
-    profile     = RecruiterProfile.query.filter_by(user_id=user_id).first()
-    educations  = Education.query.filter_by(profile_id=profile.id).order_by(Education.created_at.desc()).all() if profile else []
+    profile    = RecruiterProfile.query.filter_by(user_id=user_id).first()
+
+    # FIX: use RecruiterEducation, not the generic Education model
+    educations = RecruiterEducation.query.filter_by(
+        profile_id=profile.id
+    ).order_by(RecruiterEducation.created_at.desc()).all() if profile else []
+
+    # FIX: removed the wrong filter that was dropping jobs without an expiration date
     posted_jobs = Job.query.filter_by(
         company_id=user_id,
         is_taken_down=False
     ).order_by(Job.id.desc()).all()
 
-    posted_jobs = [
-        job for job in posted_jobs
-        if job.expiration_date is not None
-    ]
     is_following = False
     if current_user.is_authenticated:
         is_following = Follow.query.filter_by(
@@ -292,7 +296,7 @@ def view_recruiter_profile(user_id):
         show_follow_count=show_follow_count,
         can_message=can_message,
         who_can_message=who_can_message,
-        today=date.today()
+        today=date.today(),
     )
 
 
@@ -330,6 +334,12 @@ def view_hr_profile(user_id):
             profile_id=profile.id
         ).order_by(HREducation.created_at.desc()).all()
 
+    # FIX: query assigned jobs and pass today for expiry checks in the template
+    assigned_jobs = [
+        tm.job for tm in JobTeamMember.query.filter_by(hr_id=user_id).all()
+        if tm.job
+    ]
+
     is_following = False
     if current_user.is_authenticated:
         is_following = Follow.query.filter_by(
@@ -344,6 +354,7 @@ def view_hr_profile(user_id):
         profile=profile,
         recruiter_profile=recruiter_profile,
         educations=educations,
+        assigned_jobs=assigned_jobs,
         is_following=is_following,
         followers=followers  if show_follow_list  else [],
         following=following  if show_follow_list  else [],
@@ -355,6 +366,7 @@ def view_hr_profile(user_id):
         show_follow_count=show_follow_count,
         can_message=can_message,
         who_can_message=who_can_message,
+        today=date.today(),
     )
 
 
@@ -402,4 +414,3 @@ def follow_list(user_id):
         'following_count': len(following) if show_count else None,
         'list_is_private': False,
     })
-

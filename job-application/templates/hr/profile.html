@@ -406,7 +406,8 @@
                 <div class="prof-items-list">
                     {% if assigned_jobs %}
                         {% for job in assigned_jobs %}
-                        {% set is_expired = job.expiration_date and job.expiration_date < today %}
+                        {% set is_closed  = not job.allow_applications or job.is_taken_down %}
+                        {% set is_expired = not is_closed and job.expiration_date and job.expiration_date < today %}
                         <div class="prof-item">
                             <div class="prof-item-icon" style="overflow:hidden;">
                                 {% if job.cover_photo %}
@@ -419,10 +420,12 @@
                             <div class="prof-item-body">
                                 <div class="prof-item-title">
                                     {{ job.title }}
-                                    {% if is_expired %}
-                                    <span class="prof-edu-level-badge" style="background:#F3F4F6;border-color:#D1D5DB;color:#6B7280;">Expired</span>
+                                    {% if is_closed %}
+                                    <span class="pview-status-chip status-closed">Closed</span>
+                                    {% elif is_expired %}
+                                    <span class="pview-status-chip status-expired">Expired</span>
                                     {% else %}
-                                    <span class="prof-edu-level-badge">Active</span>
+                                    <span class="pview-status-chip status-active">Active</span>
                                     {% endif %}
                                 </div>
                                 <div class="prof-item-subtitle">

@@ -114,8 +114,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ── Sync theme buttons on load ──────────────────────── */
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-    _highlightThemeBtn(currentTheme);
+    const domTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    _highlightThemeBtn(domTheme);
+
+    // Guard: if the DB value (meta tag) somehow drifted from what's
+    // actually rendered, silently push a correction so they stay in sync.
+    const dbTheme = document.querySelector('meta[name="user-theme"]')?.content || domTheme;
+    if (domTheme !== dbTheme) {
+        fetch('/settings/save', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+            body:    JSON.stringify({ section: 'appearance', theme: domTheme })
+        }).catch(() => {});
+    }
 });
 
 /* ── Help modal helpers ─────────────────────────────────── */
@@ -239,6 +250,9 @@ function setTheme(theme) {
         _highlightThemeBtn(theme);
     }
 
+    const metaTag = document.querySelector('meta[name="user-theme"]');
+    if (metaTag) metaTag.setAttribute('content', theme);
+    
     if (_themeSaveController) _themeSaveController.abort();
     _themeSaveController = new AbortController();
 

@@ -677,11 +677,13 @@ def forgot_password():
         email = request.form.get("email")
         user  = User.query.filter_by(email=email).first()
 
-        if user and user.google_id and not user.password:
-            flash("This email is linked to a Google account. Please use 'Sign in with Google' instead.", "login_warning")
-            return redirect(url_for("auth.login"))
+        if user:
+            if user.google_id and not user.password:
+                # Pure Google-only account — no password to reset
+                flash("This email is linked to a Google account. Please use 'Sign in with Google' to log in.", "login_warning")
+                return redirect(url_for("auth.login"))
 
-        if user and user.password:
+            # Any user with a password (including Google users who later set one)
             token = secrets.token_urlsafe(32)
             user.reset_token = token
             user.reset_token_expiry = get_ph_time() + timedelta(minutes=30)
@@ -693,13 +695,17 @@ def forgot_password():
             msg = Message(
                 subject="Reset Your Password – Job Portal",
                 recipients=[email],
-                body=f"Hello {user.username},\n\nClick the link below to reset your password. It expires in 30 minutes.\n\n{reset_url}\n\nIf you did not request this, ignore this email."
+                body=(
+                    f"Hello {user.username},\n\n"
+                    f"Click the link below to reset your password. "
+                    f"It expires in 30 minutes.\n\n"
+                    f"{reset_url}\n\n"
+                    f"If you did not request this, you can safely ignore this email."
+                )
             )
             mail.send(msg)
-        else:
-            flash("If that email is registered, a reset link has been sent.", "info")
-            return redirect(url_for("auth.forgot_password"))
 
+        # Always show the same generic message to avoid leaking whether an email exists
         flash("If that email is registered, a reset link has been sent.", "info")
         return redirect(url_for("auth.forgot_password"))
 
@@ -719,7 +725,7 @@ def reset_password(token):
         return redirect(url_for("auth.forgot_password"))
 
     expiry = user.reset_token_expiry.replace(tzinfo=None)
-    if expiry < get_ph_time():
+    if expiry < get_ph_time().replace(tzinfo=None):
         flash("This reset link is invalid or has expired.", "error")
         return redirect(url_for("auth.forgot_password"))
 

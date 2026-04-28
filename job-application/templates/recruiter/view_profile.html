@@ -318,12 +318,13 @@
                 {% if posted_jobs %}
                 <div class="pview-items-list">
                     {% for job in posted_jobs %}
-                    {% set is_expired = job.expiration_date and job.expiration_date < today %}
+                    {% set is_closed  = not job.allow_applications or job.is_taken_down %}
+                    {% set is_expired = not is_closed and job.expiration_date and job.expiration_date < today %}
                     <div class="pview-item">
                         <div class="pview-item-icon">
                             {% if job.cover_photo %}
                                 <img src="{{ url_for('static', filename='uploads/job_covers/' + job.cover_photo) }}"
-                                     class="pview-job-thumb" alt="{{ job.title }}">
+                                    class="pview-job-thumb" alt="{{ job.title }}">
                             {% else %}
                                 <i class="fas fa-briefcase"></i>
                             {% endif %}
@@ -331,7 +332,9 @@
                         <div class="pview-item-body">
                             <div class="pview-item-title">
                                 {{ job.title }}
-                                {% if is_expired %}
+                                {% if is_closed %}
+                                <span class="pview-status-chip status-closed">Closed</span>
+                                {% elif is_expired %}
                                 <span class="pview-status-chip status-expired">Expired</span>
                                 {% else %}
                                 <span class="pview-status-chip status-active">Active</span>
@@ -350,12 +353,10 @@
                                 {{ job.description | truncate(120) }}
                             </div>
                         </div>
-                        {% if not is_expired %}
                         <a href="{{ url_for('applicant.job_details', job_id=job.id) }}"
-                           class="pview-apply-btn">
+                        class="pview-apply-btn">
                             <i class="fas fa-arrow-right"></i> View Job
                         </a>
-                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
