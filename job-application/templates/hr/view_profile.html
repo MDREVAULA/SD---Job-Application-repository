@@ -664,7 +664,7 @@
 
 <script>
 const SHOW_FOLLOW_LIST = {{ 'true' if show_follow_list else 'false' }};
-const PROFILE_USER_ID = {{ viewed_user.id }};
+window.PROFILE_USER_ID = {{ viewed_user.id }};
 
 /* ── Private list notice ── */
 function openPrivateListNotice() {

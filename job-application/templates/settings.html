@@ -418,6 +418,37 @@
       </div>
     </section>
 
+<!-- ════════════════════════════════════════
+     DEACTIVATE ACCOUNT MODAL
+════════════════════════════════════════ -->
+<div id="deactivateAccountModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="max-width:440px;">
+    <div style="padding:22px 24px 0; display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+      <div>
+        <h3 style="margin:0 0 6px; font-size:16px; font-weight:700; color:var(--brand-accent); display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-power-off"></i> Deactivate Account
+        </h3>
+        <p style="margin:0; font-size:13px; color:var(--text-muted);">
+          Your account will be <strong>temporarily disabled</strong>. You won't be able to log in or be found by others. Contact support anytime to reactivate.
+        </p>
+      </div>
+      <button class="modal-close-btn" onclick="closeDeactivateModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div style="padding:18px 24px;">
+      <div style="display:flex; gap:10px; margin-top:6px;">
+        <button class="btn-secondary" onclick="closeDeactivateModal()" style="flex:1;">
+          Cancel
+        </button>
+        <button class="btn-danger-outline" onclick="submitDeactivate()"
+                style="flex:1; justify-content:center; background:rgba(241,178,74,0.1); border-color:rgba(241,178,74,0.45); color:var(--brand-accent);">
+          <i class="fas fa-power-off"></i> Deactivate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
     <!-- ══════════════════════════════════
          SECTION: NOTIFICATIONS
     ══════════════════════════════════ -->

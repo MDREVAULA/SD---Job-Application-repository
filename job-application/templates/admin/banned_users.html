@@ -64,20 +64,12 @@
                     </td>
                     <td class="td-action">
                         <div class="banned-action-buttons">
-                            <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}"
-                                  onsubmit="return confirm('Unban {{ user.username }}?')">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn-unban">
-                                    <i class="fas fa-unlock"></i> Unban
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
-                                  onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn-delete">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </form>
+                            <button class="btn-unban" onclick="openUnbanModal({{ user.id }}, '{{ user.username }}')">
+                                <i class="fas fa-unlock"></i> Unban
+                            </button>
+                            <button class="btn-delete" onclick="openBannedDeleteModal({{ user.id }}, '{{ user.username }}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -100,5 +92,83 @@
         </div>
     </div>
 </div>
+
+<!-- UNBAN MODAL -->
+<div class="admin-modal-overlay" id="unbanModalOverlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-unlock" style="color:#9DC88D;"></i> Unban User</h3>
+            <button class="admin-modal-close" onclick="closeUnbanModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Unban <strong id="unbanUsername"></strong>? They will regain full access to the platform.
+            </p>
+            <form method="POST" id="unbanForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="admin-modal-footer">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeUnbanModal()">Cancel</button>
+                    <button type="submit" class="admin-modal-btn" style="background:#4D774E; color:#fff;">
+                        <i class="fas fa-unlock"></i> Confirm Unban
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="admin-modal-overlay" id="bannedDeleteModalOverlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-trash-alt"></i> Delete User</h3>
+            <button class="admin-modal-close" onclick="closeBannedDeleteModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Permanently delete <strong id="bannedDeleteUsername"></strong>? This cannot be undone and all their data will be removed.
+            </p>
+            <form method="POST" id="bannedDeleteForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="admin-modal-footer">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeBannedDeleteModal()">Cancel</button>
+                    <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
+                        <i class="fas fa-trash-alt"></i> Delete Permanently
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openUnbanModal(userId, username) {
+    document.getElementById('unbanUsername').textContent = username;
+    document.getElementById('unbanForm').action = `/admin/unban/${userId}`;
+    document.getElementById('unbanModalOverlay').style.display = 'flex';
+}
+function closeUnbanModal() {
+    document.getElementById('unbanModalOverlay').style.display = 'none';
+}
+document.getElementById('unbanModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeUnbanModal();
+});
+
+function openBannedDeleteModal(userId, username) {
+    document.getElementById('bannedDeleteUsername').textContent = username;
+    document.getElementById('bannedDeleteForm').action = `/admin/delete-user/${userId}`;
+    document.getElementById('bannedDeleteModalOverlay').style.display = 'flex';
+}
+function closeBannedDeleteModal() {
+    document.getElementById('bannedDeleteModalOverlay').style.display = 'none';
+}
+document.getElementById('bannedDeleteModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeBannedDeleteModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeUnbanModal(); closeBannedDeleteModal(); }
+});
+</script>
 
 {% endblock %}

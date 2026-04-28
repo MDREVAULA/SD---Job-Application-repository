@@ -557,3 +557,62 @@ function _esc(str) {
   d.textContent = String(str);
   return d.innerHTML;
 }
+
+const REQUIRED_FIELDS = [
+    { name: 'title',            tab: 'job-details',  label: 'Job Title' },
+    { name: 'description',      tab: 'job-details',  label: 'Job Description' },
+    { name: 'field',            tab: 'job-details',  label: 'Job Field' },
+    { name: 'job_type',         tab: 'job-details',  label: 'Employment Type' },
+    { name: 'location',         tab: 'job-details',  label: 'Location' },
+    { name: 'salary',           tab: 'job-details',  label: 'Salary Range' },
+    { name: 'expiration_date',  tab: 'job-details',  label: 'Application Deadline' },
+    { name: 'experience_level', tab: 'requirements', label: 'Experience Level' },
+    { name: 'years_exp',        tab: 'requirements', label: 'Years of Experience' },
+    { name: 'education',        tab: 'requirements', label: 'Education Requirement' },
+    { name: 'languages',        tab: 'requirements', label: 'Languages' },
+    { name: 'required_skills',  tab: 'requirements', label: 'Required Skills' },
+];
+
+function validateAndSubmit() {
+    const errors = [];
+
+    REQUIRED_FIELDS.forEach(function(f) {
+        const el = document.querySelector('[name="' + f.name + '"]');
+        if (!el) return;
+        if (!el.value.trim()) errors.push({ field: f, el: el });
+    });
+
+    // Check arrangement tags
+    const arrangement = document.getElementById('arrangementInput').value.trim();
+    if (!arrangement) {
+        errors.push({ field: { tab: 'job-details', label: 'Work Arrangement' }, el: null });
+    }
+
+    if (errors.length === 0) {
+    markClean();
+    document.getElementById('editJobForm').submit();
+    return;
+}
+
+    const firstError = errors[0];
+    const tabBtn = document.querySelector('.tab-btn[data-tab="' + firstError.field.tab + '"]');
+    if (tabBtn) tabBtn.click();
+
+    if (firstError.el) {
+        firstError.el.focus();
+        firstError.el.style.borderColor = '#ef4444';
+        firstError.el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+        setTimeout(() => {
+            firstError.el.style.borderColor = '';
+            firstError.el.style.boxShadow = '';
+        }, 3000);
+    }
+
+    const list = document.getElementById('validationErrorList');
+    list.innerHTML = errors.map(e => '<li>' + e.field.label + '</li>').join('');
+    document.getElementById('validationModal').style.display = 'flex';
+}
+
+function closeValidationModal() {
+    document.getElementById('validationModal').style.display = 'none';
+}

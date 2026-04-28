@@ -151,6 +151,30 @@
     box-shadow: 0 4px 12px rgba(77, 119, 78, 0.25);
 }
 
+.btn-delete-rejected {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: rgba(220, 38, 38, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    white-space: nowrap;
+}
+
+.btn-delete-rejected:hover {
+    background: rgba(220, 38, 38, 0.22);
+    border-color: #f87171;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 768px) {

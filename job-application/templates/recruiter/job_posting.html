@@ -33,12 +33,6 @@
           </svg>
           Share &amp; Promote
         </button>
-        <button type="button" class="btn-nav" style="background: #fbbf24; border-color: #fbbf24; color: white;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-          Draft
-        </button>
       </div>
     </div>
   </div>
@@ -95,7 +89,7 @@
             <!-- Job Title Section -->
             <div class="content-card">
               <div class="card-header">
-                <h3 class="card-title">Job Information</h3>
+                <h3 class="card-title">Job Information<span class="required">*</span></h3>
                 <button type="button" class="btn-edit-text">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -110,7 +104,7 @@
               </div>
 
               <div class="field-group">
-                <h4 class="subsection-title">Job Description</h4>
+                <h4 class="subsection-title">Job Description<span class="required">*</span></h4>
                 <div class="description-wrapper">
                   <textarea name="description" class="input-textarea" rows="8" placeholder="Describe the role, key responsibilities, and what makes this opportunity unique..." required></textarea>
                 </div>
@@ -159,12 +153,12 @@
               </div>
 
               <div class="field">
-                <label class="field-label">Location</label>
-                <input type="text" name="location" value="" class="input-text" placeholder="e.g. Manila, Philippines or Remote">
+                <label class="field-label">Location<span class="required">*</span></label>
+                <input type="text" name="location" value="" class="input-text" placeholder="e.g. Manila, Philippines or Remote" required>
               </div>
 
               <div class="field">
-                <label class="field-label">Salary Range</label>
+                <label class="field-label">Salary Range<span class="required">*</span></label>
                 <div class="salary-row">
                   <select name="currency" class="input-select" style="width: 120px;">
                     <option value="PHP">₱ PHP</option>
@@ -173,14 +167,14 @@
                     <option value="GBP">£ GBP</option>
                     <option value="JPY">¥ JPY</option>
                   </select>
-                  <input type="text" name="salary" value="" class="input-text" placeholder="e.g. 30,000 – 50,000" style="flex: 1;">
+                  <input type="text" name="salary" value="" class="input-text" placeholder="e.g. 30,000 – 50,000" style="flex: 1;" required>
                 </div>
               </div>
 
               <div class="field-grid">
                 <div class="field">
-                  <label class="field-label">Application Deadline</label>
-                  <input type="date" name="expiration_date" value="" class="input-text">
+                  <label class="field-label">Application Deadline<span class="required">*</span></label>
+                  <input type="date" name="expiration_date" value="" class="input-text" required>
                 </div>
                 <div class="field">
                   <label class="field-label">
@@ -291,8 +285,8 @@
               </div>
               <div class="field-grid">
                 <div class="field">
-                  <label class="field-label">Experience Level</label>
-                  <select name="experience_level" class="input-select">
+                  <label class="field-label">Experience Level<span class="required">*</span></label>
+                  <select name="experience_level" class="input-select" required>
                     <option value="">Select level</option>
                     <option value="Entry-level">Entry-level</option>
                     <option value="Mid-level">Mid-level</option>
@@ -302,13 +296,13 @@
                   </select>
                 </div>
                 <div class="field">
-                  <label class="field-label">Years of Experience</label>
+                  <label class="field-label">Years of Experience<span class="required">*</span></label>
                   <input type="text" name="years_exp" value="" class="input-text" placeholder="e.g. 3-5 years">
                 </div>
               </div>
               <div class="field">
-                <label class="field-label">Education Requirement</label>
-                <select name="education" class="input-select">
+                <label class="field-label">Education Requirement<span class="required">*</span></label>
+                <select name="education" class="input-select" required>
                   <option value="">No preference</option>
                   <option value="High school diploma">High school diploma</option>
                   <option value="Associate degree">Associate degree</option>
@@ -324,11 +318,11 @@
             </div>
             <div class="content-card">
               <div class="card-header">
-                <h3 class="card-title">Required Skills</h3>
+                <h3 class="card-title">Required Skills<span class="required">*</span></h3>
               </div>
               <div class="field">
                 <label class="field-label">Must-Have Skills</label>
-                <input type="text" name="required_skills" value="" class="input-text" placeholder="e.g. JavaScript, React, Node.js">
+                <input type="text" name="required_skills" value="" class="input-text" placeholder="e.g. JavaScript, React, Node.js" required>
                 <p class="field-hint">Comma-separated list of required skills</p>
               </div>
               <div class="field">
@@ -551,7 +545,7 @@
                 <button type="button" class="btn-add-value" onclick="addValueRow()">+ Add Value</button>
                 <div class="edit-actions" style="display:flex; gap:10px; margin-top:14px;">
                   <!-- FIX: was saveValues() and toggleEditMode('values') — now match the inline script -->
-                  <button type="button" class="btn-save" onclick="saveValuesDisplay()">Save Values</button>
+                  <button type="button" class="btn-save" onclick="validateAndSubmit()">Save Values</button>
                   <button type="button" class="btn-cancel" onclick="cancelValuesEditor()">Cancel</button>
                 </div>
               </div>
@@ -671,13 +665,6 @@
                 </div>
                 <div class="detail-item"><div class="detail-label">Salary</div><div class="detail-value">Not specified</div></div>
                 <div class="detail-item"><div class="detail-label">Last Update</div><div class="detail-value">Today</div></div>
-                <div class="detail-item detail-toggle">
-                  <span class="toggle-label">Allow employee to apply</span>
-                  <label class="toggle-switch">
-                    <input type="checkbox" name="allow_applications" checked>
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
               </div>
             </div>
           </div>
@@ -830,5 +817,71 @@ document.querySelector('form[action]').addEventListener('submit', function () {
 });
 
 syncBenefitsHidden();
+</script>
+
+<script>
+const REQUIRED_FIELDS = [
+    { name: 'title',            tab: 'job-details',  label: 'Job Title' },
+    { name: 'description',      tab: 'job-details',  label: 'Job Description' },
+    { name: 'field',            tab: 'job-details',  label: 'Job Field' },
+    { name: 'job_type',         tab: 'job-details',  label: 'Employment Type' },
+    { name: 'location',         tab: 'job-details',  label: 'Location' },
+    { name: 'salary',           tab: 'job-details',  label: 'Salary Range' },
+    { name: 'expiration_date',  tab: 'job-details',  label: 'Application Deadline' },
+    { name: 'experience_level', tab: 'requirements', label: 'Experience Level' },
+    { name: 'years_exp',        tab: 'requirements', label: 'Years of Experience' },
+    { name: 'education',        tab: 'requirements', label: 'Education Requirement' },
+    { name: 'languages',        tab: 'requirements', label: 'Languages' },
+    { name: 'required_skills',  tab: 'requirements', label: 'Required Skills' },
+];
+
+function validateAndSubmit() {
+    const errors = [];
+
+    REQUIRED_FIELDS.forEach(function(f) {
+        const el = document.querySelector('[name="' + f.name + '"]');
+        if (!el) return;
+        const val = el.value.trim();
+        if (!val) {
+            errors.push({ field: f, el: el });
+        }
+    });
+
+    // Check arrangement tags
+    const arrangement = document.getElementById('arrangementInput').value.trim();
+    if (!arrangement) {
+        errors.push({ field: { tab: 'job-details', label: 'Work Arrangement' }, el: null });
+    }
+
+    if (errors.length === 0) {
+        // All good — sync hidden fields and submit
+        document.getElementById('aboutCompanyHidden').value =
+            document.getElementById('aboutCompanyTextarea').value.trim();
+        document.getElementById('companyValuesHidden').value = JSON.stringify(_postingValues);
+        syncBenefitsHidden();
+        document.querySelector('form[action]').submit();
+        return;
+    }
+
+    // Switch to the first tab with an error
+    const firstError = errors[0];
+    const tabBtn = document.querySelector('.tab-btn[data-tab="' + firstError.field.tab + '"]');
+    if (tabBtn) tabBtn.click();
+
+    // Highlight the first missing field
+    if (firstError.el) {
+        firstError.el.focus();
+        firstError.el.style.borderColor = '#ef4444';
+        firstError.el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+        setTimeout(() => {
+            firstError.el.style.borderColor = '';
+            firstError.el.style.boxShadow = '';
+        }, 3000);
+    }
+
+    // Build error message
+    const missing = errors.map(e => '• ' + e.field.label).join('\n');
+    alert('Please fill in the following required fields before publishing:\n\n' + missing);
+}
 </script>
 {% endblock %}

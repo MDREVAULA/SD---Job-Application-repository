@@ -207,23 +207,33 @@ function showToast(message, isError = false) {
 }
 
 /* ── Deactivate account ─────────────────────────────────── */
+// NEW — replace with this:
 function confirmDeactivate() {
-    if (!confirm('Are you sure you want to deactivate your account? You can contact support to reactivate it.')) return;
+    document.getElementById('deactivateAccountModal').style.display = 'flex';
+}
 
-    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+function closeDeactivateModal() {
+    document.getElementById('deactivateAccountModal').style.display = 'none';
+}
+
+function submitDeactivate() {
     fetch('/settings/deactivate', {
         method: 'POST',
-        headers: { 'X-CSRFToken': CSRF }
+        headers: { 'X-CSRFToken': CSRF_TOKEN }
     })
     .then(r => r.json())
     .then(data => {
         if (data.success) {
             window.location.href = '/';
         } else {
-            alert(data.message || 'Could not deactivate account.');
+            closeDeactivateModal();
+            showToast(data.message || 'Could not deactivate account.', true);
         }
     })
-    .catch(() => alert('Something went wrong. Please try again.'));
+    .catch(() => {
+        closeDeactivateModal();
+        showToast('Something went wrong. Please try again.', true);
+    });
 }
 
 /* ── Logout all devices ─────────────────────────────────── */

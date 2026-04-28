@@ -57,12 +57,17 @@
                         {% endif %}
                     </td>
                     <td>
-                        <form method="POST" action="{{ url_for('admin.restore', user_id=rec.id) }}">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn-restore">
-                                <i class="fas fa-undo-alt"></i> Restore
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <form method="POST" action="{{ url_for('admin.restore', user_id=rec.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn-restore">
+                                    <i class="fas fa-undo-alt"></i> Restore
+                                </button>
+                            </form>
+                            <button class="btn-delete-rejected" onclick="openDeleteRejectedModal({{ rec.id }}, '{{ rec.username }}')">
+                                <i class="fas fa-trash-alt"></i> Delete
                             </button>
-                        </form>
+                        </div>
                     </td>
                 </tr>
                 {% else %}
@@ -76,6 +81,47 @@
             </tbody>
         </table>
     </div>
-
 </div>
+
+<!-- DELETE MODAL -->
+<div class="admin-modal-overlay" id="deleteRejectedOverlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-trash-alt"></i> Delete Recruiter</h3>
+            <button class="admin-modal-close" onclick="closeDeleteRejectedModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Permanently delete <strong id="deleteRejectedUsername"></strong>? This cannot be undone and all their data will be removed.
+            </p>
+            <form method="POST" id="deleteRejectedForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="admin-modal-footer">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeDeleteRejectedModal()">Cancel</button>
+                    <button type="submit" class="admin-modal-btn admin-modal-btn--danger">
+                        <i class="fas fa-trash-alt"></i> Delete Permanently
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDeleteRejectedModal(userId, username) {
+    document.getElementById('deleteRejectedUsername').textContent = username;
+    document.getElementById('deleteRejectedForm').action = `/admin/delete-user/${userId}`;
+    document.getElementById('deleteRejectedOverlay').style.display = 'flex';
+}
+function closeDeleteRejectedModal() {
+    document.getElementById('deleteRejectedOverlay').style.display = 'none';
+}
+document.getElementById('deleteRejectedOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteRejectedModal();
+});
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDeleteRejectedModal();
+});
+</script>
+
 {% endblock %}

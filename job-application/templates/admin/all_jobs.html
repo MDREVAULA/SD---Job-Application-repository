@@ -123,7 +123,7 @@
                             </a>
                             {% if job.is_taken_down %}
                                 <button class="btn-restore"
-                                        onclick="restoreJob({{ job.id }}, '{{ job.title|replace("'", "\\'") }}')">
+                                        onclick="openRestoreModal({{ job.id }}, '{{ job.title|replace("'", "\\'") }}')">
                                     <i class="fas fa-undo"></i> Restore
                                 </button>
                             {% else %}
@@ -210,8 +210,70 @@
     </div>
 </div>
 
+<!-- ══ RESTORE MODAL ══ -->
+<div class="admin-modal-overlay" id="restoreModalOverlay" style="display:none;">
+    <div class="admin-modal ban-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-undo"></i> Restore Job</h3>
+            <button class="admin-modal-close" onclick="closeRestoreModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="admin-modal-body">
+
+            <!-- Info banner -->
+            <div class="restore-info-banner">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <strong id="restoreJobTitle"></strong> will be made
+                    <strong>visible to applicants</strong> again immediately.
+                </div>
+            </div>
+
+            <p class="admin-modal-desc" style="margin-bottom:0;">
+                Any previous takedown reason will be cleared. The recruiter will be notified that their job listing has been restored.
+            </p>
+
+            <div class="admin-modal-footer">
+                <button type="button" class="admin-modal-btn admin-modal-btn--cancel"
+                        onclick="closeRestoreModal()">Cancel</button>
+                <button type="button" class="admin-modal-btn admin-modal-btn--restore"
+                        onclick="submitRestore()">
+                    <i class="fas fa-undo"></i> Restore Job
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ DELETE JOB MODAL ══ -->
+<div class="admin-modal-overlay" id="deleteJobModalOverlay" style="display:none;">
+    <div class="admin-modal ban-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-trash-alt"></i> Delete Job</h3>
+            <button class="admin-modal-close" onclick="closeDeleteJobModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Permanently delete <strong id="deleteJobTitle"></strong>? This cannot be undone and will remove all associated applications.
+            </p>
+            <div class="admin-modal-footer">
+                <button type="button" class="admin-modal-btn admin-modal-btn--cancel"
+                        onclick="closeDeleteJobModal()">Cancel</button>
+                <button type="button" class="admin-modal-btn admin-modal-btn--danger"
+                        onclick="submitDeleteJob()">
+                    <i class="fas fa-trash-alt"></i> Delete Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentJobId = null;
+let currentRestoreJobId = null;
 const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
 // ── Takedown modal ────────────────────────────────────────────
@@ -287,25 +349,57 @@ function submitTakedown() {
     .catch(() => alert('Something went wrong.'));
 }
 
-// ── Restore ───────────────────────────────────────────────────
-function restoreJob(jobId, title) {
-    if (!confirm(`Restore "${title}"? It will be visible to applicants again.`)) return;
-    fetch(`/admin/job/${jobId}/restore`, {
+// ── Restore modal ─────────────────────────────────────────────
+function openRestoreModal(jobId, title) {
+    currentRestoreJobId = jobId;
+    document.getElementById('restoreJobTitle').textContent = title;
+    document.getElementById('restoreModalOverlay').style.display = 'flex';
+}
+
+function closeRestoreModal() {
+    document.getElementById('restoreModalOverlay').style.display = 'none';
+    currentRestoreJobId = null;
+}
+
+document.getElementById('restoreModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeRestoreModal();
+});
+
+function submitRestore() {
+    if (!currentRestoreJobId) return;
+    fetch(`/admin/job/${currentRestoreJobId}/restore`, {
         method: 'POST',
         headers: { 'X-CSRFToken': csrf }
     })
     .then(r => r.json())
     .then(data => {
-        if (data.ok) location.reload();
-        else alert(data.error || 'Something went wrong.');
+        if (data.ok) {
+            closeRestoreModal();
+            location.reload();
+        } else {
+            alert(data.error || 'Something went wrong.');
+        }
     })
     .catch(() => alert('Something went wrong.'));
 }
 
 // ── Delete ────────────────────────────────────────────────────
+let currentDeleteJobId = null;
+
 function confirmDeleteJob(jobId, title) {
-    if (!confirm(`Permanently delete "${title}"? This cannot be undone and will remove all applications.`)) return;
-    fetch(`/admin/job/${jobId}/admin-delete`, {
+    currentDeleteJobId = jobId;
+    document.getElementById('deleteJobTitle').textContent = title;
+    document.getElementById('deleteJobModalOverlay').style.display = 'flex';
+}
+
+function closeDeleteJobModal() {
+    document.getElementById('deleteJobModalOverlay').style.display = 'none';
+    currentDeleteJobId = null;
+}
+
+function submitDeleteJob() {
+    if (!currentDeleteJobId) return;
+    fetch(`/admin/job/${currentDeleteJobId}/admin-delete`, {
         method: 'POST',
         headers: { 'X-CSRFToken': csrf }
     })
@@ -317,8 +411,16 @@ function confirmDeleteJob(jobId, title) {
     .catch(() => alert('Something went wrong.'));
 }
 
+document.getElementById('deleteJobModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteJobModal();
+});
+
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeTakedownModal();
+    if (e.key === 'Escape') {
+        closeTakedownModal();
+        closeRestoreModal();
+        closeDeleteJobModal();
+    }
 });
 </script>
 

@@ -64,6 +64,8 @@ def dashboard():
     banned_users     = User.query.filter_by(is_banned=True).all()
     total_applicants = User.query.filter_by(role='applicant').count()
     total_recruiters = User.query.filter_by(role='recruiter').count()
+    total_hr         = User.query.filter_by(role='hr').count()
+    total_jobs       = Job.query.count()
 
     # ==============================
     # Chart Data: Last 7 Days
@@ -120,6 +122,8 @@ def dashboard():
         banned_users=banned_users,
         total_applicants=total_applicants,
         total_recruiters=total_recruiters,
+        total_hr=total_hr,
+        total_jobs=total_jobs,
         chart_labels=chart_labels,
         chart_applications=chart_applications,
         chart_signups=chart_signups,
@@ -128,7 +132,6 @@ def dashboard():
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     return response
-
 
 # ==============================
 # All Users Page

@@ -687,3 +687,44 @@
         padding: 10px 8px;
     }
 }
+
+/* ══ RESTORE MODAL ADDITIONS — append to all_jobs.css ══ */
+
+/* Green confirm button */
+.admin-modal-btn--restore {
+    background: linear-gradient(135deg, #4D774E, #5a8a5b);
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(77, 119, 78, 0.3);
+}
+
+.admin-modal-btn--restore:hover {
+    background: linear-gradient(135deg, #39583a, #4D774E);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(77, 119, 78, 0.4);
+}
+
+/* Info banner inside restore modal */
+.restore-info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(77, 119, 78, 0.08);
+    border: 1px solid rgba(77, 119, 78, 0.25);
+    border-radius: 10px;
+    margin-bottom: 14px;
+    font-size: 13.5px;
+    color: var(--text-primary);
+    line-height: 1.55;
+}
+
+.restore-info-banner i {
+    color: #9DC88D;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.restore-info-banner strong {
+    color: var(--text-primary);
+}

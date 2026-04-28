@@ -69,21 +69,21 @@
                     </div>
                 </div>
                 <div class="admin-stat-card">
-                    <div class="admin-stat-icon admin-stat-icon--danger">
-                        <i class="fas fa-ban"></i>
+                    <div class="admin-stat-icon admin-stat-icon--hr">
+                        <i class="fas fa-user-tie"></i>
                     </div>
                     <div>
-                        <div class="admin-stat-number">{{ banned_users|length }}</div>
-                        <div class="admin-stat-label">Banned Users</div>
+                        <div class="admin-stat-number">{{ total_hr }}</div>
+                        <div class="admin-stat-label">All HR Users</div>
                     </div>
                 </div>
                 <div class="admin-stat-card">
-                    <div class="admin-stat-icon">
-                        <i class="fas fa-clock"></i>
+                    <div class="admin-stat-icon admin-stat-icon--jobs">
+                        <i class="fas fa-briefcase"></i>
                     </div>
                     <div>
-                        <div class="admin-stat-number">{{ pending_recruiters|length }}</div>
-                        <div class="admin-stat-label">Pending Reviews</div>
+                        <div class="admin-stat-number">{{ total_jobs }}</div>
+                        <div class="admin-stat-label">All Jobs</div>
                     </div>
                 </div>
             </div>
@@ -197,13 +197,10 @@
                                 <a href="{{ url_for('admin.review_recruiter', user_id=recruiter.id) }}" class="admin-review-btn">
                                     <i class="fas fa-search"></i> Review
                                 </a>
-                                <form method="POST" action="{{ url_for('admin.verify', user_id=recruiter.id) }}"
-                                      onsubmit="return confirm('Verify {{ recruiter.username }}?')">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                      <button type="submit" class="admin-action-btn admin-action-btn--approve">
-                                        <i class="fas fa-check"></i> Approve
-                                    </button>
-                                </form>
+                                <button type="button" class="admin-action-btn admin-action-btn--approve"
+                                        onclick="openApproveModal({{ recruiter.id }}, '{{ recruiter.username }}')">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
                                 <button type="button" class="admin-action-btn admin-action-btn--reject"
                                         onclick="openRejectModal({{ recruiter.id }}, '{{ recruiter.username }}')">
                                     <i class="fas fa-times"></i> Reject
@@ -324,6 +321,34 @@
     </div>
 </div>
 
+<!-- Approve Modal -->
+<div class="admin-modal-overlay" id="approveModalOverlay" style="display:none;">
+    <div class="admin-modal">
+        <div class="admin-modal-header">
+            <h3><i class="fas fa-check-circle" style="color:#4D774E;"></i> Approve Recruiter</h3>
+            <button class="admin-modal-close" onclick="closeApproveModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="admin-modal-body">
+            <p class="admin-modal-desc">
+                Approve <strong id="approveUsername"></strong>? They will gain full recruiter access and be notified immediately.
+            </p>
+            <form method="POST" id="approveForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="admin-modal-footer">
+                    <button type="button" class="admin-modal-btn admin-modal-btn--cancel" onclick="closeApproveModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="admin-modal-btn" style="background:#4D774E; color:#fff;">
+                        <i class="fas fa-check"></i> Confirm Approval
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 function openRejectModal(userId, username) {
     document.getElementById('rejectUsername').textContent = username;
@@ -344,7 +369,6 @@ document.getElementById('rejectModalOverlay').addEventListener('click', function
         .then(data => {
             const badge = document.getElementById('dashReportBadge');
             if (badge && data.count > 0) {
-                badge.textContent = data.count;
                 badge.textContent = data.count;
                 badge.style.display = 'inline-block';
             }
@@ -367,7 +391,7 @@ document.getElementById('rejectModalOverlay').addEventListener('click', function
 })();
 
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeRejectModal();
+    if (e.key === 'Escape') { closeRejectModal(); closeApproveModal(); }
 });
 </script>
 
@@ -499,6 +523,20 @@ document.addEventListener('keydown', e => {
         }
     });
 })();
+
+function openApproveModal(userId, username) {
+    document.getElementById('approveUsername').textContent = username;
+    document.getElementById('approveForm').action = `/admin/verify/${userId}`;
+    document.getElementById('approveModalOverlay').style.display = 'flex';
+}
+
+function closeApproveModal() {
+    document.getElementById('approveModalOverlay').style.display = 'none';
+}
+
+document.getElementById('approveModalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeApproveModal();
+});
 
 </script>
 

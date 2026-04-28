@@ -571,7 +571,7 @@
 
 .job-company {
     font-size: 0.8125rem;
-    color: var(--brand-green-dark);
+    color: var(--brand-accent);
     margin: 0;
     font-weight: 600;
     white-space: nowrap;

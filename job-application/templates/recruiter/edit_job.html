@@ -17,11 +17,11 @@
     </svg>
     You have unsaved changes. Click <strong style="margin:0 4px;">Save Changes</strong> to keep them.
   </div>
-  <button type="submit" form="editJobForm"
-    style="padding:6px 18px;background:#f59e0b;color:white;border:none;border-radius:6px;
-           font-size:13px;font-weight:600;cursor:pointer;">
-    Save Now
-  </button>
+  <button type="button" onclick="validateAndSubmit()"
+  style="padding:6px 18px;background:#f59e0b;color:white;border:none;border-radius:6px;
+         font-size:13px;font-weight:600;cursor:pointer;">
+  Save Now
+</button>
 </div>
   <!-- Top Navigation Bar -->
   <div class="job-view-nav">
@@ -212,13 +212,13 @@
               </div>
 
               <div class="field">
-                <label class="field-label">Location</label>
+                <label class="field-label">Location <span class="required">*</span></label>
                 <input type="text" name="location" value="{{ job.location or '' }}" class="input-text"
-                       placeholder="City, State or Remote">
+                       placeholder="City, State or Remote" required>
               </div>
 
               <div class="field">
-                <label class="field-label">Salary Range</label>
+                <label class="field-label">Salary Range<span class="required">*</span></label>
                 <div class="salary-row">
                   <select name="currency" class="input-select" style="width:120px;">
                     <option value="PHP" {% if job.currency=="PHP" or not job.currency %}selected{% endif %}>₱ PHP</option>
@@ -228,16 +228,16 @@
                     <option value="JPY" {% if job.currency=="JPY" %}selected{% endif %}>¥ JPY</option>
                   </select>
                   <input type="text" name="salary" value="{{ job.salary or '' }}" class="input-text"
-                         placeholder="e.g. 30,000 – 50,000" style="flex:1;">
+                         placeholder="e.g. 30,000 – 50,000" style="flex:1;" required>
                 </div>
               </div>
 
               <div class="field-grid">
                 <div class="field">
-                  <label class="field-label">Application Deadline</label>
+                  <label class="field-label">Application Deadline <span class="required">*</span></label>
                   <input type="date" name="expiration_date"
                          value="{{ job.expiration_date.strftime('%Y-%m-%d') if job.expiration_date else '' }}"
-                         class="input-text">
+                         class="input-text" required>
                 </div>
                 <div class="field">
                   <label class="field-label">
@@ -310,7 +310,7 @@
                 <div class="field">
                   <label class="field-label">Years of Experience</label>
                   <input type="text" name="years_exp" value="{{ job.years_exp or '' }}"
-                         class="input-text" placeholder="e.g. 5 Years +">
+                         class="input-text" placeholder="e.g. 5 Years +" required>
                 </div>
               </div>
               <div class="field">
@@ -327,7 +327,7 @@
               <div class="field">
                 <label class="field-label">Languages</label>
                 <input type="text" name="languages" value="{{ job.languages or '' }}"
-                       class="input-text" placeholder="e.g. English (fluent), Filipino">
+                       class="input-text" placeholder="e.g. English (fluent), Filipino" required>
               </div>
             </div>
 
@@ -769,7 +769,7 @@
     <!-- Form Actions -->
     <div class="form-actions">
       <a href="{{ url_for('recruiter.my_job_list') }}" class="btn-cancel">Cancel</a>
-      <button type="submit" class="btn-save">
+      <button type="button" class="btn-save" onclick="validateAndSubmit()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
           <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
@@ -779,6 +779,29 @@
     </div>
 
   </form><!-- end main form -->
+
+  <!-- Validation Error Modal -->
+<div id="validationModal" class="delete-modal" style="display:none;">
+  <div class="delete-modal-content">
+    <div class="modal-icon" style="background:#fee2e2;border:2px solid #ef4444;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+    <h3>Required Fields Missing</h3>
+    <p style="margin-bottom:10px;">Please fill in the following fields before saving:</p>
+    <ul id="validationErrorList" style="
+      text-align:left; margin:0 auto 16px;
+      padding-left:20px; max-width:280px;
+      color:#dc2626; font-size:13px; line-height:1.8;
+    "></ul>
+    <div class="modal-buttons">
+      <button class="btn-danger" onclick="closeValidationModal()">Got it</button>
+    </div>
+  </div>
+</div>
 </div><!-- end job-view-wrapper -->
 
 <!-- DELETE IMAGE MODAL -->

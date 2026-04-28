@@ -221,6 +221,7 @@
     border: 1px solid var(--border-color);
     box-shadow: 0 2px 8px var(--shadow-color);
     margin-bottom: 20px;
+    height: 100%;
 }
 
 .admin-chart-placeholder {
@@ -349,23 +350,11 @@
     overflow: hidden;
 }
 
-.admin-list-item::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: transparent;
-    transition: background 0.2s ease;
-    border-radius: 10px 0 0 10px;
-}
-
 .admin-list-item:hover {
     border-color: #9DC88D;
     box-shadow: 0 4px 20px var(--shadow-color);
     transform: translateY(-1px);
 }
-
-
 
 .admin-user-info {
     display: flex;
@@ -1391,6 +1380,30 @@
     line-height: 18px;
     text-align: center;
     flex-shrink: 0;
+}
+
+/* ── Append to dashboard.css ── */
+
+/* HR Users stat icon — blue-ish teal */
+.admin-stat-icon--hr {
+    color: #4a97d6;
+    background: rgba(74, 151, 214, 0.12);
+}
+
+[data-theme="dark"] .admin-stat-icon--hr {
+    color: #7ab8e8;
+    background: rgba(74, 151, 214, 0.08);
+}
+
+/* All Jobs stat icon — amber */
+.admin-stat-icon--jobs {
+    color: #d97706;
+    background: rgba(217, 119, 6, 0.12);
+}
+
+[data-theme="dark"] .admin-stat-icon--jobs {
+    color: #F1B24A;
+    background: rgba(241, 178, 74, 0.08);
 }
 
 @media (max-width: 768px) {
