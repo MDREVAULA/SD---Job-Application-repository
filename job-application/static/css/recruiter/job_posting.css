@@ -1307,7 +1307,7 @@ input:checked + .toggle-slider:before {
 .highlight-card {
   position: relative;
   background: rgba(77, 119, 78, 0.05);
-  border-color: #4D774E;
+  border-color: var(--brand-green);
 }
 
 .highlight-header {
@@ -1318,7 +1318,7 @@ input:checked + .toggle-slider:before {
 }
 
 .highlight-header svg {
-  color: #4D774E;
+  color: var(--brand-green);
   flex-shrink: 0;
 }
 
@@ -1345,7 +1345,7 @@ input:checked + .toggle-slider:before {
 }
 
 .benefit-item svg {
-  color: #4D774E;
+  color: var(--brand-green);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -1371,7 +1371,7 @@ input:checked + .toggle-slider:before {
 }
 
 .value-editor-row:hover {
-  border-color: #4D774E;
+  border-color: var(--brand-green);
 }
 
 .value-editor-row .value-desc-input {
@@ -1412,7 +1412,7 @@ input:checked + .toggle-slider:before {
 }
 
 .benefit-editor-row:hover {
-  border-color: #4D774E;
+  border-color: var(--brand-green);
 }
 
 .benefit-editor-row .input-text { flex: 1; margin: 0; }
@@ -1423,7 +1423,7 @@ input:checked + .toggle-slider:before {
   height: 18px;
   border-radius: 50%;
   background: rgba(77, 119, 78, 0.15);
-  border: 2px solid #4D774E;
+  border: 2px solid var(--brand-green);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -1454,10 +1454,10 @@ input:checked + .toggle-slider:before {
   margin-top: 4px;
   padding: 7px 14px;
   background: var(--bg-surface, #fff);
-  border: 1px dashed var(--brand-green-dark);
+  border: 1px dashed var(--brand-green);
   border-radius: 8px;
   font-size: 13px;
-  color: var(--brand-green-dark);
+  color: var(--brand-green);
   cursor: pointer;
   transition: background 0.2s;
   margin-bottom: 14px;
@@ -1491,7 +1491,7 @@ input:checked + .toggle-slider:before {
   transition: color 0.15s;
 }
 
-.breadcrumb-link:hover { color: var(--brand-green-dark); }
+.breadcrumb-link:hover { color: var(--brand-green); }
 
 .breadcrumb-sep { font-size: 13px; color: var(--border-color); }
 

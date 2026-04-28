@@ -2,7 +2,6 @@
 {% block content %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/job_posting.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/recruiter/job-posting-styles.css') }}">
 
 <div class="job-view-wrapper">
   
@@ -268,13 +267,13 @@
                   <div class="detail-label">Last Update</div>
                   <div class="detail-value">Today</div>
                 </div>
-                <div class="detail-item detail-toggle">
+                <!-- <div class="detail-item detail-toggle">
                   <span class="toggle-label">Allow employee to apply</span>
                   <label class="toggle-switch">
                     <input type="checkbox" name="allow_applications" checked>
                     <span class="toggle-slider"></span>
                   </label>
-                </div>
+                </div> -->
               </div>
             </div>
           </div>
@@ -596,6 +595,25 @@
                     </a>
                   </div>
                 </div>
+              </div>
+            </div>
+            
+            <!-- HR Team Card -->
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title-main">HR Team Members</h3>
+                <p class="card-subtitle" style="margin:0;">HR accounts who can view and manage applications for this job</p>
+              </div>
+              <div class="hr-assign-panel">
+                <h4 class="subsection-title" style="margin-bottom:12px;">Add Team Member</h4>
+              </div>
+              <div class="team-empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <p>Access <strong>Edit Job</strong> to assign HR members.</p>
               </div>
             </div>
 

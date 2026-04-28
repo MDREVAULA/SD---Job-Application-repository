@@ -108,6 +108,25 @@
             <span>Jobs</span>
         </a>
 
+        {% if current_user.is_authenticated and current_user.role != 'admin' %}
+            {% if current_user.role == 'applicant' %}
+                <a href="{{ url_for('applicant.profile') }}"
+                class="nav-link {% if request.endpoint == 'applicant.profile' %}active{% endif %}">
+                    <span>Profile</span>
+                </a>
+            {% elif current_user.role == 'recruiter' %}
+                <a href="{{ url_for('recruiter.profile') }}"
+                class="nav-link {% if request.endpoint == 'recruiter.profile' %}active{% endif %}">
+                    <span>Profile</span>
+                </a>
+            {% elif current_user.role == 'hr' %}
+                <a href="{{ url_for('hr.profile') }}"
+                class="nav-link {% if request.endpoint == 'hr.profile' %}active{% endif %}">
+                    <span>Profile</span>
+                </a>
+            {% endif %}
+        {% endif %}
+
         {% if current_user.role != 'admin' %}
             <a href="{{ url_for('chat.people') }}"
                class="nav-link {% if request.endpoint == 'chat.people' %}active{% endif %}">

@@ -164,6 +164,9 @@
                     <button class="status-filter-btn" data-filter="accepted" onclick="filterByStatus(this,'accepted')">
                         Accepted <span class="tab-count">{{ accepted_count }}</span>
                     </button>
+                    <button class="status-filter-btn" data-filter="employed" onclick="filterByStatus(this,'employed')">
+                        Employed <span class="tab-count">{{ employed_count }}</span>
+                    </button>
                 </div>
 
                 {% if not applications %}
