@@ -36,6 +36,9 @@ class User(db.Model, UserMixin):
     verification_status = db.Column(db.String(20), default="Pending")
     verification_remarks = db.Column(db.Text)
 
+    # Deactivation field
+    is_deactivated = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
+
     # Ban system (replaces applicant rejection)
     is_banned = db.Column(db.Boolean, default=False)
     ban_reason = db.Column(db.Text, nullable=True)

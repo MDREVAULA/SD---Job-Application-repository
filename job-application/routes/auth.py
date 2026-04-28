@@ -150,6 +150,7 @@ def jobs():
         .filter(
             Job.is_taken_down == False,
             User.is_banned == False,
+            User.is_deactivated == False,
         ).all()
     )
 
@@ -209,6 +210,10 @@ def login():
 
         if user.is_banned:
             return render_template("account_banned.html", user=user)
+
+        if user.is_deactivated:
+            user.is_deactivated = False         # auto-reactivate on login
+            db.session.commit()
 
         if user.role == "recruiter":
             profile = user.recruiter_profile
@@ -395,6 +400,10 @@ def google_callback():
 
     if user.is_banned:
         return render_template("account_banned.html", user=user)
+
+    if user.is_deactivated:
+        user.is_deactivated = False         # auto-reactivate on login
+        db.session.commit()
 
     if user.role == "recruiter":
         profile = user.recruiter_profile

@@ -3,7 +3,6 @@
 /* ============================= */
 document.addEventListener("DOMContentLoaded", function () {
     const toggleBtn = document.getElementById("toggleBtn");
-    const closeBtn  = document.getElementById("closeBtn");
     const sidebar   = document.getElementById("sidebar");
     const overlay   = document.getElementById("sidebar-overlay");
 
@@ -20,8 +19,23 @@ document.addEventListener("DOMContentLoaded", function () {
         e.stopPropagation();
         sidebar.classList.contains("active") ? closeSidebar() : openSidebar();
     });
-    closeBtn.addEventListener("click", closeSidebar);
+
     overlay.addEventListener("click", closeSidebar);
+
+    document.addEventListener("click", function (e) {
+        if (
+            sidebar.classList.contains("active") &&
+            !sidebar.contains(e.target) &&
+            !toggleBtn.contains(e.target)
+        ) {
+            closeSidebar();
+        }
+    });
+
+    // Stop all clicks inside the sidebar from bubbling to the document
+    sidebar.addEventListener("click", function (e) {
+        e.stopPropagation();
+    });
 });
 
 /* ============================= */
@@ -32,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener("click", function (e) {
             e.preventDefault();
+            e.stopPropagation();
             const submenu = this.nextElementSibling;
             submenu.classList.toggle("open");
         });

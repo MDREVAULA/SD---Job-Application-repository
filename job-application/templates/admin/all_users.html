@@ -83,6 +83,10 @@
                         <span class="user-status-badge inactive">
                             <i class="fas fa-ban"></i> Banned
                         </span>
+                    {% elif user.is_deactivated %}
+                        <span class="user-status-badge deactivated">
+                            <i class="fas fa-moon"></i> Deactivated
+                        </span>
                     {% else %}
                         <span class="user-status-badge active">
                             <i class="fas fa-circle"></i> Active

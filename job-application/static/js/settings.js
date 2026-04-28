@@ -208,14 +208,22 @@ function showToast(message, isError = false) {
 
 /* ── Deactivate account ─────────────────────────────────── */
 function confirmDeactivate() {
-    if (!confirm('Are you sure you want to deactivate your account? You can reactivate it by logging back in.')) return;
-    fetch('/settings/deactivate', { method: 'POST', headers: { 'X-CSRFToken': CSRF_TOKEN } })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) window.location.href = '/login';
-            else showToast('Could not deactivate. Please try again.', true);
-        })
-        .catch(() => showToast('An error occurred.', true));
+    if (!confirm('Are you sure you want to deactivate your account? You can contact support to reactivate it.')) return;
+
+    const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    fetch('/settings/deactivate', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/';
+        } else {
+            alert(data.message || 'Could not deactivate account.');
+        }
+    })
+    .catch(() => alert('Something went wrong. Please try again.'));
 }
 
 /* ── Logout all devices ─────────────────────────────────── */
@@ -252,7 +260,7 @@ function setTheme(theme) {
 
     const metaTag = document.querySelector('meta[name="user-theme"]');
     if (metaTag) metaTag.setAttribute('content', theme);
-    
+
     if (_themeSaveController) _themeSaveController.abort();
     _themeSaveController = new AbortController();
 

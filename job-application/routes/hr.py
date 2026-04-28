@@ -45,8 +45,8 @@ def profile():
     following_rows = Follow.query.filter_by(follower_id=current_user.id).all()
     followers = [User.query.get(r.follower_id) for r in follower_rows]
     following = [User.query.get(r.followed_id) for r in following_rows]
-    followers = [u for u in followers if u and not u.is_banned and not u.is_deleted]
-    following = [u for u in following if u and not u.is_banned and not u.is_deleted]
+    followers = [u for u in followers if u and not u.is_banned and not u.is_deleted and not u.is_deactivated]
+    following = [u for u in following if u and not u.is_banned and not u.is_deleted and not u.is_deactivated]
 
     from models import JobTeamMember, Job
     assigned_jobs = [tm.job for tm in JobTeamMember.query.filter_by(hr_id=current_user.id).all()]

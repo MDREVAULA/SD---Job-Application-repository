@@ -128,8 +128,8 @@ def profile():
     from models import User as UserModel
     followers = [UserModel.query.get(r.follower_id) for r in follower_rows]
     following = [UserModel.query.get(r.followed_id) for r in following_rows]
-    followers = [u for u in followers if u and not u.is_banned and not u.is_deleted]
-    following = [u for u in following if u and not u.is_banned and not u.is_deleted]
+    followers = [u for u in followers if u and not u.is_banned and not u.is_deleted and not u.is_deactivated]
+    following = [u for u in following if u and not u.is_banned and not u.is_deleted and not u.is_deactivated]
 
     profile_complete = is_profile_complete(prof)
 
@@ -1405,6 +1405,7 @@ def saved_jobs():
         if s.job and not s.job.is_taken_down
         and not User.query.get(s.job.company_id).is_banned
         and not User.query.get(s.job.company_id).is_deleted
+        and not User.query.get(s.job.company_id).is_deactivated
     ]
 
     return render_template('applicant/saved_jobs.html', saved=saved)

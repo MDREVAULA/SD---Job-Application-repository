@@ -97,7 +97,7 @@ def build_user_card(user, current_user_id=None, current_user_role=None, followin
         is_following = Follow.query.filter_by(
             follower_id=current_user_id, followed_id=user.id
         ).first() is not None
-    
+
     # ── Check for pending follow request ──
     has_pending_request = False
     if pending_request_ids is not None:
@@ -105,7 +105,7 @@ def build_user_card(user, current_user_id=None, current_user_role=None, followin
     elif current_user_id:
         from models import FollowRequest
         pending = FollowRequest.query.filter_by(
-            sender_id=current_user_id, 
+            sender_id=current_user_id,
             receiver_id=user.id,
             status='pending'
         ).first()
@@ -245,6 +245,7 @@ def _notify_new_message(sender, receiver, message_preview):
                 sender_id=sender.id
             ))
 
+
 def _notify_new_follow(follower, followed):
     """
     Create a new_follow notification for the followed user regardless of role.
@@ -278,6 +279,7 @@ def _notify_new_follow(follower, followed):
         )
         db.session.add(notif)
 
+
 def _notify_follow_request(sender, receiver):
     """Notify the receiver that someone sent a follow request."""
     msg_text = f"<strong>{sender.username}</strong> sent you a follow request."
@@ -303,7 +305,8 @@ def _notify_follow_request(sender, receiver):
             message=msg_text,
             sender_id=sender.id,
         ))
-    
+
+
 # =========================
 # PEOPLE PAGE
 # =========================
@@ -312,7 +315,12 @@ def people():
     query       = request.args.get("q", "").strip()
     role_filter = request.args.get("role", "").strip()
 
-    users_query = User.query.filter(User.role != "admin", User.is_banned == False, User.is_deleted == False)
+    users_query = User.query.filter(
+        User.role != "admin",
+        User.is_banned == False,
+        User.is_deleted == False,
+        User.is_deactivated == False,
+    )
 
     if current_user.is_authenticated:
         from models import UserBlock
@@ -353,16 +361,16 @@ def people():
 
     following_ids = set()
     pending_request_ids = set()
-    
+
     if current_id:
         # Get actual follows
         rows = Follow.query.filter_by(follower_id=current_id).all()
         following_ids = {r.followed_id for r in rows}
-        
+
         # Get pending follow requests
         from models import FollowRequest
         pending_requests = FollowRequest.query.filter_by(
-            sender_id=current_id, 
+            sender_id=current_id,
             status='pending'
         ).all()
         pending_request_ids = {req.receiver_id for req in pending_requests}
@@ -488,7 +496,7 @@ def inbox():
     conversations = []
     for uid in contact_ids:
         user = User.query.get(uid)
-        if not user or user.is_banned or user.is_deleted:
+        if not user or user.is_banned or user.is_deleted or user.is_deactivated:
             continue
         from models import UserBlock
         _blk = UserBlock.query.filter(
@@ -563,7 +571,7 @@ def conversation(other_id):
     conversations = []
     for uid in contact_ids:
         u = User.query.get(uid)
-        if not u or u.is_banned or u.is_deleted:
+        if not u or u.is_banned or u.is_deleted or u.is_deactivated:
             continue
 
         _blk = UserBlock.query.filter(
@@ -656,6 +664,7 @@ def conversation(other_id):
         has_pending_request=has_pending_request,
     )
 
+
 # =========================
 # SEND MESSAGE  (AJAX POST)
 # =========================
@@ -668,7 +677,7 @@ def send_message(receiver_id):
         return jsonify({'error': 'You cannot message this user.'}), 403
 
     from models import UserBlock
-    
+
     _block = UserBlock.query.filter(
         or_(
             and_(UserBlock.blocker_id == current_user.id, UserBlock.blocked_id == receiver.id),
@@ -897,6 +906,7 @@ def unsend_message(msg_id):
 
     return jsonify({"deleted": True, "id": msg_id})
 
+
 @chat_bp.route("/remove-for-me/<int:msg_id>", methods=["POST"])
 @login_required
 def remove_for_me(msg_id):
@@ -914,6 +924,7 @@ def remove_for_me(msg_id):
             msg.hidden_for = ','.join(ids)
     db.session.commit()
     return jsonify({"deleted": True, "id": msg_id})
+
 
 # =========================
 # REACT MESSAGE  (AJAX POST)

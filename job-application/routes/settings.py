@@ -240,10 +240,13 @@ def deactivate_account():
     if not _role_allowed():
         return jsonify({'success': False}), 403
 
-    current_user.is_active = False
+    from flask_login import logout_user
+    from models import User                    
+
+    user = db.session.get(User, current_user.id)
+    user.is_deactivated = True
     db.session.commit()
 
-    from flask_login import logout_user
     logout_user()
     return jsonify({'success': True})
 
@@ -359,7 +362,7 @@ def delete_account():
                     except (json.JSONDecodeError, TypeError):
                         _delete_upload('report_evidence', r[0])
 
-            # Employment submission files (applicant-uploaded onboarding docs)
+            # Employment submission files
             sub_rows = db.session.execute(text("""
                 SELECT es.file_path
                 FROM employment_submission es
@@ -369,6 +372,16 @@ def delete_account():
             for row in sub_rows:
                 if row[0]:
                     _delete_upload('employment_submissions', row[0])
+
+            # FIX: Apply-time resume files (stored on application.resume,
+            # separate from applicant_profile.resume_file — never cleaned before)
+            app_resume_rows = db.session.execute(text("""
+                SELECT resume FROM application
+                WHERE applicant_id = :uid AND resume IS NOT NULL AND resume != ''
+            """), {"uid": target_uid}).fetchall()
+            for row in app_resume_rows:
+                if row[0]:
+                    _delete_upload('resumes', row[0])
 
             # Resignation letter files
             resign_rows = db.session.execute(text("""
@@ -382,8 +395,6 @@ def delete_account():
 
         # ══════════════════════════════════════════════
         # Helper: delete all disk files for a job_id
-        # (job poster images, cover photo, submission
-        # files, and resignation letters for that job)
         # ══════════════════════════════════════════════
         def _delete_job_files(job_id):
             img_rows = db.session.execute(
@@ -428,8 +439,6 @@ def delete_account():
         # ══════════════════════════════════════════════
         # Helper: delete every DB row referencing
         # target_uid, in strict FK order.
-        # Does NOT handle job rows owned by recruiter —
-        # those are handled in the recruiter branch below.
         # ══════════════════════════════════════════════
         def _delete_user_data(target_uid):
             u = target_uid
@@ -518,7 +527,11 @@ def delete_account():
                         SELECT id FROM application WHERE applicant_id = :u
                     )""", u=u)
 
-            # 17. All notifications — both as owner AND as sender_id
+            # 17. All notifications — both as owner AND as sender_id,
+            # including recruiter_notification and hr_notification rows
+            # that reference this user's applications via application_id.
+            # Without the application_id subquery on these two, deleting
+            # the application rows in step 18 crashes on MySQL (FK violation).
             _run("""DELETE FROM applicant_notification
                     WHERE applicant_id = :u
                        OR sender_id    = :u
@@ -611,14 +624,8 @@ def delete_account():
             ).fetchall()
 
             for (job_id,) in job_rows:
-                # Disk files (job poster images, cover photo, submission files,
-                # and resignation letters for this job)
                 _delete_job_files(job_id)
 
-                # All child DB rows in FK order
-                # FIX: resignation_request WHERE job_id=:jid is now first —
-                # the SET NULL FK means rows not caught by the employee chain
-                # would survive as ghost rows without this direct delete.
                 for sql in [
                     "DELETE FROM resignation_request WHERE job_id = :jid",
                     "DELETE FROM applicant_notification WHERE job_id = :jid OR application_id IN (SELECT id FROM application WHERE job_id = :jid)",
@@ -646,7 +653,6 @@ def delete_account():
                     db.session.execute(text(sql), {'jid': job_id})
                     db.session.flush()
 
-                # Delete the job row itself
                 db.session.execute(text("DELETE FROM job WHERE id = :jid"), {'jid': job_id})
                 db.session.flush()
 
@@ -664,7 +670,6 @@ def delete_account():
         # ══════════════════════════════════════════════
         # Delete the main user's disk files BEFORE
         # _delete_user_data() wipes the profile rows
-        # that contain the file path columns
         # ══════════════════════════════════════════════
         _delete_user_files(uid)
 
@@ -680,10 +685,8 @@ def delete_account():
         # Delete the user row itself
         _run("DELETE FROM user WHERE id = :u", u=uid)
 
-        # FIX: commit first, THEN logout.
-        # Previously logout_user() was called before the DELETE, so if the
-        # commit failed the user would be logged out but their account would
-        # still exist, leaving them unable to log back in from this response.
+        # Commit first, THEN logout — if commit fails, user stays logged in
+        # and can retry rather than being locked out of a still-existing account
         db.session.commit()
 
         from flask_login import logout_user

@@ -145,7 +145,7 @@ def all_users():
 
     query = User.query.filter(
         User.role != 'admin',
-        User.is_banned == False
+        User.is_banned == False,
     )
     if role_filter != 'all':
         query = query.filter_by(role=role_filter)
@@ -380,7 +380,7 @@ def unban_user(user_id):
 # ==============================
 def _delete_job_image_files(job, app_root):
     import os
- 
+
     def _del(subfolder, filename):
         if not filename or filename.startswith('http'):
             return
@@ -390,12 +390,11 @@ def _delete_job_image_files(job, app_root):
                 os.remove(path)
             except Exception as e:
                 print(f'[DELETE FILE] {path}: {e}')
- 
+
     for img in job.images:
         _del('job_posters', img.image_path)
     _del('job_covers', job.cover_photo)
 
-    # Employment submission files for this job's requirements
     from sqlalchemy import text
     sub_rows = db.session.execute(text("""
         SELECT es.file_path FROM employment_submission es
@@ -405,16 +404,6 @@ def _delete_job_image_files(job, app_root):
     for row in sub_rows:
         if row[0]:
             _del('employment_submissions', row[0])
-
-    # Resignation letter files for this job
-    resign_rows = db.session.execute(text("""
-        SELECT letter_file FROM resignation_request
-        WHERE applicant_id = :uid
-        OR employee_id IN (SELECT id FROM employee WHERE user_id = :uid)
-    """), {"uid": target_uid}).fetchall()
-    for row in resign_rows:
-        _del('resignation_letters', row[0])
-
 
 # ==============================
 # Helper: delete all child DB rows for a job_id
@@ -675,7 +664,7 @@ def delete_user(user_id):
         # deleted via _delete_job_rows() before calling this for a recruiter.
         # ══════════════════════════════════════════════════════════════════
         def _delete_user_data(target_uid):
- 
+
             # ── 1. Break self-referential message reply chain ──────────────
             db.session.execute(text("""
                 UPDATE message SET reply_to_id = NULL
@@ -687,27 +676,27 @@ def delete_user(user_id):
                 )
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 2. Message reactions ───────────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM message_reaction
                 WHERE user_id = :uid
-                   OR message_id IN (
-                       SELECT id FROM (
-                           SELECT id FROM message
-                           WHERE sender_id = :uid OR receiver_id = :uid
-                       ) AS _m2
-                   )
+                OR message_id IN (
+                    SELECT id FROM (
+                        SELECT id FROM message
+                        WHERE sender_id = :uid OR receiver_id = :uid
+                    ) AS _m2
+                )
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 3. Messages ────────────────────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM message
                 WHERE sender_id = :uid OR receiver_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 4. Follows ─────────────────────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM follow_request
@@ -718,14 +707,14 @@ def delete_user(user_id):
                 WHERE follower_id = :uid OR followed_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 5. User blocks ─────────────────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM user_block
                 WHERE blocker_id = :uid OR blocked_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 6. User reports ────────────────────────────────────────────
             db.session.execute(text("""
                 UPDATE user_report SET reviewed_by = NULL WHERE reviewed_by = :uid
@@ -735,41 +724,39 @@ def delete_user(user_id):
                 WHERE reporter_id = :uid OR reported_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 7. Saved jobs (as applicant) ───────────────────────────────
             db.session.execute(text("""
                 DELETE FROM saved_job WHERE applicant_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 8. Job team memberships (as HR) ───────────────────────────
             db.session.execute(text("""
                 DELETE FROM job_team_member WHERE hr_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 9. HR feedback written by this user ────────────────────────
             db.session.execute(text("""
                 DELETE FROM hr_feedback WHERE hr_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 10. NULL employee.confirmed_by ─────────────────────────────
             db.session.execute(text("""
                 UPDATE employee SET confirmed_by = NULL WHERE confirmed_by = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 11. NULL resignation_request.reviewed_by ───────────────────
             db.session.execute(text("""
                 UPDATE resignation_request
                 SET reviewed_by = NULL WHERE reviewed_by = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 12. Resignation requests where this user IS the applicant ──
-            # FIX: also covers rows found via the employee chain so there is
-            # no gap between the job_id-based delete and the applicant_id path.
             db.session.execute(text("""
                 DELETE FROM resignation_request
                 WHERE applicant_id = :uid
@@ -779,23 +766,23 @@ def delete_user(user_id):
                 WHERE employee_id IN (
                     SELECT id FROM employee
                     WHERE user_id = :uid
-                       OR application_id IN (
-                           SELECT id FROM application WHERE applicant_id = :uid
-                       )
+                    OR application_id IN (
+                        SELECT id FROM application WHERE applicant_id = :uid
+                    )
                 )
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 13. Employee records ───────────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM employee
                 WHERE user_id = :uid
-                   OR application_id IN (
-                       SELECT id FROM application WHERE applicant_id = :uid
-                   )
+                OR application_id IN (
+                    SELECT id FROM application WHERE applicant_id = :uid
+                )
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 14. Employment onboarding ──────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM employment_onboarding
@@ -804,7 +791,7 @@ def delete_user(user_id):
                 )
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 15. Employment submissions ─────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM employment_submission
@@ -813,7 +800,7 @@ def delete_user(user_id):
                 )
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 16. HR feedback on this user's applications ────────────────
             db.session.execute(text("""
                 DELETE FROM hr_feedback
@@ -822,43 +809,43 @@ def delete_user(user_id):
                 )
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 17. All notifications referencing this user ────────────────
             db.session.execute(text("""
                 DELETE FROM applicant_notification
                 WHERE applicant_id = :uid
-                   OR sender_id    = :uid
-                   OR application_id IN (
-                       SELECT id FROM application WHERE applicant_id = :uid
-                   )
+                OR sender_id    = :uid
+                OR application_id IN (
+                    SELECT id FROM application WHERE applicant_id = :uid
+                )
             """), {"uid": target_uid})
             db.session.execute(text("""
                 DELETE FROM recruiter_notification
                 WHERE recruiter_id = :uid
-                   OR sender_id    = :uid
-                   OR application_id IN (
-                       SELECT id FROM application WHERE applicant_id = :uid
-                   )
+                OR sender_id    = :uid
+                OR application_id IN (
+                    SELECT id FROM application WHERE applicant_id = :uid
+                )
             """), {"uid": target_uid})
             db.session.execute(text("""
                 DELETE FROM hr_notification
                 WHERE hr_id     = :uid
-                   OR sender_id = :uid
-                   OR application_id IN (
-                       SELECT id FROM application WHERE applicant_id = :uid
-                   )
+                OR sender_id = :uid
+                OR application_id IN (
+                    SELECT id FROM application WHERE applicant_id = :uid
+                )
             """), {"uid": target_uid})
             db.session.execute(text("""
                 DELETE FROM admin_notifications WHERE user_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 18. This user's own applications ──────────────────────────
             db.session.execute(text("""
                 DELETE FROM application WHERE applicant_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 19. Applicant profile sub-rows ────────────────────────────
             db.session.execute(text("""
                 DELETE FROM work_experience_certificate
@@ -903,7 +890,7 @@ def delete_user(user_id):
                 DELETE FROM applicant_profile WHERE user_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 20. Recruiter profile sub-rows ────────────────────────────
             db.session.execute(text("""
                 DELETE FROM recruiter_education
@@ -915,7 +902,7 @@ def delete_user(user_id):
                 DELETE FROM recruiter_profile WHERE user_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 21. HR profile sub-rows ───────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM hr_education
@@ -927,7 +914,7 @@ def delete_user(user_id):
                 DELETE FROM hr_profile WHERE user_id = :uid
             """), {"uid": target_uid})
             db.session.flush()
- 
+
             # ── 22. User settings ─────────────────────────────────────────
             db.session.execute(text("""
                 DELETE FROM user_settings WHERE user_id = :uid
