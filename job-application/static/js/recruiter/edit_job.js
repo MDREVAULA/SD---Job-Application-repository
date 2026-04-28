@@ -588,11 +588,29 @@ function validateAndSubmit() {
         errors.push({ field: { tab: 'job-details', label: 'Work Arrangement' }, el: null });
     }
 
+    // Check cover photo — only required if no existing cover is displayed
+    const coverPreview = document.getElementById('coverPhotoPreview');
+    const coverInput   = document.getElementById('coverPhotoInput');
+    const hasExistingCover = coverPreview &&
+        !coverPreview.src.includes('unsplash.com'); // unsplash = placeholder = no real cover
+    if (!hasExistingCover && (!coverInput || coverInput.files.length === 0)) {
+        errors.push({ field: { tab: 'job-details', label: 'Cover Photo' }, el: coverInput });
+    }
+
+    // Check gallery — only required if no existing images AND no new files selected
+    const posterInput    = document.getElementById('posterInput');
+    const existingImages = document.querySelectorAll('#tab-gallery .gallery-card');
+    const hasExistingImages = existingImages.length > 0;
+    const hasNewImages      = posterInput && posterInput.files.length > 0;
+    if (!hasExistingImages && !hasNewImages) {
+        errors.push({ field: { tab: 'gallery', label: 'Gallery (at least one image)' }, el: null });
+    }
+
     if (errors.length === 0) {
-    markClean();
-    document.getElementById('editJobForm').submit();
-    return;
-}
+        markClean();
+        document.getElementById('editJobForm').submit();
+        return;
+    }
 
     const firstError = errors[0];
     const tabBtn = document.querySelector('.tab-btn[data-tab="' + firstError.field.tab + '"]');

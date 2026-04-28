@@ -100,13 +100,13 @@
               </div>
               
               <div class="field">
-                <input type="text" name="title" value="" class="input-title" placeholder="Job Title (e.g. Senior Product Designer)" required>
+                <input type="text" name="title" value="" class="input-title" placeholder="Job Title (e.g. Senior Product Designer)">
               </div>
 
               <div class="field-group">
                 <h4 class="subsection-title">Job Description<span class="required">*</span></h4>
                 <div class="description-wrapper">
-                  <textarea name="description" class="input-textarea" rows="8" placeholder="Describe the role, key responsibilities, and what makes this opportunity unique..." required></textarea>
+                  <textarea name="description" class="input-textarea" rows="8" placeholder="Describe the role, key responsibilities, and what makes this opportunity unique..."></textarea>
                 </div>
               </div>
 
@@ -120,7 +120,7 @@
               <div class="field-grid">
                 <div class="field">
                   <label class="field-label">Job Field <span class="required">*</span></label>
-                  <select name="field" class="input-select" required>
+                  <select name="field" class="input-select">
                     <option value="">Select field...</option>
                     <option value="Engineering">💻 Engineering</option>
                     <option value="IT">🖥️ IT</option>
@@ -142,7 +142,7 @@
 
                 <div class="field">
                   <label class="field-label">Employment Type <span class="required">*</span></label>
-                  <select name="job_type" class="input-select" required>
+                  <select name="job_type" class="input-select">
                     <option value="">Select type...</option>
                     <option value="Full-time">Full-time</option>
                     <option value="Part-time">Part-time</option>
@@ -154,7 +154,7 @@
 
               <div class="field">
                 <label class="field-label">Location<span class="required">*</span></label>
-                <input type="text" name="location" value="" class="input-text" placeholder="e.g. Manila, Philippines or Remote" required>
+                <input type="text" name="location" value="" class="input-text" placeholder="e.g. Manila, Philippines or Remote">
               </div>
 
               <div class="field">
@@ -167,14 +167,14 @@
                     <option value="GBP">£ GBP</option>
                     <option value="JPY">¥ JPY</option>
                   </select>
-                  <input type="text" name="salary" value="" class="input-text" placeholder="e.g. 30,000 – 50,000" style="flex: 1;" required>
+                  <input type="text" name="salary" value="" class="input-text" placeholder="e.g. 30,000 – 50,000" style="flex: 1;">
                 </div>
               </div>
 
               <div class="field-grid">
                 <div class="field">
                   <label class="field-label">Application Deadline<span class="required">*</span></label>
-                  <input type="date" name="expiration_date" value="" class="input-text" required>
+                  <input type="date" name="expiration_date" value="" class="input-text">
                 </div>
                 <div class="field">
                   <label class="field-label">
@@ -286,7 +286,7 @@
               <div class="field-grid">
                 <div class="field">
                   <label class="field-label">Experience Level<span class="required">*</span></label>
-                  <select name="experience_level" class="input-select" required>
+                  <select name="experience_level" class="input-select">
                     <option value="">Select level</option>
                     <option value="Entry-level">Entry-level</option>
                     <option value="Mid-level">Mid-level</option>
@@ -302,8 +302,8 @@
               </div>
               <div class="field">
                 <label class="field-label">Education Requirement<span class="required">*</span></label>
-                <select name="education" class="input-select" required>
-                  <option value="">No preference</option>
+                <select name="education" class="input-select">
+                  <option value="No preference" selected>No preference</option>
                   <option value="High school diploma">High school diploma</option>
                   <option value="Associate degree">Associate degree</option>
                   <option value="Bachelor's degree">Bachelor's degree</option>
@@ -312,7 +312,7 @@
                 </select>
               </div>
               <div class="field">
-                <label class="field-label">Languages</label>
+                <label class="field-label">Languages<span class="required">*</span></label>
                 <input type="text" name="languages" value="" class="input-text" placeholder="e.g. English (fluent), Filipino">
               </div>
             </div>
@@ -322,7 +322,7 @@
               </div>
               <div class="field">
                 <label class="field-label">Must-Have Skills</label>
-                <input type="text" name="required_skills" value="" class="input-text" placeholder="e.g. JavaScript, React, Node.js" required>
+                <input type="text" name="required_skills" value="" class="input-text" placeholder="e.g. JavaScript, React, Node.js">
                 <p class="field-hint">Comma-separated list of required skills</p>
               </div>
               <div class="field">
@@ -439,13 +439,6 @@
                 </div>
                 <div class="detail-item"><div class="detail-label">Salary</div><div class="detail-value">Not specified</div></div>
                 <div class="detail-item"><div class="detail-label">Last Update</div><div class="detail-value">Today</div></div>
-                <div class="detail-item detail-toggle">
-                  <span class="toggle-label">Allow employee to apply</span>
-                  <label class="toggle-switch">
-                    <input type="checkbox" name="allow_applications" checked>
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
               </div>
             </div>
           </div>
@@ -545,7 +538,7 @@
                 <button type="button" class="btn-add-value" onclick="addValueRow()">+ Add Value</button>
                 <div class="edit-actions" style="display:flex; gap:10px; margin-top:14px;">
                   <!-- FIX: was saveValues() and toggleEditMode('values') — now match the inline script -->
-                  <button type="button" class="btn-save" onclick="validateAndSubmit()">Save Values</button>
+                  <button type="button" class="btn-save" onclick="saveValuesDisplay()">Save Values</button>
                   <button type="button" class="btn-cancel" onclick="cancelValuesEditor()">Cancel</button>
                 </div>
               </div>
@@ -678,7 +671,7 @@
     <div class="form-actions">
       <a href="{{ url_for('recruiter.my_job_list') }}" class="btn-cancel">Cancel</a>
       {% if current_user.verification_status == "Approved" %}
-      <button type="submit" class="btn-save">
+      <button type="button" class="btn-save" onclick="validateAndSubmit()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
         </svg>
@@ -696,6 +689,26 @@
 
   </form>
 </div>
+
+<!-- Validation Error Modal -->
+<div id="postingValidationModal" class="delete-modal" style="display:none; position:fixed; inset:0; z-index:999; background:rgba(0,0,0,0.45); align-items:center; justify-content:center;">
+  <div class="delete-modal-content" style="background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:16px; padding:32px; max-width:400px; width:90%; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+    <div class="modal-icon" style="background:#fee2e2; border:2px solid #ef4444; width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+    <h3 style="font-size:17px; font-weight:600; color:var(--text-primary); margin:0 0 8px;">Required Fields Missing</h3>
+    <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">Please fill in the following fields before publishing:</p>
+    <ul id="postingValidationErrorList" style="text-align:left; margin:0 auto 20px; padding-left:20px; max-width:280px; color:#dc2626; font-size:13px; line-height:1.8;"></ul>
+    <div class="modal-buttons" style="display:flex; justify-content:center;">
+      <button onclick="closePostingValidationModal()" style="padding:10px 28px; background:#4D774E; color:white; border:none; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">Got it</button>
+    </div>
+  </div>
+</div>
+
 
 <script src="{{ url_for('static', filename='js/recruiter/job_image_preview.js') }}"></script>
 <script src="{{ url_for('static', filename='js/recruiter/job_posting.js') }}"></script>
@@ -808,14 +821,6 @@ document.querySelectorAll('#benefitsList input').forEach(function (inp) {
   inp.addEventListener('input', syncBenefitsHidden);
 });
 
-/* ── On form submit: flush all hidden fields ── */
-document.querySelector('form[action]').addEventListener('submit', function () {
-  document.getElementById('aboutCompanyHidden').value =
-    document.getElementById('aboutCompanyTextarea').value.trim();
-  document.getElementById('companyValuesHidden').value = JSON.stringify(_postingValues);
-  syncBenefitsHidden();
-});
-
 syncBenefitsHidden();
 </script>
 
@@ -853,8 +858,19 @@ function validateAndSubmit() {
         errors.push({ field: { tab: 'job-details', label: 'Work Arrangement' }, el: null });
     }
 
+    // Check cover photo — must have a file selected (new post has no existing photo)
+    const coverInput = document.getElementById('coverPhotoInput');
+    if (!coverInput || coverInput.files.length === 0) {
+        errors.push({ field: { tab: 'job-details', label: 'Cover Photo' }, el: coverInput });
+    }
+
+    // Check gallery — at least one image required
+    const posterInput = document.getElementById('posterInput');
+    if (!posterInput || posterInput.files.length === 0) {
+        errors.push({ field: { tab: 'gallery', label: 'Gallery (at least one image)' }, el: null });
+    }
+
     if (errors.length === 0) {
-        // All good — sync hidden fields and submit
         document.getElementById('aboutCompanyHidden').value =
             document.getElementById('aboutCompanyTextarea').value.trim();
         document.getElementById('companyValuesHidden').value = JSON.stringify(_postingValues);
@@ -863,12 +879,10 @@ function validateAndSubmit() {
         return;
     }
 
-    // Switch to the first tab with an error
     const firstError = errors[0];
     const tabBtn = document.querySelector('.tab-btn[data-tab="' + firstError.field.tab + '"]');
     if (tabBtn) tabBtn.click();
 
-    // Highlight the first missing field
     if (firstError.el) {
         firstError.el.focus();
         firstError.el.style.borderColor = '#ef4444';
@@ -879,9 +893,22 @@ function validateAndSubmit() {
         }, 3000);
     }
 
-    // Build error message
-    const missing = errors.map(e => '• ' + e.field.label).join('\n');
-    alert('Please fill in the following required fields before publishing:\n\n' + missing);
+    const list = document.getElementById('postingValidationErrorList');
+    list.innerHTML = errors.map(e => '<li>' + e.field.label + '</li>').join('');
+    document.getElementById('postingValidationModal').style.display = 'flex';
+
+    window.addEventListener('click', function(e) {
+    const modal = document.getElementById('postingValidationModal');
+    if (modal && e.target === modal) closePostingValidationModal();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closePostingValidationModal();
+    });
+
+}
+
+function closePostingValidationModal() {
+    document.getElementById('postingValidationModal').style.display = 'none';
 }
 </script>
 {% endblock %}
