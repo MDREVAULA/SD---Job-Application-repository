@@ -1,12 +1,10 @@
 :root {
-    /* Brand colors — fixed in both modes */
     --brand-green: #9DC88D;
     --brand-green-dark: #4D774E;
     --brand-accent: #F1B24A;
     --brand-accent-dark: #ec9c1b;
     --brand-danger: #ff6b6b;
 
-    /* Dark mode (default) */
     --bg-primary: #1e2022;
     --bg-secondary: #252829;
     --bg-surface: #2c2f31;
@@ -60,7 +58,6 @@
     --icon-light-2: #39583a;
     --icon-dark: #164A41;
 
-    /* Navbar, sidebar, footer in light mode use soft colors */
     --navbar-bg: #f8f9fa;
     --sidebar-bg: #f8f9fa;
     --footer-bg: #f8f9fa;
@@ -75,13 +72,13 @@
 }
 
 /* ================================
-   PAGE LAYOUT (STICKY FOOTER FIX)
+   PAGE LAYOUT
    ================================ */
 html {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow-y: scroll; /* ← THIS is the key fix, must be on html not body */
+    overflow-y: scroll;
 }
 
 body {
@@ -106,7 +103,6 @@ body {
     display: none;
 }
 
-
 .close-btn {
     background: var(--bg-hover);
     border: none;
@@ -128,16 +124,82 @@ body {
 }
 
 /* ================================
-   SIDEBAR USER SECTION
+   NAVBAR BRAND
    ================================ */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    text-decoration: none;
+    line-height: 1;
+}
 
+.navbar-brand-logo {
+    height: 35px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+    margin-right: 8px;
+}
 
+.navbar-brand-hire,
+.navbar-brand-bon,
+.navbar-brand-dot {
+    position: relative;
+    top: -10px;
+}
 
-/* =============================================
-    PROFILE PICTURE — shared styles for layout
-    ============================================= */
+.navbar-brand-logo--dark  { display: inline-block; }
+.navbar-brand-logo--light { display: none; }
 
-/* Navbar avatar */
+[data-theme="light"] .navbar-brand-logo--dark  { display: none; }
+[data-theme="light"] .navbar-brand-logo--light { display: inline-block; }
+
+/* ================================
+   FOOTER BRAND
+   ================================ */
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.footer-brand-logo {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.footer-brand-logo--dark  { display: inline-block; }
+.footer-brand-logo--light { display: none; }
+
+[data-theme="light"] .footer-brand-logo--dark  { display: none; }
+[data-theme="light"] .footer-brand-logo--light { display: inline-block; }
+
+.footer-brand-name {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Must be last to win cascade — !important beats any override */
+.footer-brand-hire,
+.footer-brand-bon,
+.footer-brand-dot {
+    font-weight: 800 !important;
+    font-size: 22px !important;
+    line-height: 1 !important;
+}
+
+.footer-brand-hire { color: var(--text-primary) !important; }
+.footer-brand-bon  { color: var(--brand-green) !important; }
+.footer-brand-dot  { color: var(--brand-accent) !important; }
+
+/* ================================
+   NAV AVATAR
+   ================================ */
 .nav-avatar {
     width: 34px;
     height: 34px;
@@ -155,7 +217,9 @@ body {
     flex-shrink: 0;
 }
 
-/* Dropdown Menu */
+/* ================================
+   DROPDOWN MENU
+   ================================ */
 .dropdown-toggle {
     display: flex;
     align-items: center;
@@ -222,17 +286,14 @@ body {
     width: 18px;
 }
 
-/* Submenu Active Link State */
 .submenu li a.active {
     background: rgba(76, 175, 80, 0.12);
     color: var(--brand-green-dark);
 }
 
-
 /* ================================
    OVERLAY
    ================================ */
-
 #sidebar-overlay {
     position: fixed;
     top: 0;
@@ -254,7 +315,6 @@ body {
 /* ================================
    FLASH MESSAGES
    ================================ */
-
 .flash-container {
     position: fixed;
     top: 80px;
@@ -292,67 +352,44 @@ body {
     border-radius: 10px 0 0 10px;
 }
 
-/* Flash type: success */
 .flash.success {
     background: var(--bg-surface);
     color: #81c784;
     border: 1px solid rgba(76, 175, 80, 0.3);
 }
+.flash.success::before { background: #4CAF50; }
 
-.flash.success::before {
-    background: #4CAF50;
-}
-
-/* Flash type: danger / error */
 .flash.danger,
 .flash.error {
     background: var(--bg-surface);
     color: #e57373;
     border: 1px solid rgba(229, 115, 115, 0.3);
 }
-
 .flash.danger::before,
-.flash.error::before {
-    background: #e53935;
-}
+.flash.error::before { background: #e53935; }
 
-/* Flash type: warning */
 .flash.warning {
     background: var(--bg-surface);
     color: #ffb74d;
     border: 1px solid rgba(255, 183, 77, 0.3);
 }
+.flash.warning::before { background: #fb8c00; }
 
-.flash.warning::before {
-    background: #fb8c00;
-}
-
-/* Flash type: info */
 .flash.info {
     background: var(--bg-surface);
     color: #64b5f6;
     border: 1px solid rgba(100, 181, 246, 0.3);
 }
-
-.flash.info::before {
-    background: #1e88e5;
-}
+.flash.info::before { background: #1e88e5; }
 
 @keyframes flashSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(30px); }
+    to   { opacity: 1; transform: translateX(0); }
 }
 
 /* ================================
    FOOTER
    ================================ */
-
 .footer {
     background: var(--footer-bg);
     color: var(--text-primary);
@@ -382,30 +419,11 @@ body {
     margin-top: 10px;
 }
 
-.footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.footer-logo i {
-    font-size: 28px;
-    color: var(--brand-green-dark);
-}
-
-.footer-logo h3 {
-    margin: 0;
-    font-size: 22px;
-}
-
 .footer-desc {
     color: var(--text-secondary);
     line-height: 1.6;
     margin-bottom: 20px;
 }
-
-/* Social Links */
 
 .social-links {
     display: flex;
@@ -429,8 +447,6 @@ body {
     background: var(--brand-green-dark);
     color: white;
 }
-
-/* Footer Links */
 
 .footer-links {
     list-style: none;
@@ -461,8 +477,6 @@ body {
     font-size: 10px;
 }
 
-/* Footer Contact */
-
 .footer-contact {
     list-style: none;
     padding: 0;
@@ -484,8 +498,6 @@ body {
     width: 18px;
 }
 
-/* Footer Bottom */
-
 .footer-bottom {
     max-width: 1200px;
     margin: 0 auto;
@@ -501,24 +513,9 @@ body {
 }
 
 /* ================================
-   RESPONSIVE DESIGN
+   RESPONSIVE
    ================================ */
-
 @media (max-width: 768px) {
-    .logo {
-        font-size: 18px;
-    }
-
-    .logo-icon {
-        font-size: 20px;
-    }
-
-    .login-btn,
-    .signup-btn {
-        padding: 8px 14px;
-        font-size: 13px;
-    }
-
     .sidebar {
         width: 240px;
         padding-top: 60px;
@@ -559,23 +556,8 @@ body {
         gap: 8px;
     }
 
-    .login-btn,
-    .signup-btn {
-        padding: 7px 12px;
-        font-size: 12px;
-    }
-
-    .login-btn i,
-    .signup-btn i {
-        display: none;
-    }
-
     .user-info {
         padding: 6px 12px;
-    }
-
-    .welcome-text {
-        font-size: 13px;
     }
 
     .sidebar {
@@ -585,22 +567,23 @@ body {
     .footer {
         padding: 30px 15px 15px;
     }
+
+    .notif-panel {
+        width: calc(100vw - 20px);
+        right: -60px;
+    }
+
+    .notif-toast {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        max-width: none;
+    }
 }
 
 /* ================================
-   RECRUITER DROPDOWN MENU
+   RECRUITER DROPDOWN OVERRIDES
    ================================ */
-
-.dropdown .submenu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.dropdown .submenu li {
-    margin: 0;
-}
-
 .dropdown .submenu li a {
     padding: 10px 10px 10px 25px;
     font-size: 14px;
@@ -613,7 +596,7 @@ body {
 }
 
 /* ================================
-   RECRUITER AND HR NOTIFICATION BELL
+   NOTIFICATION BELL
    ================================ */
 .notif-wrapper {
     position: relative;
@@ -675,7 +658,6 @@ body {
     pointer-events: none;
 }
 
-/* Panel */
 .notif-panel {
     position: absolute;
     top: calc(100% + 10px);
@@ -745,7 +727,6 @@ body {
     color: var(--brand-danger);
 }
 
-/* List */
 .notif-list {
     overflow-y: auto;
     flex: 1;
@@ -753,16 +734,12 @@ body {
     scrollbar-color: rgba(76, 175, 80, 0.3) transparent;
 }
 
-.notif-list::-webkit-scrollbar {
-    width: 4px;
-}
-
+.notif-list::-webkit-scrollbar { width: 4px; }
 .notif-list::-webkit-scrollbar-thumb {
     background: rgba(76, 175, 80, 0.3);
     border-radius: 4px;
 }
 
-/* Empty state */
 .notif-empty {
     display: flex;
     flex-direction: column;
@@ -783,7 +760,6 @@ body {
     font-size: 13px;
 }
 
-/* Individual item */
 .notif-item {
     display: flex;
     align-items: flex-start;
@@ -795,17 +771,9 @@ body {
     position: relative;
 }
 
-.notif-item:last-child {
-    border-bottom: none;
-}
-
-.notif-item:hover {
-    background: var(--bg-hover);
-}
-
-.notif-item.unread {
-    background: rgba(157, 200, 141, 0.06);
-}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover      { background: var(--bg-hover); }
+.notif-item.unread     { background: rgba(157, 200, 141, 0.06); }
 
 .notif-item.unread::before {
     content: '';
@@ -830,20 +798,20 @@ body {
     margin-top: 1px;
 }
 
-.notif-icon.type-new_application {
-    background: rgba(157, 200, 141, 0.18);
-    color: var(--brand-green-dark);
-}
+.notif-icon.type-new_application     { background: rgba(157, 200, 141, 0.18); color: var(--brand-green-dark); }
+.notif-icon.type-interview_scheduled { background: rgba(241, 178, 74, 0.18);  color: var(--brand-accent-dark); }
+.notif-icon.type-new_message,
+.notif-history-icon.type-new_message  { background: rgba(100, 181, 246, 0.18); color: #42a5f5; }
+.notif-icon.type-new_follow,
+.notif-history-icon.type-new_follow   { background: rgba(186, 104, 200, 0.18); color: #ab47bc; }
+.notif-icon.type-job_update,
+.notif-history-icon.type-job_update   { background: rgba(157, 200, 141, 0.18); color: var(--brand-green-dark); }
+.notif-icon.type-application_status,
+.notif-history-icon.type-application_status { background: rgba(241, 178, 74, 0.18); color: var(--brand-accent-dark); }
+.notif-history-icon.type-interview_scheduled { background: rgba(241, 178, 74, 0.15); color: var(--brand-accent-dark); }
+.notif-history-icon.type-new_application     { background: rgba(157, 200, 141, 0.15); color: var(--brand-green-dark); }
 
-.notif-icon.type-interview_scheduled {
-    background: rgba(241, 178, 74, 0.18);
-    color: var(--brand-accent-dark);
-}
-
-.notif-body {
-    flex: 1;
-    min-width: 0;
-}
+.notif-body  { flex: 1; min-width: 0; }
 
 .notif-msg {
     font-size: 13px;
@@ -853,16 +821,13 @@ body {
     word-break: break-word;
 }
 
-.notif-msg strong {
-    color: var(--text-primary);
-}
+.notif-msg strong { color: var(--text-primary); }
 
 .notif-time {
     font-size: 11px;
     color: var(--text-muted);
 }
 
-/* Popup toast */
 .notif-toast {
     position: fixed;
     bottom: 24px;
@@ -882,9 +847,11 @@ body {
     cursor: pointer;
 }
 
-.notif-toast.type-interview_scheduled {
-    border-left-color: var(--brand-accent-dark);
-}
+.notif-toast.type-interview_scheduled { border-left-color: var(--brand-accent-dark); }
+.notif-toast.new_message              { border-left-color: #42a5f5; }
+.notif-toast.new_follow               { border-left-color: #ab47bc; }
+.notif-toast.job_update               { border-left-color: var(--brand-green-dark); }
+.notif-toast.application_status       { border-left-color: var(--brand-accent-dark); }
 
 .notif-toast-icon {
     font-size: 20px;
@@ -893,14 +860,13 @@ body {
     margin-top: 1px;
 }
 
-.notif-toast.type-interview_scheduled .notif-toast-icon {
-    color: var(--brand-accent-dark);
-}
+.notif-toast.type-interview_scheduled .notif-toast-icon { color: var(--brand-accent-dark); }
+.notif-toast.new_message  .notif-toast-icon { color: #42a5f5; }
+.notif-toast.new_follow   .notif-toast-icon { color: #ab47bc; }
+.notif-toast.job_update   .notif-toast-icon { color: var(--brand-green-dark); }
+.notif-toast.application_status .notif-toast-icon { color: var(--brand-accent-dark); }
 
-.notif-toast-body {
-    flex: 1;
-    min-width: 0;
-}
+.notif-toast-body  { flex: 1; min-width: 0; }
 
 .notif-toast-title {
     font-size: 13px;
@@ -915,9 +881,7 @@ body {
     line-height: 1.5;
 }
 
-.notif-toast-msg strong {
-    color: var(--text-primary);
-}
+.notif-toast-msg strong { color: var(--text-primary); }
 
 .notif-toast-close {
     background: none;
@@ -931,76 +895,42 @@ body {
     transition: color 0.2s;
 }
 
-.notif-toast-close:hover {
-    color: var(--text-primary);
+.notif-toast-close:hover { color: var(--text-primary); }
+
+body.is-applicant .notif-wrapper { display: flex; }
+
+body:not(.is-recruiter):not(.is-hr):not(.is-applicant):not(.is-admin) .notif-wrapper,
+body:not(.is-recruiter):not(.is-hr):not(.is-applicant):not(.is-admin) .notif-toast {
+    display: none !important;
 }
 
-/* ================================================
-   OVERFLOW FIX — Long unspaced text in all profiles
-   Save as: static/css/profile_overflow_fix.css
-   Link in layout.html AFTER all other profile CSS:
-     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_overflow_fix.css') }}">
-   ================================================ */
+@keyframes toastSlideIn  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastSlideOut { from { opacity: 1; transform: translateY(0); }    to { opacity: 0; transform: translateY(20px); } }
 
-/* ── Shared prof- elements ── */
-.prof-headline,
-.prof-info-value,
-.prof-bio-text,
-.prof-item-title,
-.prof-item-subtitle,
-.prof-item-date,
-.prof-item-desc,
-.prof-side-item-text,
-.prof-sidebar-company-name,
-.prof-sidebar-company-industry,
-.prof-completion-title,
-.prof-section-count,
-.prof-link,
-.port-link-url,
-.doc-file-name {
+/* ================================
+   OVERFLOW FIX
+   ================================ */
+.prof-headline, .prof-info-value, .prof-bio-text, .prof-item-title,
+.prof-item-subtitle, .prof-item-date, .prof-item-desc, .prof-side-item-text,
+.prof-sidebar-company-name, .prof-sidebar-company-industry,
+.prof-completion-title, .prof-section-count, .prof-link,
+.port-link-url, .doc-file-name,
+.pview-headline, .pview-info-value, .pview-bio-text, .pview-item-title,
+.pview-item-subtitle, .pview-item-date, .pview-item-desc, .pview-side-item-text,
+.pview-sidebar-company-name, .pview-sidebar-company-industry,
+.pview-link, .pview-port-link-url, .pview-doc-file-name, .pview-notice-text,
+.pview-private-text, .pview-private-sub, .pview-cta-text, .pview-stat-label {
     overflow-wrap: break-word;
     word-break: break-word;
 }
 
-/* ── Shared pview- elements ── */
-.pview-headline,
-.pview-info-value,
-.pview-bio-text,
-.pview-item-title,
-.pview-item-subtitle,
-.pview-item-date,
-.pview-item-desc,
-.pview-side-item-text,
-.pview-sidebar-company-name,
-.pview-sidebar-company-industry,
-.pview-link,
-.pview-port-link-url,
-.pview-doc-file-name,
-.pview-notice-text,
-.pview-private-text,
-.pview-private-sub,
-.pview-cta-text,
-.pview-stat-label {
-    overflow-wrap: break-word;
-    word-break: break-word;
-}
-
-/* ── Card headers and titles ── */
-.prof-card-title,
-.pview-card-title {
+.prof-card-title, .pview-card-title {
     overflow-wrap: break-word;
     word-break: break-word;
     min-width: 0;
 }
 
-/* ── Follow modal names ── */
-.follow-modal-name,
-.follow-req-name {
-    overflow-wrap: break-word;
-    word-break: break-word;
-}
-
-/* ── Exp / cert item names ── */
+.follow-modal-name, .follow-req-name,
 .exp-cert-name,
 .exp-item-summary .prof-item-title,
 .exp-item-summary .prof-item-subtitle {
@@ -1008,157 +938,33 @@ body {
     word-break: break-word;
 }
 
-/* ── Ensure flex children with text don't blow out their container ── */
-.prof-item-body,
-.pview-item-body,
-.prof-side-item-text,
-.pview-side-item-text,
-.exp-item-summary,
-.doc-file-body,
-.pview-doc-file-body,
-.port-link-body,
-.pview-port-link-body,
-.follow-modal-info,
-.follow-req-info,
-.pcm-message,
-.pview-notice-text {
+.prof-item-body, .pview-item-body, .prof-side-item-text, .pview-side-item-text,
+.exp-item-summary, .doc-file-body, .pview-doc-file-body,
+.port-link-body, .pview-port-link-body,
+.follow-modal-info, .follow-req-info, .pcm-message, .pview-notice-text {
     min-width: 0;
     overflow-wrap: break-word;
     word-break: break-word;
 }
 
-/* ── Badges and chips — prevent overflow but don't break ── */
-.prof-edu-level-badge,
-.pview-edu-level-badge,
-.pview-status-chip,
-.prof-section-count,
-.pview-section-count,
-.exp-cert-badge,
-.prof-verification-badge,
-.pview-verification-badge,
-.pview-role-pill {
+.prof-edu-level-badge, .pview-edu-level-badge, .pview-status-chip,
+.prof-section-count, .pview-section-count, .exp-cert-badge,
+.prof-verification-badge, .pview-verification-badge, .pview-role-pill {
     word-break: normal;
     overflow-wrap: normal;
     flex-shrink: 0;
 }
 
-@keyframes toastSlideIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes toastSlideOut {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(20px); }
-}
-
-@media (max-width: 480px) {
-    .notif-panel {
-        width: calc(100vw - 20px);
-        right: -60px;
-    }
-    .notif-toast {
-        bottom: 12px;
-        right: 12px;
-        left: 12px;
-        max-width: none;
-    }
-}
-
-body.is-applicant .notif-wrapper {
-    display: flex;   /* ensure it shows for applicants */
-}
-
-/* ── New notification icon type colours ── */
-
-/* New Message */
-.notif-icon.type-new_message,
-.notif-history-icon.type-new_message {
-    background: rgba(100, 181, 246, 0.18);
-    color: #42a5f5;
-}
-
-/* New Follow */
-.notif-icon.type-new_follow,
-.notif-history-icon.type-new_follow {
-    background: rgba(186, 104, 200, 0.18);
-    color: #ab47bc;
-}
-
-/* Job Update */
-.notif-icon.type-job_update,
-.notif-history-icon.type-job_update {
-    background: rgba(157, 200, 141, 0.18);
-    color: var(--brand-green-dark);
-}
-
-/* Application Status */
-.notif-icon.type-application_status,
-.notif-history-icon.type-application_status {
-    background: rgba(241, 178, 74, 0.18);
-    color: var(--brand-accent-dark);
-}
-
-/* Interview Scheduled — already defined, but keep for history page */
-.notif-history-icon.type-interview_scheduled {
-    background: rgba(241, 178, 74, 0.15);
-    color: var(--brand-accent-dark);
-}
-
-/* New Application — already defined, keep for history page */
-.notif-history-icon.type-new_application {
-    background: rgba(157, 200, 141, 0.15);
-    color: var(--brand-green-dark);
-}
-
-/* ── Toast border colour for new types ── */
-.notif-toast.new_message  { border-left-color: #42a5f5; }
-.notif-toast.new_follow   { border-left-color: #ab47bc; }
-.notif-toast.job_update   { border-left-color: var(--brand-green-dark); }
-.notif-toast.application_status { border-left-color: var(--brand-accent-dark); }
-
-.notif-toast.new_message  .notif-toast-icon { color: #42a5f5; }
-.notif-toast.new_follow   .notif-toast-icon { color: #ab47bc; }
-.notif-toast.job_update   .notif-toast-icon { color: var(--brand-green-dark); }
-.notif-toast.application_status .notif-toast-icon { color: var(--brand-accent-dark); }
-
-/* ── Safety rule update: show bell for applicants too ── */
-body:not(.is-recruiter):not(.is-hr):not(.is-applicant):not(.is-admin) .notif-wrapper,
-body:not(.is-recruiter):not(.is-hr):not(.is-applicant):not(.is-admin) .notif-toast {
-    display: none !important;
-}
-
 /* ================================
    LIGHT MODE ENHANCEMENTS
    ================================ */
-
-
-[data-theme="light"] .sidebar {
-    border-right: 1px solid var(--border-color);
-}
-
+[data-theme="light"] .sidebar              { border-right: 1px solid var(--border-color); }
 [data-theme="light"] .nav-avatar-placeholder,
-[data-theme="light"] .sidebar-avatar-placeholder {
-    color: var(--text-muted);
-}
-
-[data-theme="light"] .nav-avatar {
-    border-color: var(--border-color);
-}
-
-/* Ensure proper contrast in light mode for specific elements */
+[data-theme="light"] .sidebar-avatar-placeholder { color: var(--text-muted); }
+[data-theme="light"] .nav-avatar          { border-color: var(--border-color); }
 [data-theme="light"] .menu-btn:hover,
 [data-theme="light"] .theme-toggle-btn:hover,
-[data-theme="light"] .notif-btn:hover {
-    background: var(--bg-surface);
-}
-
-[data-theme="light"] .user-info {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-}
-
-[data-theme="light"] .sidebar-user-avatar {
-    background: var(--bg-surface);
-    border-color: var(--border-color);
-}
+[data-theme="light"] .notif-btn:hover     { background: var(--bg-surface); }
+[data-theme="light"] .user-info           { background: var(--bg-surface); border: 1px solid var(--border-color); }
+[data-theme="light"] .sidebar-user-avatar { background: var(--bg-surface); border-color: var(--border-color); }
+[data-theme="light"] .footer-brand-bon { color: #4D774E !important; }

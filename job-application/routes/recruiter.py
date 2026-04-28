@@ -685,7 +685,7 @@ def my_job_list():
     jobs = Job.query.filter_by(company_id=current_user.id).all()
 
     # Pre-compute active counts per job
-    _ACTIVE = ('pending', 'interview', 'waitlisted', 'accepted', 'employed')
+    _ACTIVE = ('pending', 'interview', 'waitlisted', 'accepted')
     job_active_counts = {}
     for job in jobs:
         count = Application.query.filter(
@@ -992,7 +992,7 @@ def view_job_applications(job_id):
         flash("Unauthorized access!", "danger")
         return redirect(url_for('recruiter.my_job_list'))
 
-    _ACTIVE_STATUSES = ('pending', 'interview', 'waitlisted', 'accepted', 'employed')
+    _ACTIVE_STATUSES = ('pending', 'interview', 'waitlisted', 'accepted')
     _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
 
     applications = (

@@ -46,6 +46,15 @@
                 </svg>
                 All Jobs
             </a>
+            <a href="{{ url_for('employment.employee_list', job_id=job.id) }}" class="btn-nav btn-nav-green">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                View Employee List
+            </a>
         </div>
     </div>
 </div>
@@ -163,9 +172,6 @@
                     </button>
                     <button class="status-filter-btn" data-filter="accepted" onclick="filterByStatus(this,'accepted')">
                         Accepted <span class="tab-count">{{ accepted_count }}</span>
-                    </button>
-                    <button class="status-filter-btn" data-filter="employed" onclick="filterByStatus(this,'employed')">
-                        Employed <span class="tab-count">{{ employed_count }}</span>
                     </button>
                 </div>
 

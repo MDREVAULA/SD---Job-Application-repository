@@ -92,6 +92,12 @@
         </button>
 
         <a href="{{ url_for('auth.index') }}" class="navbar-brand">
+            <img src="{{ url_for('static', filename='uploads/hirebon_logo/hirebon-logo-dark.png') }}"
+                class="navbar-brand-logo navbar-brand-logo--dark"
+                alt="HireBon Logo">
+            <img src="{{ url_for('static', filename='uploads/hirebon_logo/hirebon-logo-light.png') }}"
+                class="navbar-brand-logo navbar-brand-logo--light"
+                alt="HireBon Logo">
             <span class="navbar-brand-hire">Hire</span><span class="navbar-brand-bon">Bon</span><span class="navbar-brand-dot">.</span>
         </a>
     </div>
@@ -472,8 +478,14 @@
 <footer class="footer">
     <div class="footer-content">
         <div class="footer-section">
-            <div class="website-logo-container">
-                <img src="{{ url_for('static', filename='uploads/hirebon_logo/homepage-logo.png') }}" alt="HireBon Logo" class="logo-icon">
+            <div class="footer-brand">
+                <img src="{{ url_for('static', filename='uploads/hirebon_logo/hirebon-logo-dark.png') }}"
+                    class="footer-brand-logo footer-brand-logo--dark" alt="HireBon Logo">
+                <img src="{{ url_for('static', filename='uploads/hirebon_logo/hirebon-logo-light.png') }}"
+                    class="footer-brand-logo footer-brand-logo--light" alt="HireBon Logo">
+                <span class="footer-brand-name">
+                    <span class="footer-brand-hire">Hire</span><span class="footer-brand-bon">Bon</span><span class="footer-brand-dot">.</span>
+                </span>
             </div>
             <p class="footer-desc">Your trusted platform for finding verified job opportunities from top companies worldwide.</p>
             <div class="social-links">

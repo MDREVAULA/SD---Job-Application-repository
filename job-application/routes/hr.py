@@ -448,7 +448,7 @@ def job_applications(job_id):
 
     job = Job.query.get_or_404(job_id)
 
-    _ACTIVE_STATUSES = ('pending', 'interview', 'waitlisted', 'accepted', 'employed')
+    _ACTIVE_STATUSES = ('pending', 'interview', 'waitlisted', 'accepted')
     _ARCHIVED_STATUSES = ('rejected', 'resigned', 'fired')
 
     applications = (

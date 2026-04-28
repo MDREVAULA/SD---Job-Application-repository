@@ -167,6 +167,17 @@
     box-shadow: var(--shadow-md);
 }
 
+.btn-nav-green {
+    background: var(--brand-accent);
+    border-color: var(--brand-accent);
+    color: white;
+}
+.btn-nav-green:hover {
+    background: var(--brand-accent-dark);
+    border-color: var(--brand-accent-dark);
+    color: white;
+}
+
 /* ===== ARCHIVE BUTTON in Nav ===== */
 .btn-archive {
     background: var(--bg-secondary);

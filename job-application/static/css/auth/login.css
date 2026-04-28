@@ -283,6 +283,20 @@ html, body {
    RIGHT PANEL (INFO SECTION)
 ===================================================== */
 
+/* ── Right panel brand name ── */
+.login-right-brand {
+    font-size: 50px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin: 0;          /* gap handled by info-content's gap: 12px */
+}
+
+.login-right-brand-hire { color: #ffffff; }
+.login-right-brand-bon  { color: #9DC88D; }
+.login-right-brand-dot  { color: #F1B24A; }
+
+
 .login-right {
     display: flex;
     justify-content: center;
@@ -327,9 +341,8 @@ html, body {
 
 /* Logo/Image styling */
 .side-img {
-    width: 300px;               /* slightly smaller so text isn't pushed so far */
-    height: 300px;
-    margin-top: 0;              /* removed */       /* small gap between image and heading */
+    width: 160px;
+    height: 160px;
     filter: drop-shadow(0 10px 30px rgba(246, 246, 246, 0.3));
     animation: float-gentle 3s ease-in-out infinite;
 }
@@ -341,7 +354,7 @@ html, body {
 
 /* Heading on right side */
 .info-content h3 {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: 700;
     margin: 0;
     background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
@@ -353,7 +366,7 @@ html, body {
 
 /* Description text */
 .info-content p {
-    font-size: 18px;
+    font-size: 15px;
     line-height: 1.7;
     color: #cbd5e0;
     margin: 0;

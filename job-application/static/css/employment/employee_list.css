@@ -144,11 +144,21 @@
     text-decoration: none;
 }
 
-
-
 .btn-nav:hover {
     background: var(--brand-accent-dark);
-    border-color: var(--brand-accentdark);
+    border-color: var(--brand-accent-dark);
+}
+
+.btn-nav-green {
+    background: var(--brand-green-dark);
+    border-color: var(--brand-green-dark);
+    color: white !important;
+}
+
+.btn-nav-green:hover {
+    background: var(--icon-dark);
+    border-color: var(--icon-dark);
+    color: white !important;
 }
 
 /* ===== MAIN WRAPPER ===== */

@@ -379,16 +379,40 @@ def unban_user(user_id):
 # Helper: delete job image files from disk
 # ==============================
 def _delete_job_image_files(job, app_root):
-    """Remove job poster images and cover photo from disk. Safe if files missing."""
     import os
-    for img in job.images:
-        path = os.path.join(app_root, 'static', 'uploads', 'job_posters', img.image_path)
+
+    def _del(subfolder, filename):
+        if not filename or filename.startswith('http'):
+            return
+        path = os.path.join(app_root, 'static', 'uploads', subfolder, filename)
         if os.path.exists(path):
-            os.remove(path)
-    if job.cover_photo:
-        cover = os.path.join(app_root, 'static', 'uploads', 'job_covers', job.cover_photo)
-        if os.path.exists(cover):
-            os.remove(cover)
+            try:
+                os.remove(path)
+            except Exception as e:
+                print(f'[DELETE FILE] {path}: {e}')
+
+    for img in job.images:
+        _del('job_posters', img.image_path)
+    _del('job_covers', job.cover_photo)
+
+    # Employment submission files for this job's requirements
+    from sqlalchemy import text
+    sub_rows = db.session.execute(text("""
+        SELECT es.file_path FROM employment_submission es
+        JOIN employment_requirement er ON er.id = es.requirement_id
+        WHERE er.job_id = :jid
+    """), {"jid": job.id}).fetchall()
+    for row in sub_rows:
+        _del('employment_submissions', row[0])
+
+    # Resignation letter files for this job
+    resign_rows = db.session.execute(text("""
+        SELECT letter_file FROM resignation_request
+        WHERE applicant_id = :uid
+        OR employee_id IN (SELECT id FROM employee WHERE user_id = :uid)
+    """), {"uid": target_uid}).fetchall()
+    for row in resign_rows:
+        _del('resignation_letters', row[0])
 
 
 # ==============================
@@ -602,6 +626,25 @@ def delete_user(user_id):
                     except (json.JSONDecodeError, TypeError):
                         # fallback: treat as single filename
                         _delete_upload('report_evidence', r[0])
+
+            # Employment submission files (applicant-uploaded onboarding docs)
+            sub_rows = db.session.execute(text("""
+                SELECT es.file_path
+                FROM employment_submission es
+                JOIN application a ON a.id = es.application_id
+                WHERE a.applicant_id = :uid
+            """), {"uid": target_uid}).fetchall()
+            for row in sub_rows:
+                if row[0]:
+                    _delete_upload('employment_submissions', row[0])
+            
+            # Resignation letter files
+            resign_rows = db.session.execute(text("""
+                SELECT letter_file FROM resignation_request WHERE applicant_id = :uid
+            """), {"uid": target_uid}).fetchall()
+            for row in resign_rows:
+                if row[0]:
+                    _delete_upload('resignation_letters', row[0])
 
         # ══════════════════════════════════════════════════════════════════
         # Collect HR accounts created by this recruiter before any deletes

@@ -477,7 +477,7 @@ class Application(db.Model):
     resume = db.Column(db.String(200))
     cover_letter = db.Column(db.Text)
 
-    status = db.Column(db.String(50), default="Pending")
+    status = db.Column(db.String(50), default="pending")
 
     recruiter_remarks = db.Column(db.Text)
 

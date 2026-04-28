@@ -3,7 +3,7 @@ routes/settings.py
 Settings routes for Applicant, HR, and Recruiter roles.
 """
 
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from models import db, UserSettings
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -360,6 +360,27 @@ def delete_account():
                             _delete_upload('report_evidence', r[0])
                     except (json.JSONDecodeError, TypeError):
                         _delete_upload('report_evidence', r[0])
+            
+            # Employment submission files (applicant-uploaded onboarding docs)
+            sub_rows = db.session.execute(text("""
+                SELECT es.file_path
+                FROM employment_submission es
+                JOIN application a ON a.id = es.application_id
+                WHERE a.applicant_id = :uid
+            """), {"uid": target_uid}).fetchall()
+            for row in sub_rows:
+                if row[0]:
+                    _delete_upload('employment_submissions', row[0])
+        
+            # Resignation letter files
+            resign_rows = db.session.execute(text("""
+                SELECT letter_file FROM resignation_request
+                WHERE applicant_id = :uid
+                OR employee_id IN (SELECT id FROM employee WHERE user_id = :uid)
+            """), {"uid": target_uid}).fetchall()
+            for row in resign_rows:
+                if row[0]:
+                    _delete_upload('resignation_letters', row[0])
 
         # ══════════════════════════════════════════════
         # Helper: delete all disk files for a job_id
@@ -379,6 +400,24 @@ def delete_account():
             ).fetchone()
             if cover and cover[0]:
                 _delete_upload('job_covers', cover[0])
+        
+            # Submission files for this job's requirements
+            sub_rows = db.session.execute(text("""
+                SELECT es.file_path FROM employment_submission es
+                JOIN employment_requirement er ON er.id = es.requirement_id
+                WHERE er.job_id = :jid
+            """), {"jid": job_id}).fetchall()
+            for row in sub_rows:
+                if row[0]:
+                    _delete_upload('employment_submissions', row[0])
+            
+            # Resignation letter for this job
+            resign_rows = db.session.execute(text("""
+                SELECT letter_file FROM resignation_request WHERE job_id = :jid
+            """), {"jid": job_id}).fetchall()
+            for row in resign_rows:
+                if row[0]:
+                    _delete_upload('resignation_letters', row[0])
 
         # ══════════════════════════════════════════════
         # Helper: shorthand SQL executor with flush

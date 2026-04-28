@@ -176,6 +176,16 @@
     transition: background-color 0.3s ease;
 }
 
+.btn-nav-green {
+    background: #4D774E;
+    border-color: #4D774E;
+    color: white;
+}
+.btn-nav-green:hover {
+    background: #9DC88D;
+    border-color: #9DC88D;
+    color: white;
+}
 /* ===== ARCHIVE BUTTON in Nav ===== */
 .btn-archive {
     background: var(--bg-secondary);

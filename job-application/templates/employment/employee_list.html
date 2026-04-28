@@ -39,6 +39,14 @@
                 {% endif %}
             </a>
             {% if current_user.role == 'recruiter' or is_assigned %}
+            <a href="{{ url_for('recruiter.view_job_applications', job_id=job.id) }}" class="btn-nav btn-nav-green">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="2"/>
+                    <polyline points="9 12 11 14 15 10"/>
+                </svg>
+                Check Applications
+            </a>
             <a href="{{ url_for('employment.manage_requirements', job_id=job.id) }}" class="btn-nav">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>

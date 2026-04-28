@@ -1031,7 +1031,8 @@ def apply_job(job_id):
             applicant_id=current_user.id,
             job_id=job_id,
             resume=resume_filename,
-            cover_letter=cover_letter
+            cover_letter=cover_letter,
+            status='pending'
         )
         db.session.add(application)
         db.session.commit()
