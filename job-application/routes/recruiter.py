@@ -1411,6 +1411,12 @@ def add_job_team_member(job_id):
     data  = request.get_json(silent=True) or {}
     hr_id = data.get('hr_id')
 
+    # ── FIX: cast to int, guard against missing/invalid value ──
+    try:
+        hr_id = int(hr_id)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'error': 'Invalid HR ID'}), 400
+
     hr = User.query.filter_by(id=hr_id, role='hr', created_by=current_user.id, is_deleted=False).first()
     if not hr:
         return jsonify({'success': False, 'error': 'HR member not found'}), 404

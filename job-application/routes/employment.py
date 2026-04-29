@@ -627,20 +627,25 @@ def all_employees():
 # ================================================================
 # ── RECRUITER: Terminate an employee ──
 # ================================================================
-
 @employment_bp.route('/terminate/<int:employee_id>', methods=['POST'])
 @login_required
 def fire_employee(employee_id):
-    if current_user.role != 'recruiter':
+    if current_user.role not in ('recruiter', 'hr'):
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
     emp = Employee.query.get_or_404(employee_id)
     job = Job.query.get_or_404(emp.job_id)
 
-    if job.company_id != current_user.id:
+    if current_user.role == 'recruiter' and job.company_id != current_user.id:
         flash("Unauthorized!", "danger")
         return redirect(url_for('employment.all_employees'))
+
+    if current_user.role == 'hr':
+        from models import JobTeamMember
+        if not JobTeamMember.query.filter_by(job_id=job.id, hr_id=current_user.id).first():
+            flash("You are not assigned to this job.", "warning")
+            return redirect(url_for('hr.job_list'))
 
     # Block firing someone who is in rendering period
     if emp.employment_status == 'rendering':
@@ -661,12 +666,12 @@ def fire_employee(employee_id):
     if application:
         application.status = 'fired'
 
-    # If there was a pending resignation, mark it rejected
     if emp.resignation_request:
         emp.resignation_request.status = 'rejected'
-        emp.resignation_request.reviewer_note = 'Employment terminated by recruiter.'
+        emp.resignation_request.reviewer_note = 'Employment terminated.'
         emp.resignation_request.reviewed_by   = current_user.id
         emp.resignation_request.reviewed_at   = get_ph_time()
+
     db.session.add(ApplicantNotification(
         applicant_id=emp.user_id,
         type='employment_ended',

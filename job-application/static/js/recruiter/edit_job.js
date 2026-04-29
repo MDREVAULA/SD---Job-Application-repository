@@ -188,7 +188,6 @@ document.addEventListener('DOMContentLoaded', function () {
   if (mainForm) {
     mainForm.addEventListener('input',  function () { markDirty(); });
     mainForm.addEventListener('change', function () { markDirty(); });
-    mainForm.addEventListener('submit', function () { markClean(); });
   }
 });
 
@@ -200,7 +199,7 @@ function showToast(msg, isError) {
   const toast = document.getElementById('saveToast');
   if (!toast) return;
   document.getElementById('saveToastMsg').textContent = msg;
-  toast.style.display    = 'flex';
+  toast.style.display     = 'flex';
   toast.style.borderColor = isError ? '#ef4444' : '#14b8a6';
   clearTimeout(toast._timer);
   toast._timer = setTimeout(function () { toast.style.display = 'none'; }, 3000);
@@ -211,10 +210,9 @@ function showToast(msg, isError) {
    ALLOW-APPLICATIONS TOGGLE (nav bar)
    ═══════════════════════════════════════════════════════════ */
 function handleAllowToggle(checkbox) {
-  /* If the toggle is locked due to deadline/quota, reject the change */
   if (checkbox.disabled) return;
 
-  const allowed = checkbox.checked;
+  const allowed    = checkbox.checked;
   const badge      = document.getElementById('statusBadge');
   const statusText = document.getElementById('statusText');
   badge.classList.toggle('btn-published',  allowed);
@@ -227,8 +225,6 @@ function handleAllowToggle(checkbox) {
 
 /* ═══════════════════════════════════════════════════════════
    DEADLINE + QUOTA → AUTO-LOCK ALL ALLOW-APPLICATIONS TOGGLES
-   Targets: nav toggle (#allowApplicationsToggle) AND
-            every sidebar toggle (input[name="allow_applications"])
    ═══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function () {
   const dateInput  = document.querySelector('input[name="expiration_date"]');
@@ -236,12 +232,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const badge      = document.getElementById('statusBadge');
   const statusText = document.getElementById('statusText');
 
-  /* Read quota state injected by the template via data attributes on <body>
-     or fall back to reading the DOM directly.
-     We expose these via data-* on the form element to avoid an extra inline script. */
-  const form        = document.getElementById('editJobForm');
-  const quotaFull   = form ? form.dataset.quotaFull === 'true'   : false;
-  const isExpired   = form ? form.dataset.isExpired === 'true'   : false;
+  const form      = document.getElementById('editJobForm');
+  const quotaFull = form ? form.dataset.quotaFull === 'true' : false;
 
   function getAllToggles() {
     return Array.from(document.querySelectorAll(
@@ -249,7 +241,6 @@ document.addEventListener('DOMContentLoaded', function () {
     ));
   }
 
-  /* Inject warning label into nav toggle wrapper (once) */
   const navWrapper = document.querySelector('.allow-toggle-wrapper');
   let warningSpan  = document.getElementById('deadlineWarning');
   if (!warningSpan && navWrapper) {
@@ -268,9 +259,9 @@ document.addEventListener('DOMContentLoaded', function () {
       const lbl = t.closest('label');
       if (lbl) { lbl.style.pointerEvents = 'none'; lbl.style.opacity = '0.45'; }
     });
-    if (hidden)      hidden.value            = '';
+    if (hidden)      hidden.value = '';
     if (badge)      { badge.classList.remove('btn-published'); badge.classList.add('btn-closed'); }
-    if (statusText)  statusText.textContent   = 'Closed';
+    if (statusText)  statusText.textContent = 'Closed';
     if (warningSpan) {
       warningSpan.textContent  = reason === 'quota' ? 'Quota full' : 'Deadline passed';
       warningSpan.style.display = 'inline';
@@ -288,18 +279,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function evaluate() {
-    /* Quota-full always wins regardless of date */
     if (quotaFull) { lockAll('quota'); return; }
-
     const val = dateInput ? dateInput.value : '';
     if (!val) { unlockAll(); return; }
-
     const today = new Date().toISOString().slice(0, 10);
-    if (val < today) {
-      lockAll('deadline');
-    } else {
-      unlockAll();
-    }
+    if (val < today) { lockAll('deadline'); } else { unlockAll(); }
   }
 
   if (dateInput) {
@@ -420,6 +404,7 @@ const _teamOriginal = {};
 const _teamQueue    = {};
 
 document.addEventListener('DOMContentLoaded', function () {
+  /* Snapshot original assigned state */
   document.querySelectorAll('.btn-assign-hr').forEach(function (btn) {
     const row = btn.closest('[data-hr-id]');
     if (!row) return;
@@ -434,8 +419,10 @@ function toggleTeamMember(jobId, hrId, btn) {
 
   btn.dataset.assigned = nowAssigned ? 'true' : 'false';
   btn.classList.toggle('assigned', nowAssigned);
+
   const row = document.getElementById('hrAssignRow-' + hrId);
   if (row) row.classList.toggle('assigned', nowAssigned);
+
   btn.innerHTML = nowAssigned
     ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
       + '<polyline points="20 6 9 17 4 12"/></svg> Assigned'
@@ -449,18 +436,27 @@ function toggleTeamMember(jobId, hrId, btn) {
   }
 
   markDirty();
-  showToast((nowAssigned ? 'HR member marked for assignment' : 'HR member marked for removal')
-    + ' — click Save Changes to persist.');
+  showToast(
+    (nowAssigned ? 'HR member marked for assignment' : 'HR member marked for removal')
+    + ' — click Save Changes to persist.'
+  );
 }
 
+/* ── Submit listener: flush team queue first, then submit ── */
 document.addEventListener('DOMContentLoaded', function () {
   const mainForm = document.getElementById('editJobForm');
   if (!mainForm) return;
 
   mainForm.addEventListener('submit', function (e) {
     const pending = Object.keys(_teamQueue);
-    if (pending.length === 0) return;
 
+    /* Nothing pending — let the form submit normally */
+    if (pending.length === 0) {
+      markClean();
+      return;
+    }
+
+    /* Team changes exist — intercept, sync via AJAX, then re-submit */
     e.preventDefault();
 
     const JOB_ID = parseInt(mainForm.dataset.jobId, 10);
@@ -479,10 +475,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     Promise.all(promises)
-      .then(function () {
+      .then(function (results) {
+        const failed = results.filter(function (r) { return !r.success; });
+        if (failed.length > 0) {
+          showToast('Some team changes failed: ' + (failed[0].error || 'Unknown error'), true);
+          return;
+        }
         pending.forEach(function (id) { delete _teamQueue[id]; });
         markClean();
-        mainForm.submit();
+        mainForm.submit(); /* native submit — bypasses listener intentionally */
       })
       .catch(function (err) {
         console.error('Team member sync error:', err);
@@ -558,79 +559,85 @@ function _esc(str) {
   return d.innerHTML;
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   FORM VALIDATION + SUBMIT
+   ═══════════════════════════════════════════════════════════ */
+
 const REQUIRED_FIELDS = [
-    { name: 'title',            tab: 'job-details',  label: 'Job Title' },
-    { name: 'description',      tab: 'job-details',  label: 'Job Description' },
-    { name: 'field',            tab: 'job-details',  label: 'Job Field' },
-    { name: 'job_type',         tab: 'job-details',  label: 'Employment Type' },
-    { name: 'location',         tab: 'job-details',  label: 'Location' },
-    { name: 'salary',           tab: 'job-details',  label: 'Salary Range' },
-    { name: 'expiration_date',  tab: 'job-details',  label: 'Application Deadline' },
-    { name: 'experience_level', tab: 'requirements', label: 'Experience Level' },
-    { name: 'years_exp',        tab: 'requirements', label: 'Years of Experience' },
-    { name: 'education',        tab: 'requirements', label: 'Education Requirement' },
-    { name: 'languages',        tab: 'requirements', label: 'Languages' },
-    { name: 'required_skills',  tab: 'requirements', label: 'Required Skills' },
+  { name: 'title',            tab: 'job-details',  label: 'Job Title' },
+  { name: 'description',      tab: 'job-details',  label: 'Job Description' },
+  { name: 'field',            tab: 'job-details',  label: 'Job Field' },
+  { name: 'job_type',         tab: 'job-details',  label: 'Employment Type' },
+  { name: 'location',         tab: 'job-details',  label: 'Location' },
+  { name: 'salary',           tab: 'job-details',  label: 'Salary Range' },
+  { name: 'experience_level', tab: 'requirements', label: 'Experience Level' },
+  { name: 'years_exp',        tab: 'requirements', label: 'Years of Experience' },
+  { name: 'education',        tab: 'requirements', label: 'Education Requirement' },
+  { name: 'languages',        tab: 'requirements', label: 'Languages' },
+  { name: 'required_skills',  tab: 'requirements', label: 'Required Skills' },
 ];
 
 function validateAndSubmit() {
-    const errors = [];
+  const errors = [];
 
-    REQUIRED_FIELDS.forEach(function(f) {
-        const el = document.querySelector('[name="' + f.name + '"]');
-        if (!el) return;
-        if (!el.value.trim()) errors.push({ field: f, el: el });
-    });
+  REQUIRED_FIELDS.forEach(function (f) {
+    const el = document.querySelector('[name="' + f.name + '"]');
+    if (!el) return;
+    if (!el.value.trim()) errors.push({ field: f, el: el });
+  });
 
-    // Check arrangement tags
-    const arrangement = document.getElementById('arrangementInput').value.trim();
-    if (!arrangement) {
-        errors.push({ field: { tab: 'job-details', label: 'Work Arrangement' }, el: null });
-    }
+  /* Work arrangement */
+  const arrangement = document.getElementById('arrangementInput').value.trim();
+  if (!arrangement) {
+    errors.push({ field: { tab: 'job-details', label: 'Work Arrangement' }, el: null });
+  }
 
-    // Check cover photo — only required if no existing cover is displayed
-    const coverPreview = document.getElementById('coverPhotoPreview');
-    const coverInput   = document.getElementById('coverPhotoInput');
-    const hasExistingCover = coverPreview &&
-        !coverPreview.src.includes('unsplash.com'); // unsplash = placeholder = no real cover
-    if (!hasExistingCover && (!coverInput || coverInput.files.length === 0)) {
-        errors.push({ field: { tab: 'job-details', label: 'Cover Photo' }, el: coverInput });
-    }
+  /* Cover photo */
+  const coverPreview      = document.getElementById('coverPhotoPreview');
+  const coverInput        = document.getElementById('coverPhotoInput');
+  const hasExistingCover  = coverPreview && !coverPreview.src.includes('unsplash.com');
+  if (!hasExistingCover && (!coverInput || coverInput.files.length === 0)) {
+    errors.push({ field: { tab: 'job-details', label: 'Cover Photo' }, el: coverInput });
+  }
 
-    // Check gallery — only required if no existing images AND no new files selected
-    const posterInput    = document.getElementById('posterInput');
-    const existingImages = document.querySelectorAll('#tab-gallery .gallery-card');
-    const hasExistingImages = existingImages.length > 0;
-    const hasNewImages      = posterInput && posterInput.files.length > 0;
-    if (!hasExistingImages && !hasNewImages) {
-        errors.push({ field: { tab: 'gallery', label: 'Gallery (at least one image)' }, el: null });
-    }
+  /* Gallery */
+  const posterInput       = document.getElementById('posterInput');
+  const existingImages    = document.querySelectorAll('#tab-gallery .gallery-card');
+  const hasExistingImages = existingImages.length > 0;
+  const hasNewImages      = posterInput && posterInput.files.length > 0;
+  if (!hasExistingImages && !hasNewImages) {
+    errors.push({ field: { tab: 'gallery', label: 'Gallery (at least one image)' }, el: null });
+  }
 
-    if (errors.length === 0) {
-        markClean();
-        document.getElementById('editJobForm').submit();
-        return;
-    }
+  /* Validation passed — fire the submit event so the team-sync listener runs first */
+  if (errors.length === 0) {
+    document.getElementById('editJobForm').dispatchEvent(
+      new Event('submit', { bubbles: true, cancelable: true })
+    );
+    return;
+  }
 
-    const firstError = errors[0];
-    const tabBtn = document.querySelector('.tab-btn[data-tab="' + firstError.field.tab + '"]');
-    if (tabBtn) tabBtn.click();
+  /* Validation failed — highlight first error and show modal */
+  const firstError = errors[0];
+  const tabBtn = document.querySelector('.tab-btn[data-tab="' + firstError.field.tab + '"]');
+  if (tabBtn) tabBtn.click();
 
-    if (firstError.el) {
-        firstError.el.focus();
-        firstError.el.style.borderColor = '#ef4444';
-        firstError.el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
-        setTimeout(() => {
-            firstError.el.style.borderColor = '';
-            firstError.el.style.boxShadow = '';
-        }, 3000);
-    }
+  if (firstError.el) {
+    firstError.el.focus();
+    firstError.el.style.borderColor = '#ef4444';
+    firstError.el.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.15)';
+    setTimeout(function () {
+      firstError.el.style.borderColor = '';
+      firstError.el.style.boxShadow   = '';
+    }, 3000);
+  }
 
-    const list = document.getElementById('validationErrorList');
-    list.innerHTML = errors.map(e => '<li>' + e.field.label + '</li>').join('');
-    document.getElementById('validationModal').style.display = 'flex';
+  const list = document.getElementById('validationErrorList');
+  list.innerHTML = errors.map(function (e) { return '<li>' + e.field.label + '</li>'; }).join('');
+  document.getElementById('validationModal').style.display = 'flex';
 }
 
 function closeValidationModal() {
-    document.getElementById('validationModal').style.display = 'none';
+  document.getElementById('validationModal').style.display = 'none';
 }
