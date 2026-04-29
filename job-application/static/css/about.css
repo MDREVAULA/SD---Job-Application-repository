@@ -228,6 +228,8 @@
     line-height: 1.85;
     color: var(--text-secondary);
     margin: 0;
+    text-align: justify;     
+    text-justify: inter-word;
 }
 
 .section-icon {

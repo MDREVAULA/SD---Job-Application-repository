@@ -1112,6 +1112,21 @@
     box-shadow: var(--app-shadow);
 }
 
+/* ===== REVIEW DOCUMENTS BUTTON ===== */
+.btn-review-docs {
+    background: #2d5a2e !important;
+    border: 1px solid #2d5a2e;
+    color: #fff !important;
+}
+
+.btn-review-docs:hover {
+    background: #4D774E !important;
+    border-color: #4D774E;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: var(--app-shadow);
+}
+
 .detail-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

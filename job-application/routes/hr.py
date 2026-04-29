@@ -406,6 +406,10 @@ def job_list():
         flash("Access denied!", "danger")
         return redirect(url_for('auth.index'))
 
+    if not current_user.created_by:
+        flash("Your account is not linked to a recruiter.", "warning")
+        return redirect(url_for('hr.profile'))
+    
     from models import JobTeamMember
 
     # Get IDs of jobs this HR is assigned to

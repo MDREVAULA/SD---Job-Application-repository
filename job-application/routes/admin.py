@@ -636,6 +636,17 @@ def delete_user(user_id):
             for row in sub_rows:
                 if row[0]:
                     _delete_upload('employment_submissions', row[0])
+
+            # ── Apply-time resume files (application.resume, separate from profile) ──
+            app_resume_rows = db.session.execute(text("""
+                SELECT resume FROM application
+                WHERE applicant_id = :uid AND resume IS NOT NULL AND resume != ''
+            """), {"uid": target_uid}).fetchall()
+            for row in app_resume_rows:
+                if row[0]:
+                    _delete_upload('resumes', row[0])
+
+            # ── Resignation letter files ───────────────────────────────────────────
  
             # ── Resignation letter files ───────────────────────────────────
             # FIX: this is the ONLY place resignation letters are deleted from
@@ -1099,6 +1110,30 @@ def reports():
         dismissed_count=dismissed_count,
     )
 
+# ==============================
+# Helper: delete evidence files for a report
+# ==============================
+def _delete_report_evidence(report):
+    """Remove uploaded evidence files from disk for a UserReport row."""
+    import json, os
+    if not report.evidence_files:
+        return
+    try:
+        files = json.loads(report.evidence_files)
+        if not isinstance(files, list):
+            files = [report.evidence_files]
+    except (json.JSONDecodeError, TypeError):
+        files = [report.evidence_files]
+    folder = os.path.join(current_app.root_path, 'static', 'uploads', 'report_evidence')
+    for filename in files:
+        if not filename:
+            continue
+        path = os.path.join(folder, filename)
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except Exception as e:
+                print(f'[DELETE FILE] report evidence: {path}: {e}')
 
 # ==============================
 # Dismiss a Report
@@ -1120,6 +1155,7 @@ def dismiss_report(report_id):
     report.admin_notes = admin_notes
     report.reviewed_by = current_user.id
     report.reviewed_at = get_ph_time()
+    _delete_report_evidence(report)
     db.session.commit()
 
     flash("Report dismissed.", "success")
@@ -1170,6 +1206,7 @@ def ban_from_report(report_id):
     report.admin_notes = admin_notes
     report.reviewed_by = current_user.id
     report.reviewed_at = get_ph_time()
+    _delete_report_evidence(report)
 
     UserReport.query.filter_by(
         reported_id=user.id,
@@ -1555,11 +1592,25 @@ def admin_delete_job(job_id):
     company_id = job.company_id
  
     try:
-        # FIX: _delete_job_image_files now also handles employment submission
-        # file deletion from disk (previously missed in this path), so calling
-        # it here covers both job poster images AND submission uploads.
+        # Delete resignation letter files for this job before wiping rows
+        from sqlalchemy import text as _text
+        resign_file_rows = db.session.execute(_text("""
+            SELECT letter_file FROM resignation_request
+            WHERE job_id = :jid AND letter_file IS NOT NULL AND letter_file != ''
+        """), {"jid": job_id}).fetchall()
+        for _row in resign_file_rows:
+            if _row[0] and not _row[0].startswith('http'):
+                import os as _os
+                _path = _os.path.join(current_app.root_path, 'static', 'uploads',
+                                      'resignation_letters', _row[0])
+                if _os.path.exists(_path):
+                    try:
+                        _os.remove(_path)
+                    except Exception as _e:
+                        print(f'[DELETE FILE] resignation letter: {_path}: {_e}')
+
         _delete_job_image_files(job, current_app.root_path)
- 
+
         # Delete all child rows in FK order, then the job row itself.
         # _delete_job_rows now includes the resignation_request WHERE job_id=:jid
         # step first, preventing ghost rows from the SET NULL FK.
